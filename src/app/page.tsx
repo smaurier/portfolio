@@ -1,95 +1,25 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+import Image from 'next/image';
+import Header from './components/header';
 
-export default function Home() {
+export default function Accueil() {
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    <>
+      <Header />
+      <main className="main">
+        <Image src="/img/logo.svg" alt="Logo" width={100} height={100} />
+        {/* <!--  vendre des services directement en ligne, générer des leads, ou présenter votre expertise pour attirer des clients potentiels -->
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+        <!-- Page d'accueil : Une page d'accueil attrayante présentant brièvement votre agence, ses services et son avantage concurrentiel.
+        Services : Une page décrivant en détail les services que vous proposez, avec des informations sur leurs avantages et leur valeur ajoutée.
+        Portfolio/Projets : Une page présentant vos réalisations passées, vos études de cas ou vos projets en cours.
+        À propos : Une page pour partager des informations sur votre agence, votre équipe, vos valeurs et votre expertise.
+        Témoignages : Une page où vous pouvez afficher les commentaires positifs de vos clients satisfaits.
+        Contact : Une page contenant un formulaire de contact et vos coordonnées pour que les visiteurs puissent vous contacter facilement. -->
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+        Services :
+        - création en ligne sur devis : statique ( a partir de -- ), dynamique ( à partir de ),
+        - hebergement : - 0 si l'hebergement est fait par */}
+      </main>
+    </>
   )
 }

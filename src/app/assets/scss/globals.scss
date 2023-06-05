@@ -1,0 +1,35 @@
+body {
+  font-family: 'Roboto';
+  margin: 0;
+}
+
+header {
+  background: #31A560;
+  nav {
+    ul{
+      margin: 0;
+      display: flex;
+      list-style: none;
+      justify-content: center;
+      gap: 2rem;
+      padding: 0.5rem;
+      a {
+        color: white;
+        text-decoration: none;
+      }
+    }
+  }
+}
+
+main {
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  height: 100vh;
+  align-items: center;
+
+  img {
+    width: 50%;
+    height: 50%;
+  }
+}
