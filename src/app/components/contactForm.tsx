@@ -9,18 +9,12 @@ function ContactForm() {
     message: '',
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange(event) {
+    const { name, value } = event.target;
     setFormData({
       ...formData,
       [name]: value,
     });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Vous pouvez ajouter ici le code pour envoyer les données du formulaire
-    // par exemple, en utilisant une API ou une fonction d'envoi de courrier.
   };
 
   return (
