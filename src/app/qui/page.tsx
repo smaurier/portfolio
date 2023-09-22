@@ -1,10 +1,10 @@
 import Header from "../components/header";
 
-export default function Blog() {
+export default function Qui() {
   return (
     <>
       <Header />
-      <div>Blog</div>
+      <div>Qui suis je ?</div>
     </>
   );
 }
