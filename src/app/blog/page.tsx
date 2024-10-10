@@ -4,7 +4,9 @@ export default function Blog() {
   return (
     <>
       <Header />
-      <div>Blog</div>
+      <main>
+        <div>Blog</div>
+      </main>
     </>
   );
 }

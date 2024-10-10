@@ -4,7 +4,9 @@ export default function Services() {
   return (
     <>
       <Header />
-      <div>Services</div>
+      <main>
+        <div>Services</div>
+      </main>
     </>
   );
 }

@@ -1,10 +1,31 @@
+//TODO **************
+
+//factorise CSS
+//variables css pour les couleurs
+
+//*******************
+
+$color-light: #ffffff;
+$color-primary: #31A560;
+
+
+
+html {
+  font-size: 62.5%;
+}
+
 body {
   font-family: 'Roboto';
   margin: 0;
+  font-size: 1.6rem;
 }
 
 header {
-  background: #31A560;
+  background: $color-primary;
+  padding: 2% 5%;
+  display:flex;
+  align-items: center;
+
   nav {
     ul{
       margin: 0;
@@ -22,14 +43,41 @@ header {
 }
 
 main {
-  background-color: white;
+  background-color: $color-light;
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  height: 100vh;
   align-items: center;
+  max-width: 99rem;
+  margin: auto;
+  position:relative;
+}
 
+.insert {
+  padding: 5rem;
+  box-sizing: border-box;
+  width: 100%;
+
+  &--green {
+    background: $color-primary;
+    color: $color-light;
+  }
+}
+
+.error-message {
+  background: red;
+  color: white;
+  padding: 0.5rem;
+}
+
+/* home */
+
+.insert_logo{
+  display:flex;
+  justify-content: center;
   img {
-    width: 50%;
-    height: 50%;
+    width: 40rem;
+    height: 40rem;
+    justify-content: center;
   }
 }

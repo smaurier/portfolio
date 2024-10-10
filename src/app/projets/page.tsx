@@ -4,7 +4,9 @@ export default function Projets() {
   return (
     <>
       <Header />
-      <div> Projets</div>
+      <main>
+        <div> Projets</div>
+      </main>
     </>
   );
 }
