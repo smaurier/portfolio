@@ -9,7 +9,7 @@ export default function Accueil() {
         <div className='insert_logo insert'>
           <Image src="/img/logo.svg" alt="Logo" width={100} height={100} />
 
-          {/* <p>
+          <p>
             Nahual Studio : Métamorphoser Votre Réalité Digitale
 
             Chez Nahual Studio, nous croyons que chaque projet digital est une entité vivante, une force naturelle prête à être révélée. Inspirés par la légende du Nahual, gardien de la métamorphose et du changement, nous appliquons cette magie ancestrale à la technologie moderne. Nous ne créons pas simplement des sites web ; nous réveillons votre présence digitale.
@@ -18,11 +18,11 @@ export default function Accueil() {
             Avec une palette de technologies soigneusement choisies, de Svelte à WordPress, nous tissons, façonnons, et cultivons chaque projet pour refléter votre essence unique. Notre expertise en HTML, CSS, et les dernières innovations nous permet de sculpter des expériences utilisateurs qui ne se contentent pas de répondre aux attentes – elles les transcendent.
 
             Forgeons Ensemble l'Avenir
-            Votre vision, combinée à notre expertise, engendrera une réalité digitale où votre marque ne se contente pas d'exister, mais prospère. Chez Nahual Studio, nous transformons le potentiel en présence, l'imaginaire en palpable. Laissez-nous métamorphoser votre projet avec la précision d’un artisan et la puissance d’un mythe.
+            Votre vision, combinée à notre expertise, engendrera une réalité digitale où votre marque ne se contente pas d'exister, mais prospère. Chez Nahual Studio, nous transformons le potentiel en présence, l'imaginaire en palpable. Laissez-nous métamorphoser votre projet avec la précision d&aposun artisan et la puissance d&aposun mythe.
 
             Rejoignez le Cercle du Changement
             Nous invitons les visionnaires, les créateurs de tendances, et ceux qui cherchent à faire une différence tangible dans le monde digital à se joindre à nous. Embarquez dans une aventure où votre projet sera non seulement vu mais ressenti, où chaque interaction reflète votre marque et votre message.
-          </p> */}
+          </p>
 
         </div>
         <div className="insert insert--green">
@@ -31,11 +31,11 @@ export default function Accueil() {
 
           <h2>Nos services :</h2>
           <ul>
-            <li>Création de sites internet : Que vous ayez besoin d’un site avec ou sans hébergement, nous vous livrons une solution sur mesure, entièrement adaptée à vos besoins.</li>
+            <li>Création de sites internet : Que vous ayez besoin d&aposun site avec ou sans hébergement, nous vous livrons une solution sur mesure, entièrement adaptée à vos besoins.</li>
             <li>Graphisme : Vous avez le choix : soit nous réalisons le graphisme pour vous, soit nous vous mettons en relation avec des graphistes de confiance.</li>
             <li>Applications mobiles : Utilisant Flutter, nous créons également des applications mobiles innovantes et performantes.</li>
             <li>Gestion de contenu : Nous nous occupons de la rédaction de vos textes, ou vous pouvez les mettre à jour facilement via Strapi.</li>
-            <li>Formation sur mesure : Une formation aux outils d’édition peut être incluse pour vous permettre d’être autonome dans la gestion de votre site.</li>
+            <li>Formation sur mesure : Une formation aux outils d&aposédition peut être incluse pour vous permettre d’être autonome dans la gestion de votre site.</li>
             <li>Abonnements personnalisés : Hébergement, maintenance, et plus encore, pour une flexibilité totale adaptée à vos besoins.</li>
           </ul>
 
@@ -50,7 +50,7 @@ export default function Accueil() {
             <li><Image src="/img/flutterio-icon.svg" alt="Logo" width={100} height={100} /> <span>Flutter</span> </li>
             <li><Image src="/img/strapi-logo.svg" alt="Logo" width={100} height={100} /> <span>Strapi</span> </li>
           </ul>
-          <p>Ainsi que d'autres outils adaptés à vos besoins de croissance et d'évolution.</p>
+          <p>Ainsi que d&aposautres outils adaptés à vos besoins de croissance et d&aposévolution.</p>
         </div>
 
         <div className="insert insert--green">
