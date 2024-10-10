@@ -9,7 +9,7 @@ export default function Accueil() {
         <div className='insert_logo insert'>
           <Image src="/img/logo.svg" alt="Logo" width={100} height={100} />
 
-          <p>
+          {/* <p>
             Nahual Studio : Métamorphoser Votre Réalité Digitale
 
             Chez Nahual Studio, nous croyons que chaque projet digital est une entité vivante, une force naturelle prête à être révélée. Inspirés par la légende du Nahual, gardien de la métamorphose et du changement, nous appliquons cette magie ancestrale à la technologie moderne. Nous ne créons pas simplement des sites web ; nous réveillons votre présence digitale.
@@ -22,7 +22,7 @@ export default function Accueil() {
 
             Rejoignez le Cercle du Changement
             Nous invitons les visionnaires, les créateurs de tendances, et ceux qui cherchent à faire une différence tangible dans le monde digital à se joindre à nous. Embarquez dans une aventure où votre projet sera non seulement vu mais ressenti, où chaque interaction reflète votre marque et votre message.
-          </p>
+          </p> */}
 
         </div>
         <div className="insert insert--green">
