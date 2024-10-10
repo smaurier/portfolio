@@ -1,6 +1,5 @@
 
 import Header from "../components/header";
-import ContactComponent from "../../components/Contact/ContactComponent";
 
 export default function Contact() {
 
@@ -9,7 +8,7 @@ export default function Contact() {
     <>
       <Header />
       <main>
-        <ContactComponent />
+        Contact
       </main>
     </>
   );
