@@ -8,8 +8,6 @@
 $color-light: #ffffff;
 $color-primary: #31A560;
 
-
-
 html {
   font-size: 62.5%;
 }
@@ -20,23 +18,50 @@ body {
   font-size: 1.6rem;
 }
 
-header {
+.header {
   background: $color-primary;
-  padding: 2% 5%;
-  display:flex;
-  align-items: center;
-
-  nav {
-    ul{
-      margin: 0;
-      display: flex;
+  padding: 2% 5% 0%;
+  &_up {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+    ul {
       list-style: none;
-      justify-content: center;
-      gap: 2rem;
-      padding: 0.5rem;
-      a {
-        color: white;
-        text-decoration: none;
+      display: flex;
+      justify-content: flex-end;
+      padding: 0 5rem;
+      font-size: 0.8rem;
+      margin: 0;
+      li{
+        padding: 0.5rem;
+        &:last-child {
+          border-left: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        a {
+          text-decoration: none;
+          color: white;
+        }
+
+      }
+    }
+  }
+  &_bottom {
+    display:flex;
+    align-items: center;
+    nav {
+      ul{
+        margin: 0;
+        display: flex;
+        list-style: none;
+        justify-content: center;
+        gap: 2rem;
+        padding: 0.5rem;
+        a {
+          color: white;
+          text-decoration: none;
+        }
       }
     }
   }
@@ -48,7 +73,6 @@ main {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  max-width: 99rem;
   margin: auto;
   position:relative;
 }
@@ -57,6 +81,8 @@ main {
   padding: 5rem;
   box-sizing: border-box;
   width: 100%;
+  color: $color-primary;
+  background: $color-light;
 
   &--green {
     background: $color-primary;
@@ -79,5 +105,24 @@ main {
     width: 40rem;
     height: 40rem;
     justify-content: center;
+  }
+}
+
+.insert_stack {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    gap: 3rem;
+    li {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
   }
 }
