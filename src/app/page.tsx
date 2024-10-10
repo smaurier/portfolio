@@ -9,18 +9,21 @@ export default function Accueil() {
         <div className='insert_logo insert'>
           <Image src="/img/logo.svg" alt="Logo" width={100} height={100} />
 
-          Nahual Studio : Métamorphoser Votre Réalité Digitale
+          <p>
+            Nahual Studio : Métamorphoser Votre Réalité Digitale
 
-          Chez Nahual Studio, nous croyons que chaque projet digital est une entité vivante, une force naturelle prête à être révélée. Inspirés par la légende du Nahual, gardien de la métamorphose et du changement, nous appliquons cette magie ancestrale à la technologie moderne. Nous ne créons pas simplement des sites web ; nous réveillons votre présence digitale.
+            Chez Nahual Studio, nous croyons que chaque projet digital est une entité vivante, une force naturelle prête à être révélée. Inspirés par la légende du Nahual, gardien de la métamorphose et du changement, nous appliquons cette magie ancestrale à la technologie moderne. Nous ne créons pas simplement des sites web ; nous réveillons votre présence digitale.
 
-          Catalyseurs de Votre Croissance Numérique
-          Avec une palette de technologies soigneusement choisies, de Svelte à WordPress, nous tissons, façonnons, et cultivons chaque projet pour refléter votre essence unique. Notre expertise en HTML, CSS, et les dernières innovations nous permet de sculpter des expériences utilisateurs qui ne se contentent pas de répondre aux attentes – elles les transcendent.
+            Catalyseurs de Votre Croissance Numérique
+            Avec une palette de technologies soigneusement choisies, de Svelte à WordPress, nous tissons, façonnons, et cultivons chaque projet pour refléter votre essence unique. Notre expertise en HTML, CSS, et les dernières innovations nous permet de sculpter des expériences utilisateurs qui ne se contentent pas de répondre aux attentes – elles les transcendent.
 
-          Forgeons Ensemble l'Avenir
-          Votre vision, combinée à notre expertise, engendrera une réalité digitale où votre marque ne se contente pas d'exister, mais prospère. Chez Nahual Studio, nous transformons le potentiel en présence, l'imaginaire en palpable. Laissez-nous métamorphoser votre projet avec la précision d’un artisan et la puissance d’un mythe.
+            Forgeons Ensemble l'Avenir
+            Votre vision, combinée à notre expertise, engendrera une réalité digitale où votre marque ne se contente pas d'exister, mais prospère. Chez Nahual Studio, nous transformons le potentiel en présence, l'imaginaire en palpable. Laissez-nous métamorphoser votre projet avec la précision d’un artisan et la puissance d’un mythe.
 
-          Rejoignez le Cercle du Changement
-          Nous invitons les visionnaires, les créateurs de tendances, et ceux qui cherchent à faire une différence tangible dans le monde digital à se joindre à nous. Embarquez dans une aventure où votre projet sera non seulement vu mais ressenti, où chaque interaction reflète votre marque et votre message.
+            Rejoignez le Cercle du Changement
+            Nous invitons les visionnaires, les créateurs de tendances, et ceux qui cherchent à faire une différence tangible dans le monde digital à se joindre à nous. Embarquez dans une aventure où votre projet sera non seulement vu mais ressenti, où chaque interaction reflète votre marque et votre message.
+          </p>
+
         </div>
         <div className="insert insert--green">
           <h1>Nahual Studio – Donnez vie à votre projet, transformez votre vision</h1>
