@@ -24,7 +24,7 @@ export default function Home() {
           <div className="previewContainer" >
             <Image src="/img/kleyfrance.png" alt="KleyFrance" width={300} height={200} />
             <h3>KleyFrance</h3>
-            <p>Création du site web et de l'identité visuelle.</p>
+            <p>Création du site web et de l&apos;identité visuelle.</p>
             <a href="https://kleyfrance.fr/" className="btn-primary">Voir le projet</a>
           </div>
 
@@ -32,7 +32,7 @@ export default function Home() {
           <div className="previewContainer">
             <Image src="/img/iguideu.png" alt="iGuideU" width={300} height={200} className="preview" />
             <h3>iGuideU</h3>
-            <p>Développement du site et refonte de l'identité visuelle.</p>
+            <p>Développement du site et refonte de l&apos;identité visuelle.</p>
             <a href="https://www.iguideu.fr/" className="btn-primary">Voir le projet</a>
           </div>
 
