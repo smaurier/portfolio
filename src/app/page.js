@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
+        <div className="logo-container">
           <Image src="/img/logo.svg" alt="Logo NAHUAL Studio" width={100} height={100} priority />
         </div>
 
@@ -14,45 +14,32 @@ export default function Home() {
 
         <h2>🚀 Besoin d'un site rapide et efficace ?</h2>
 
-        <a href="mailto:sylvain.maurier@gmail.com" style={{
-          display: 'inline-block',
-          backgroundColor: '#ff5733',
-          color: '#fff',
-          padding: '10px 20px',
-          textDecoration: 'none',
-          borderRadius: '5px',
-          fontSize: '18px',
-          maxWidth: '200px',
-          textAlign: 'center',
-        }}>
+        <a href="mailto:sylvain.maurier@gmail.com" className="cta">
           Demander un site maintenant
         </a>
 
         <h2>🎨 Nos Réalisations</h2>
-        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            {/* Projet KleyFrance */}
-            <div style={{ maxWidth: '300px', textAlign: 'center' }}>
-              <Image src="/img/kleyfrance.png" alt="KleyFrance" width={300} height={200}
-                style={{ width: '100%', height: '200px', borderRadius: '10px', objectFit: 'cover' }} />
-              <h3>KleyFrance</h3>
-              <p>Création du site web et de l'identité visuelle.</p>
-              <a href="https://kleyfrance.fr/" className="btn-primary">Voir le projet</a>
-            </div>
-
-            {/* Projet iGuideU */}
-            <div style={{ maxWidth: '300px', textAlign: 'center' }}>
-              <Image src="/img/iguideu.png" alt="iGuideU" width={300} height={200}
-                style={{ width: '100%', height: '200px', borderRadius: '10px', objectFit: 'cover' }} />
-              <h3>iGuideU</h3>
-              <p>Développement du site et refonte de l'identité visuelle.</p>
-              <a href="https://www.iguideu.fr/" className="btn-primary">Voir le projet</a>
-            </div>
+        <div className="container-realisation">
+          {/* Projet KleyFrance */}
+          <div className="previewContainer" >
+            <Image src="/img/kleyfrance.png" alt="KleyFrance" width={300} height={200} />
+            <h3>KleyFrance</h3>
+            <p>Création du site web et de l'identité visuelle.</p>
+            <a href="https://kleyfrance.fr/" className="btn-primary">Voir le projet</a>
           </div>
 
+          {/* Projet iGuideU */}
+          <div className="previewContainer">
+            <Image src="/img/iguideu.png" alt="iGuideU" width={300} height={200} className="preview" />
+            <h3>iGuideU</h3>
+            <p>Développement du site et refonte de l'identité visuelle.</p>
+            <a href="https://www.iguideu.fr/" className="btn-primary">Voir le projet</a>
+          </div>
+
+
           {/* Projet Ecunhi */}
-          <div style={{ maxWidth: '300px', textAlign: 'center' }}>
-            <iframe src="https://player.vimeo.com/video/81902149" width="100%" height="200" style={{ borderRadius: '10px' }} allow="fullscreen"></iframe>
+          <div className="previewContainer">
+            <iframe src="https://player.vimeo.com/video/81902149" width="100%" height="200" className="iframeVimeo" allow="fullscreen"></iframe>
             <h3>Ecunhi - Courts métrages</h3>
             <p>Création de courts métrages artistiques.</p>
             <a href="https://vimeo.com/81902149" className="btn-primary">Voir la vidéo</a>
