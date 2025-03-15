@@ -12,7 +12,7 @@ export default function Home() {
         <h1>✨ NAHUAL Studio - Développement Web Créatif ✨</h1>
         <p>Nous créons des sites web interactifs et performants.</p>
 
-        <h2>🚀 Besoin d'un site rapide et efficace ?</h2>
+        <h2>🚀 Besoin d&apos;un site rapide et efficace ?</h2>
 
         <a href="mailto:sylvain.maurier@gmail.com" className="cta">
           Demander un site maintenant
