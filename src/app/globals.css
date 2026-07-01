@@ -38,81 +38,80 @@ a {
   text-decoration: none;
 }
 
-h1,
-h2 {
-  margin-bottom: 20px;
-}
-
-p {
-  line-height: 1.6;
-}
-
-.btn-primary {
-  display: inline-block;
-  background-color: #ff5733;
-  color: white;
-  padding: 10px 15px;
-  text-decoration: none;
-  border-radius: 5px;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
 main {
-  max-width: 1000px;
-  margin: 100px auto;
-}
-
-.cta {
-  display: inline-block;
-  background-color: #ff5733;
-  color: #fff;
-  padding: 10px 20px;
-  text-decoration: none;
-  border-radius: 5px;
-  font-size: 18px;
-  max-width: 200px;
-  text-align: center;
-}
-
-.preview {
-  width: 100%;
-  height: 200px;
-  border-radius: 10px;
-  object-fit: cover;
-}
-
-.previewContainer {
-  max-width: 300px;
-  text-align: center;
-}
-
-.iframeVideo {
-  border-radius: 10px;
-}
-
-.subcontainer-realisation {
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.container-realisation {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.logo-container {
-  display: flex;
+  width: 100vw;
+  height: 100vh;
   justify-content: center;
   align-items: center;
-  margin-bottom: 20px;
+}
+
+#background-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5; /* Ajuste l'opacité pour un effet subtil */
+  z-index: 1; /* Vidéo en fond */
+  mix-blend-mode: darken; /* Applique un blend mode */
+}
+
+/* Adaptation de l'animation de la Piedra del Sol */
+.piedraSol {
+  position: absolute;
+  z-index: -1;
+  width: 100vw;
+  object-fit: contain;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  opacity: 0.2;
+}
+
+/* Animation d'opacité lors de l'affichage de la Piedra del Sol */
+@keyframes piedraFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+}
+
+.piedraSol {
+  animation: piedraFadeIn 2s ease-in-out;
+}
+
+.logo {
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  animation: fadeInLogo 1.5s ease-in-out 0.5s forwards;
+}
+
+@keyframes fadeInLogo {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
   }
+}
+
+.st1 {
+  stroke: #FFFFFF; /* Définit le contour en blanc */
+  stroke-width: 2;
+  fill: none; /* Désactive le remplissage */
 }

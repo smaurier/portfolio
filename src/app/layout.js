@@ -13,18 +13,8 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "NAHUAL Studio - Développement Web Créatif",
-  description: "Agence web spécialisée dans le développement interactif et créatif.",
-  keywords: "développement web, design interactif, next.js, svelte, gsap, three.js",
-  author: "NAHUAL Studio",
-  openGraph: {
-    title: "NAHUAL Studio - Développement Web Créatif",
-    description: "Agence web spécialisée dans le développement interactif et créatif.",
-    url: "https://nahual.fr",
-    siteName: "NAHUAL Studio",
-    images: [{ url: "/img/og-image.jpg", width: 1200, height: 630, alt: "NAHUAL Studio" }],
-    type: "website",
-  },
+  title: "Nahual . studio de création",
+  description: "Transformez votre vision en réalité digitale",
 };
 
 export default function RootLayout({ children }) {
