@@ -10,6 +10,9 @@ export default function Header() {
             <Link href="https://www.linkedin.com/in/sylvainmaurier-frontend/">linkedin</Link>
           </li>
           <li>
+            <Link href="https://github.com/smaurier">github</Link>
+          </li>
+          <li>
             <Link href="mailto:bonjour@nahual.fr">bonjour@nahual.fr</Link>
           </li>
         </ul>
