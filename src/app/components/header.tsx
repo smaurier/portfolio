@@ -7,7 +7,7 @@ export default function Header() {
       <div className='header_up'>
         <ul>
           <li>
-            <Link href="https://www.linkedin.com/in/sylvainmaurier-frontend/">linkedin</Link>
+            <Link href="https://www.linkedin.com/in/smaurier/">linkedin</Link>
           </li>
           <li>
             <Link href="https://github.com/smaurier">github</Link>
