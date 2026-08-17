@@ -1,6 +1,7 @@
 "use client";
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect } from "react";
 import { gsap } from "gsap";
 import styles from './page.module.css';
@@ -795,11 +796,25 @@ export default function Home() {
           <source src="img/fire.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video> */}
-        <Image className="logo" src="img/logo.svg" alt="Logo" width={100} height={100} />
+        <Image className="logo" src="/img/logo.svg" alt="Logo" width={100} height={100} />
+        <div className={styles.heroText}>
+          <h1>Nahual — studio de création</h1>
+          <p>Je conçois et développe des sites web sur-mesure, accessibles par design.</p>
+          <Link href="/services" className="ctaButton">Découvrir mes services</Link>
+        </div>
+        <div className={styles.aboutText}>
+          <h2>À propos</h2>
+          <p>
+            Sylvain Maurier — développeur frontend senior, 10 ans d&apos;expérience
+            (React, Next.js, Vue/Nuxt, React Native). Spécialisé en accessibilité
+            numérique (RGAA), avec une conviction simple : l&apos;accessibilité se
+            code, pas seulement s&apos;audite.
+          </p>
+          <a href="https://github.com/smaurier" target="_blank" rel="noopener noreferrer">
+            Voir mon code sur GitHub →
+          </a>
+        </div>
       </main>
-      <footer className={styles.footer}>
-
-      </footer>
     </div>
   );
 }

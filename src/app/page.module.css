@@ -163,3 +163,48 @@ a.secondary {
     filter: invert();
   }
 }
+
+.heroText {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 560px;
+  opacity: 0;
+  animation: heroFadeIn 1.5s ease-in-out 0.9s forwards;
+}
+
+.heroText p {
+  line-height: 1.6;
+}
+
+@keyframes heroFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.aboutText {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 560px;
+  text-align: center;
+  opacity: 0;
+  animation: heroFadeIn 1.5s ease-in-out 1.3s forwards;
+}
+
+.aboutText p {
+  line-height: 1.6;
+  font-size: 0.95rem;
+}

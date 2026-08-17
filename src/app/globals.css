@@ -39,11 +39,17 @@ a {
 }
 
 main {
+  position: relative;
   display: flex;
-  width: 100vw;
-  height: 100vh;
+  flex-direction: column;
+  width: 100%;
+  min-height: calc(100svh - 88px); /* 88px ≈ hauteur du header */
   justify-content: center;
   align-items: center;
+  gap: 24px;
+  padding: 40px 24px;
+  text-align: center;
+  overflow: hidden;
 }
 
 #background-video {
@@ -58,15 +64,17 @@ main {
   mix-blend-mode: darken; /* Applique un blend mode */
 }
 
-/* Adaptation de l'animation de la Piedra del Sol */
+/* Adaptation de l'animation de la Piedra del Sol — ancrée au conteneur .main
+   (relative), pas au viewport, sinon elle se décale dès que le header prend
+   de la hauteur au-dessus (logo centré par flexbox = pas le même repère). */
 .piedraSol {
   position: absolute;
   z-index: -1;
-  width: 100vw;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   top: 0;
   left: 0;
-  height: 100vh;
   opacity: 0.2;
 }
 
@@ -114,4 +122,92 @@ main {
   stroke: #FFFFFF; /* Définit le contour en blanc */
   stroke-width: 2;
   fill: none; /* Désactive le remplissage */
+}
+
+/* Header (composant global, une seule instance dans layout.js) */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--gray-alpha-200, rgba(0, 0, 0, 0.08));
+}
+
+.header_up ul {
+  list-style: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.header_bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header_bottom nav ul {
+  list-style: none;
+  display: flex;
+  gap: 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* Contenu texte des pages Services / Projets / Contact / Blog */
+.contentPage {
+  max-width: 680px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  text-align: left;
+}
+
+.contentPage h1 {
+  font-size: 2rem;
+}
+
+.contentPage p {
+  line-height: 1.6;
+}
+
+.serviceCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  border: 1px solid var(--gray-alpha-200, rgba(0, 0, 0, 0.08));
+  border-radius: 12px;
+}
+
+.note {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 12px 28px;
+  border: 1px solid var(--foreground);
+  border-radius: 999px;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ctaButton:hover {
+    background: var(--foreground);
+    color: var(--background);
+  }
+}
+
+.siteFooter {
+  text-align: center;
+  padding: 20px 0;
+  font-size: 0.85rem;
+  opacity: 0.7;
 }

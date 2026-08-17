@@ -1,5 +1,6 @@
 import localFont from "next/font/local";
 import "./globals.css";
+import Header from "./components/header";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,17 +25,10 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/logo.svg" type="image/svg+xml" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <header style={{ backgroundColor: '#171717', padding: '10px 0', textAlign: 'center' }}>
-          <nav>
-            <a href="/" style={{ margin: '0 15px', color: '#fff', fontWeight: 'bold' }}>Accueil</a>
-            <a href="/services" style={{ margin: '0 15px', color: '#fff', fontWeight: 'bold' }}>Services</a>
-            <a href="/projets" style={{ margin: '0 15px', color: '#fff', fontWeight: 'bold' }}>Projets</a>
-            <a href="/contact" style={{ margin: '0 15px', color: '#fff', fontWeight: 'bold' }}>Contact</a>
-          </nav>
-        </header>
-        <main>{children}</main>
-        <footer style={{ textAlign: 'center', padding: '20px 0', marginTop: '40px' }}>
-          © 2025 NAHUAL Studio
+        <Header />
+        {children}
+        <footer className="siteFooter">
+          © {new Date().getFullYear()} NAHUAL Studio
         </footer>
       </body>
     </html>

@@ -19,7 +19,7 @@ export default function Header() {
       </div>
       <div className='header_bottom'>
         <Link href="/">
-          <Image src="/img/mini-logo.svg" alt="nahual-studio" width={100} height={100} />
+          <Image src="/img/mini-logo.svg" alt="nahual-studio" width={40} height={40} />
         </Link>
         <nav>
           <ul>
