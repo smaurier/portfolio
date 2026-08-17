@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from "next/link";
 
 export default function Header() {
@@ -18,8 +17,8 @@ export default function Header() {
         </ul>
       </div>
       <div className='header_bottom'>
-        <Link href="/">
-          <Image src="/img/mini-logo.svg" alt="nahual-studio" width={40} height={40} />
+        <Link href="/" className="logoText">
+          Nahual
         </Link>
         <nav>
           <ul>

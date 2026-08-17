@@ -1,6 +1,5 @@
 "use client";
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect } from "react";
 import { gsap } from "gsap";
@@ -796,7 +795,6 @@ export default function Home() {
           <source src="img/fire.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video> */}
-        <Image className="logo" src="/img/logo.svg" alt="Logo" width={100} height={100} />
         <div className={styles.heroText}>
           <h1>Nahual — studio de création</h1>
           <p>Je conçois et développe des sites web sur-mesure, accessibles par design.</p>
