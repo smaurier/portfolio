@@ -27,8 +27,7 @@ export default function Projets() {
           <p>
             Logo et direction artistique du site (WordPress) de KleyFrance,
             fabricant de solutions de levage et de manutention sur-mesure pour
-            les secteurs pétrolier, océanographique et militaire — réalisé
-            vers 2015.
+            les secteurs pétrolier, océanographique et militaire.
           </p>
           <a
             href="https://kleyfrance.fr/"
