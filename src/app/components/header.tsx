@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ObfuscatedEmail from "./obfuscated-email";
 import type { Dictionary, Locale } from "../../dictionaries";
+import { getPageKeyFromSlug, getPath } from "../../lib/routes";
 
 const locales: Locale[] = ["fr", "en", "es"];
 const langNames: Record<Locale, string> = {
@@ -15,9 +16,13 @@ const langNames: Record<Locale, string> = {
 
 export default function Header({ locale, dict }: { locale: Locale; dict: Dictionary["common"] }) {
   const pathname = usePathname() || `/${locale}`;
-  // Reste du chemin une fois le préfixe de locale retiré, pour que le
-  // switcher de langue conserve la page courante (ex. /fr/services -> /en/services).
-  const rest = pathname.replace(new RegExp(`^/(${locales.join("|")})`), "");
+  // Retrouve la page courante (pas juste le slug brut) pour que le switcher
+  // de langue pointe vers l'équivalent traduit, pas vers un slug qui n'existe
+  // pas dans l'autre langue (/es/servicios -> /en/services, pas /en/servicios).
+  const currentSlug = pathname.split("/")[2];
+  const currentKey = currentSlug ? getPageKeyFromSlug(locale, currentSlug) : undefined;
+
+  const hrefFor = (target: Locale) => (currentKey ? getPath(target, currentKey) : `/${target}`);
 
   return (
     <header className='header'>
@@ -37,7 +42,7 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
           {locales.map((l) => (
             <li key={l}>
               <Link
-                href={`/${l}${rest}`}
+                href={hrefFor(l)}
                 hrefLang={l}
                 lang={l}
                 aria-label={langNames[l]}
@@ -61,13 +66,13 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
               <Link href={`/${locale}`}>{dict.nav.home}</Link>
             </li>
             <li>
-              <Link href={`/${locale}/services`}>{dict.nav.services}</Link>
+              <Link href={getPath(locale, "services")}>{dict.nav.services}</Link>
             </li>
             <li>
-              <Link href={`/${locale}/projets`}>{dict.nav.projects}</Link>
+              <Link href={getPath(locale, "projets")}>{dict.nav.projects}</Link>
             </li>
             <li>
-              <Link href={`/${locale}/contact`}>{dict.nav.contact}</Link>
+              <Link href={getPath(locale, "contact")}>{dict.nav.contact}</Link>
             </li>
           </ul>
         </nav>

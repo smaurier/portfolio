@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { gsap } from "gsap";
 import styles from './page.module.css';
 import { getDictionary } from "../../dictionaries";
+import { getPath } from "../../lib/routes";
 
 export default function Home({ params }) {
   const dict = getDictionary(params.locale).home;
@@ -801,7 +802,7 @@ export default function Home({ params }) {
         <div className={styles.heroText}>
           <h1>{dict.heroTitle}</h1>
           <p>{dict.heroText}</p>
-          <Link href={`/${params.locale}/services`} className={`ctaButton ${styles.heroCta}`}>{dict.heroCta}</Link>
+          <Link href={getPath(params.locale, "services")} className={`ctaButton ${styles.heroCta}`}>{dict.heroCta}</Link>
         </div>
         <div className={styles.aboutText}>
           <h2>{dict.aboutTitle}</h2>
@@ -809,7 +810,7 @@ export default function Home({ params }) {
           <a href="https://github.com/smaurier" target="_blank" rel="noopener noreferrer">
             {dict.githubCta}
           </a>
-          <Link href={`/${params.locale}/contact`} className={`ctaButton ${styles.heroCta}`}>{dict.contactCta}</Link>
+          <Link href={getPath(params.locale, "contact")} className={`ctaButton ${styles.heroCta}`}>{dict.contactCta}</Link>
         </div>
       </main>
     </div>
