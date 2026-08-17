@@ -4,8 +4,11 @@ import Link from 'next/link';
 import { useEffect } from "react";
 import { gsap } from "gsap";
 import styles from './page.module.css';
+import { getDictionary } from "../../dictionaries";
 
-export default function Home() {
+export default function Home({ params }) {
+  const dict = getDictionary(params.locale).home;
+
   useEffect(() => {
     // Sélectionne tous les chemins du SVG ayant la classe "st1"
     const paths = document.querySelectorAll(".st1");
@@ -796,22 +799,17 @@ export default function Home() {
           Your browser does not support the video tag.
         </video> */}
         <div className={styles.heroText}>
-          <h1>Nahual — studio de création</h1>
-          <p>Je conçois et développe des sites web sur-mesure, accessibles par design.</p>
-          <Link href="/services" className={`ctaButton ${styles.heroCta}`}>Découvrir mes services</Link>
+          <h1>{dict.heroTitle}</h1>
+          <p>{dict.heroText}</p>
+          <Link href={`/${params.locale}/services`} className={`ctaButton ${styles.heroCta}`}>{dict.heroCta}</Link>
         </div>
         <div className={styles.aboutText}>
-          <h2>À propos</h2>
-          <p>
-            Sylvain Maurier — développeur frontend senior, 10 ans d&apos;expérience
-            (React, Next.js, Vue/Nuxt, React Native). Spécialisé en accessibilité
-            numérique (RGAA), avec une conviction simple : l&apos;accessibilité se
-            code, pas seulement s&apos;audite.
-          </p>
+          <h2>{dict.aboutTitle}</h2>
+          <p>{dict.aboutText}</p>
           <a href="https://github.com/smaurier" target="_blank" rel="noopener noreferrer">
-            Voir mon code sur GitHub →
+            {dict.githubCta}
           </a>
-          <Link href="/contact" className={`ctaButton ${styles.heroCta}`}>Me contacter</Link>
+          <Link href={`/${params.locale}/contact`} className={`ctaButton ${styles.heroCta}`}>{dict.contactCta}</Link>
         </div>
       </main>
     </div>

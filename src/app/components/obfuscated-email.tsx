@@ -10,7 +10,13 @@ import { useEffect, useState } from "react";
 const USER = "sylvain.maurier";
 const DOMAIN = "gmail.com";
 
-export default function ObfuscatedEmail({ className }: { className?: string }) {
+export default function ObfuscatedEmail({
+  className,
+  placeholder = "Afficher l'email",
+}: {
+  className?: string;
+  placeholder?: string;
+}) {
   const [address, setAddress] = useState<string | null>(null);
 
   useEffect(() => {
@@ -18,7 +24,7 @@ export default function ObfuscatedEmail({ className }: { className?: string }) {
   }, []);
 
   if (!address) {
-    return <span className={className}>Afficher l&apos;email</span>;
+    return <span className={className}>{placeholder}</span>;
   }
 
   return (

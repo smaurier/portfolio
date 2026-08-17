@@ -1,0 +1,73 @@
+{
+  "metadata": {
+    "title": "Nahual . creative studio",
+    "description": "Turning your vision into digital reality"
+  },
+  "common": {
+    "nav": {
+      "home": "Home",
+      "services": "Services",
+      "projects": "Projects",
+      "contact": "Contact"
+    },
+    "langSwitcherLabel": "Switch language",
+    "showEmail": "Show email"
+  },
+  "home": {
+    "heroTitle": "Nahual — creative studio",
+    "heroText": "I design and build custom websites, accessible by design.",
+    "heroCta": "Discover my services",
+    "aboutTitle": "About",
+    "aboutText": "Sylvain Maurier — senior frontend developer, 10 years of experience (React, Next.js, Vue/Nuxt, React Native). Specialized in digital accessibility (RGAA/WCAG), with one simple conviction: accessibility is built, not just audited.",
+    "githubCta": "See my code on GitHub →",
+    "contactCta": "Get in touch"
+  },
+  "services": {
+    "title": "Services",
+    "intro": "Nahual is Sylvain Maurier's creative studio — a senior frontend developer specialized in digital accessibility. Two offers, one goal: websites that work, for everyone.",
+    "webCard": {
+      "title": "Website development",
+      "text": "Showcase sites, custom applications: frontend and fullstack development (React, Next.js, Vue/Nuxt), design systems, performance. From spec to launch."
+    },
+    "auditCard": {
+      "title": "RGAA accessibility audit",
+      "text": "RGAA/WCAG compliance audits with directly implementable recommendations — I deliver the fix code, not just a report.",
+      "note": "Certification in progress (access42 exam, October 23, 2026) — not yet obtained."
+    },
+    "cta": "Let's talk about your project →"
+  },
+  "projets": {
+    "title": "Projects",
+    "intro": "A look at what I build.",
+    "nuada": {
+      "title": "Nuada — RGAA accessibility audit",
+      "text": "Showcase site and RGAA audit engine. Compliance, multilingual SEO, positioned as \"the auditor who codes the fix.\"",
+      "cta": "Visit the site →"
+    },
+    "kleyfrance": {
+      "title": "KleyFrance",
+      "text": "Logo and art direction for KleyFrance's (WordPress) website, a manufacturer of custom lifting and handling solutions for the oil, offshore and defense sectors.",
+      "cta": "Visit the site →"
+    },
+    "synapse": {
+      "title": "Synapse",
+      "text": "Open-source plugin for Claude Code: links an AI assistant's memory across machines and projects instead of duplicating it. A tool for developers, tested (283 tests, green CI).",
+      "cta": "View the code →"
+    },
+    "moreBefore": "More projects on",
+    "moreLinkText": "my GitHub",
+    "moreAfter": "."
+  },
+  "contact": {
+    "title": "Contact",
+    "intro": "A website project or an accessibility audit need? I'm available for new missions — let's talk.",
+    "note": "An idea worth exploring over coffee, or just want to talk tech — either works for me.",
+    "linkedinBefore": "Or on",
+    "linkedinLinkText": "LinkedIn",
+    "linkedinAfter": "."
+  },
+  "blog": {
+    "title": "Blog",
+    "text": "Coming soon."
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "metadata": {
+    "title": "Nahual . studio de création",
+    "description": "Transformez votre vision en réalité digitale"
+  },
+  "common": {
+    "nav": {
+      "home": "Accueil",
+      "services": "Services",
+      "projects": "Projets",
+      "contact": "Contact"
+    },
+    "langSwitcherLabel": "Changer de langue",
+    "showEmail": "Afficher l'email"
+  },
+  "home": {
+    "heroTitle": "Nahual — studio de création",
+    "heroText": "Je conçois et développe des sites web sur-mesure, accessibles par design.",
+    "heroCta": "Découvrir mes services",
+    "aboutTitle": "À propos",
+    "aboutText": "Sylvain Maurier — développeur frontend senior, 10 ans d'expérience (React, Next.js, Vue/Nuxt, React Native). Spécialisé en accessibilité numérique (RGAA), avec une conviction simple : l'accessibilité se code, pas seulement s'audite.",
+    "githubCta": "Voir mon code sur GitHub →",
+    "contactCta": "Me contacter"
+  },
+  "services": {
+    "title": "Services",
+    "intro": "Nahual, c'est le studio de création de Sylvain Maurier — développeur frontend senior spécialisé en accessibilité numérique. Deux offres, un seul objectif : des sites qui marchent, pour tout le monde.",
+    "webCard": {
+      "title": "Création de site web",
+      "text": "Sites vitrines, applications sur-mesure : développement frontend et fullstack (React, Next.js, Vue/Nuxt), design system, performance. Du cahier des charges à la mise en ligne."
+    },
+    "auditCard": {
+      "title": "Audit accessibilité RGAA",
+      "text": "Audit de conformité RGAA/WCAG avec recommandations directement implémentables — je livre le code de correction, pas seulement un rapport.",
+      "note": "Spécialisation en cours de certification (examen access42, 23 octobre 2026) — pas encore obtenue."
+    },
+    "cta": "Discutons de votre projet →"
+  },
+  "projets": {
+    "title": "Projets",
+    "intro": "Un aperçu de ce que je construis.",
+    "nuada": {
+      "title": "Nuada — audit accessibilité RGAA",
+      "text": "Site vitrine et moteur d'audit RGAA. Conformité, SEO multilingue, positionnement « l'auditeur qui code la solution ».",
+      "cta": "Voir le site →"
+    },
+    "kleyfrance": {
+      "title": "KleyFrance",
+      "text": "Logo et direction artistique du site (WordPress) de KleyFrance, fabricant de solutions de levage et de manutention sur-mesure pour les secteurs pétrolier, océanographique et militaire.",
+      "cta": "Voir le site →"
+    },
+    "synapse": {
+      "title": "Synapse",
+      "text": "Plugin open-source pour Claude Code : relie la mémoire d'un assistant IA entre plusieurs machines et projets au lieu de la dupliquer. Outil pour développeurs, testé (283 tests, CI verte).",
+      "cta": "Voir le code →"
+    },
+    "moreBefore": "D'autres projets sur",
+    "moreLinkText": "mon GitHub",
+    "moreAfter": "."
+  },
+  "contact": {
+    "title": "Contact",
+    "intro": "Un projet de site ou un besoin d'audit accessibilité ? Je suis disponible pour de nouvelles missions — parlons-en.",
+    "note": "Une idée à creuser autour d'un café, ou juste envie de parler techno — les deux me vont.",
+    "linkedinBefore": "Ou sur",
+    "linkedinLinkText": "LinkedIn",
+    "linkedinAfter": "."
+  },
+  "blog": {
+    "title": "Blog",
+    "text": "Bientôt."
+  }
+}

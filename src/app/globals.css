@@ -130,6 +130,13 @@ main {
   border-bottom: 1px solid var(--gray-alpha-200, rgba(0, 0, 0, 0.08));
 }
 
+.header_up {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
 .header_up ul {
   list-style: none;
   display: flex;
@@ -137,6 +144,22 @@ main {
   gap: 16px;
   font-size: 0.85rem;
   opacity: 0.8;
+}
+
+.langSwitcher {
+  opacity: 1 !important;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.langSwitcher a {
+  opacity: 0.6;
+}
+
+.langSwitcher a[aria-current="true"] {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .header_bottom {
