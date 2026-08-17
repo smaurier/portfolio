@@ -811,6 +811,7 @@ export default function Home() {
           <a href="https://github.com/smaurier" target="_blank" rel="noopener noreferrer">
             Voir mon code sur GitHub →
           </a>
+          <Link href="/contact" className={`ctaButton ${styles.heroCta}`}>Me contacter</Link>
         </div>
       </main>
     </div>
