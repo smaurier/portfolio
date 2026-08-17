@@ -2,6 +2,10 @@
   --background: #ffffff;
   --foreground: #171717;
   --font-geist: "Geist VF", sans-serif;
+  /* Jade — couleur du centre (accueil) dans la nav cardinale à venir,
+     cf project-nahual-da. Teinte claire assez saturée pour rester lisible
+     sous du texte sombre (--foreground clair). */
+  --jade-bg: #00a86b;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -9,6 +13,9 @@
     --background: #0a0a0a;
     --foreground: #ededed;
     --font-geist: "Geist VF", sans-serif;
+    /* Jade assombri pour rester cohérent avec le fond quasi-noir du mode
+       sombre, plutôt que la même teinte vive plaquée dessus. */
+    --jade-bg: #0e4b3b;
   }
 }
 
@@ -106,6 +113,12 @@ main {
   stroke: #FFFFFF; /* Définit le contour en blanc */
   stroke-width: 2;
   fill: none; /* Désactive le remplissage */
+}
+
+/* Fond jade — uniquement sur le <main> de l'accueil (le "centre" de la
+   future nav cardinale, cf project-nahual-da), pas sur toutes les pages. */
+.main--home {
+  background: var(--jade-bg);
 }
 
 /* Header (composant global, une seule instance dans layout.js) */
