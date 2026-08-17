@@ -798,7 +798,7 @@ export default function Home() {
         <div className={styles.heroText}>
           <h1>Nahual — studio de création</h1>
           <p>Je conçois et développe des sites web sur-mesure, accessibles par design.</p>
-          <Link href="/services" className="ctaButton">Découvrir mes services</Link>
+          <Link href="/services" className={`ctaButton ${styles.heroCta}`}>Découvrir mes services</Link>
         </div>
         <div className={styles.aboutText}>
           <h2>À propos</h2>

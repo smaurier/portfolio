@@ -10,6 +10,9 @@ export default function Contact() {
           disponible pour de nouvelles missions — parlons-en.
         </p>
         <ObfuscatedEmail className="ctaButton" />
+        <p className="note">
+          Un café, un thé, ou juste un message — comme vous préférez.
+        </p>
         <p>
           Ou sur{" "}
           <a href="https://www.linkedin.com/in/smaurier/" target="_blank" rel="noopener noreferrer">
