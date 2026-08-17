@@ -40,6 +40,23 @@ export default function Projets() {
           </a>
         </div>
 
+        <div className="serviceCard">
+          <h2>Synapse</h2>
+          <p>
+            Plugin open-source pour Claude Code : relie la mémoire d&apos;un
+            assistant IA entre plusieurs machines et projets au lieu de la
+            dupliquer. Outil pour développeurs, testé (283 tests, CI verte).
+          </p>
+          <a
+            href="https://github.com/smaurier/claude-synapse"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ctaButton"
+          >
+            Voir le code →
+          </a>
+        </div>
+
         <p>
           D&apos;autres projets sur{" "}
           <a href="https://github.com/smaurier" target="_blank" rel="noopener noreferrer">
