@@ -22,6 +22,24 @@ export default function Projets() {
           </a>
         </div>
 
+        <div className="serviceCard">
+          <h2>KleyFrance</h2>
+          <p>
+            Logo et direction artistique du site (WordPress) de KleyFrance,
+            fabricant de solutions de levage et de manutention sur-mesure pour
+            les secteurs pétrolier, océanographique et militaire — réalisé
+            vers 2015.
+          </p>
+          <a
+            href="https://kleyfrance.fr/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ctaButton"
+          >
+            Voir le site →
+          </a>
+        </div>
+
         <p>
           D&apos;autres projets sur{" "}
           <a href="https://github.com/smaurier" target="_blank" rel="noopener noreferrer">

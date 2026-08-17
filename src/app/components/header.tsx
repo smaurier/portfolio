@@ -23,16 +23,16 @@ export default function Header() {
         <nav>
           <ul>
             <li>
-              <Link href="/">Origines</Link>
+              <Link href="/">Accueil</Link>
             </li>
             <li>
-              <Link href="/services">Rituels</Link>
+              <Link href="/services">Services</Link>
             </li>
             <li>
-              <Link href="/projets">Chroniques</Link>
+              <Link href="/projets">Projets</Link>
             </li>
             <li>
-              <Link href="/contact">Dialogue</Link>
+              <Link href="/contact">Contact</Link>
             </li>
           </ul>
         </nav>
