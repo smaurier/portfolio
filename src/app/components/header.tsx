@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from "next/link";
 
 export default function Header() {
@@ -12,13 +13,14 @@ export default function Header() {
             <Link href="https://github.com/smaurier">github</Link>
           </li>
           <li>
-            <Link href="mailto:bonjour@nahual.fr">bonjour@nahual.fr</Link>
+            <Link href="mailto:sylvain.maurier@gmail.com">sylvain.maurier@gmail.com</Link>
           </li>
         </ul>
       </div>
       <div className='header_bottom'>
-        <Link href="/" className="logoText">
-          Nahual
+        <Link href="/" className="logoLink">
+          <Image src="/img/mini-logo.svg" alt="" width={32} height={32} />
+          <span className="logoText">Nahual</span>
         </Link>
         <nav>
           <ul>

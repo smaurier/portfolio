@@ -7,8 +7,8 @@ export default function Contact() {
           Un projet de site ou un besoin d&apos;audit accessibilité ? Je suis
           disponible pour de nouvelles missions — parlons-en.
         </p>
-        <a href="mailto:bonjour@nahual.fr" className="ctaButton">
-          bonjour@nahual.fr
+        <a href="mailto:sylvain.maurier@gmail.com" className="ctaButton">
+          sylvain.maurier@gmail.com
         </a>
         <p>
           Ou sur{" "}

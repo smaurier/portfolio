@@ -132,6 +132,25 @@ main {
   justify-content: space-between;
 }
 
+.logoLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* mini-logo.svg est en blanc plein (fill="#fff" en dur dans le fichier) :
+   invisible sur fond clair par défaut, donc inversé sauf en préférence
+   système sombre où le fond est déjà sombre. */
+.logoLink img {
+  filter: invert(1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .logoLink img {
+    filter: none;
+  }
+}
+
 .logoText {
   font-weight: 700;
   font-size: 1.1rem;
