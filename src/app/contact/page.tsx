@@ -1,3 +1,5 @@
+import ObfuscatedEmail from "../components/obfuscated-email";
+
 export default function Contact() {
   return (
     <main>
@@ -7,9 +9,7 @@ export default function Contact() {
           Un projet de site ou un besoin d&apos;audit accessibilité ? Je suis
           disponible pour de nouvelles missions — parlons-en.
         </p>
-        <a href="mailto:sylvain.maurier@gmail.com" className="ctaButton">
-          sylvain.maurier@gmail.com
-        </a>
+        <ObfuscatedEmail className="ctaButton" />
         <p>
           Ou sur{" "}
           <a href="https://www.linkedin.com/in/smaurier/" target="_blank" rel="noopener noreferrer">

@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from "next/link";
+import ObfuscatedEmail from "./obfuscated-email";
 
 export default function Header() {
   return (
@@ -13,7 +14,7 @@ export default function Header() {
             <Link href="https://github.com/smaurier">github</Link>
           </li>
           <li>
-            <Link href="mailto:sylvain.maurier@gmail.com">sylvain.maurier@gmail.com</Link>
+            <ObfuscatedEmail />
           </li>
         </ul>
       </div>
