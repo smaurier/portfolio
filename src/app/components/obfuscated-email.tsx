@@ -20,6 +20,11 @@ export default function ObfuscatedEmail({
   const [address, setAddress] = useState<string | null>(null);
 
   useEffect(() => {
+    // set-state-in-effect volontaire : c'est tout le principe du composant
+    // (adresse absente du HTML serveur, peuplée seulement après hydratation
+    // côté client, cf. commentaire en tête de fichier) — pas une synchro
+    // ratée avec un système externe.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAddress(`${USER}@${DOMAIN}`);
   }, []);
 

@@ -1,14 +1,17 @@
 "use client";
 
 import Link from 'next/link';
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import { gsap } from "gsap";
 import styles from './page.module.css';
 import { getDictionary } from "../../dictionaries";
 import { getPath } from "../../lib/routes";
 
 export default function Home({ params }) {
-  const dict = getDictionary(params.locale).home;
+  // Composant client (animation GSAP via useEffect) : impossible d'être
+  // async, donc on déballe la Promise params avec use() (Next.js 15+/React 19).
+  const { locale } = use(params);
+  const dict = getDictionary(locale).home;
 
   useEffect(() => {
     // Sélectionne tous les chemins du SVG ayant la classe "st1"
@@ -802,7 +805,7 @@ export default function Home({ params }) {
         <div className={styles.heroText}>
           <h1>{dict.heroTitle}</h1>
           <p>{dict.heroText}</p>
-          <Link href={getPath(params.locale, "services")} className={`ctaButton ${styles.heroCta}`}>{dict.heroCta}</Link>
+          <Link href={getPath(locale, "services")} className={`ctaButton ${styles.heroCta}`}>{dict.heroCta}</Link>
         </div>
         <div className={styles.aboutText}>
           <h2>{dict.aboutTitle}</h2>
@@ -810,7 +813,7 @@ export default function Home({ params }) {
           <a href="https://github.com/smaurier" target="_blank" rel="noopener noreferrer">
             {dict.githubCta}
           </a>
-          <Link href={getPath(params.locale, "contact")} className={`ctaButton ${styles.heroCta}`}>{dict.contactCta}</Link>
+          <Link href={getPath(locale, "contact")} className={`ctaButton ${styles.heroCta}`}>{dict.contactCta}</Link>
         </div>
       </main>
     </div>

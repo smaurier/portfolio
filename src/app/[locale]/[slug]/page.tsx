@@ -108,11 +108,16 @@ function BlogPage({ dict }: { dict: Dictionary["blog"] }) {
   );
 }
 
-export default function LocalizedPage({ params }: { params: { locale: string; slug: string } }) {
-  if (!isLocale(params.locale)) notFound();
-  const locale: Locale = params.locale;
+export default async function LocalizedPage({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}) {
+  const { locale: rawLocale, slug } = await params;
+  if (!isLocale(rawLocale)) notFound();
+  const locale: Locale = rawLocale;
 
-  const key = getPageKeyFromSlug(locale, params.slug);
+  const key = getPageKeyFromSlug(locale, slug);
   if (!key) notFound();
 
   const fullDict = getDictionary(locale);

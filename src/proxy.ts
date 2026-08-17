@@ -17,7 +17,9 @@ function getPreferredLocale(request: NextRequest): string {
   return preferred.find((lang) => (locales as readonly string[]).includes(lang)) ?? defaultLocale;
 }
 
-export function middleware(request: NextRequest) {
+// Renommé middleware -> proxy pour Next.js 16 (middleware.ts est déprécié,
+// même comportement, juste le nom du fichier et de l'export qui changent).
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const hasLocale = locales.some(
