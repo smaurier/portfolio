@@ -5,6 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { clampProgress } from "@/lib/camera-path";
 import { getNavEmphasis } from "@/lib/reveal-arc";
 import BackgroundFlora from "./background-flora";
+import EnvironmentDepthFade from "./environment-depth-fade";
 import Grass from "./grass";
 import Ground from "./ground";
 import Milpa from "./milpa";
@@ -116,21 +117,29 @@ export default function StagScene() {
            * doit jamais assombrir la scène proche, seulement l'horizon. */}
           <fog attach="fog" args={["#000000", 10, 34]} />
           <RevealLighting progressRef={progressRef} />
-          <Ground />
+          {/* Perspective atmosphérique (18/08, retour Sylvain : "plus on est
+           * loin et plus ça devient gris, comme en peinture") — uniquement
+           * sur le décor/fond, jamais sur le cerf (rim-light.ts à la place)
+           * ni sur le maïs/les lianes (compagnons immédiats du sujet), ni
+           * sur les montagnes (retour Sylvain le soir même : leur contour
+           * doit rester lisible, pas encore désaturé en plus du fog). */}
+          <EnvironmentDepthFade>
+            <Ground />
+            <Suspense fallback={null}>
+              <BackgroundFlora />
+            </Suspense>
+            <Suspense fallback={null}>
+              <Ocotillo />
+            </Suspense>
+            <Suspense fallback={null}>
+              <Grass />
+            </Suspense>
+          </EnvironmentDepthFade>
           <Suspense fallback={null}>
             <Mountains />
           </Suspense>
           <Suspense fallback={null}>
             <StagModel progressRef={progressRef} />
-          </Suspense>
-          <Suspense fallback={null}>
-            <BackgroundFlora />
-          </Suspense>
-          <Suspense fallback={null}>
-            <Ocotillo />
-          </Suspense>
-          <Suspense fallback={null}>
-            <Grass />
           </Suspense>
           <Suspense fallback={null}>
             <Milpa progressRef={progressRef} />
