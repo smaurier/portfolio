@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, type MutableRefObject } from "react";
+import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Group } from "three";
-import { getIdleClipName } from "@/lib/reveal-arc";
+import { getDirectionalIntensity, getIdleClipName } from "@/lib/reveal-arc";
+import { applyRimLight, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 
 const MODEL_PATH = "/models/stag.glb";
 // Hauteur voulue en unités de scène, pas l'échelle native du GLB (les packs
@@ -33,6 +34,13 @@ export default function StagModel({
   const { scene, animations } = useGLTF(MODEL_PATH);
   const { actions } = useAnimations(animations, group);
   const currentClipRef = useRef<string | null>(null);
+  // useMemo plutôt qu'un ref réassigné dans un effet : eslint-plugin-react-
+  // hooks (compilateur React 19) refuse de muter une valeur affectée
+  // dans/à partir d'un effet — useMemo garde le tableau d'uniforms stable
+  // par référence (recalculé seulement si `scene` change), et useFrame
+  // ci-dessous mute juste leurs `.value`, le seul moyen d'animer un uniform
+  // Three.js par frame.
+  const rimUniforms: RimLightUniforms[] = useMemo(() => applyRimLight(scene), [scene]);
 
   useEffect(() => {
     // Recadre le modèle sur son propre bounding box : hauteur fixée à
@@ -67,6 +75,15 @@ export default function StagModel({
     actions[currentClipRef.current ?? ""]?.fadeOut(0.4);
     actions[wantClip]?.reset().fadeIn(0.4).play();
     currentClipRef.current = wantClip;
+  });
+
+  useFrame(() => {
+    // Le liseré capte la lumière qui monte avec l'arc de reveal, comme le
+    // reste de la scène (RevealLighting) — jamais dominant (×0.4), un
+    // simple accent qui suit le même rythme dramatique plutôt qu'une
+    // intensité fixe déconnectée de la narration.
+    const intensity = getDirectionalIntensity(progressRef.current) * 0.4;
+    setRimLightIntensity(rimUniforms, intensity);
   });
 
   return <primitive ref={group} object={scene} />;
