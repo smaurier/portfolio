@@ -1,0 +1,15 @@
+/* Pattern classique de scène pilotée par le scroll : une piste haute (300vh)
+   dans laquelle le canvas reste collé à l'écran pendant qu'on en parcourt la
+   hauteur — la progression scrollée à l'intérieur devient l'entrée de la
+   trajectoire de caméra (cf src/lib/camera-path.ts). */
+.scrollTrack {
+  height: 300vh;
+  position: relative;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: #000;
+}

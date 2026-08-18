@@ -22,8 +22,18 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
   font-family: var(--font-geist);
+}
+
+/* overflow-x:hidden reste sur html seulement (racine réelle du scroll,
+   document.scrollingElement). Le mettre aussi sur body force overflow-y à
+   "auto" par la spec CSS (un axe non-visible force l'autre axe visible à
+   passer en auto) — body devient alors son propre conteneur de scroll,
+   jamais scrollé lui-même, et casse position:sticky pour tout ce qui est
+   dessous (constaté sur la scène du cerf, cf project-nahual-da palier 0).
+   Vérifié : aucune scrollbar horizontale n'apparaît sans overflow-x ici. */
+html {
+  overflow-x: hidden;
 }
 
 body {
@@ -128,6 +138,12 @@ main {
   gap: 8px;
   padding: 12px 24px;
   border-bottom: 1px solid var(--gray-alpha-200, rgba(0, 0, 0, 0.08));
+  /* Explicite plutôt que la valeur initiale implicite : le header ne peint
+     pas sa propre couleur de fond, pour ne jamais masquer un fond de scène
+     (canvas WebGL en position fixed derrière, cf project-nahual-da) le jour
+     où une page en a un. Sans effet visuel aujourd'hui (aucune page ne pose
+     encore ce cas), pose la règle une fois pour toutes les pages. */
+  background: transparent;
 }
 
 .header_up {
@@ -255,4 +271,6 @@ main {
   padding: 20px 0;
   font-size: 0.85rem;
   opacity: 0.7;
+  /* Même raison que .header ci-dessus : fond transparent explicite. */
+  background: transparent;
 }
