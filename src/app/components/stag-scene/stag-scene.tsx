@@ -11,6 +11,7 @@ import Milpa from "./milpa";
 import Mountains from "./mountains";
 import Ocotillo from "./ocotillo";
 import OrbitCamera from "./orbit-camera";
+import PostFX from "./post-fx";
 import RevealLighting from "./reveal-lighting";
 import StagModel from "./stag-model";
 import Vines from "./vines";
@@ -138,6 +139,7 @@ export default function StagScene() {
             <Vines progressRef={progressRef} />
           </Suspense>
           <OrbitCamera progressRef={progressRef} />
+          <PostFX />
         </Canvas>
       </div>
     </div>

@@ -33,8 +33,15 @@ const DEFAULT_OPTIONS: OrbitCameraOptions = {
   // DA du "face-à-face" ; l'inverse — partir proche puis reculer — allait
   // contre le sens de l'arc de reveal). Synchronisé sur climaxProgress,
   // la même borne que le plafond de lumière (reveal-arc.ts, 0.75).
-  startRadius: 9,
-  endRadius: 4,
+  //
+  // 9->7 / 4->3.2 (18/08, retour Sylvain après audit DA : cadrage trop
+  // timide, sujet noyé dans le vide même une fois le décor ajouté) — rayons
+  // resserrés d'environ 20% aux deux bornes, hauteurs volontairement pas
+  // touchées (déjà réglées précisément contre un bug documenté : à
+  // endRadius=4 la tête sortait du cadre, cf startHeight ci-dessous —
+  // change isolé, une seule variable à la fois).
+  startRadius: 7,
+  endRadius: 3.2,
   // 4 -> 2.6 (retour Sylvain palier 1) : à 4, la tête du cerf en
   // Idle_Headlow (posture "inconscient" de la pénombre, cf reveal-arc.ts)
   // sortait du cadre par le haut — le passage tête-basse -> tête-haute au
