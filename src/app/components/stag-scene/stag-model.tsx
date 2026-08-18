@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type MutableRefObject } from "react";
+import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Group } from "three";
+import { getIdleClipName } from "@/lib/reveal-arc";
 
 const MODEL_PATH = "/models/stag.glb";
 // Hauteur voulue en unités de scène, pas l'échelle native du GLB (les packs
@@ -12,13 +14,21 @@ const TARGET_HEIGHT = 2;
 
 /**
  * Le cerf (Quaternius, CC0, pack "Animated Animal Pack" — cf memory
- * project-nahual-da). Palier 0 : juste l'Idle, pas encore de mise en scène
- * (reveal/échos viennent dans un palier suivant).
+ * project-nahual-da). Palier 1 : crossfade Idle_Headlow → Idle au rythme de
+ * l'arc de reveal (tête basse tant qu'il n'a pas remarqué le visiteur,
+ * cf src/lib/reveal-arc.ts) — toujours pas de tête qui pivote vers la
+ * caméra, ce beat-là reste au palier suivant (pas de clip dédié dans le rig,
+ * nécessite une rotation d'os pilotée par code).
  */
-export default function StagModel() {
+export default function StagModel({
+  progressRef,
+}: {
+  progressRef: MutableRefObject<number>;
+}) {
   const group = useRef<Group>(null);
   const { scene, animations } = useGLTF(MODEL_PATH);
   const { actions } = useAnimations(animations, group);
+  const currentClipRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Recadre le modèle sur son propre bounding box : hauteur fixée à
@@ -37,12 +47,23 @@ export default function StagModel() {
   }, [scene]);
 
   useEffect(() => {
-    const idle = actions["Idle"];
-    idle?.reset().fadeIn(0.3).play();
+    const clip = getIdleClipName(progressRef.current);
+    actions[clip]?.reset().fadeIn(0.3).play();
+    currentClipRef.current = clip;
     return () => {
-      idle?.fadeOut(0.3);
+      actions[clip]?.fadeOut(0.3);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- progressRef lu une fois au montage, la suite est gérée par useFrame ci-dessous.
   }, [actions]);
+
+  useFrame(() => {
+    const wantClip = getIdleClipName(progressRef.current);
+    if (wantClip === currentClipRef.current) return;
+
+    actions[currentClipRef.current ?? ""]?.fadeOut(0.4);
+    actions[wantClip]?.reset().fadeIn(0.4).play();
+    currentClipRef.current = wantClip;
+  });
 
   return <primitive ref={group} object={scene} />;
 }

@@ -217,6 +217,19 @@ main {
   font-weight: 600;
 }
 
+/* "Chemins révélés" — dernier temps de l'arc de reveal du cerf (palier 1,
+   cf project-nahual-da), scopé à la page qui pose la classe (/lab
+   seulement). La couleur elle-même est pilotée en JS (stag-scene.tsx,
+   applyNavEmphasis) plutôt qu'en CSS pur : color-mix()+calc() et la syntaxe
+   de couleur relative laissaient toutes les deux un underline visible même
+   à émphase 0 (constaté par inspection directe des styles calculés, pas
+   fiable pour un état "invisible au repos"). Cette règle ne pose que la
+   transition, la couleur/ligne sont appliquées inline. */
+body.nahual-lab-reveal .header_bottom nav a {
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s linear;
+}
+
 /* Contenu texte des pages Services / Projets / Contact / Blog */
 .contentPage {
   max-width: 680px;
