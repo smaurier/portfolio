@@ -1,0 +1,121 @@
+"use client";
+
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
+import { Box3, Vector3, type Object3D } from "three";
+import { generateRingPlacements, type FloraPlacement } from "@/lib/flora-placement";
+
+/**
+ * Végétation de fond, fixe dans le monde — palier 3 de la DA Nahual (cf
+ * memory project-nahual-da). Deux rôles : (1) ambiance/texture désertique
+ * mexicaine authentique autour du cerf, (2) repère visuel externe qui
+ * règle l'ambiguïté "c'est le cerf qui tourne ou la caméra ?" (observation
+ * de Sylvain) — ces éléments ne suivent PAS la rotation du cerf.
+ *
+ * Statique, pas de pousse animée : Sylvain a précisé vouloir réserver
+ * l'animation de pousse au maïs (milpa), pas au fond entier.
+ *
+ * Espèces choisies pour leur authenticité précolombienne mésoaméricaine
+ * (cf discussion du 17-18/08) — l'aloès a été explicitement écarté (Ancien
+ * Monde, introduit après la colonisation, pas de racine dans la cosmologie
+ * nahua contrairement aux autres). Yucca et le cactus en pot Quaternius
+ * sont dans le repo mais pas placés ici : les deux GLB incluent un pot de
+ * fleuriste (contexte "plante d'intérieur"), visuellement faux dans une
+ * scène en pleine nature — à reprendre si une version sans pot est trouvée.
+ */
+
+type Species = {
+  path: string;
+  /** Hauteur cible en unités de scène — mesurée à l'œil par espèce, pas
+   * uniforme (l'elephant tree doit dominer, le cactus tonneau rester bas). */
+  targetHeight: number;
+};
+
+const SPECIES: Species[] = [
+  { path: "/models/agave.glb", targetHeight: 1.1 },
+  { path: "/models/nopal-quaternius.glb", targetHeight: 1.0 },
+  { path: "/models/nopal-google.glb", targetHeight: 1.0 },
+  { path: "/models/cactus-barrel.glb", targetHeight: 0.55 },
+  { path: "/models/elephant-tree.glb", targetHeight: 2.3 },
+];
+
+const INSTANCES_PER_SPECIES = 2;
+
+function useNormalizedClone(path: string, targetHeight: number): Object3D {
+  const { scene } = useGLTF(path);
+  const clone = useMemo(() => scene.clone(true), [scene]);
+  const normalizedRef = useRef(false);
+
+  // Recadre sur le bounding box réel plutôt que de deviner un facteur
+  // d'échelle par asset — même principe que StagModel, mais calculé dans
+  // useFrame (une seule fois, via le ref ci-dessus) plutôt qu'en useEffect :
+  // avec plusieurs clones du même GLB partagé (useGLTF met en cache la
+  // scène source), un useEffect pouvait mesurer un bounding box pas encore
+  // à jour pour certaines instances — constaté en vrai (une des deux
+  // instances de cactus tonneau restait à sa taille native, ~5 unités,
+  // largement plus grande que prévu). useFrame garantit que l'objet est
+  // déjà réellement attaché au graphe de scène Three.js au moment du calcul.
+  useFrame(() => {
+    if (normalizedRef.current) return;
+    const box = new Box3().setFromObject(clone);
+    const size = box.getSize(new Vector3());
+    if (size.y <= 0) return; // géométrie pas encore prête, on retente au frame suivant
+
+    const center = box.getCenter(new Vector3());
+    const scale = targetHeight / size.y;
+    clone.scale.setScalar(scale);
+    clone.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+    normalizedRef.current = true;
+  });
+
+  return clone;
+}
+
+function FloraInstance({
+  species,
+  placement,
+}: {
+  species: Species;
+  placement: FloraPlacement;
+}) {
+  const model = useNormalizedClone(species.path, species.targetHeight);
+  return (
+    <group
+      position={[placement.x, 0, placement.z]}
+      rotation={[0, placement.rotationY, 0]}
+      scale={placement.scale}
+    >
+      <primitive object={model} />
+    </group>
+  );
+}
+
+export default function BackgroundFlora() {
+  const placements = useMemo(
+    () =>
+      generateRingPlacements(SPECIES.length * INSTANCES_PER_SPECIES, {
+        // minRadius au-delà du rayon caméra le plus proche (climax, 4 —
+        // cf camera-path.ts) : le fond ne doit jamais se retrouver devant
+        // la caméra pendant l'orbite.
+        minRadius: 6,
+        maxRadius: 10,
+        minScale: 0.75,
+        maxScale: 1.25,
+        seed: 1,
+      }),
+    [],
+  );
+
+  return (
+    <>
+      {placements.map((placement, i) => (
+        <FloraInstance key={i} species={SPECIES[i % SPECIES.length]} placement={placement} />
+      ))}
+    </>
+  );
+}
+
+for (const species of SPECIES) {
+  useGLTF.preload(species.path);
+}

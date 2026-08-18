@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { clampProgress } from "@/lib/camera-path";
 import { getNavEmphasis } from "@/lib/reveal-arc";
+import BackgroundFlora from "./background-flora";
 import OrbitCamera from "./orbit-camera";
 import RevealLighting from "./reveal-lighting";
 import StagModel from "./stag-model";
@@ -104,6 +105,9 @@ export default function StagScene() {
           <RevealLighting progressRef={progressRef} />
           <Suspense fallback={null}>
             <StagModel progressRef={progressRef} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <BackgroundFlora />
           </Suspense>
           <OrbitCamera progressRef={progressRef} />
         </Canvas>
