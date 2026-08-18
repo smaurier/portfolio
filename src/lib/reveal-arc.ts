@@ -80,3 +80,11 @@ export function getIdleClipName(progress: number): "Idle_Headlow" | "Idle" {
 export function getNavEmphasis(progress: number): number {
   return lerpWithinRange(progress, PHASE_START["chemins-reveles"], 1, 0, 1);
 }
+
+// Croissance du maïs (palier 3, cf memory project-nahual-da) : émerge du
+// sol tôt — avec la prise de conscience, la vie s'éveille en même temps
+// que le cerf — et atteint sa taille pleine avant le climax du face-à-face,
+// pour ne jamais distraire pendant ce beat-là.
+export function getMilpaGrowth(progress: number): number {
+  return easeWithinRange(progress, PHASE_START.penombre, PHASE_START["face-a-face"], 0, 1);
+}

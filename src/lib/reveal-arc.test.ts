@@ -3,6 +3,7 @@ import {
   getAmbientIntensity,
   getDirectionalIntensity,
   getIdleClipName,
+  getMilpaGrowth,
   getNavEmphasis,
   getRevealPhase,
 } from "./reveal-arc";
@@ -103,5 +104,24 @@ describe("getNavEmphasis", () => {
     expect(getNavEmphasis(0.75)).toBeCloseTo(0);
     expect(getNavEmphasis(0.875)).toBeCloseTo(0.5);
     expect(getNavEmphasis(1)).toBeCloseTo(1);
+  });
+});
+
+describe("getMilpaGrowth", () => {
+  it("n'a pas encore poussé au tout début", () => {
+    expect(getMilpaGrowth(0)).toBeCloseTo(0);
+  });
+
+  it("a fini de pousser avant le climax du face-à-face, pas pendant", () => {
+    expect(getMilpaGrowth(0.5)).toBeCloseTo(1);
+    expect(getMilpaGrowth(0.6)).toBeCloseTo(1);
+    expect(getMilpaGrowth(1)).toBeCloseTo(1);
+  });
+
+  it("grandit en continu, jamais ne rétrécit", () => {
+    const samples = [0, 0.1, 0.2, 0.3, 0.4, 0.5].map(getMilpaGrowth);
+    for (let i = 1; i < samples.length; i++) {
+      expect(samples[i]).toBeGreaterThanOrEqual(samples[i - 1]);
+    }
   });
 });
