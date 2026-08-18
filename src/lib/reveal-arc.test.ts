@@ -57,14 +57,26 @@ describe("getAmbientIntensity", () => {
 });
 
 describe("getDirectionalIntensity", () => {
-  it("reste basse pendant toute la pénombre (le regard ne s'est pas encore posé)", () => {
+  it("part au plancher en tout début de pénombre", () => {
     expect(getDirectionalIntensity(0)).toBeCloseTo(0.5);
-    expect(getDirectionalIntensity(0.24)).toBeCloseTo(0.5);
   });
 
-  it("monte pendant conscience→face-à-face et culmine au climax", () => {
-    expect(getDirectionalIntensity(0.5)).toBeCloseTo(1.8);
+  it("atteint le plafond au climax (fin du face-à-face) et le tient ensuite", () => {
+    expect(getDirectionalIntensity(0.75)).toBeCloseTo(1.8);
     expect(getDirectionalIntensity(0.9)).toBeCloseTo(1.8);
+  });
+
+  it("monte en continu, sans palier plat au milieu (retour direct de Sylvain : deux paliers nets à l'ancienne version plat→rampe→plat)", () => {
+    const samples = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.75].map(getDirectionalIntensity);
+    for (let i = 1; i < samples.length; i++) {
+      expect(samples[i]).toBeGreaterThan(samples[i - 1]);
+    }
+  });
+
+  it("suit un easing (smoothstep) plutôt qu'une simple droite : dérivée quasi nulle tout près des deux bornes", () => {
+    const nearStart = getDirectionalIntensity(0.02) - getDirectionalIntensity(0);
+    const nearMiddle = getDirectionalIntensity(0.39) - getDirectionalIntensity(0.37);
+    expect(nearStart).toBeLessThan(nearMiddle);
   });
 });
 

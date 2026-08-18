@@ -37,21 +37,33 @@ function lerpWithinRange(progress: number, start: number, end: number, from: num
   return lerp(from, to, (p - start) / (end - start));
 }
 
+/** Variante easing de lerpWithinRange (Hermite/smoothstep : dérivée nulle
+ * aux deux bornes) — une seule courbe continue sur toute la plage plutôt
+ * que plat→rampe→plat, qui se lisait comme deux paliers nets plutôt qu'une
+ * montée fluide (retour direct de Sylvain en regardant /lab). */
+function easeWithinRange(progress: number, start: number, end: number, from: number, to: number): number {
+  const p = clampProgress(progress);
+  const t = end > start ? Math.min(1, Math.max(0, (p - start) / (end - start))) : p >= end ? 1 : 0;
+  const smoothed = t * t * (3 - 2 * t);
+  return lerp(from, to, smoothed);
+}
+
 // Lumière d'ambiance : tamisée en pénombre (silhouette visible, pas de noir
 // total — vérifié par lecture de pixels : en dessous de ~0.3 le matériau du
 // cerf tombe à (0,0,0) pur, "mystérieux" devenait juste invisible), monte
-// progressivement jusqu'au climax du face-à-face, puis reste au plafond
-// pour les chemins révélés (pas de redescente — la révélation ne s'éteint
-// pas).
+// jusqu'au climax du face-à-face, puis reste au plafond pour les chemins
+// révélés (pas de redescente — la révélation ne s'éteint pas).
 export function getAmbientIntensity(progress: number): number {
-  return lerpWithinRange(progress, PHASE_START.penombre, PHASE_START["chemins-reveles"], 0.35, 0.85);
+  return easeWithinRange(progress, PHASE_START.penombre, PHASE_START["chemins-reveles"], 0.35, 0.85);
 }
 
-// Lumière directionnelle (le "regard" qui se pose sur le cerf) : monte plus
-// tard et plus vite que l'ambiante, pour que le climax du face-à-face soit
-// bien celui qui porte l'intensité dramatique.
+// Lumière directionnelle (le "regard" qui se pose sur le cerf) : même plage
+// que l'ambiante (pas de plat→rampe→plat séparé, qui créait deux paliers
+// visuellement nets), mais l'easing concentre naturellement le plus gros du
+// changement au milieu — le climax du face-à-face reste celui qui porte le
+// plus l'intensité dramatique, sans discontinuité.
 export function getDirectionalIntensity(progress: number): number {
-  return lerpWithinRange(progress, PHASE_START.conscience, PHASE_START["face-a-face"], 0.5, 1.8);
+  return easeWithinRange(progress, PHASE_START.penombre, PHASE_START["chemins-reveles"], 0.5, 1.8);
 }
 
 // Le cerf est tête basse (Idle_Headlow, inconscient de la présence) tant

@@ -20,7 +20,11 @@ export type OrbitCameraOptions = {
 
 const DEFAULT_OPTIONS: OrbitCameraOptions = {
   radius: 6,
-  startHeight: 4,
+  // 4 -> 2.6 (17/08, retour Sylvain palier 1) : à 4, la tête du cerf en
+  // Idle_Headlow (posture "inconscient" de la pénombre, cf reveal-arc.ts)
+  // sortait du cadre par le haut — le passage tête-basse -> tête-haute au
+  // "prise de conscience" ne se voyait donc pas du tout.
+  startHeight: 2.6,
   endHeight: 1.4,
   turns: 1,
 };
