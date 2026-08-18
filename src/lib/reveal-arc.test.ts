@@ -124,4 +124,15 @@ describe("getMilpaGrowth", () => {
       expect(samples[i]).toBeGreaterThanOrEqual(samples[i - 1]);
     }
   });
+
+  it("avec un stagger, démarre plus tard (rien poussé à un progress où stagger=0 aurait déjà commencé)", () => {
+    expect(getMilpaGrowth(0.05, 1)).toBeCloseTo(0);
+    expect(getMilpaGrowth(0.05, 0)).toBeGreaterThan(0);
+  });
+
+  it("quel que soit le stagger, a quand même fini avant le climax du face-à-face", () => {
+    for (const stagger of [0, 0.3, 0.7, 1]) {
+      expect(getMilpaGrowth(0.5, stagger)).toBeCloseTo(1);
+    }
+  });
 });

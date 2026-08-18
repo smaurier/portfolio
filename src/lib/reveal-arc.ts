@@ -81,10 +81,22 @@ export function getNavEmphasis(progress: number): number {
   return lerpWithinRange(progress, PHASE_START["chemins-reveles"], 1, 0, 1);
 }
 
-// Croissance du maïs (palier 3, cf memory project-nahual-da) : émerge du
-// sol tôt — avec la prise de conscience, la vie s'éveille en même temps
-// que le cerf — et atteint sa taille pleine avant le climax du face-à-face,
-// pour ne jamais distraire pendant ce beat-là.
-export function getMilpaGrowth(progress: number): number {
-  return easeWithinRange(progress, PHASE_START.penombre, PHASE_START["face-a-face"], 0, 1);
+// Croissance du maïs et des lianes (palier 3, cf memory project-nahual-da) :
+// émerge du sol tôt — avec la prise de conscience, la vie s'éveille en même
+// temps que le cerf — et atteint sa taille pleine avant le climax du
+// face-à-face, pour ne jamais distraire pendant ce beat-là.
+//
+// `stagger` (0..1, retour de Sylvain le 18/08 : "tout ne devrait pas
+// pousser en même temps") décale le DÉPART de la pousse à l'intérieur de
+// cette même fenêtre, jamais la fin — chaque plante garde l'invariant
+// "finie avant le climax", seul le moment où elle démarre varie. Une plante
+// à stagger=1 a une fenêtre de pousse plus courte (elle démarre plus tard
+// mais doit quand même finir à temps), pas une pousse plus lente qui
+// déborderait sur le face-à-face.
+export function getMilpaGrowth(progress: number, stagger: number = 0): number {
+  const envelopeStart = PHASE_START.penombre;
+  const envelopeEnd = PHASE_START["face-a-face"];
+  const maxShift = (envelopeEnd - envelopeStart) * 0.35;
+  const start = envelopeStart + clampProgress(stagger) * maxShift;
+  return easeWithinRange(progress, start, envelopeEnd, 0, 1);
 }

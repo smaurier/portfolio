@@ -5,7 +5,11 @@ import { Canvas } from "@react-three/fiber";
 import { clampProgress } from "@/lib/camera-path";
 import { getNavEmphasis } from "@/lib/reveal-arc";
 import BackgroundFlora from "./background-flora";
+import Grass from "./grass";
+import Ground from "./ground";
 import Milpa from "./milpa";
+import Mountains from "./mountains";
+import Ocotillo from "./ocotillo";
 import OrbitCamera from "./orbit-camera";
 import RevealLighting from "./reveal-lighting";
 import StagModel from "./stag-model";
@@ -104,12 +108,28 @@ export default function StagScene() {
     <div ref={sectionRef} className={styles.scrollTrack}>
       <div className={styles.sticky}>
         <Canvas camera={{ fov: 45, near: 0.1, far: 100 }}>
+          {/* Fond pur noir (cf .sticky en CSS) : couleur de fog identique
+           * pour que les éléments lointains (sol, montagnes) se fondent dans
+           * le vide plutôt que de finir sur une teinte visible en bordure.
+           * near/far au-delà de l'orbite caméra (radius max 9) : le fog ne
+           * doit jamais assombrir la scène proche, seulement l'horizon. */}
+          <fog attach="fog" args={["#000000", 10, 34]} />
           <RevealLighting progressRef={progressRef} />
+          <Ground />
+          <Suspense fallback={null}>
+            <Mountains />
+          </Suspense>
           <Suspense fallback={null}>
             <StagModel progressRef={progressRef} />
           </Suspense>
           <Suspense fallback={null}>
             <BackgroundFlora />
+          </Suspense>
+          <Suspense fallback={null}>
+            <Ocotillo />
+          </Suspense>
+          <Suspense fallback={null}>
+            <Grass />
           </Suspense>
           <Suspense fallback={null}>
             <Milpa progressRef={progressRef} />

@@ -11,14 +11,19 @@ const MODEL_PATH = "/models/corn.glb";
 // grand") — changement isolé, testé seul plutôt que mélangé à autre chose.
 const TARGET_HEIGHT = 1.35;
 
-// Autour des pattes du cerf — approximation à l'œil de la pose Idle, pas
-// interrogé les os réels du rig (point d'attention déjà noté dans le
-// Codex : plus précis mais plus de travail, pas fait ce soir).
+// Autour du cerf, à distance des pattes — pas dessus. À l'origine ces
+// coordonnées étaient identiques à celles des lianes (vines.tsx), qui
+// grimpent sur les pattes elles-mêmes : les deux se confondaient en un seul
+// bloc vert (retour de Sylvain le 18/08 : "on ne voit pas la diff" entre le
+// maïs et les lianes). Rayon x1.7 par rapport aux pattes (mêmes directions,
+// juste repoussé) pour lire comme un vrai "milpa autour du cerf" — un champ
+// qui l'entoure — plutôt qu'un feuillage collé aux pattes qui redouble les
+// lianes.
 const MIDGROUND_POSITIONS: [number, number][] = [
-  [0.32, 0.28],
-  [-0.32, 0.32],
-  [0.36, -0.3],
-  [-0.28, -0.34],
+  [0.54, 0.48],
+  [-0.54, 0.54],
+  [0.61, -0.51],
+  [-0.48, -0.58],
 ];
 
 // Rideau de premier plan : entre la caméra (qui démarre à l'azimuth 0,
@@ -31,13 +36,25 @@ const FOREGROUND_POSITIONS: [number, number][] = [
   [0.8, 3.1],
 ];
 
+// Décale légèrement le départ de la pousse d'une tige à l'autre (retour de
+// Sylvain le 18/08 : "tout ne devrait pas pousser en même temps") — suite
+// fractionnaire du nombre d'or (même principe que flora-placement.ts),
+// déterministe et bien répartie sur [0,1) sans motif répétitif visible.
+const GOLDEN_RATIO_CONJUGATE = 0.6180339887498949;
+
+function staggerForIndex(index: number): number {
+  return (index * GOLDEN_RATIO_CONJUGATE) % 1;
+}
+
 function MilpaStalk({
   x,
   z,
+  stagger,
   progressRef,
 }: {
   x: number;
   z: number;
+  stagger: number;
   progressRef: MutableRefObject<number>;
 }) {
   const { scene } = useGLTF(MODEL_PATH);
@@ -66,7 +83,7 @@ function MilpaStalk({
       // reste ancrée au sol (position déjà recentrée sur y=0 ci-dessus),
       // donc la tige émerge du sol plutôt que de rétrécir uniformément
       // dans toutes les directions.
-      const growth = Math.max(0.001, getMilpaGrowth(progressRef.current));
+      const growth = Math.max(0.001, getMilpaGrowth(progressRef.current, stagger));
       groupRef.current.scale.set(1, growth, 1);
     }
   });
@@ -88,10 +105,24 @@ export default function Milpa({ progressRef }: { progressRef: MutableRefObject<n
   return (
     <>
       {MIDGROUND_POSITIONS.map(([x, z], i) => (
-        <MilpaStalk key={`mid-${i}`} x={x} z={z} progressRef={progressRef} />
+        <MilpaStalk
+          key={`mid-${i}`}
+          x={x}
+          z={z}
+          stagger={staggerForIndex(i)}
+          progressRef={progressRef}
+        />
       ))}
       {FOREGROUND_POSITIONS.map(([x, z], i) => (
-        <MilpaStalk key={`fg-${i}`} x={x} z={z} progressRef={progressRef} />
+        <MilpaStalk
+          key={`fg-${i}`}
+          x={x}
+          z={z}
+          // Décalé après les positions midground (même suite, index continué)
+          // pour ne pas retomber sur les mêmes valeurs de stagger.
+          stagger={staggerForIndex(MIDGROUND_POSITIONS.length + i)}
+          progressRef={progressRef}
+        />
       ))}
     </>
   );

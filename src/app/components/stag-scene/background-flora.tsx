@@ -23,6 +23,15 @@ import { generateRingPlacements, type FloraPlacement } from "@/lib/flora-placeme
  * sont dans le repo mais pas placés ici : les deux GLB incluent un pot de
  * fleuriste (contexte "plante d'intérieur"), visuellement faux dans une
  * scène en pleine nature — à reprendre si une version sans pot est trouvée.
+ *
+ * elephant-tree.glb (torote/copal) retiré le 18/08 : audit visuel + poids
+ * (3,6 Mo, ~40x les autres assets ici) a révélé un décalage de style — texture
+ * peinte/photoréaliste à côté d'assets plats vertex-color, et un rendu qui
+ * restait pleinement éclairé même en pénombre (0% de scroll), à l'encontre
+ * de l'arc de reveal. Remplacé par un ocotillo procédural (cf Ocotillo,
+ * src/lib/ocotillo-shapes.ts) — aucun asset CC0 trouvé pour cette silhouette
+ * précise (gerbe de tiges rayonnantes), le procédural garantit l'exactitude
+ * de l'espèce plutôt qu'un compromis générique.
  */
 
 type Species = {
@@ -37,7 +46,6 @@ const SPECIES: Species[] = [
   { path: "/models/nopal-quaternius.glb", targetHeight: 1.0 },
   { path: "/models/nopal-google.glb", targetHeight: 1.0 },
   { path: "/models/cactus-barrel.glb", targetHeight: 0.55 },
-  { path: "/models/elephant-tree.glb", targetHeight: 2.3 },
 ];
 
 const INSTANCES_PER_SPECIES = 2;
