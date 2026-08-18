@@ -9,6 +9,7 @@ import Milpa from "./milpa";
 import OrbitCamera from "./orbit-camera";
 import RevealLighting from "./reveal-lighting";
 import StagModel from "./stag-model";
+import Vines from "./vines";
 import styles from "./stag-scene.module.css";
 
 // Classe plate (pas une classe du module CSS scopé) : posée sur <body>,
@@ -112,6 +113,9 @@ export default function StagScene() {
           </Suspense>
           <Suspense fallback={null}>
             <Milpa progressRef={progressRef} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <Vines progressRef={progressRef} />
           </Suspense>
           <OrbitCamera progressRef={progressRef} />
         </Canvas>

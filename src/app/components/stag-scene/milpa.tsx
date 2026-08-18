@@ -7,7 +7,9 @@ import { Box3, Vector3, type Group } from "three";
 import { getMilpaGrowth } from "@/lib/reveal-arc";
 
 const MODEL_PATH = "/models/corn.glb";
-const TARGET_HEIGHT = 0.85;
+// 0.85 -> 1.35 (18/08, retour Sylvain : "on pourrait mettre le maïs plus
+// grand") — changement isolé, testé seul plutôt que mélangé à autre chose.
+const TARGET_HEIGHT = 1.35;
 
 // Autour des pattes du cerf — approximation à l'œil de la pose Idle, pas
 // interrogé les os réels du rig (point d'attention déjà noté dans le
