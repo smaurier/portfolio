@@ -8,25 +8,44 @@
 export type Vec3 = { x: number; y: number; z: number };
 
 export type OrbitCameraOptions = {
-  /** Distance constante entre la caméra et la cible (le centre du modèle). */
-  radius: number;
+  /** Distance caméra<->cible au tout début du scroll (progress = 0) : loin,
+   * silhouette distante dans la pénombre. */
+  startRadius: number;
+  /** Distance caméra<->cible au climax (progress = climaxProgress) : proche,
+   * intime — c'est le "face-à-face". Reste à cette distance ensuite (pas de
+   * retour en arrière, même logique que la lumière de reveal-arc.ts). */
+  endRadius: number;
   /** Hauteur de la caméra au tout début du scroll (progress = 0). */
   startHeight: number;
   /** Hauteur de la caméra à la fin du scroll (progress = 1). */
   endHeight: number;
   /** Nombre de tours complets sur toute la durée du scroll (défaut : 1). */
   turns?: number;
+  /** Hauteur de la cible regardée — fixe, pas de teaser. */
+  targetY: number;
+  /** Progress où le rapprochement (startRadius -> endRadius) est terminé. */
+  climaxProgress: number;
 };
 
 const DEFAULT_OPTIONS: OrbitCameraOptions = {
-  radius: 6,
-  // 4 -> 2.6 (17/08, retour Sylvain palier 1) : à 4, la tête du cerf en
+  // Loin -> proche à mesure que la lumière monte (17/08, retour direct de
+  // Sylvain : partir loin/sombre et se rapprocher vers le climax colle à la
+  // DA du "face-à-face" ; l'inverse — partir proche puis reculer — allait
+  // contre le sens de l'arc de reveal). Synchronisé sur climaxProgress,
+  // la même borne que le plafond de lumière (reveal-arc.ts, 0.75).
+  startRadius: 9,
+  endRadius: 4,
+  // 4 -> 2.6 (retour Sylvain palier 1) : à 4, la tête du cerf en
   // Idle_Headlow (posture "inconscient" de la pénombre, cf reveal-arc.ts)
   // sortait du cadre par le haut — le passage tête-basse -> tête-haute au
-  // "prise de conscience" ne se voyait donc pas du tout.
+  // "prise de conscience" ne se voyait donc pas du tout. Partir loin (voir
+  // startRadius) aide aussi : à distance, tout le corps rentre dans le
+  // cadre même à hauteur de caméra modeste.
   startHeight: 2.6,
   endHeight: 1.4,
   turns: 1,
+  targetY: 1,
+  climaxProgress: 0.75,
 };
 
 /** Ramène une valeur dans [0, 1] — le scroll réel peut légèrement déborder. */
@@ -35,28 +54,49 @@ export function clampProgress(progress: number): number {
   return Math.min(1, Math.max(0, progress));
 }
 
+function lerp(from: number, to: number, t: number): number {
+  return from + (to - from) * t;
+}
+
+/** Smoothstep : 0->1 avec dérivée nulle aux deux bornes, cohérent avec
+ * l'easing de reveal-arc.ts plutôt qu'une droite brute. */
+function ease(t: number): number {
+  const c = Math.min(1, Math.max(0, t));
+  return c * c * (3 - 2 * c);
+}
+
 /**
  * Position de la caméra pour une progression de scroll donnée (0 = haut de
- * page, 1 = bas de la section scène). Orbite sur le plan XZ, hauteur (Y)
- * interpolée linéairement entre startHeight et endHeight.
+ * page, 1 = bas de la section scène). Orbite sur le plan XZ (azimuth sur
+ * toute la progression brute) ; le rayon se resserre (startRadius ->
+ * endRadius) jusqu'à climaxProgress puis reste au plus proche, la hauteur
+ * descend (startHeight -> endHeight) sur toute la durée.
  */
 export function getOrbitCameraPosition(
   progress: number,
   options: Partial<OrbitCameraOptions> = {},
 ): Vec3 {
-  const { radius, startHeight, endHeight, turns } = { ...DEFAULT_OPTIONS, ...options };
+  const { startRadius, endRadius, startHeight, endHeight, turns, climaxProgress } = {
+    ...DEFAULT_OPTIONS,
+    ...options,
+  };
   const p = clampProgress(progress);
   const azimuth = p * Math.PI * 2 * (turns ?? 1);
 
+  const climaxT = climaxProgress > 0 ? ease(Math.min(1, p / climaxProgress)) : 1;
+  const radius = lerp(startRadius, endRadius, climaxT);
+  const height = lerp(startHeight, endHeight, p);
+
   return {
     x: radius * Math.sin(azimuth),
-    y: startHeight + (endHeight - startHeight) * p,
+    y: height,
     z: radius * Math.cos(azimuth),
   };
 }
 
 /** Cible regardée par la caméra — fixe au centre du modèle, légèrement
  * remontée pour cadrer le corps plutôt que les sabots. */
-export function getOrbitCameraTarget(): Vec3 {
-  return { x: 0, y: 1, z: 0 };
+export function getOrbitCameraTarget(options: Partial<OrbitCameraOptions> = {}): Vec3 {
+  const { targetY } = { ...DEFAULT_OPTIONS, ...options };
+  return { x: 0, y: targetY, z: 0 };
 }

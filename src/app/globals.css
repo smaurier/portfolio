@@ -6,6 +6,12 @@
      cf project-nahual-da. Teinte claire assez saturée pour rester lisible
      sous du texte sombre (--foreground clair). */
   --jade-bg: #00a86b;
+  /* Hauteurs réelles de .header/.siteFooter, mesurées (getBoundingClientRect)
+     plutôt que devinées — servent à réserver l'espace ailleurs maintenant
+     que les deux sont en position:fixed (palier 2 DA Nahual, cf
+     project-nahual-da : overlay superposé au canvas plutôt qu'en flux). */
+  --header-height: 81px;
+  --footer-height: 65px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -60,11 +66,16 @@ main {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-height: calc(100svh - 88px); /* 88px ≈ hauteur du header */
+  min-height: 100svh;
   justify-content: center;
   align-items: center;
   gap: 24px;
-  padding: 40px 24px;
+  /* header/footer sont en position:fixed (palier 2 DA Nahual, cf
+     project-nahual-da) : plus rien ne pousse le contenu, donc on réserve
+     l'espace nous-mêmes en padding plutôt qu'en soustrayant du min-height
+     comme avant (header en flux normal). Sans ça le texte des pages
+     Services/Projets/Contact partirait sous le header. */
+  padding: calc(40px + var(--header-height)) 24px calc(40px + var(--footer-height));
   text-align: center;
   overflow: hidden;
 }
@@ -138,12 +149,17 @@ main {
   gap: 8px;
   padding: 12px 24px;
   border-bottom: 1px solid var(--gray-alpha-200, rgba(0, 0, 0, 0.08));
-  /* Explicite plutôt que la valeur initiale implicite : le header ne peint
-     pas sa propre couleur de fond, pour ne jamais masquer un fond de scène
-     (canvas WebGL en position fixed derrière, cf project-nahual-da) le jour
-     où une page en a un. Sans effet visuel aujourd'hui (aucune page ne pose
-     encore ce cas), pose la règle une fois pour toutes les pages. */
   background: transparent;
+  /* Overlay superposé plutôt qu'en flux (palier 2 DA Nahual, cf
+     project-nahual-da) : maintenant que le fond est transparent, la scène
+     du cerf peut se voir derrière la nav du tout premier pixel de scroll.
+     `main` réserve l'espace équivalent via --header-height pour que les
+     pages texte (Services/Projets/Contact) ne passent pas dessous. */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
 }
 
 .header_up {
@@ -230,6 +246,38 @@ body.nahual-lab-reveal .header_bottom nav a {
   transition: text-decoration-color 0.2s linear;
 }
 
+/* Contraste header/footer sur /lab : la scène est un canvas noir en dur,
+   indépendant du thème clair/sombre du système (--foreground y suit le
+   thème, pas la scène) — sans ce forçage, un visiteur en thème clair se
+   retrouve avec du texte header/footer sombre sur fond noir, quasi
+   invisible (repéré par Sylvain en relisant l'overlay, pas juste "à
+   l'œil" — vérifié ensuite avec de vrais ratios de contraste ci-dessous).
+   #fff plutôt que --foreground (#ededed en sombre) : sur noir pur, ratio
+   21:1 contre 18.1:1 — l'écart est faible mais autant prendre le max
+   dispo puisque rien d'autre ne dépend de cette teinte ici.
+   - nav (opacity 1) / header_up (opacity 0.8) / footer (opacity 0.7) :
+     21:1 / 13.1:1 / 11.2:1 — largement au-dessus du seuil AA (4.5:1).
+   - langSwitcher inactif (opacity 0.6, le plus faible du lot) : 7.4:1 —
+     passe AA texte normal, marge confortable même pour un petit texte. */
+body.nahual-lab-reveal .header,
+body.nahual-lab-reveal .siteFooter {
+  color: #fff;
+}
+
+/* Retiré plutôt que recoloré (retour direct de Sylvain) : le liseré du
+   header casse l'effet immersif sur la scène, overlay superposé ou non. */
+body.nahual-lab-reveal .header {
+  border-bottom: none;
+}
+
+/* Logo : mini-logo.svg est blanc plein en dur, normalement inversé en
+   thème clair (cf .logoLink img plus haut) pour rester visible sur un
+   fond clair — sur /lab le fond est noir quel que soit le thème, donc on
+   annule cette inversion pour garder le logo dans son blanc natif. */
+body.nahual-lab-reveal .logoLink img {
+  filter: none;
+}
+
 /* Contenu texte des pages Services / Projets / Contact / Blog */
 .contentPage {
   max-width: 680px;
@@ -284,6 +332,11 @@ body.nahual-lab-reveal .header_bottom nav a {
   padding: 20px 0;
   font-size: 0.85rem;
   opacity: 0.7;
-  /* Même raison que .header ci-dessus : fond transparent explicite. */
   background: transparent;
+  /* Overlay superposé, même raison que .header ci-dessus. */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
 }

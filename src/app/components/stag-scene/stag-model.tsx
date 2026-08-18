@@ -10,6 +10,10 @@ const MODEL_PATH = "/models/stag.glb";
 // Hauteur voulue en unités de scène, pas l'échelle native du GLB (les packs
 // Quaternius exportent parfois dans une autre unité — mesurée, pas devinée :
 // sans normalisation le modèle remplissait l'écran dès la hanche).
+// Essai à 2.6 le 17/08 ("le cerf pourrait être plus grand") : remis à 2,
+// l'idée reste ouverte mais mitigée (cf project-nahual-da) — mélangée à un
+// changement de rayon caméra en même temps, on ne pouvait plus dire lequel
+// des deux produisait quoi. À retester isolément si l'hypothèse revient.
 const TARGET_HEIGHT = 2;
 
 /**
