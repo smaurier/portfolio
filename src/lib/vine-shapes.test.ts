@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { generateVineFlowerPlacements, generateVineHelixPath } from "./vine-shapes";
+import {
+  generateVineFlowerPlacements,
+  generateVineHelixPath,
+  getVineFlowerBloom,
+  getVineFlowerStartThreshold,
+} from "./vine-shapes";
 
 describe("generateVineHelixPath", () => {
   it("part exactement au sol (premier point à y=0)", () => {
@@ -53,5 +58,51 @@ describe("generateVineFlowerPlacements", () => {
       expect(flower.t).toBeGreaterThanOrEqual(0.25);
       expect(flower.t).toBeLessThanOrEqual(0.95);
     }
+  });
+});
+
+describe("getVineFlowerStartThreshold", () => {
+  it("reste toujours dans la plage 33%-40%", () => {
+    for (let i = 0; i < 10; i++) {
+      const threshold = getVineFlowerStartThreshold(i, 2.8);
+      expect(threshold).toBeGreaterThanOrEqual(0.33);
+      expect(threshold).toBeLessThanOrEqual(0.4);
+    }
+  });
+
+  it("varie d'une fleur à l'autre sur la même liane (pas toutes au même seuil)", () => {
+    const thresholds = [0, 1, 2, 3].map((i) => getVineFlowerStartThreshold(i, 1.4));
+    expect(new Set(thresholds).size).toBeGreaterThan(1);
+  });
+
+  it("est déterministe : même index/seed -> même seuil", () => {
+    expect(getVineFlowerStartThreshold(2, 0.7)).toBe(getVineFlowerStartThreshold(2, 0.7));
+  });
+});
+
+describe("getVineFlowerBloom", () => {
+  it("reste fermée (0) tant que la liane n'a pas atteint le seuil de départ", () => {
+    expect(getVineFlowerBloom(0, 0.35)).toBe(0);
+    expect(getVineFlowerBloom(0.2, 0.35)).toBe(0);
+    expect(getVineFlowerBloom(0.35, 0.35)).toBe(0);
+  });
+
+  it("est pleinement ouverte (1) une fois la liane à 80%, et le reste après", () => {
+    expect(getVineFlowerBloom(0.8, 0.35)).toBeCloseTo(1);
+    expect(getVineFlowerBloom(0.9, 0.35)).toBeCloseTo(1);
+    expect(getVineFlowerBloom(1, 0.35)).toBeCloseTo(1);
+  });
+
+  it("s'ouvre en continu entre le seuil de départ et 80%, jamais ne se referme", () => {
+    const samples = [0.35, 0.45, 0.55, 0.65, 0.75, 0.8].map((g) => getVineFlowerBloom(g, 0.35));
+    for (let i = 1; i < samples.length; i++) {
+      expect(samples[i]).toBeGreaterThanOrEqual(samples[i - 1]);
+    }
+  });
+
+  it("une fleur qui démarre plus tôt (33%) a une ouverture différente à mi-parcours qu'une qui démarre plus tard (40%)", () => {
+    const early = getVineFlowerBloom(0.55, 0.33);
+    const late = getVineFlowerBloom(0.55, 0.4);
+    expect(early).not.toBeCloseTo(late, 5);
   });
 });

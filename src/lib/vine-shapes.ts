@@ -93,3 +93,36 @@ export function generateVineFlowerPlacements(
   }
   return placements;
 }
+
+const GOLDEN_RATIO_CONJUGATE = 0.6180339887498949; // même suite que milpa.tsx
+
+/**
+ * Décale à quel niveau de pousse de LA LIANE (pas du scroll directement)
+ * une fleur donnée commence à s'ouvrir — retour de Sylvain le 18/08 : les
+ * fleurs ne doivent pas apparaître dès le début de la pousse de la liane
+ * ("enlève les fleurs à la base"), chacune démarre à un seuil légèrement
+ * différent dans une plage 33%-40%, jamais exactement synchronisées
+ * ("les fleurs ne vont pas grandir à la même vitesse, fait une variation").
+ */
+export function getVineFlowerStartThreshold(index: number, vineSeed: number): number {
+  const t = (index * GOLDEN_RATIO_CONJUGATE + vineSeed) % 1;
+  return 0.33 + t * 0.07;
+}
+
+/**
+ * Ouverture d'une fleur de liane (0 fermée -> 1 pleinement ouverte), en
+ * fonction de la pousse de la liane elle-même — retour de Sylvain le
+ * 18/08 : fermée tant que la liane n'a pas atteint `startAt` (33%-40%
+ * selon la fleur, cf getVineFlowerStartThreshold), s'ouvre ensuite jusqu'à
+ * ce que la liane atteigne `endAt` (80% par défaut), reste pleinement
+ * ouverte après — pas de retour en arrière, même principe que
+ * getMilpaGrowth. Varier `startAt` par fleur suffit à faire varier leur
+ * vitesse d'ouverture perçue : celle qui démarre à 33% a plus de chemin à
+ * parcourir avant 80% que celle qui démarre à 40%, donc s'ouvre plus
+ * progressivement — pas besoin de faire varier `endAt` en plus.
+ */
+export function getVineFlowerBloom(vineGrowth: number, startAt: number, endAt: number = 0.8): number {
+  if (endAt <= startAt) return vineGrowth >= endAt ? 1 : 0;
+  const t = Math.min(1, Math.max(0, (vineGrowth - startAt) / (endAt - startAt)));
+  return t * t * (3 - 2 * t);
+}

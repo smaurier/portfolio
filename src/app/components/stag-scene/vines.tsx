@@ -3,31 +3,93 @@
 import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
-import { Box3, CatmullRomCurve3, TubeGeometry, Vector3, type Group } from "three";
-import { generateVineFlowerPlacements, generateVineHelixPath } from "@/lib/vine-shapes";
+import { Box3, CatmullRomCurve3, TubeGeometry, Vector3, type Group, type Mesh, type Object3D } from "three";
+import {
+  generateVineFlowerPlacements,
+  generateVineHelixPath,
+  getVineFlowerBloom,
+  getVineFlowerStartThreshold,
+} from "@/lib/vine-shapes";
 import { getMilpaGrowth } from "@/lib/reveal-arc";
 
 const VINE_COLOR = "#3f6b2f";
 const FLOWER_MODEL_PATH = "/models/vine-flower.glb";
 const FLOWER_TARGET_SIZE = 0.09;
+// En-dessous de ce seuil, on cache plutôt que de rendre un scale
+// quasi-nul — retour de Sylvain le 18/08 : "enlève les fleurs à la base
+// lorsqu'elles sont à zéro" / "cacher aussi les lianes".
+const HIDDEN_THRESHOLD = 0.002;
 
-function VineFlower({ x, y, z }: { x: number; y: number; z: number }) {
+// Fonction séparée plutôt qu'une assignation directe dans le useFrame du
+// composant : eslint-plugin-react-hooks (compilateur React 19) refuse une
+// mutation directe sur une valeur issue d'un hook (ici `clone`, un
+// useMemo) dans le corps du composant, mais pas un appel de fonction qui
+// mute en interne — même raison que setRimLightIntensity (rim-light.ts).
+function updateFlowerTransform(
+  clone: Object3D,
+  visible: boolean,
+  scale: number,
+  x: number,
+  y: number,
+  z: number,
+) {
+  clone.visible = visible;
+  clone.scale.setScalar(scale);
+  clone.position.set(x, y, z);
+}
+
+function VineFlower({
+  x,
+  y,
+  z,
+  progressRef,
+  vineStagger,
+  startAt,
+}: {
+  x: number;
+  y: number;
+  z: number;
+  progressRef: MutableRefObject<number>;
+  vineStagger: number;
+  startAt: number;
+}) {
   const { scene } = useGLTF(FLOWER_MODEL_PATH);
   const clone = useMemo(() => scene.clone(true), [scene]);
-  const normalizedRef = useRef(false);
+  const readyRef = useRef(false);
+  const baseScaleRef = useRef(0);
+  const centerRef = useRef(new Vector3());
+  const minYRef = useRef(0);
 
   // Même technique que background-flora.tsx (useFrame plutôt qu'useEffect,
-  // même raison : plusieurs clones du même GLB caché par useGLTF).
+  // même raison : plusieurs clones du même GLB caché par useGLTF). Une fois
+  // la boîte englobante connue (position/centre du modèle brut, indépendant
+  // de l'ouverture), l'échelle réelle affichée est recalculée chaque frame
+  // à partir de l'ouverture (getVineFlowerBloom) — la fleur grossit depuis
+  // son point d'accroche (position.y = -minY*scale = 0 à toute échelle),
+  // pas depuis son centre géométrique.
   useFrame(() => {
-    if (normalizedRef.current) return;
-    const box = new Box3().setFromObject(clone);
-    const size = box.getSize(new Vector3());
-    if (size.y <= 0) return;
-    const scale = FLOWER_TARGET_SIZE / size.y;
-    const center = box.getCenter(new Vector3());
-    clone.scale.setScalar(scale);
-    clone.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
-    normalizedRef.current = true;
+    if (!readyRef.current) {
+      const box = new Box3().setFromObject(clone);
+      const size = box.getSize(new Vector3());
+      if (size.y <= 0) return;
+      baseScaleRef.current = FLOWER_TARGET_SIZE / size.y;
+      centerRef.current = box.getCenter(new Vector3());
+      minYRef.current = box.min.y;
+      readyRef.current = true;
+    }
+
+    const vineGrowth = getMilpaGrowth(progressRef.current, vineStagger);
+    const bloom = getVineFlowerBloom(vineGrowth, startAt);
+    const visible = bloom > HIDDEN_THRESHOLD;
+    const scale = baseScaleRef.current * bloom;
+    updateFlowerTransform(
+      clone,
+      visible,
+      scale,
+      -centerRef.current.x * scale,
+      -minYRef.current * scale,
+      -centerRef.current.z * scale,
+    );
   });
 
   return (
@@ -93,30 +155,46 @@ function Vine({
     });
     const curve = new CatmullRomCurve3(path.map((p) => new Vector3(p.x, p.y, p.z)));
     const tubeGeometry = new TubeGeometry(curve, 40, 0.011, 5, false);
-    const flowerPoints = generateVineFlowerPlacements(config.height > 1 ? 5 : 3).map((f) =>
-      curve.getPointAt(Math.min(1, Math.max(0, f.t))),
-    );
+    const flowerCount = config.height > 1 ? 5 : 3;
+    const flowerPoints = generateVineFlowerPlacements(flowerCount).map((f, i) => ({
+      point: curve.getPointAt(Math.min(1, Math.max(0, f.t))),
+      // Seuil de départ propre à chaque fleur (33%-40% de la pousse de la
+      // liane) — combine l'index de la fleur et le seed de la liane pour
+      // qu'aucune liane ne retombe sur exactement le même motif.
+      startAt: getVineFlowerStartThreshold(i, config.seed),
+    }));
     return { tubeGeometry, flowerPoints };
   }, [config]);
 
   const groupRef = useRef<Group>(null);
+  const tubeRef = useRef<Mesh>(null);
 
   useFrame(() => {
     if (!groupRef.current) return;
     // Même mécanique que le maïs (getMilpaGrowth), avec un stagger propre à
     // chaque liane — la vie s'éveille pendant la prise de conscience, mais
     // pas exactement au même instant d'une plante à l'autre.
-    const growth = Math.max(0.001, getMilpaGrowth(progressRef.current, config.stagger));
-    groupRef.current.scale.set(1, growth, 1);
+    const growth = getMilpaGrowth(progressRef.current, config.stagger);
+    const visible = growth > HIDDEN_THRESHOLD;
+    if (tubeRef.current) tubeRef.current.visible = visible;
+    groupRef.current.scale.set(1, Math.max(0.001, growth), 1);
   });
 
   return (
     <group ref={groupRef} position={[config.x, 0, config.z]}>
-      <mesh geometry={tubeGeometry}>
+      <mesh ref={tubeRef} geometry={tubeGeometry}>
         <meshStandardMaterial color={VINE_COLOR} />
       </mesh>
-      {flowerPoints.map((point, i) => (
-        <VineFlower key={i} x={point.x} y={point.y} z={point.z} />
+      {flowerPoints.map(({ point, startAt }, i) => (
+        <VineFlower
+          key={i}
+          x={point.x}
+          y={point.y}
+          z={point.z}
+          progressRef={progressRef}
+          vineStagger={config.stagger}
+          startAt={startAt}
+        />
       ))}
     </group>
   );

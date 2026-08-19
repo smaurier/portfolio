@@ -48,7 +48,10 @@ const SPECIES: Species[] = [
   { path: "/models/cactus-barrel.glb", targetHeight: 0.55 },
 ];
 
-const INSTANCES_PER_SPECIES = 2;
+// 2 -> 4 (18/08, retour Sylvain : "tu peux les répéter et aussi faire
+// varier leurs tailles", pour agave/nopal/cactus — pas le maïs, qui a sa
+// propre mécanique de pousse dans milpa.tsx).
+const INSTANCES_PER_SPECIES = 4;
 
 function useNormalizedClone(path: string, targetHeight: number): Object3D {
   const { scene } = useGLTF(path);
@@ -107,9 +110,11 @@ export default function BackgroundFlora() {
         // cf camera-path.ts) : le fond ne doit jamais se retrouver devant
         // la caméra pendant l'orbite.
         minRadius: 6,
-        maxRadius: 10,
-        minScale: 0.75,
-        maxScale: 1.25,
+        maxRadius: 11,
+        // 0.75-1.25 -> 0.55-1.7 (18/08, retour Sylvain : "faire varier
+        // leurs tailles") — écart plus net, pas juste perceptible de près.
+        minScale: 0.55,
+        maxScale: 1.7,
         seed: 1,
       }),
     [],
