@@ -25,6 +25,10 @@ export type OrbitCameraOptions = {
   targetY: number;
   /** Progress où le rapprochement (startRadius -> endRadius) est terminé. */
   climaxProgress: number;
+  /** Rotation résiduelle (radians) après climaxProgress, jusqu'à progress=1
+   * — ajuste l'angle de repos final sans changer le rythme de l'orbite
+   * avant le climax. */
+  finalDrift: number;
 };
 
 const DEFAULT_OPTIONS: OrbitCameraOptions = {
@@ -53,6 +57,15 @@ const DEFAULT_OPTIONS: OrbitCameraOptions = {
   turns: 1,
   targetY: 1,
   climaxProgress: 0.75,
+  // Angle de repos final (18/08, retour Sylvain : "le cerf devrait être
+  // tourné à 4h30, 5h") — climaxProgress=0.75 avec turns=1 donnait un
+  // azimuth de 270° (un profil pur, "on n'y est pas côté DA" implicite :
+  // pas la vue 3/4 demandée). Plutôt que de changer `turns` (aurait modifié
+  // le rythme de l'orbite sur tout le scroll, pas juste la fin), une
+  // rotation résiduelle sur le dernier quart (chemins révélés) amène
+  // doucement l'azimuth à sa position de repos réelle, sans toucher au
+  // reste déjà réglé. Valeur choisie à l'œil, à ajuster si besoin.
+  finalDrift: Math.PI / 4,
 };
 
 /** Ramène une valeur dans [0, 1] — le scroll réel peut légèrement déborder. */
@@ -79,28 +92,30 @@ function ease(t: number): number {
  * plus proche, la hauteur descend (startHeight -> endHeight) sur la même
  * plage.
  *
- * Azimuth ET hauteur gelés à climaxProgress (pas seulement le rayon) —
- * retour de Sylvain le 18/08 : "pour la fin de la scène, on pourrait
- * s'arrêter avec une vue 3/4 pour le cerf" plutôt que continuer l'orbite
- * jusqu'à revenir pile à l'azimuth de départ (pensé pour la pénombre
- * distante, pas pour une pose finale). Arrêt net, pas amorti : l'azimuth
- * avançait à vitesse angulaire constante avant ce point, un ralentissement
- * en douceur aurait changé le rythme perçu de l'orbite sur toute sa durée
- * pour un gain minime — un arrêt franc se lit comme "la caméra se pose",
- * cohérent avec le cerf qui se calme au même moment (cf reveal-arc.ts,
- * clip Eating une fois les chemins révélés).
+ * Hauteur gelée à climaxProgress (rayon aussi, déjà le cas) — retour de
+ * Sylvain le 18/08 : "pour la fin de la scène, on pourrait s'arrêter avec
+ * une vue 3/4 pour le cerf" plutôt que continuer l'orbite jusqu'à revenir
+ * pile à l'azimuth de départ (pensé pour la pénombre distante, pas pour une
+ * pose finale). L'azimuth, lui, ne s'arrête pas net à climaxProgress : une
+ * légère rotation résiduelle (`finalDrift`) continue jusqu'à progress=1
+ * pour amener l'angle de repos exact demandé ("4h30, 5h") — précision
+ * apportée après un premier essai en arrêt franc, jugé trop proche d'un
+ * profil pur plutôt qu'une vraie vue 3/4.
  */
 export function getOrbitCameraPosition(
   progress: number,
   options: Partial<OrbitCameraOptions> = {},
 ): Vec3 {
-  const { startRadius, endRadius, startHeight, endHeight, turns, climaxProgress } = {
+  const { startRadius, endRadius, startHeight, endHeight, turns, climaxProgress, finalDrift } = {
     ...DEFAULT_OPTIONS,
     ...options,
   };
   const p = clampProgress(progress);
   const settledP = climaxProgress > 0 ? Math.min(p, climaxProgress) : p;
-  const azimuth = settledP * Math.PI * 2 * (turns ?? 1);
+  const baseAzimuth = settledP * Math.PI * 2 * (turns ?? 1);
+  const driftT =
+    climaxProgress < 1 ? Math.min(1, Math.max(0, (p - climaxProgress) / (1 - climaxProgress))) : 0;
+  const azimuth = baseAzimuth + ease(driftT) * finalDrift;
 
   const climaxT = climaxProgress > 0 ? ease(Math.min(1, p / climaxProgress)) : 1;
   const radius = lerp(startRadius, endRadius, climaxT);

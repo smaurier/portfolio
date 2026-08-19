@@ -6,6 +6,7 @@ import {
   getMilpaGrowth,
   getNavEmphasis,
   getRevealPhase,
+  getWalkOffsetZ,
 } from "./reveal-arc";
 
 describe("getRevealPhase", () => {
@@ -82,22 +83,45 @@ describe("getDirectionalIntensity", () => {
 });
 
 describe("getIdleClipName", () => {
-  it("broute (Eating) tant qu'il n'a pas remarqué le visiteur, quel que soit le scroll", () => {
-    expect(getIdleClipName(0, false)).toBe("Eating");
-    expect(getIdleClipName(0.24, false)).toBe("Eating");
-    expect(getIdleClipName(0.6, false)).toBe("Eating");
+  it("marche (Walk) tout au début, tant qu'il n'a pas remarqué le visiteur", () => {
+    expect(getIdleClipName(0, false)).toBe("Walk");
+    expect(getIdleClipName(0.07, false)).toBe("Walk");
   });
 
-  it("passe à Idle dès qu'il a remarqué le visiteur, jusqu'au face-à-face", () => {
+  it("se pose et broute (Eating) une fois arrivé, avant de remarquer le visiteur", () => {
+    expect(getIdleClipName(0.08, false)).toBe("Eating");
+    expect(getIdleClipName(0.15, false)).toBe("Eating");
+  });
+
+  it("passe par Idle_2 juste avant de remarquer le visiteur", () => {
+    expect(getIdleClipName(0.16, false)).toBe("Idle_2");
+    expect(getIdleClipName(0.24, false)).toBe("Idle_2");
+  });
+
+  it("passe à Idle dès qu'il a remarqué le visiteur, quel que soit le scroll ou l'étape de la séquence — jamais de retour en arrière", () => {
     expect(getIdleClipName(0, true)).toBe("Idle");
+    expect(getIdleClipName(0.05, true)).toBe("Idle"); // surprend le cerf en pleine marche
     expect(getIdleClipName(0.6, true)).toBe("Idle");
-    expect(getIdleClipName(0.74, true)).toBe("Idle");
+    expect(getIdleClipName(1, true)).toBe("Idle");
+  });
+});
+
+describe("getWalkOffsetZ", () => {
+  it("part avec un décalage net, pas déjà à sa position de repos", () => {
+    expect(getWalkOffsetZ(0)).toBeGreaterThan(1);
   });
 
-  it("se pose et broute (Eating) une fois les chemins révélés, remarqué ou non", () => {
-    expect(getIdleClipName(0.75, true)).toBe("Eating");
-    expect(getIdleClipName(1, true)).toBe("Eating");
-    expect(getIdleClipName(0.9, false)).toBe("Eating");
+  it("atteint exactement 0 (position de repos) à la fin de la marche, et le reste après", () => {
+    expect(getWalkOffsetZ(0.08)).toBeCloseTo(0);
+    expect(getWalkOffsetZ(0.5)).toBeCloseTo(0);
+    expect(getWalkOffsetZ(1)).toBeCloseTo(0);
+  });
+
+  it("se rapproche de 0 en continu, jamais ne s'en éloigne", () => {
+    const samples = [0, 0.02, 0.04, 0.06, 0.08].map(getWalkOffsetZ);
+    for (let i = 1; i < samples.length; i++) {
+      expect(Math.abs(samples[i])).toBeLessThanOrEqual(Math.abs(samples[i - 1]));
+    }
   });
 });
 

@@ -4,7 +4,12 @@ import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Group } from "three";
-import { getDirectionalIntensity, getIdleClipName, getRevealPhase } from "@/lib/reveal-arc";
+import {
+  getDirectionalIntensity,
+  getIdleClipName,
+  getRevealPhase,
+  getWalkOffsetZ,
+} from "@/lib/reveal-arc";
 import { applyRimLight, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 
 const MODEL_PATH = "/models/stag.glb";
@@ -19,12 +24,13 @@ const TARGET_HEIGHT = 2;
 
 /**
  * Le cerf (Quaternius, CC0, pack "Animated Animal Pack" — cf memory
- * project-nahual-da). Crossfade Eating → Idle → Eating au rythme de l'arc
- * de reveal (broute tant qu'il n'a pas remarqué le visiteur, lève la tête
- * dès qu'il le remarque, se repose une fois les chemins révélés — cf
- * src/lib/reveal-arc.ts). Toujours pas de tête qui pivote vers la caméra,
- * ce beat-là reste au palier suivant (pas de clip dédié dans le rig,
- * nécessite une rotation d'os pilotée par code).
+ * project-nahual-da). Séquence d'entrée en 4 temps (retour de Sylvain le
+ * 18/08, cf src/lib/reveal-arc.ts) : Walk (avance — pas de root motion dans
+ * le rig, l'avancée est pilotée ici par-dessus la position de repos) →
+ * Eating (se pose, broute) → Idle_2 (passage bref) → Idle (tête relevée,
+ * état final dès qu'il "remarque" le visiteur). Toujours pas de tête qui
+ * pivote vers la caméra, ce beat-là reste au palier suivant (pas de clip
+ * dédié dans le rig, nécessite une rotation d'os pilotée par code).
  *
  * `noticedRef` : partagé avec le parent (StagScene) plutôt que dérivé
  * seulement du scroll ici — retour de Sylvain le 18/08 : "on pourrait avoir
@@ -45,6 +51,10 @@ export default function StagModel({
   const { scene, animations } = useGLTF(MODEL_PATH);
   const { actions } = useAnimations(animations, group);
   const currentClipRef = useRef<string | null>(null);
+  // Position Z de repos (posée par l'effet de recadrage ci-dessous) — la
+  // marche d'entrée (getWalkOffsetZ) s'ajoute par-dessus dans le useFrame
+  // dédié, jamais en remplacement (sinon on écraserait le recadrage).
+  const restZRef = useRef(0);
   // useMemo plutôt qu'un ref réassigné dans un effet : eslint-plugin-react-
   // hooks (compilateur React 19) refuse de muter une valeur affectée
   // dans/à partir d'un effet — useMemo garde le tableau d'uniforms stable
@@ -66,7 +76,8 @@ export default function StagModel({
     const scale = size.y > 0 ? TARGET_HEIGHT / size.y : 1;
 
     scene.scale.setScalar(scale);
-    scene.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+    restZRef.current = -center.z * scale;
+    scene.position.set(-center.x * scale, -box.min.y * scale, restZRef.current);
   }, [scene]);
 
   useEffect(() => {
@@ -94,6 +105,14 @@ export default function StagModel({
     actions[currentClipRef.current ?? ""]?.fadeOut(0.4);
     actions[wantClip]?.reset().fadeIn(0.4).play();
     currentClipRef.current = wantClip;
+  });
+
+  useFrame(() => {
+    // Avance pendant "Walk" (cf getIdleClipName/getWalkOffsetZ) — le clip
+    // lui-même n'a pas de root motion (vérifié dans le rig), l'avancée est
+    // pilotée ici, par-dessus la position de repos posée par le recadrage
+    // ci-dessus (jamais en remplacement).
+    scene.position.setZ(restZRef.current + getWalkOffsetZ(progressRef.current));
   });
 
   useFrame(() => {

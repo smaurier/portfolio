@@ -11,6 +11,7 @@ import {
   type OcotilloWandConfig,
 } from "@/lib/ocotillo-shapes";
 import { generateRingPlacements } from "@/lib/flora-placement";
+import { getTerrainHeight } from "@/lib/terrain-height";
 
 // Vert-gris sec, cohérent avec l'ambiance désertique (distinct du vert des
 // lianes VINE_COLOR="#3f6b2f", plus vif — l'ocotillo est une tige ligneuse,
@@ -94,8 +95,12 @@ function OcotilloCluster({
   seed: number;
 }) {
   const wands = useMemo(() => generateOcotilloCluster({ wandCount: 7, seed }), [seed]);
+  // Rayon de placement (6-9) au-delà de FLAT_RADIUS du terrain (4,
+  // terrain-height.ts) : même bug que background-flora.tsx (base plantée
+  // dans/flottant au-dessus du sol sculpté), même correction.
+  const terrainY = getTerrainHeight(x, z);
   return (
-    <group position={[x, 0, z]} rotation={[0, rotationY, 0]} scale={scale}>
+    <group position={[x, terrainY, z]} rotation={[0, rotationY, 0]} scale={scale}>
       {wands.map((wand, i) => (
         <OcotilloWand key={i} config={wand} />
       ))}

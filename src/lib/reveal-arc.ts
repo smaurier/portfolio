@@ -66,25 +66,41 @@ export function getDirectionalIntensity(progress: number): number {
   return easeWithinRange(progress, PHASE_START.penombre, PHASE_START["chemins-reveles"], 0.5, 1.8);
 }
 
-// Le cerf broute (Eating, confirmé dans le rig — retour de Sylvain le
-// 18/08 : "il n'y a pas un idle où le cerf mange au sol ?") tant qu'il n'a
-// pas "remarqué" le visiteur, remplace l'ancien Idle_Headlow statique —
-// plus vivant, et la transition brouter -> tête qui se lève d'un coup se
-// lit comme une vraie réaction de sursaut. Une fois les chemins révélés,
-// il se repose et broute à nouveau : la tension retombe, il se sent chez
-// lui — même clip qu'au début, mais pas le même sens (avant = inconscient,
-// après = apaisé).
-//
-// `noticed` est un signal externe (pas dérivé de `progress` ici) : "on
-// pourrait avoir d'autres événements sur la scène liés à ce point qui
-// feront aussi que le cerf lève la tête rapidement" — le déclencheur
-// (progression du scroll, mouvement de souris, autre) est décidé par
-// l'appelant (StagModel), cette fonction reste pure sur ses deux entrées.
-// Jamais de retour en arrière : une fois remarqué, `noticed` ne redevient
-// jamais false côté appelant.
-export function getIdleClipName(progress: number, noticed: boolean): "Idle" | "Eating" {
-  if (getRevealPhase(progress) === "chemins-reveles") return "Eating";
-  return noticed ? "Idle" : "Eating";
+// Séquence d'entrée du cerf (18/08, retour de Sylvain : "on pourrait le
+// faire marcher, avancer avec l'idle, ensuite on le verrait manger, puis
+// un bon idle [Idle_2] momentanément, puis la dernière phase où il a juste
+// la tête relevée") — Walk (avance, cf getWalkOffsetZ) -> Eating (se pose,
+// broute) -> Idle_2 (passage bref) -> Idle (tête relevée, état final).
+// Toute la séquence tient avant que `noticed` ne devienne vrai (scroll ou
+// souris, cf StagModel/CursorRevealScene) : un déclenchement rapide bascule
+// direct sur Idle quel que soit l'endroit de la séquence — surprend le
+// cerf en pleine marche ou en train de manger, cohérent avec un sursaut.
+// Jamais de retour en arrière une fois `noticed` vrai.
+const WALK_END = 0.08;
+const EATING_END = 0.16;
+
+export function getIdleClipName(
+  progress: number,
+  noticed: boolean,
+): "Walk" | "Eating" | "Idle_2" | "Idle" {
+  if (noticed) return "Idle";
+  const p = clampProgress(progress);
+  if (p < WALK_END) return "Walk";
+  if (p < EATING_END) return "Eating";
+  return "Idle_2";
+}
+
+// Distance parcourue par le cerf pendant "Walk" — le clip lui-même n'a pas
+// de root motion (vérifié dans le rig : le nœud racine ne bouge quasiment
+// pas d'un keyframe à l'autre, cycle sur place), l'avancée réelle est donc
+// pilotée ici plutôt que par l'animation. Le long de +Z (vers la position
+// de départ de la caméra, cf camera-path.ts startRadius) : le cerf marche
+// depuis un peu plus loin/en retrait, puis s'arrête pile à sa position de
+// repos habituelle (0,0,0) à WALK_END — jamais de retour en arrière.
+const WALK_START_OFFSET_Z = 1.1;
+
+export function getWalkOffsetZ(progress: number): number {
+  return lerpWithinRange(progress, 0, WALK_END, WALK_START_OFFSET_Z, 0);
 }
 
 // Emphase de la nav ("chemins révélés") : 0 avant le dernier quart, monte à

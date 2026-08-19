@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Object3D } from "three";
 import { generateRingPlacements, type FloraPlacement } from "@/lib/flora-placement";
+import { getTerrainHeight } from "@/lib/terrain-height";
 
 /**
  * Végétation de fond, fixe dans le monde — palier 3 de la DA Nahual (cf
@@ -91,9 +92,15 @@ function FloraInstance({
   placement: FloraPlacement;
 }) {
   const model = useNormalizedClone(species.path, species.targetHeight);
+  // Rayon de placement (6-11) au-delà de FLAT_RADIUS du terrain (4,
+  // terrain-height.ts) : le sol y est sculpté (dunes), y=0 fixe faisait
+  // flotter/enfoncer la base de chaque plante dedans — bug trouvé par
+  // Sylvain ("le cactus reste gris sur la partie basse, conflit avec le
+  // sol"), corrigé en suivant la hauteur réelle du terrain à sa position.
+  const terrainY = getTerrainHeight(placement.x, placement.z);
   return (
     <group
-      position={[placement.x, 0, placement.z]}
+      position={[placement.x, terrainY, placement.z]}
       rotation={[0, placement.rotationY, 0]}
       scale={placement.scale}
     >

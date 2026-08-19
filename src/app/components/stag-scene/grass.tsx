@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { generateRingPlacements } from "@/lib/flora-placement";
+import { getTerrainHeight } from "@/lib/terrain-height";
 
 /**
  * Touffes d'herbe sèche, fixes au sol — retour de Sylvain le 18/08 ("un peu
@@ -60,8 +61,12 @@ function GrassTuft({
     return items;
   }, [seed]);
 
+  // Rayon de placement (1.8-8.5) dépasse FLAT_RADIUS du terrain (4,
+  // terrain-height.ts) pour sa moitié externe : même bug que
+  // background-flora.tsx/ocotillo.tsx sur ces touffes-là, même correction.
+  const terrainY = getTerrainHeight(x, z);
   return (
-    <group position={[x, 0, z]} rotation={[0, rotationY, 0]} scale={scale}>
+    <group position={[x, terrainY, z]} rotation={[0, rotationY, 0]} scale={scale}>
       {blades.map((b, i) => {
         const offset = 0.03;
         return (

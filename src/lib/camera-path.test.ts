@@ -31,15 +31,39 @@ describe("getOrbitCameraPosition — azimuth et hauteur (rayon constant)", () =>
     expect(pos.y).toBeCloseTo(4);
   });
 
-  it("gèle l'azimuth ET la hauteur à climaxProgress (défaut 0.75) plutôt que de continuer jusqu'à progress=1", () => {
-    // Avec turns=1, azimuth à climaxProgress=0.75 -> 0.75*2π = 270° (pas
-    // 360°/0° comme si l'orbite continuait jusqu'au bout).
-    const atClimax = getOrbitCameraPosition(0.75, options);
-    const atOne = getOrbitCameraPosition(1, options);
-    expect(atOne).toEqual(atClimax);
+  it("gèle la hauteur à climaxProgress (défaut 0.75) plutôt que de continuer jusqu'à progress=1", () => {
+    const optionsNoDrift = { ...options, finalDrift: 0 };
+    const atClimax = getOrbitCameraPosition(0.75, optionsNoDrift);
+    const atOne = getOrbitCameraPosition(1, optionsNoDrift);
+    expect(atOne.y).toBeCloseTo(atClimax.y);
+    expect(atClimax.y).toBeCloseTo(1.4);
+    // Avec turns=1 et finalDrift=0, azimuth à climaxProgress=0.75 -> 0.75*2π
+    // = 270° (pas 360°/0° comme si l'orbite continuait jusqu'au bout).
     expect(atClimax.x).toBeCloseTo(-6, 1); // sin(270°) = -1
     expect(atClimax.z).toBeCloseTo(0, 1); // cos(270°) ≈ 0
-    expect(atClimax.y).toBeCloseTo(1.4);
+  });
+
+  it("continue de tourner légèrement après climaxProgress si finalDrift est fourni, jusqu'à l'angle de repos exact", () => {
+    const driftOptions = { ...options, finalDrift: Math.PI / 2 }; // +90°
+    const atClimax = getOrbitCameraPosition(0.75, driftOptions);
+    const atOne = getOrbitCameraPosition(1, driftOptions);
+    // atClimax: azimuth 270° (x=-6,z≈0). atOne: azimuth 270+90=360°=0° (x≈0,z=6).
+    expect(atClimax.x).toBeCloseTo(-6, 1);
+    expect(atOne.x).toBeCloseTo(0, 1);
+    expect(atOne.z).toBeCloseTo(6, 1);
+    // La hauteur, elle, reste gelée quel que soit finalDrift.
+    expect(atOne.y).toBeCloseTo(atClimax.y);
+  });
+
+  it("la dérive finale ne redescend jamais en arrière (azimuth croissant en continu après climaxProgress)", () => {
+    const driftOptions = { ...options, finalDrift: Math.PI / 2 };
+    const azimuths = [0.75, 0.8, 0.85, 0.9, 0.95, 1].map((p) => {
+      const pos = getOrbitCameraPosition(p, driftOptions);
+      return Math.atan2(pos.x, pos.z);
+    });
+    for (let i = 1; i < azimuths.length; i++) {
+      expect(azimuths[i]).toBeGreaterThanOrEqual(azimuths[i - 1]);
+    }
   });
 
   it("est à un quart de tour à progress=0.25", () => {
