@@ -31,11 +31,15 @@ describe("getOrbitCameraPosition — azimuth et hauteur (rayon constant)", () =>
     expect(pos.y).toBeCloseTo(4);
   });
 
-  it("a bouclé un tour complet à progress=1 (même azimuth que 0) mais à la hauteur de fin", () => {
-    const pos = getOrbitCameraPosition(1, options);
-    expect(pos.x).toBeCloseTo(0);
-    expect(pos.z).toBeCloseTo(6);
-    expect(pos.y).toBeCloseTo(1.4);
+  it("gèle l'azimuth ET la hauteur à climaxProgress (défaut 0.75) plutôt que de continuer jusqu'à progress=1", () => {
+    // Avec turns=1, azimuth à climaxProgress=0.75 -> 0.75*2π = 270° (pas
+    // 360°/0° comme si l'orbite continuait jusqu'au bout).
+    const atClimax = getOrbitCameraPosition(0.75, options);
+    const atOne = getOrbitCameraPosition(1, options);
+    expect(atOne).toEqual(atClimax);
+    expect(atClimax.x).toBeCloseTo(-6, 1); // sin(270°) = -1
+    expect(atClimax.z).toBeCloseTo(0, 1); // cos(270°) ≈ 0
+    expect(atClimax.y).toBeCloseTo(1.4);
   });
 
   it("est à un quart de tour à progress=0.25", () => {
@@ -44,9 +48,19 @@ describe("getOrbitCameraPosition — azimuth et hauteur (rayon constant)", () =>
     expect(pos.z).toBeCloseTo(0);
   });
 
-  it("interpole la hauteur linéairement à mi-scroll", () => {
-    const pos = getOrbitCameraPosition(0.5, options);
+  it("la hauteur suit le même easing que le rayon (climaxT), pas une interpolation linéaire sur tout le scroll", () => {
+    // options n'indique pas climaxProgress -> valeur par défaut 0.75.
+    // À mi-chemin de climaxProgress (p=0.375, climaxT=0.5 après easing),
+    // la hauteur doit être exactement à mi-chemin entre start/end.
+    const pos = getOrbitCameraPosition(0.375, options);
     expect(pos.y).toBeCloseTo((4 + 1.4) / 2);
+  });
+
+  it("monte en continu vers endHeight jusqu'à climaxProgress, jamais ne redescend", () => {
+    const heights = [0, 0.1, 0.25, 0.4, 0.6, 0.75].map((p) => getOrbitCameraPosition(p, options).y);
+    for (let i = 1; i < heights.length; i++) {
+      expect(heights[i]).toBeLessThanOrEqual(heights[i - 1]); // startHeight > endHeight ici
+    }
   });
 
   it("écrête une progression hors [0,1] plutôt que d'extrapoler au-delà d'un tour", () => {

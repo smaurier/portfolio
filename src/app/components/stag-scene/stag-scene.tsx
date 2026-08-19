@@ -5,6 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { clampProgress } from "@/lib/camera-path";
 import { getNavEmphasis } from "@/lib/reveal-arc";
 import BackgroundFlora from "./background-flora";
+import CursorRevealScene from "./cursor-reveal-scene";
 import EnvironmentDepthFade from "./environment-depth-fade";
 import Grass from "./grass";
 import Ground from "./ground";
@@ -46,6 +47,10 @@ export default function StagScene() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
   const reducedMotionRef = useRef(false);
+  // "A-t-il remarqué le visiteur ?" — partagé entre le scroll (StagModel)
+  // et le mouvement de souris (CursorRevealScene), jamais remis à false une
+  // fois vrai (retour de Sylvain le 18/08).
+  const noticedRef = useRef(false);
 
   useEffect(() => {
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -124,27 +129,34 @@ export default function StagScene() {
            * terrain-height.ts, cf ground.tsx) : les inclure ici est
            * cohérent avec la perspective atmosphérique réelle — les
            * éléments les plus lointains sont justement les plus estompés. */}
-          <EnvironmentDepthFade>
-            <Ground />
+          {/* Révélation par curseur (18/08, retour Sylvain : "au départ,
+           * tous les éléments doivent être translucides et en nuances de
+           * gris, avec le mouvement de souris ils se révèlent petit à
+           * petit") — portée confirmée : toute la scène 3D, cerf inclus
+           * (contrairement à EnvironmentDepthFade qui l'exclut). */}
+          <CursorRevealScene noticedRef={noticedRef}>
+            <EnvironmentDepthFade>
+              <Ground />
+              <Suspense fallback={null}>
+                <BackgroundFlora />
+              </Suspense>
+              <Suspense fallback={null}>
+                <Ocotillo />
+              </Suspense>
+              <Suspense fallback={null}>
+                <Grass />
+              </Suspense>
+            </EnvironmentDepthFade>
             <Suspense fallback={null}>
-              <BackgroundFlora />
+              <StagModel progressRef={progressRef} noticedRef={noticedRef} />
             </Suspense>
             <Suspense fallback={null}>
-              <Ocotillo />
+              <Milpa progressRef={progressRef} />
             </Suspense>
             <Suspense fallback={null}>
-              <Grass />
+              <Vines progressRef={progressRef} />
             </Suspense>
-          </EnvironmentDepthFade>
-          <Suspense fallback={null}>
-            <StagModel progressRef={progressRef} />
-          </Suspense>
-          <Suspense fallback={null}>
-            <Milpa progressRef={progressRef} />
-          </Suspense>
-          <Suspense fallback={null}>
-            <Vines progressRef={progressRef} />
-          </Suspense>
+          </CursorRevealScene>
           <OrbitCamera progressRef={progressRef} />
           <PostFX />
         </Canvas>

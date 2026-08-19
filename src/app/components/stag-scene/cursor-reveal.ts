@@ -1,0 +1,103 @@
+import { MeshStandardMaterial, Vector2, type Material, type Object3D } from "three";
+import { addShaderModifier } from "./shader-patch";
+
+/**
+ * Révélation par curseur — retour de Sylvain le 18/08 : "au départ, tous
+ * les éléments doivent être translucides [et en nuances de gris], et avec
+ * le mouvement de souris ils vont se révéler petit à petit." Reprend une
+ * idée déjà posée dans le Codex Nahual d'origine (17/08, jamais codée
+ * jusqu'ici) : "hover = présence locale, scroll = révélation structurelle".
+ *
+ * Calcul en espace écran (gl_FragCoord), pas en espace monde : un halo qui
+ * suit le curseur à l'écran est plus simple et prévisible qu'un rayon
+ * projeté en 3D (ambiguïté de profondeur dans une scène avec des objets à
+ * des distances très différentes de la caméra).
+ *
+ * **Garde-fou accessibilité, posé avec Sylvain avant de coder** : ni
+ * l'opacité ni la saturation ne tombent à zéro sans mouvement de souris —
+ * la scène reste lisible dans son état "reveal=0" (translucide+désaturé,
+ * jamais invisible). Un visiteur tactile/clavier/sans mouvement voit une
+ * scène toujours là, juste moins "révélée" — jamais un contenu caché
+ * derrière un geste obligatoire. L'arc de lumière du scroll (RevealLighting)
+ * continue de garantir la visibilité de base indépendamment de cet effet.
+ * Portée limitée à la scène 3D (confirmé par Sylvain) : header/footer/nav
+ * restent toujours pleinement visibles, même logique que la nav cardinale
+ * ("jamais un verrou d'accès").
+ */
+
+const MIN_OPACITY = 0.4;
+// Fraction de couleur qui reste visible même à reveal=0 — jamais
+// complètement gris non plus, juste très désaturé.
+const MIN_SATURATION = 0.15;
+
+export type CursorRevealUniforms = {
+  uMouse: { value: Vector2 };
+  uResolution: { value: Vector2 };
+  uRevealRadius: { value: number };
+};
+
+/** Un seul jeu d'uniforms partagé par tous les matériaux patchés — la
+ * position souris est globale, pas propre à chaque objet (contrairement à
+ * rim-light.ts/depth-fade.ts). Muter ces deux Vector2 une fois par frame
+ * met à jour tous les matériaux d'un coup, pas besoin de reparcourir une
+ * liste. */
+export function createCursorRevealUniforms(): CursorRevealUniforms {
+  return {
+    // Hors-écran tant qu'aucun mouvement n'a eu lieu : reveal=0 partout,
+    // l'état voulu par Sylvain au chargement — pas une valeur à corriger.
+    uMouse: { value: new Vector2(-9999, -9999) },
+    uResolution: { value: new Vector2(1, 1) },
+    uRevealRadius: { value: 260 },
+  };
+}
+
+const patchedMaterials = new WeakSet<Material>();
+
+/**
+ * Parcourt `root` et patche chaque MeshStandardMaterial rencontré — via
+ * addShaderModifier (shader-patch.ts) pour composer proprement avec un
+ * autre traitement déjà posé sur le même matériau (ex. le cerf a aussi
+ * rim-light.ts). Idempotent (WeakSet), peut être rappelée chaque frame
+ * pour les enfants montés après coup (flore CC0 sous Suspense) — même
+ * raison que depth-fade.ts.
+ */
+export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms): void {
+  root.traverse((child) => {
+    const mesh = child as unknown as { material?: Material | Material[] };
+    if (!mesh.material) return;
+    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+
+    for (const material of materials) {
+      if (!(material instanceof MeshStandardMaterial)) continue;
+      if (patchedMaterials.has(material)) continue;
+      patchedMaterials.add(material);
+
+      material.transparent = true;
+
+      addShaderModifier(material, (shader) => {
+        shader.uniforms.uMouse = uniforms.uMouse;
+        shader.uniforms.uResolution = uniforms.uResolution;
+        shader.uniforms.uRevealRadius = uniforms.uRevealRadius;
+
+        shader.fragmentShader = shader.fragmentShader
+          .replace(
+            "#include <common>",
+            `#include <common>
+            uniform vec2 uMouse;
+            uniform vec2 uResolution;
+            uniform float uRevealRadius;`,
+          )
+          .replace(
+            "#include <dithering_fragment>",
+            `float distToCursor = distance(gl_FragCoord.xy, uMouse);
+            float reveal = 1.0 - smoothstep(0.0, uRevealRadius, distToCursor);
+            float cursorGrey = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+            vec3 flooredColor = mix(vec3(cursorGrey), gl_FragColor.rgb, ${MIN_SATURATION});
+            gl_FragColor.rgb = mix(flooredColor, gl_FragColor.rgb, reveal);
+            gl_FragColor.a *= mix(${MIN_OPACITY}, 1.0, reveal);
+            #include <dithering_fragment>`,
+          );
+      });
+    }
+  });
+}

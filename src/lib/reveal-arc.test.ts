@@ -82,15 +82,22 @@ describe("getDirectionalIntensity", () => {
 });
 
 describe("getIdleClipName", () => {
-  it("joue Idle_Headlow tant que le cerf n'a pas remarqué le visiteur", () => {
-    expect(getIdleClipName(0)).toBe("Idle_Headlow");
-    expect(getIdleClipName(0.24)).toBe("Idle_Headlow");
+  it("broute (Eating) tant qu'il n'a pas remarqué le visiteur, quel que soit le scroll", () => {
+    expect(getIdleClipName(0, false)).toBe("Eating");
+    expect(getIdleClipName(0.24, false)).toBe("Eating");
+    expect(getIdleClipName(0.6, false)).toBe("Eating");
   });
 
-  it("passe à Idle dès la prise de conscience, et n'y revient jamais", () => {
-    expect(getIdleClipName(0.25)).toBe("Idle");
-    expect(getIdleClipName(0.6)).toBe("Idle");
-    expect(getIdleClipName(1)).toBe("Idle");
+  it("passe à Idle dès qu'il a remarqué le visiteur, jusqu'au face-à-face", () => {
+    expect(getIdleClipName(0, true)).toBe("Idle");
+    expect(getIdleClipName(0.6, true)).toBe("Idle");
+    expect(getIdleClipName(0.74, true)).toBe("Idle");
+  });
+
+  it("se pose et broute (Eating) une fois les chemins révélés, remarqué ou non", () => {
+    expect(getIdleClipName(0.75, true)).toBe("Eating");
+    expect(getIdleClipName(1, true)).toBe("Eating");
+    expect(getIdleClipName(0.9, false)).toBe("Eating");
   });
 });
 

@@ -1,4 +1,5 @@
 import { MeshStandardMaterial, type Material, type Object3D } from "three";
+import { addShaderModifier } from "./shader-patch";
 
 /**
  * Perspective atmosphérique — retour de Sylvain le 18/08 : "plus on est
@@ -18,9 +19,10 @@ import { MeshStandardMaterial, type Material, type Object3D } from "three";
  * montagnes, flore de fond) qui doit reculer visuellement — même principe
  * que "le sujet ne doit jamais être noyé" déjà posé pour le post-processing.
  *
- * Ne compose pas avec un autre patch onBeforeCompile sur le même matériau
- * (la dernière assignation remplace la précédente) — sans conséquence ici,
- * aucun matériau ne reçoit à la fois rim-light et depth-fade dans ce projet.
+ * addShaderModifier (shader-patch.ts, pas une assignation directe de
+ * onBeforeCompile) : indispensable depuis que cursor-reveal.ts (18/08)
+ * s'applique aussi à l'environnement — sans ça, la seconde assignation
+ * aurait silencieusement écrasé cette désaturation par profondeur.
  */
 
 export type DepthFadeOptions = {
@@ -57,7 +59,7 @@ export function applyDepthFade(root: Object3D, options: Partial<DepthFadeOptions
       if (patchedMaterials.has(material)) continue;
       patchedMaterials.add(material);
 
-      material.onBeforeCompile = (shader) => {
+      addShaderModifier(material, (shader) => {
         shader.uniforms.uDepthFadeNear = { value: near };
         shader.uniforms.uDepthFadeFar = { value: far };
 
@@ -75,8 +77,7 @@ export function applyDepthFade(root: Object3D, options: Partial<DepthFadeOptions
             gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(depthFadeGrey), depthFadeT);
             #include <dithering_fragment>`,
           );
-      };
-      material.needsUpdate = true;
+      });
     }
   });
 }

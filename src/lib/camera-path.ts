@@ -74,10 +74,21 @@ function ease(t: number): number {
 
 /**
  * Position de la caméra pour une progression de scroll donnée (0 = haut de
- * page, 1 = bas de la section scène). Orbite sur le plan XZ (azimuth sur
- * toute la progression brute) ; le rayon se resserre (startRadius ->
- * endRadius) jusqu'à climaxProgress puis reste au plus proche, la hauteur
- * descend (startHeight -> endHeight) sur toute la durée.
+ * page, 1 = bas de la section scène). Orbite sur le plan XZ ; le rayon se
+ * resserre (startRadius -> endRadius) jusqu'à climaxProgress puis reste au
+ * plus proche, la hauteur descend (startHeight -> endHeight) sur la même
+ * plage.
+ *
+ * Azimuth ET hauteur gelés à climaxProgress (pas seulement le rayon) —
+ * retour de Sylvain le 18/08 : "pour la fin de la scène, on pourrait
+ * s'arrêter avec une vue 3/4 pour le cerf" plutôt que continuer l'orbite
+ * jusqu'à revenir pile à l'azimuth de départ (pensé pour la pénombre
+ * distante, pas pour une pose finale). Arrêt net, pas amorti : l'azimuth
+ * avançait à vitesse angulaire constante avant ce point, un ralentissement
+ * en douceur aurait changé le rythme perçu de l'orbite sur toute sa durée
+ * pour un gain minime — un arrêt franc se lit comme "la caméra se pose",
+ * cohérent avec le cerf qui se calme au même moment (cf reveal-arc.ts,
+ * clip Eating une fois les chemins révélés).
  */
 export function getOrbitCameraPosition(
   progress: number,
@@ -88,11 +99,15 @@ export function getOrbitCameraPosition(
     ...options,
   };
   const p = clampProgress(progress);
-  const azimuth = p * Math.PI * 2 * (turns ?? 1);
+  const settledP = climaxProgress > 0 ? Math.min(p, climaxProgress) : p;
+  const azimuth = settledP * Math.PI * 2 * (turns ?? 1);
 
   const climaxT = climaxProgress > 0 ? ease(Math.min(1, p / climaxProgress)) : 1;
   const radius = lerp(startRadius, endRadius, climaxT);
-  const height = lerp(startHeight, endHeight, p);
+  // Même climaxT que le rayon (pas settledP directement) : la hauteur doit
+  // atteindre pleinement endHeight À climaxProgress, pas juste une
+  // fraction proportionnelle au point d'arrêt.
+  const height = lerp(startHeight, endHeight, climaxT);
 
   return {
     x: radius * Math.sin(azimuth),

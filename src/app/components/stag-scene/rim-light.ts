@@ -1,4 +1,5 @@
 import { Color, MeshStandardMaterial, type Material, type Object3D } from "three";
+import { addShaderModifier } from "./shader-patch";
 
 /**
  * Liseré de lumière (fresnel) sur les matériaux standard d'un objet — retour
@@ -8,13 +9,18 @@ import { Color, MeshStandardMaterial, type Material, type Object3D } from "three
  * brut, ce qui se lisait comme une démo Three.js plutôt qu'une direction
  * artistique.
  *
- * Patché via onBeforeCompile plutôt qu'un ShaderMaterial reconstruit de
- * zéro : garde tout le PBR (RevealLighting continue de s'appliquer
- * normalement), ajoute juste un terme de bord en plus. Pas de géométrie
- * dupliquée pour une coque fresnel séparée (technique alternative courante) :
- * le cerf est skinné/animé, dupliquer sa géométrie aurait demandé de
- * synchroniser un second squelette — complexité pas justifiée pour cet
- * effet seul.
+ * Patché via onBeforeCompile (addShaderModifier, cf shader-patch.ts) plutôt
+ * qu'un ShaderMaterial reconstruit de zéro : garde tout le PBR
+ * (RevealLighting continue de s'appliquer normalement), ajoute juste un
+ * terme de bord en plus. Pas de géométrie dupliquée pour une coque fresnel
+ * séparée (technique alternative courante) : le cerf est skinné/animé,
+ * dupliquer sa géométrie aurait demandé de synchroniser un second squelette
+ * — complexité pas justifiée pour cet effet seul.
+ *
+ * addShaderModifier (pas une assignation directe de onBeforeCompile) :
+ * indispensable dès que le même matériau reçoit un autre traitement (le
+ * cerf a aussi cursor-reveal.ts, 18/08) — une seconde assignation directe
+ * aurait silencieusement écrasé ce liseré.
  */
 
 export type RimLightOptions = {
@@ -72,7 +78,7 @@ export function applyRimLight(
       if (patchedMaterials.has(material)) continue;
       patchedMaterials.add(material);
 
-      material.onBeforeCompile = (shader) => {
+      addShaderModifier(material, (shader) => {
         shader.uniforms.uRimColor = uniforms.uRimColor;
         shader.uniforms.uRimIntensity = uniforms.uRimIntensity;
         shader.uniforms.uRimPower = uniforms.uRimPower;
@@ -91,8 +97,7 @@ export function applyRimLight(
             gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity;
             #include <dithering_fragment>`,
           );
-      };
-      material.needsUpdate = true;
+      });
     }
   });
 

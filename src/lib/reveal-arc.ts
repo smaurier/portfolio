@@ -66,11 +66,25 @@ export function getDirectionalIntensity(progress: number): number {
   return easeWithinRange(progress, PHASE_START.penombre, PHASE_START["chemins-reveles"], 0.5, 1.8);
 }
 
-// Le cerf est tête basse (Idle_Headlow, inconscient de la présence) tant
-// qu'on est en pénombre, puis relève la tête (Idle) dès qu'il "remarque" le
-// visiteur — reste sur ce clip jusqu'à la fin, pas de retour en arrière.
-export function getIdleClipName(progress: number): "Idle_Headlow" | "Idle" {
-  return getRevealPhase(progress) === "penombre" ? "Idle_Headlow" : "Idle";
+// Le cerf broute (Eating, confirmé dans le rig — retour de Sylvain le
+// 18/08 : "il n'y a pas un idle où le cerf mange au sol ?") tant qu'il n'a
+// pas "remarqué" le visiteur, remplace l'ancien Idle_Headlow statique —
+// plus vivant, et la transition brouter -> tête qui se lève d'un coup se
+// lit comme une vraie réaction de sursaut. Une fois les chemins révélés,
+// il se repose et broute à nouveau : la tension retombe, il se sent chez
+// lui — même clip qu'au début, mais pas le même sens (avant = inconscient,
+// après = apaisé).
+//
+// `noticed` est un signal externe (pas dérivé de `progress` ici) : "on
+// pourrait avoir d'autres événements sur la scène liés à ce point qui
+// feront aussi que le cerf lève la tête rapidement" — le déclencheur
+// (progression du scroll, mouvement de souris, autre) est décidé par
+// l'appelant (StagModel), cette fonction reste pure sur ses deux entrées.
+// Jamais de retour en arrière : une fois remarqué, `noticed` ne redevient
+// jamais false côté appelant.
+export function getIdleClipName(progress: number, noticed: boolean): "Idle" | "Eating" {
+  if (getRevealPhase(progress) === "chemins-reveles") return "Eating";
+  return noticed ? "Idle" : "Eating";
 }
 
 // Emphase de la nav ("chemins révélés") : 0 avant le dernier quart, monte à
