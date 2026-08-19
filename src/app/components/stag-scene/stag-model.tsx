@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { Box3, Vector3, type Group } from "three";
+import { Box3, Vector3, type AnimationAction, type Group } from "three";
 import {
   getDirectionalIntensity,
   getIdleClipName,
   getRevealPhase,
+  getWalkCyclePhase,
   getWalkOffsetZ,
 } from "@/lib/reveal-arc";
 import { applyRimLight, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
@@ -21,6 +22,19 @@ const MODEL_PATH = "/models/stag.glb";
 // changement de rayon caméra en même temps, on ne pouvait plus dire lequel
 // des deux produisait quoi. À retester isolément si l'hypothèse revient.
 const TARGET_HEIGHT = 2;
+
+// Fonctions séparées plutôt qu'une assignation directe dans les useFrame
+// ci-dessous : eslint-plugin-react-hooks (compilateur React 19) refuse une
+// mutation directe sur une valeur issue d'un hook (ici `actions`, issu de
+// useAnimations) dans un useFrame, mais pas un appel de fonction qui mute
+// en interne — même raison que setRimLightIntensity (rim-light.ts).
+function stopActionRealtime(action: AnimationAction | null | undefined) {
+  if (action) action.timeScale = 0;
+}
+
+function scrubAction(action: AnimationAction | null | undefined, time: number) {
+  if (action) action.time = time;
+}
 
 /**
  * Le cerf (Quaternius, CC0, pack "Animated Animal Pack" — cf memory
@@ -82,10 +96,15 @@ export default function StagModel({
 
   useEffect(() => {
     const clip = getIdleClipName(progressRef.current, noticedRef.current);
-    actions[clip]?.reset().fadeIn(0.3).play();
+    const action = actions[clip];
+    // Walk est "scrubé" par le scroll (cf useFrame plus bas), pas joué en
+    // temps réel — timeScale=0 empêche le mixer de faire avancer .time tout
+    // seul, seule la lecture manuelle de .time doit le faire bouger.
+    if (clip === "Walk") stopActionRealtime(action);
+    action?.reset().fadeIn(0.3).play();
     currentClipRef.current = clip;
     return () => {
-      actions[clip]?.fadeOut(0.3);
+      action?.fadeOut(0.3);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- progressRef/noticedRef lus une fois au montage, la suite est gérée par useFrame ci-dessous.
   }, [actions]);
@@ -103,7 +122,9 @@ export default function StagModel({
     if (wantClip === currentClipRef.current) return;
 
     actions[currentClipRef.current ?? ""]?.fadeOut(0.4);
-    actions[wantClip]?.reset().fadeIn(0.4).play();
+    const nextAction = actions[wantClip];
+    if (wantClip === "Walk") stopActionRealtime(nextAction);
+    nextAction?.reset().fadeIn(0.4).play();
     currentClipRef.current = wantClip;
   });
 
@@ -113,6 +134,22 @@ export default function StagModel({
     // pilotée ici, par-dessus la position de repos posée par le recadrage
     // ci-dessus (jamais en remplacement).
     scene.position.setZ(restZRef.current + getWalkOffsetZ(progressRef.current));
+  });
+
+  useFrame(() => {
+    // "Le cerf ne doit marcher qu'au scroll, sinon position de repos, même
+    // si on est dans le pourcentage donné" (retour de Sylvain le 18/08) —
+    // jouer Walk en temps réel désynchronisait les jambes de l'avancée du
+    // corps (scroll-driven ci-dessus) : à scroll rapide, le corps arrivait
+    // avant que les jambes n'aient eu le temps d'animer, lu comme un
+    // glissement. .time posé directement chaque frame (cf getWalkCyclePhase,
+    // pure fonction du scroll) plutôt que laissé au mixer : si le scroll
+    // s'arrête, la pose reste figée, aucune avancée en temps réel.
+    const walkAction = actions.Walk;
+    if (walkAction && currentClipRef.current === "Walk") {
+      const duration = walkAction.getClip().duration;
+      scrubAction(walkAction, getWalkCyclePhase(progressRef.current) * duration);
+    }
   });
 
   useFrame(() => {
