@@ -7,6 +7,15 @@
 // comme background-flora.tsx/ocotillo.tsx (ceux-là sont de la végétation
 // éparse, une chaîne de montagnes doit se lire comme une ligne continue,
 // pas des touffes isolées).
+//
+// **Retouche même soirée** : les montagnes (génériques + Popo/Izta)
+// n'existent plus en meshes séparés (mountains.tsx retiré) — retour de
+// Sylvain : "les montagnes autour doivent être faites avec le sol sculpté,
+// popo et izta inclus". Les placements générés ici alimentent maintenant
+// terrain-height.ts (bosses ajoutées au champ de hauteur du sol), plus une
+// géométrie à part. generateGenericPeakProfile (silhouette 2D pour un
+// Shape extrudé) a été retiré avec mountains.tsx — plus d'usage, le fond
+// générique est maintenant des bosses radiales dans le terrain lui-même.
 
 export type MountainPeakPlacement = {
   azimuth: number;
@@ -65,31 +74,4 @@ export function generateMountainRangePlacements(
     placements.push({ azimuth, radius, heightScale, widthScale });
   }
   return placements;
-}
-
-export type PeakProfilePoint = { x: number; y: number };
-
-/**
- * Silhouette d'un pic générique (pas Popo/Izta, qui gardent leur profil
- * dessiné à la main dans mountains.tsx) — quelques points intermédiaires à
- * hauteur variée déterministe (enveloppe sinusoïdale + bruit par seed) pour
- * un contour irrégulier, jamais un triangle parfait. Part et finit à y=0
- * (le sol), point x=0 toujours présent pour garder un profil asymétrique
- * lisible même avec peu de points.
- */
-export function generateGenericPeakProfile(seed: number, pointCount: number = 6): PeakProfilePoint[] {
-  const halfWidth = 3;
-  const points: PeakProfilePoint[] = [{ x: -halfWidth, y: 0 }];
-
-  for (let i = 1; i < pointCount - 1; i++) {
-    const t = i / (pointCount - 1);
-    const x = -halfWidth + t * halfWidth * 2;
-    const peakEnvelope = Math.sin(t * Math.PI); // 0 aux bords, 1 au centre
-    const noise = (Math.sin(seed + i * 2.7) + 1) / 2; // 0..1 déterministe
-    const y = peakEnvelope * (1.5 + noise * 2.5);
-    points.push({ x, y });
-  }
-
-  points.push({ x: halfWidth, y: 0 });
-  return points;
 }

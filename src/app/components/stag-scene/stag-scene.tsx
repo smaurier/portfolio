@@ -9,7 +9,6 @@ import EnvironmentDepthFade from "./environment-depth-fade";
 import Grass from "./grass";
 import Ground from "./ground";
 import Milpa from "./milpa";
-import Mountains from "./mountains";
 import Ocotillo from "./ocotillo";
 import OrbitCamera from "./orbit-camera";
 import PostFX from "./post-fx";
@@ -120,9 +119,11 @@ export default function StagScene() {
           {/* Perspective atmosphérique (18/08, retour Sylvain : "plus on est
            * loin et plus ça devient gris, comme en peinture") — uniquement
            * sur le décor/fond, jamais sur le cerf (rim-light.ts à la place)
-           * ni sur le maïs/les lianes (compagnons immédiats du sujet), ni
-           * sur les montagnes (retour Sylvain le soir même : leur contour
-           * doit rester lisible, pas encore désaturé en plus du fog). */}
+           * ni sur le maïs/les lianes (compagnons immédiats du sujet). Le
+           * sol (Ground) inclut maintenant les montagnes (bosses dans
+           * terrain-height.ts, cf ground.tsx) : les inclure ici est
+           * cohérent avec la perspective atmosphérique réelle — les
+           * éléments les plus lointains sont justement les plus estompés. */}
           <EnvironmentDepthFade>
             <Ground />
             <Suspense fallback={null}>
@@ -135,9 +136,6 @@ export default function StagScene() {
               <Grass />
             </Suspense>
           </EnvironmentDepthFade>
-          <Suspense fallback={null}>
-            <Mountains />
-          </Suspense>
           <Suspense fallback={null}>
             <StagModel progressRef={progressRef} />
           </Suspense>

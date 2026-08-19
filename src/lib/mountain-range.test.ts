@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateGenericPeakProfile, generateMountainRangePlacements } from "./mountain-range";
+import { generateMountainRangePlacements } from "./mountain-range";
 
 describe("generateMountainRangePlacements", () => {
   it("donne le nombre de pics demandé", () => {
@@ -34,31 +34,5 @@ describe("generateMountainRangePlacements", () => {
     expect(generateMountainRangePlacements(9, options)).toEqual(
       generateMountainRangePlacements(9, options),
     );
-  });
-});
-
-describe("generateGenericPeakProfile", () => {
-  it("part et finit au sol (y=0 aux deux extrémités)", () => {
-    const profile = generateGenericPeakProfile(1);
-    expect(profile[0].y).toBe(0);
-    expect(profile[profile.length - 1].y).toBe(0);
-  });
-
-  it("donne le nombre de points demandé", () => {
-    expect(generateGenericPeakProfile(1, 8)).toHaveLength(8);
-  });
-
-  it("le sommet (point médian) est strictement au-dessus du sol", () => {
-    const profile = generateGenericPeakProfile(2, 7);
-    const middle = profile[Math.floor(profile.length / 2)];
-    expect(middle.y).toBeGreaterThan(0);
-  });
-
-  it("est déterministe : même seed -> même profil", () => {
-    expect(generateGenericPeakProfile(3.5)).toEqual(generateGenericPeakProfile(3.5));
-  });
-
-  it("deux seeds différentes donnent des profils différents (silhouette pas répétitive)", () => {
-    expect(generateGenericPeakProfile(1)).not.toEqual(generateGenericPeakProfile(2));
   });
 });
