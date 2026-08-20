@@ -58,6 +58,14 @@ export default function LoadingVeil({
     >
       <p className={styles.phrase}>{phrase}</p>
       <p className={styles.translation}>{translation}</p>
+      {/* aria-hidden : le pourcentage change plusieurs fois par seconde —
+       * l'annoncer à chaque tick via la région aria-live du parent serait
+       * du bruit pour un lecteur d'écran, pas une information utile.
+       * aria-label du parent ("Chargement de la scène") suffit à annoncer
+       * l'état une fois ; le pourcentage reste un repère visuel seul. */}
+      <p className={styles.percent} aria-hidden="true">
+        {Math.round(progress)}%
+      </p>
     </div>
   );
 }

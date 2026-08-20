@@ -45,3 +45,15 @@
   color: #b3aabf;
   max-width: 46ch;
 }
+
+/* Repère visuel seul (aria-hidden, cf loading-veil.tsx) — discret,
+   monospace pour que les chiffres ne fassent pas sauter la largeur du
+   texte à chaque tick (0-9 même chasse en tabular-nums). */
+.percent {
+  margin-top: 8px;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: #7c7488;
+}
