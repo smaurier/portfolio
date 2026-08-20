@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { clampProgress } from "@/lib/camera-path";
+import { getPerfProfile } from "@/lib/mobile-perf";
 import { getNavEmphasis } from "@/lib/reveal-arc";
 import BackgroundFlora from "./background-flora";
 import CursorRevealScene from "./cursor-reveal-scene";
@@ -60,6 +61,20 @@ export default function StagScene({
   // et le mouvement de souris (CursorRevealScene), jamais remis à false une
   // fois vrai (retour de Sylvain le 18/08).
   const noticedRef = useRef(false);
+  // Filet mobile MINIMAL (cf src/lib/mobile-perf.ts, retour de Sylvain le
+  // 19/08) : 0 avant la première mesure côté client -> profil desktop par
+  // défaut (jamais de flash "version allégée" pendant l'hydratation).
+  const [viewportWidth, setViewportWidth] = useState(0);
+  const perfProfile = getPerfProfile(viewportWidth);
+
+  useEffect(() => {
+    function handleResize() {
+      setViewportWidth(window.innerWidth);
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -122,7 +137,7 @@ export default function StagScene({
   return (
     <div ref={sectionRef} className={styles.scrollTrack}>
       <div className={styles.sticky}>
-        <Canvas camera={{ fov: 45, near: 0.1, far: 100 }}>
+        <Canvas camera={{ fov: 45, near: 0.1, far: 100 }} dpr={[1, perfProfile.dprCap]}>
           {/* Fond pur noir (cf .sticky en CSS) : couleur de fog identique
            * pour que les éléments lointains (sol, montagnes) se fondent dans
            * le vide plutôt que de finir sur une teinte visible en bordure.
@@ -167,7 +182,11 @@ export default function StagScene({
             </Suspense>
           </CursorRevealScene>
           <OrbitCamera progressRef={progressRef} />
-          <PostFX />
+          {/* Post-processing coupé sous le seuil mobile (cf mobile-perf.ts) :
+           * le coût le plus concentré de la scène après le DPR, désactivé
+           * plutôt que réglé plus léger faute de valeur intermédiaire qui
+           * vaille le coup. */}
+          {perfProfile.postFx && <PostFX />}
         </Canvas>
         <LoadingVeil phrase={loadingPhrase} translation={loadingTranslation} label={loadingLabel} />
       </div>
