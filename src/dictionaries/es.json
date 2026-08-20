@@ -69,5 +69,10 @@
   "blog": {
     "title": "Blog",
     "text": "Próximamente."
+  },
+  "lab": {
+    "loadingPhrase": "In xochitl, in cuicatl",
+    "loadingTranslation": "«Flor y canto» — la única verdad, según los sabios nahuas",
+    "loadingLabel": "Cargando la escena"
   }
 }

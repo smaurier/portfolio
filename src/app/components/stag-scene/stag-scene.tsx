@@ -9,6 +9,7 @@ import CursorRevealScene from "./cursor-reveal-scene";
 import EnvironmentDepthFade from "./environment-depth-fade";
 import Grass from "./grass";
 import Ground from "./ground";
+import LoadingVeil from "./loading-veil";
 import Milpa from "./milpa";
 import Ocotillo from "./ocotillo";
 import OrbitCamera from "./orbit-camera";
@@ -43,7 +44,15 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
  * nav cardinale, pas de shader custom — paliers suivants. Volontairement
  * isolé sur /lab plutôt que branché sur la home en prod.
  */
-export default function StagScene() {
+export default function StagScene({
+  loadingPhrase,
+  loadingTranslation,
+  loadingLabel,
+}: {
+  loadingPhrase: string;
+  loadingTranslation: string;
+  loadingLabel: string;
+}) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
   const reducedMotionRef = useRef(false);
@@ -160,6 +169,7 @@ export default function StagScene() {
           <OrbitCamera progressRef={progressRef} />
           <PostFX />
         </Canvas>
+        <LoadingVeil phrase={loadingPhrase} translation={loadingTranslation} label={loadingLabel} />
       </div>
     </div>
   );

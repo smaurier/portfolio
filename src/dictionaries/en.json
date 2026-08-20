@@ -69,5 +69,10 @@
   "blog": {
     "title": "Blog",
     "text": "Coming soon."
+  },
+  "lab": {
+    "loadingPhrase": "In xochitl, in cuicatl",
+    "loadingTranslation": "\"Flower and song\" — the only truth, according to the Nahua sages",
+    "loadingLabel": "Loading the scene"
   }
 }
