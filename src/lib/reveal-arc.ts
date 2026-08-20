@@ -94,81 +94,34 @@ export function getFogColor(progress: number): string {
 // Séquence d'entrée du cerf (18/08, retour de Sylvain : "on pourrait le
 // faire marcher, avancer avec l'idle, ensuite on le verrait manger, puis
 // un bon idle [Idle_2] momentanément, puis la dernière phase où il a juste
-// la tête relevée") — Walk (avance, cf getWalkOffsetZ) -> Eating (se pose,
-// broute) -> Idle_2 (passage bref) -> Idle (tête relevée, état final).
-// Toute la séquence tient avant que `noticed` ne devienne vrai (scroll ou
-// souris, cf StagModel/CursorRevealScene) : un déclenchement rapide bascule
-// direct sur Idle quel que soit l'endroit de la séquence — surprend le
-// cerf en pleine marche ou en train de manger, cohérent avec un sursaut.
-// Jamais de retour en arrière une fois `noticed` vrai.
+// la tête relevée") — Eating (se pose, broute) -> Idle_2 (passage bref) ->
+// Idle (tête relevée, état final). Toute la séquence tient avant que
+// `noticed` ne devienne vrai (scroll ou souris, cf StagModel/
+// CursorRevealScene) : un déclenchement rapide bascule direct sur Idle quel
+// que soit l'endroit de la séquence — surprend le cerf en train de manger,
+// cohérent avec un sursaut. Jamais de retour en arrière une fois `noticed`
+// vrai.
 //
-// WALK_END 0.08 -> 0.18 (retour Sylvain : "la marche ne fonctionne pas, le
-// cerf glisse... aussi la marche est trop courte") — 8% du scroll total
-// (300vh, cf stag-scene.module.css) ne laissait pas le temps à un cycle de
-// foulée complet de se jouer avant le fondu vers Eating (crossfade 0.4s) :
-// à vitesse de scroll normale, la fenêtre passait en moins d'une seconde,
-// le poids du clip Walk n'avait jamais le temps de monter à 1 avant de
-// redescendre — d'où l'impression de glissement plutôt que de vraie
-// marche. Fenêtre plus que doublée pour laisser jouer plusieurs foulées.
-const WALK_END = 0.18;
-const EATING_END = 0.22;
+// Le temps "Walk" (avance scroll-scrubée depuis un retrait, cf git log
+// pour l'implémentation) a été retiré le 20/08 — deux retours de Sylvain
+// consécutifs sur le même symptôme ("la marche ne fonctionne pas/ne se
+// voit pas"), la vraie cause trouvée (la fenêtre de scroll disponible
+// était trop courte pour percevoir une foulée en scroll normal) aurait
+// demandé d'allonger encore la piste, et la conclusion de Sylvain a été
+// que l'effet n'apportait "presque rien" pour la complexité que ça
+// demandait à régler ("c'est chiant à mettre en place en plus") — abandon
+// plutôt qu'un nouveau réglage. Le cerf apparaît directement à sa position
+// de repos, en train de manger.
+const EATING_END = 0.04;
 
 export function getIdleClipName(
   progress: number,
   noticed: boolean,
-): "Walk" | "Eating" | "Idle_2" | "Idle" {
+): "Eating" | "Idle_2" | "Idle" {
   if (noticed) return "Idle";
   const p = clampProgress(progress);
-  if (p < WALK_END) return "Walk";
   if (p < EATING_END) return "Eating";
   return "Idle_2";
-}
-
-// Distance parcourue par le cerf pendant "Walk" — le clip lui-même n'a pas
-// de root motion (vérifié dans le rig : le nœud racine ne bouge quasiment
-// pas d'un keyframe à l'autre, cycle sur place), l'avancée réelle est donc
-// pilotée ici plutôt que par l'animation.
-//
-// -2.3 (pas +2.3) : bug de signe trouvé le 20/08 (Sylvain, en vérifiant en
-// direct avec une valeur exagérée pour le débugger : "je vois qu'il bouge
-// maintenant, même s'il va en arrière"). La caméra démarre à +Z (radius sur
-// +Z, cf camera-path.ts startRadius) — un Z de cerf plus GRAND le rapproche
-// de la caméra, plus PETIT (ou négatif) l'en éloigne. +2.3 faisait donc
-// partir le cerf plus PRÈS de la caméra qu'à son repos (Z=0), puis reculer
-// vers Z=0 en "marchant" — l'inverse de l'intention ("le cerf marche depuis
-// un peu plus loin/en retrait, puis s'arrête pile à sa position de repos").
-// -2.3 le fait démarrer plus LOIN (en retrait) et se rapprocher en marchant.
-// 1.1 -> 2.3 en magnitude (même retour que WALK_END ci-dessus) : la fenêtre
-// de marche a plus que doublé, la distance parcourue suit pour rester
-// cohérente — sinon le cerf aurait mis longtemps à parcourir une toute
-// petite distance.
-const WALK_START_OFFSET_Z = -2.3;
-
-export function getWalkOffsetZ(progress: number): number {
-  return lerpWithinRange(progress, 0, WALK_END, WALK_START_OFFSET_Z, 0);
-}
-
-// Nombre de foulées jouées sur toute la fenêtre de marche — assez pour se
-// lire comme une vraie marche (pas une seule demi-enjambée étirée), pas
-// trop pour rester lisible dans WALK_END.
-const WALK_STRIDE_COUNT = 3;
-
-/**
- * Position dans le cycle de marche (0..1, boucle), en fonction du scroll —
- * pas du temps réel. Retour de Sylvain le 18/08 : "le cerf ne doit marcher
- * qu'au scroll, sinon position de repos, même si on est dans le
- * pourcentage donné" — jouer le clip Walk normalement (mixer en temps
- * réel) désynchronisait les jambes de l'avancée du corps (scroll-driven,
- * cf getWalkOffsetZ) : à scroll rapide, le corps atteignait sa position
- * finale bien avant que les jambes n'aient eu le temps d'animer, lu comme
- * un glissement plutôt qu'une marche. StagModel "scrube" le clip Walk (fixe
- * `action.time` chaque frame plutôt que de le laisser jouer) à partir de
- * cette phase — si le scroll s'arrête, la phase reste figée, le cerf ne
- * continue jamais de marcher tout seul.
- */
-export function getWalkCyclePhase(progress: number): number {
-  const t = lerpWithinRange(progress, 0, WALK_END, 0, 1);
-  return (t * WALK_STRIDE_COUNT) % 1;
 }
 
 // Emphase de la nav ("chemins révélés") : 0 avant le dernier quart, monte à

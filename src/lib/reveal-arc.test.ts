@@ -8,8 +8,6 @@ import {
   getMilpaGrowth,
   getNavEmphasis,
   getRevealPhase,
-  getWalkCyclePhase,
-  getWalkOffsetZ,
 } from "./reveal-arc";
 
 /** "#rrggbb" -> {r,g,b} pour comparer numériquement plutôt que sur une
@@ -123,79 +121,23 @@ describe("getFogColor", () => {
 });
 
 describe("getIdleClipName", () => {
-  it("marche (Walk) tout au début, tant qu'il n'a pas remarqué le visiteur", () => {
-    expect(getIdleClipName(0, false)).toBe("Walk");
-    expect(getIdleClipName(0.17, false)).toBe("Walk");
-  });
-
-  it("se pose et broute (Eating) une fois arrivé, avant de remarquer le visiteur", () => {
-    expect(getIdleClipName(0.18, false)).toBe("Eating");
-    expect(getIdleClipName(0.21, false)).toBe("Eating");
+  it("se pose et broute (Eating) dès le départ, avant de remarquer le visiteur", () => {
+    // Le temps "Walk" a été retiré le 20/08 (cf reveal-arc.ts) — le cerf
+    // apparaît directement à sa position de repos, en train de manger.
+    expect(getIdleClipName(0, false)).toBe("Eating");
+    expect(getIdleClipName(0.03, false)).toBe("Eating");
   });
 
   it("passe par Idle_2 juste avant de remarquer le visiteur", () => {
-    expect(getIdleClipName(0.22, false)).toBe("Idle_2");
-    expect(getIdleClipName(0.24, false)).toBe("Idle_2");
+    expect(getIdleClipName(0.04, false)).toBe("Idle_2");
+    expect(getIdleClipName(0.1, false)).toBe("Idle_2");
   });
 
   it("passe à Idle dès qu'il a remarqué le visiteur, quel que soit le scroll ou l'étape de la séquence — jamais de retour en arrière", () => {
     expect(getIdleClipName(0, true)).toBe("Idle");
-    expect(getIdleClipName(0.05, true)).toBe("Idle"); // surprend le cerf en pleine marche
+    expect(getIdleClipName(0.02, true)).toBe("Idle"); // surprend le cerf en train de manger
     expect(getIdleClipName(0.6, true)).toBe("Idle");
     expect(getIdleClipName(1, true)).toBe("Idle");
-  });
-});
-
-describe("getWalkOffsetZ", () => {
-  it("part avec un décalage net (en retrait, vers -Z), pas déjà à sa position de repos", () => {
-    // Négatif = plus loin de la caméra (positionnée à +Z, cf camera-path.ts
-    // startRadius) : le cerf doit se rapprocher en marchant, pas s'en
-    // éloigner — bug de signe inversé trouvé le 20/08 (Sylvain, en
-    // vérifiant en direct : "je vois qu'il bouge maintenant, même s'il va
-    // en arrière" sur un test avec une valeur exagérée).
-    expect(getWalkOffsetZ(0)).toBeLessThan(-2);
-  });
-
-  it("atteint exactement 0 (position de repos) à la fin de la marche, et le reste après", () => {
-    expect(getWalkOffsetZ(0.18)).toBeCloseTo(0);
-    expect(getWalkOffsetZ(0.5)).toBeCloseTo(0);
-    expect(getWalkOffsetZ(1)).toBeCloseTo(0);
-  });
-
-  it("se rapproche de 0 en continu, jamais ne s'en éloigne", () => {
-    const samples = [0, 0.05, 0.1, 0.14, 0.18].map(getWalkOffsetZ);
-    for (let i = 1; i < samples.length; i++) {
-      expect(Math.abs(samples[i])).toBeLessThanOrEqual(Math.abs(samples[i - 1]));
-    }
-  });
-});
-
-describe("getWalkCyclePhase", () => {
-  it("est déterministe : même progress -> même phase (pas de temps réel impliqué)", () => {
-    expect(getWalkCyclePhase(0.05)).toBe(getWalkCyclePhase(0.05));
-  });
-
-  it("reste dans [0, 1)", () => {
-    for (const p of [0, 0.02, 0.06, 0.1, 0.15, 0.18, 0.5, 1]) {
-      const phase = getWalkCyclePhase(p);
-      expect(phase).toBeGreaterThanOrEqual(0);
-      expect(phase).toBeLessThan(1);
-    }
-  });
-
-  it("part à 0 tout au début de la marche", () => {
-    expect(getWalkCyclePhase(0)).toBeCloseTo(0);
-  });
-
-  it("boucle plusieurs fois sur la fenêtre de marche (plusieurs foulées, pas une seule enjambée étirée)", () => {
-    // Avec WALK_STRIDE_COUNT foulées sur la fenêtre, la phase doit repasser
-    // près de 0 plus d'une fois avant la fin de la marche (WALK_END=0.18).
-    const samples = [0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16].map(getWalkCyclePhase);
-    let wraps = 0;
-    for (let i = 1; i < samples.length; i++) {
-      if (samples[i] < samples[i - 1]) wraps++;
-    }
-    expect(wraps).toBeGreaterThan(1);
   });
 });
 
