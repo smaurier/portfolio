@@ -7,11 +7,12 @@ import { Box3, Vector3, type AnimationAction, type Group } from "three";
 import {
   getDirectionalIntensity,
   getIdleClipName,
+  getNavEmphasis,
   getRevealPhase,
   getWalkCyclePhase,
   getWalkOffsetZ,
 } from "@/lib/reveal-arc";
-import { applyRimLight, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
+import { applyRimLight, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 
 const MODEL_PATH = "/models/stag.glb";
 // Hauteur voulue en unités de scène, pas l'échelle native du GLB (les packs
@@ -159,6 +160,11 @@ export default function StagModel({
     // intensité fixe déconnectée de la narration.
     const intensity = getDirectionalIntensity(progressRef.current) * 0.4;
     setRimLightIntensity(rimUniforms, intensity);
+    // Doré (repos) -> jade (climax) sur "chemins révélés" (retour de
+    // Sylvain le 20/08) — même fenêtre que l'emphase de nav
+    // (getNavEmphasis), déjà jade au même instant : le liseré et le nav
+    // deviennent le même signal de révélation.
+    setRimLightColor(rimUniforms, getNavEmphasis(progressRef.current));
   });
 
   return <primitive ref={group} object={scene} />;

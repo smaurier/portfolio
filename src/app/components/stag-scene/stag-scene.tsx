@@ -166,12 +166,8 @@ export default function StagScene({
       <div className={styles.sticky}>
         <PiedraDelSol progressRef={progressRef} reducedMotionRef={reducedMotionRef} />
         <Canvas camera={{ fov: 45, near: 0.1, far: 100 }} dpr={[1, perfProfile.dprCap]}>
-          {/* Fond pur noir (cf .sticky en CSS) : couleur de fog identique
-           * pour que les éléments lointains (sol, montagnes) se fondent dans
-           * le vide plutôt que de finir sur une teinte visible en bordure.
-           * near/far au-delà de l'orbite caméra (radius max 9) : le fog ne
-           * doit jamais assombrir la scène proche, seulement l'horizon. */}
-          <fog attach="fog" args={["#000000", 10, 34]} />
+          {/* Le fog vit maintenant dans RevealLighting (couleur pilotée par
+           * le scroll, cf getFogColor) — pas ici, un seul point de vérité. */}
           <RevealLighting progressRef={progressRef} />
           {/* Perspective atmosphérique (18/08, retour Sylvain : "plus on est
            * loin et plus ça devient gris, comme en peinture") — uniquement

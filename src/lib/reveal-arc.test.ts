@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getAmbientIntensity,
   getDirectionalIntensity,
+  getFogColor,
   getIdleClipName,
   getIntroOpacity,
   getMilpaGrowth,
@@ -10,6 +11,18 @@ import {
   getWalkCyclePhase,
   getWalkOffsetZ,
 } from "./reveal-arc";
+
+/** "#rrggbb" -> {r,g,b} pour comparer numériquement plutôt que sur une
+ * chaîne exacte (fragile face à l'arrondi). */
+function hexToRgb(hex: string) {
+  const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+  if (!match) throw new Error(`hex invalide: ${hex}`);
+  return {
+    r: parseInt(match[1], 16),
+    g: parseInt(match[2], 16),
+    b: parseInt(match[3], 16),
+  };
+}
 
 describe("getRevealPhase", () => {
   it("commence en pénombre", () => {
@@ -81,6 +94,31 @@ describe("getDirectionalIntensity", () => {
     const nearStart = getDirectionalIntensity(0.02) - getDirectionalIntensity(0);
     const nearMiddle = getDirectionalIntensity(0.39) - getDirectionalIntensity(0.37);
     expect(nearStart).toBeLessThan(nearMiddle);
+  });
+});
+
+describe("getFogColor", () => {
+  it("est noir pur en tout début de pénombre", () => {
+    expect(getFogColor(0)).toBe("#000000");
+  });
+
+  it("atteint le noir-jade au climax et le tient ensuite (pas de retour en arrière)", () => {
+    const atClimax = hexToRgb(getFogColor(0.75));
+    const atOne = hexToRgb(getFogColor(1));
+    expect(atClimax).toEqual(atOne);
+    // Jade assombri (--jade-bg #00a86b à 15%) : dominante verte, jamais de
+    // rouge (le fond doit rester une nuance de noir-jade, pas virer brun).
+    expect(atClimax.r).toBe(0);
+    expect(atClimax.g).toBeGreaterThan(0);
+    expect(atClimax.b).toBeGreaterThan(0);
+    expect(atClimax.g).toBeGreaterThan(atClimax.b); // dominante verte du jade
+  });
+
+  it("se teinte en continu, jamais ne redevient plus noir", () => {
+    const samples = [0, 0.2, 0.4, 0.6, 0.75].map((p) => hexToRgb(getFogColor(p)).g);
+    for (let i = 1; i < samples.length; i++) {
+      expect(samples[i]).toBeGreaterThanOrEqual(samples[i - 1]);
+    }
   });
 });
 

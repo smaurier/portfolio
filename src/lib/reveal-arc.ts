@@ -66,6 +66,31 @@ export function getDirectionalIntensity(progress: number): number {
   return easeWithinRange(progress, PHASE_START.penombre, PHASE_START["chemins-reveles"], 0.5, 1.8);
 }
 
+function componentToHex(value: number): string {
+  return Math.round(Math.min(255, Math.max(0, value))).toString(16).padStart(2, "0");
+}
+
+// Jade assombri à 15% (--jade-bg #00a86b -> rgb(0,168,107), 15% de ça)
+// plutôt que le jade vif : un brouillard plein jade écraserait la pénombre
+// nocturne que tout l'arc construit (retour de Sylvain le 20/08 : penser
+// l'intégration du jade plutôt que le plaquer en aplat, cf memory
+// project-nahual-da — étude concurrentielle, piste "lueur d'ambiance").
+const FOG_JADE_TINT = { r: 0, g: 25, b: 16 };
+
+// Teinte du brouillard : noir pur en pénombre (cf fog args par défaut dans
+// RevealLighting), dérive vers un noir-jade profond sur la même fenêtre que
+// les intensités lumineuses ci-dessus — le jade devient un signal narratif
+// ("le monde se teinte de la couleur de la marque en s'éveillant") plutôt
+// qu'une couleur de fond plaquée. Jamais de retour en arrière, même logique
+// que le reste de l'arc.
+export function getFogColor(progress: number): string {
+  const t = easeWithinRange(progress, PHASE_START.penombre, PHASE_START["chemins-reveles"], 0, 1);
+  const r = lerp(0, FOG_JADE_TINT.r, t);
+  const g = lerp(0, FOG_JADE_TINT.g, t);
+  const b = lerp(0, FOG_JADE_TINT.b, t);
+  return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`;
+}
+
 // Séquence d'entrée du cerf (18/08, retour de Sylvain : "on pourrait le
 // faire marcher, avancer avec l'idle, ensuite on le verrait manger, puis
 // un bon idle [Idle_2] momentanément, puis la dernière phase où il a juste

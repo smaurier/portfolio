@@ -118,3 +118,25 @@ export function setRimLightIntensity(uniformsList: RimLightUniforms[], intensity
     uniforms.uRimIntensity.value = intensity;
   }
 }
+
+// Couleur de repos (doré, DEFAULT_OPTIONS.color ci-dessus) -> jade
+// (--jade-bg #00a86b) au climax de "chemins révélés" — retour de Sylvain le
+// 20/08 : le jade doit être un signal narratif de la révélation, pas une
+// couleur de fond plaquée (cf memory project-nahual-da, étude
+// concurrentielle, piste "liseré au climax"). Cohérent avec le nav déjà
+// jade au même instant (applyNavEmphasis, stag-scene.tsx) : le jade devient
+// LA couleur de la révélation dans tout le site, pas juste ici.
+const REST_COLOR = new Color(DEFAULT_OPTIONS.color);
+const CLIMAX_COLOR = new Color("#00a86b");
+
+/**
+ * Fait varier la couleur du liseré déjà branché — même raison de fonction
+ * séparée que setRimLightIntensity ci-dessus (react-hooks/immutability).
+ * `climaxBlend` : 0 = doré (repos), 1 = jade (climax) — l'appelant passe
+ * `getNavEmphasis(progress)` (déjà la même fenêtre que l'emphase de nav).
+ */
+export function setRimLightColor(uniformsList: RimLightUniforms[], climaxBlend: number) {
+  for (const uniforms of uniformsList) {
+    uniforms.uRimColor.value.lerpColors(REST_COLOR, CLIMAX_COLOR, climaxBlend);
+  }
+}
