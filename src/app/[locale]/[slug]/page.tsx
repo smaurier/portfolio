@@ -1,8 +1,43 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ObfuscatedEmail from "../../components/obfuscated-email";
+import EchoStag from "../../components/stag-scene/echo-stag-lazy";
+import type { EchoMood } from "../../components/stag-scene/echo-stag";
 import { getDictionary, isLocale, locales, type Locale, type Dictionary } from "../../../dictionaries";
 import { pageKeys, slugs, getPageKeyFromSlug, getPath } from "../../../lib/routes";
+
+// Couleurs des points cardinaux (Codex Nahual, section 03 — mêmes valeurs
+// que piedra-del-sol.tsx/le Codex publié, pas réinventées ici) : or/cuivre
+// (Est/Tonatiuh), turquoise (Sud/Huitzilopochtli), cendre (Ouest/
+// Cihuatlampa). Une seule scène-monde (le cerf), pas trois créatures
+// différentes — cf memory, décision du 20/08 après discussion sur le
+// morphing : le cerf reste le cerf, seuls lumière/couleur/pose changent.
+const SERVICES_MOOD: EchoMood = {
+  clip: "Idle",
+  rimColor: "#a9762f",
+  ambientColor: "#4a3418",
+  ambientIntensity: 0.9,
+  directionalColor: "#f0b25c",
+  directionalIntensity: 2.2,
+};
+
+const PROJETS_MOOD: EchoMood = {
+  clip: "Gallop",
+  rimColor: "#2c6b82",
+  ambientColor: "#132c33",
+  ambientIntensity: 0.85,
+  directionalColor: "#5fc4e0",
+  directionalIntensity: 2,
+};
+
+const CONTACT_MOOD: EchoMood = {
+  clip: "Idle_Headlow",
+  rimColor: "#6a6478",
+  ambientColor: "#201f26",
+  ambientIntensity: 0.5,
+  directionalColor: "#8b86a0",
+  directionalIntensity: 0.9,
+};
 
 export function generateStaticParams() {
   return locales.flatMap((locale) =>
@@ -16,6 +51,10 @@ function ServicesPage({ locale, dict }: { locale: Locale; dict: Dictionary["serv
       <div className="contentPage">
         <h1>{dict.title}</h1>
         <p>{dict.intro}</p>
+
+        <div className="echoWrap">
+          <EchoStag mood={SERVICES_MOOD} />
+        </div>
 
         <div className="serviceCard">
           <h2>{dict.webCard.title}</h2>
@@ -40,6 +79,10 @@ function ProjetsPage({ dict }: { dict: Dictionary["projets"] }) {
       <div className="contentPage">
         <h1>{dict.title}</h1>
         <p>{dict.intro}</p>
+
+        <div className="echoWrap">
+          <EchoStag mood={PROJETS_MOOD} />
+        </div>
 
         <div className="serviceCard">
           <h2>{dict.nuada.title}</h2>
@@ -83,6 +126,11 @@ function ContactPage({ dict, showEmailLabel }: { dict: Dictionary["contact"]; sh
       <div className="contentPage">
         <h1>{dict.title}</h1>
         <p>{dict.intro}</p>
+
+        <div className="echoWrap">
+          <EchoStag mood={CONTACT_MOOD} />
+        </div>
+
         <ObfuscatedEmail className="ctaButton" placeholder={showEmailLabel} />
         <p className="note">{dict.note}</p>
         <p>

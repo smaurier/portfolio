@@ -1,0 +1,18 @@
+/* Fenêtre décorative (pas plein écran, cf memory project-nahual-da —
+   garde-fou du Codex : Contact doit rester frictionless). Positionnée par
+   la page appelante (contentPage.module.css ou équivalent) — ce module ne
+   pose que l'apparence de la fenêtre elle-même, jamais son placement. */
+.frame {
+  width: min(320px, 80vw);
+  aspect-ratio: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #0d0c11;
+  /* Comme .sticky (stag-scene.module.css) : fond sombre en dur, cohérent
+     avec la scène 3D quel que soit le thème clair/sombre du reste de la
+     page texte autour. */
+}
+
+.frame canvas {
+  display: block;
+}

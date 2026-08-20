@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { Box3, Vector3, type Group } from "three";
+import type { Group } from "three";
 import { getDirectionalIntensity, getIdleClipName, getNavEmphasis, getRevealPhase } from "@/lib/reveal-arc";
+import { centerAndScale } from "./center-model";
 import { applyRimLight, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 
 const MODEL_PATH = "/models/stag.glb";
@@ -56,19 +57,12 @@ export default function StagModel({
   const rimUniforms: RimLightUniforms[] = useMemo(() => applyRimLight(scene), [scene]);
 
   useEffect(() => {
-    // Recadre le modèle sur son propre bounding box : hauteur fixée à
-    // TARGET_HEIGHT, posé au sol (y=0), centré en X/Z. Mutation directe de
-    // `scene` (pas de clone) : une seule instance sur cette page pour
-    // l'instant — à revoir avec SkeletonUtils.clone() le jour où le même
-    // cerf est réutilisé sur plusieurs pages (écho Services/Projets/Contact,
-    // cf project-nahual-da).
-    const box = new Box3().setFromObject(scene);
-    const size = box.getSize(new Vector3());
-    const center = box.getCenter(new Vector3());
-    const scale = size.y > 0 ? TARGET_HEIGHT / size.y : 1;
-
-    scene.scale.setScalar(scale);
-    scene.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+    // Recadre le modèle sur son propre bounding box (cf center-model.ts).
+    // Mutation directe de `scene` (pas de clone) : la home garde une seule
+    // instance vivante, c'est l'écho sur les autres pages qui clone (cf
+    // echo-stag-model.tsx, project-nahual-da) — deux contextes de rendu
+    // séparés, jamais montés en même temps.
+    centerAndScale(scene, TARGET_HEIGHT);
   }, [scene]);
 
   useEffect(() => {

@@ -246,6 +246,14 @@ body.nahual-lab-reveal .logoLink img {
   line-height: 1.6;
 }
 
+/* Écho du cerf (Services/Projets/Contact, cf memory project-nahual-da) —
+   centré dans la colonne texte, pas juste posé à gauche par défaut du
+   flex column parent (.contentPage). */
+.echoWrap {
+  display: flex;
+  justify-content: center;
+}
+
 .serviceCard {
   display: flex;
   flex-direction: column;
