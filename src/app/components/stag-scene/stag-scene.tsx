@@ -9,6 +9,7 @@ import { getIntroOpacity, getNavEmphasis } from "@/lib/reveal-arc";
 import BackgroundFlora from "./background-flora";
 import CursorRevealScene from "./cursor-reveal-scene";
 import EnvironmentDepthFade from "./environment-depth-fade";
+import FadingBlock from "./fading-block";
 import Grass from "./grass";
 import Ground from "./ground";
 import LoadingVeil from "./loading-veil";
@@ -215,37 +216,50 @@ export default function StagScene({
            * vaille le coup. */}
           {perfProfile.postFx && <PostFX />}
         </Canvas>
-        {/* Accroche (hero) : visible dès le chargement, pas cachée derrière
-         * le scroll — s'efface avec la pénombre (getIntroOpacity) une fois
-         * la prise de conscience commencée. */}
-        <SceneTextOverlay progressRef={progressRef} reducedMotionRef={reducedMotionRef} getOpacity={getIntroOpacity} align="start">
-          <h1>{home.heroTitle}</h1>
-          <p>{home.heroText}</p>
-          <div className={overlayStyles.links}>
-            <Link href={servicesHref} className={overlayStyles.cta}>
-              {home.heroCta}
-            </Link>
-          </div>
-        </SceneTextOverlay>
-        {/* Sortie de scène : révélée à "chemins révélés" (getNavEmphasis,
-         * même moment que l'emphase de la nav) — la vraie porte de sortie
-         * vers Contact/GitHub, pas un simple lien posé en fin de scroll. */}
-        <SceneTextOverlay progressRef={progressRef} reducedMotionRef={reducedMotionRef} getOpacity={getNavEmphasis} align="end">
-          <h2>{home.aboutTitle}</h2>
-          <p>{home.aboutText}</p>
-          <div className={overlayStyles.links}>
-            <Link href={contactHref} className={overlayStyles.cta}>
-              {home.contactCta}
-            </Link>
-            <a
-              href="https://github.com/smaurier"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={overlayStyles.secondaryLink}
-            >
-              {home.githubCta}
-            </a>
-          </div>
+        {/* Hero et à-propos, tous deux en bas à gauche (retour de Sylvain le
+         * 20/08) — empilés par SceneTextOverlay/FadingBlock, jamais
+         * superposés même si les deux sont visibles à la fois
+         * (prefers-reduced-motion). Hero visible dès le chargement, pas
+         * caché derrière le scroll (getIntroOpacity, s'efface avec la
+         * pénombre) ; à-propos révélé à "chemins révélés" (getNavEmphasis,
+         * même moment que l'emphase de la nav) — la vraie sortie de scène. */}
+        <SceneTextOverlay>
+          <FadingBlock
+            progressRef={progressRef}
+            reducedMotionRef={reducedMotionRef}
+            getOpacity={getIntroOpacity}
+            initialOpacity={1}
+          >
+            <h1>{home.heroTitle}</h1>
+            <p>{home.heroText}</p>
+            <div className={overlayStyles.links}>
+              <Link href={servicesHref} className={overlayStyles.cta}>
+                {home.heroCta}
+              </Link>
+            </div>
+          </FadingBlock>
+          <FadingBlock
+            progressRef={progressRef}
+            reducedMotionRef={reducedMotionRef}
+            getOpacity={getNavEmphasis}
+            initialOpacity={0}
+          >
+            <h2>{home.aboutTitle}</h2>
+            <p>{home.aboutText}</p>
+            <div className={overlayStyles.links}>
+              <Link href={contactHref} className={overlayStyles.cta}>
+                {home.contactCta}
+              </Link>
+              <a
+                href="https://github.com/smaurier"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={overlayStyles.secondaryLink}
+              >
+                {home.githubCta}
+              </a>
+            </div>
+          </FadingBlock>
         </SceneTextOverlay>
         <LoadingVeil phrase={loadingPhrase} translation={loadingTranslation} label={loadingLabel} />
       </div>

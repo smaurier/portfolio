@@ -1,64 +1,55 @@
-/* Superposé au canvas, cadré à gauche (retour de Sylvain le 19/08 : "le
-   texte devrait être justifié plus à gauche pour qu'on puisse voir
+/* Superposé au canvas, ancré en bas à gauche (retour de Sylvain le 20/08 :
+   hero ET à-propos tous les deux à cet endroit — auparavant chacun sur un
+   coin opposé). Cadré à gauche (retour du 19/08 : "pour qu'on puisse voir
    l'animation assez largement derrière") — la scène (le cerf, centré dans
-   le cadre caméra) reste visible sur la moitié droite de l'écran. */
+   le cadre caméra) reste visible sur le reste de l'écran. */
 .overlay {
   position: absolute;
   inset: 0;
   z-index: 5;
   display: flex;
-  justify-content: flex-start;
-  padding: 0 6vw;
-  transition: opacity 0.5s ease-out;
-  /* pointer-events posé en JS (scene-text-overlay.tsx) selon l'opacité
-     réelle — jamais bloquant une fois effacé. */
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .overlay {
-    transition: none;
-  }
-}
-
-/* Accroche (hero) : ancrée en haut, sous le header fixe. Opacité par
- * défaut 1 posée explicitement (pas juste le défaut navigateur implicite)
- * — cohérent avec getIntroOpacity(0)=1, l'état attendu avant même que la
- * boucle rAF de scene-text-overlay.tsx n'ait fait son premier tick. */
-.overlay.start {
-  align-items: flex-start;
-  padding-top: calc(var(--header-height, 81px) + 48px);
-  opacity: 1;
-}
-
-/* Sortie de scène (à-propos) : ancrée en bas, au-dessus du footer fixe.
- * Opacité par défaut à 0 (pas laissée au défaut navigateur = 1) : sans
- * cette valeur, le bloc s'affichait plein pot pendant le bref instant
- * avant l'hydratation/le premier tick JS — flash constaté en vrai
- * (superposé au hero), pas juste théorique. */
-.overlay.end {
   align-items: flex-end;
-  padding-bottom: calc(var(--footer-height, 65px) + 48px);
-  opacity: 0;
+  justify-content: flex-start;
+  padding: 0 6vw calc(var(--footer-height, 65px) + 48px);
+  pointer-events: none;
 }
 
-.content {
+/* Empile hero et à-propos verticalement — jamais superposés, y compris
+   quand les deux sont visibles en même temps (prefers-reduced-motion, cf
+   fading-block.tsx) : la pile grandit vers le haut au lieu de se
+   chevaucher, quel que soit le nombre de blocs visibles à la fois. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.block {
   display: flex;
   flex-direction: column;
   gap: 16px;
   max-width: 420px;
   text-align: left;
   color: #f2ece1;
+  transition: opacity 0.6s ease-out;
+  pointer-events: auto;
 }
 
-.content h1,
-.content h2 {
+@media (prefers-reduced-motion: reduce) {
+  .block {
+    transition: none;
+  }
+}
+
+.block h1,
+.block h2 {
   font-size: clamp(1.6rem, 3.6vw, 2.4rem);
   font-weight: 600;
   line-height: 1.15;
   text-wrap: balance;
 }
 
-.content p {
+.block p {
   font-size: 0.98rem;
   line-height: 1.6;
   color: rgba(242, 236, 225, 0.78);
