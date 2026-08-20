@@ -3,7 +3,8 @@
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
-import { applyCursorReveal, createCursorRevealUniforms } from "./cursor-reveal";
+import { getRevealFloor } from "@/lib/reveal-arc";
+import { applyCursorReveal, createCursorRevealUniforms, setCursorRevealFloor } from "./cursor-reveal";
 
 /**
  * Enveloppe toute la scène 3D dans la révélation par curseur (cf
@@ -23,13 +24,21 @@ import { applyCursorReveal, createCursorRevealUniforms } from "./cursor-reveal";
  * raison déjà documentée pour environment-depth-fade.tsx. applyCursorReveal
  * est idempotent (WeakSet dans cursor-reveal.ts), le coût par frame quand
  * tout est déjà patché est négligeable.
+ *
+ * `progressRef` (20/08) : le plancher de révélation (opacité/saturation
+ * minimales, cf cursor-reveal.ts) suit maintenant le scroll plutôt que de
+ * rester figé — retour de Sylvain : "on est encore majoritairement en noir
+ * et blanc et transparence à la fin", la scène restait grise/translucide
+ * hors du rayon du curseur même à "chemins révélés".
  */
 export default function CursorRevealScene({
   children,
   noticedRef,
+  progressRef,
 }: {
   children: ReactNode;
   noticedRef: MutableRefObject<boolean>;
+  progressRef: MutableRefObject<number>;
 }) {
   const groupRef = useRef<Group>(null);
   const { gl } = useThree();
@@ -71,6 +80,7 @@ export default function CursorRevealScene({
     }
 
     if (groupRef.current) applyCursorReveal(groupRef.current, uniforms);
+    setCursorRevealFloor(uniforms, getRevealFloor(progressRef.current));
   });
 
   return <group ref={groupRef}>{children}</group>;

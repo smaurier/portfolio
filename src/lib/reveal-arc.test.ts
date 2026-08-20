@@ -7,6 +7,7 @@ import {
   getIntroOpacity,
   getMilpaGrowth,
   getNavEmphasis,
+  getRevealFloor,
   getRevealPhase,
 } from "./reveal-arc";
 
@@ -92,6 +93,25 @@ describe("getDirectionalIntensity", () => {
     const nearStart = getDirectionalIntensity(0.02) - getDirectionalIntensity(0);
     const nearMiddle = getDirectionalIntensity(0.39) - getDirectionalIntensity(0.37);
     expect(nearStart).toBeLessThan(nearMiddle);
+  });
+});
+
+describe("getRevealFloor", () => {
+  it("nul en tout début de pénombre", () => {
+    expect(getRevealFloor(0)).toBeCloseTo(0);
+  });
+
+  it("plein dès le climax et le reste ensuite (pas de retour en arrière)", () => {
+    expect(getRevealFloor(0.75)).toBeCloseTo(1);
+    expect(getRevealFloor(0.9)).toBeCloseTo(1);
+    expect(getRevealFloor(1)).toBeCloseTo(1);
+  });
+
+  it("croît de façon monotone entre 0 et 0.75", () => {
+    const samples = [0, 0.2, 0.4, 0.6, 0.75].map(getRevealFloor);
+    for (let i = 1; i < samples.length; i++) {
+      expect(samples[i]).toBeGreaterThanOrEqual(samples[i - 1]);
+    }
   });
 });
 

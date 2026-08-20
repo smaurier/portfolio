@@ -23,17 +23,34 @@ import { addShaderModifier } from "./shader-patch";
  * Portée limitée à la scène 3D (confirmé par Sylvain) : header/footer/nav
  * restent toujours pleinement visibles, même logique que la nav cardinale
  * ("jamais un verrou d'accès").
+ *
+ * **Plancher piloté par le scroll depuis le 20/08** (retour de Sylvain :
+ * "on est encore majoritairement en noir et blanc et transparence à la
+ * fin") — avant, MIN_OPACITY/MIN_SATURATION étaient des constantes figées,
+ * ce qui contredisait le principe posé dans le Codex Nahual dès le début
+ * ("hover = présence locale, scroll = révélation structurelle") : le
+ * scroll ne pilotait en réalité jamais cette révélation-là, seul le
+ * curseur le faisait — la majorité du cadre restait grise/translucide même
+ * à "chemins révélés" si le curseur n'était pas passé dessus. Le plancher
+ * remonte maintenant vers 1 avec le même rythme que le reste de l'arc
+ * (getRevealFloor) : à "chemins révélés", la scène entière est pleinement
+ * révélée par défaut, le curseur ne fait plus qu'accentuer localement
+ * pendant les phases plus précoces — jamais de régression du garde-fou
+ * d'accessibilité, le plancher ne redescend jamais.
  */
 
-const MIN_OPACITY = 0.4;
-// Fraction de couleur qui reste visible même à reveal=0 — jamais
-// complètement gris non plus, juste très désaturé.
-const MIN_SATURATION = 0.15;
+// Valeurs de plancher en tout début de pénombre (progress=0, cf
+// setCursorRevealFloor) — mêmes valeurs qu'avant le 20/08, juste plus
+// figées : le point de départ de la remontée, pas la seule valeur possible.
+const MIN_OPACITY_START = 0.4;
+const MIN_SATURATION_START = 0.15;
 
 export type CursorRevealUniforms = {
   uMouse: { value: Vector2 };
   uResolution: { value: Vector2 };
   uRevealRadius: { value: number };
+  uMinOpacity: { value: number };
+  uMinSaturation: { value: number };
 };
 
 /** Un seul jeu d'uniforms partagé par tous les matériaux patchés — la
@@ -48,6 +65,8 @@ export function createCursorRevealUniforms(): CursorRevealUniforms {
     uMouse: { value: new Vector2(-9999, -9999) },
     uResolution: { value: new Vector2(1, 1) },
     uRevealRadius: { value: 260 },
+    uMinOpacity: { value: MIN_OPACITY_START },
+    uMinSaturation: { value: MIN_SATURATION_START },
   };
 }
 
@@ -78,6 +97,8 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
         shader.uniforms.uMouse = uniforms.uMouse;
         shader.uniforms.uResolution = uniforms.uResolution;
         shader.uniforms.uRevealRadius = uniforms.uRevealRadius;
+        shader.uniforms.uMinOpacity = uniforms.uMinOpacity;
+        shader.uniforms.uMinSaturation = uniforms.uMinSaturation;
 
         shader.fragmentShader = shader.fragmentShader
           .replace(
@@ -85,19 +106,35 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             `#include <common>
             uniform vec2 uMouse;
             uniform vec2 uResolution;
-            uniform float uRevealRadius;`,
+            uniform float uRevealRadius;
+            uniform float uMinOpacity;
+            uniform float uMinSaturation;`,
           )
           .replace(
             "#include <dithering_fragment>",
             `float distToCursor = distance(gl_FragCoord.xy, uMouse);
             float reveal = 1.0 - smoothstep(0.0, uRevealRadius, distToCursor);
             float cursorGrey = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
-            vec3 flooredColor = mix(vec3(cursorGrey), gl_FragColor.rgb, ${MIN_SATURATION});
+            vec3 flooredColor = mix(vec3(cursorGrey), gl_FragColor.rgb, uMinSaturation);
             gl_FragColor.rgb = mix(flooredColor, gl_FragColor.rgb, reveal);
-            gl_FragColor.a *= mix(${MIN_OPACITY}, 1.0, reveal);
+            gl_FragColor.a *= mix(uMinOpacity, 1.0, reveal);
             #include <dithering_fragment>`,
           );
       });
     }
   });
+}
+
+/**
+ * Fait remonter le plancher (opacité/saturation minimales) avec l'arc de
+ * reveal — en fonction séparée plutôt qu'une assignation directe dans le
+ * useFrame appelant : même raison react-hooks/immutability que
+ * setRimLightIntensity (rim-light.ts). `revealFloor` : 0..1, cf
+ * getRevealFloor (reveal-arc.ts) — 0 = plancher de départ (0.4/0.15),
+ * 1 = pleinement révélé (1/1), jamais au-delà ni en-deçà.
+ */
+export function setCursorRevealFloor(uniforms: CursorRevealUniforms, revealFloor: number): void {
+  const t = Math.min(1, Math.max(0, revealFloor));
+  uniforms.uMinOpacity.value = MIN_OPACITY_START + (1 - MIN_OPACITY_START) * t;
+  uniforms.uMinSaturation.value = MIN_SATURATION_START + (1 - MIN_SATURATION_START) * t;
 }

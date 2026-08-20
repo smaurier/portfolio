@@ -182,7 +182,7 @@ export default function StagScene({
            * gris, avec le mouvement de souris ils se révèlent petit à
            * petit") — portée confirmée : toute la scène 3D, cerf inclus
            * (contrairement à EnvironmentDepthFade qui l'exclut). */}
-          <CursorRevealScene noticedRef={noticedRef}>
+          <CursorRevealScene noticedRef={noticedRef} progressRef={progressRef}>
             <EnvironmentDepthFade>
               <Ground />
               <Suspense fallback={null}>

@@ -70,6 +70,15 @@ function componentToHex(value: number): string {
   return Math.round(Math.min(255, Math.max(0, value))).toString(16).padStart(2, "0");
 }
 
+// Progression 0->1 du même rythme que la lumière (pénombre -> chemins
+// révélés, puis plafond tenu) — le fil rouge de tout l'arc : lumière,
+// brouillard (getFogColor) et, depuis le 20/08, le plancher de la
+// révélation par curseur (cf cursor-reveal.ts) partagent tous cette même
+// courbe plutôt que d'avancer chacun sur son propre rythme.
+export function getRevealFloor(progress: number): number {
+  return easeWithinRange(progress, PHASE_START.penombre, PHASE_START["chemins-reveles"], 0, 1);
+}
+
 // Jade assombri à 15% (--jade-bg #00a86b -> rgb(0,168,107), 15% de ça)
 // plutôt que le jade vif : un brouillard plein jade écraserait la pénombre
 // nocturne que tout l'arc construit (retour de Sylvain le 20/08 : penser
@@ -84,7 +93,7 @@ const FOG_JADE_TINT = { r: 0, g: 25, b: 16 };
 // qu'une couleur de fond plaquée. Jamais de retour en arrière, même logique
 // que le reste de l'arc.
 export function getFogColor(progress: number): string {
-  const t = easeWithinRange(progress, PHASE_START.penombre, PHASE_START["chemins-reveles"], 0, 1);
+  const t = getRevealFloor(progress);
   const r = lerp(0, FOG_JADE_TINT.r, t);
   const g = lerp(0, FOG_JADE_TINT.g, t);
   const b = lerp(0, FOG_JADE_TINT.b, t);
