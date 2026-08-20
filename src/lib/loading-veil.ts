@@ -1,4 +1,4 @@
-// Voile de chargement de /lab (palier "Usability", cf memory
+// Voile de chargement de la scène du cerf (palier "Usability", cf memory
 // project-nahual-da — retour de Sylvain le 19/08 : c'est là qu'ira la
 // phrase en nahuatl, premier vrai beat de la scène plutôt qu'un simple
 // indicateur de progression). Fonction pure, découplée du rendu — même

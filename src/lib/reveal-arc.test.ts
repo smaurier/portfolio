@@ -3,6 +3,7 @@ import {
   getAmbientIntensity,
   getDirectionalIntensity,
   getIdleClipName,
+  getIntroOpacity,
   getMilpaGrowth,
   getNavEmphasis,
   getRevealPhase,
@@ -165,6 +166,25 @@ describe("getNavEmphasis", () => {
     expect(getNavEmphasis(0.75)).toBeCloseTo(0);
     expect(getNavEmphasis(0.875)).toBeCloseTo(0.5);
     expect(getNavEmphasis(1)).toBeCloseTo(1);
+  });
+});
+
+describe("getIntroOpacity", () => {
+  it("est pleinement visible en tout début de pénombre (l'accroche doit se lire avant tout scroll)", () => {
+    expect(getIntroOpacity(0)).toBeCloseTo(1);
+  });
+
+  it("a disparu dès la prise de conscience, et le reste ensuite", () => {
+    expect(getIntroOpacity(0.25)).toBeCloseTo(0);
+    expect(getIntroOpacity(0.5)).toBeCloseTo(0);
+    expect(getIntroOpacity(1)).toBeCloseTo(0);
+  });
+
+  it("s'efface en continu, jamais ne redevient plus visible", () => {
+    const samples = [0, 0.05, 0.1, 0.15, 0.2, 0.25].map(getIntroOpacity);
+    for (let i = 1; i < samples.length; i++) {
+      expect(samples[i]).toBeLessThanOrEqual(samples[i - 1]);
+    }
   });
 });
 

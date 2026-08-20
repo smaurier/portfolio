@@ -1,10 +1,11 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Canvas } from "@react-three/fiber";
 import { clampProgress } from "@/lib/camera-path";
 import { getPerfProfile } from "@/lib/mobile-perf";
-import { getNavEmphasis } from "@/lib/reveal-arc";
+import { getIntroOpacity, getNavEmphasis } from "@/lib/reveal-arc";
 import BackgroundFlora from "./background-flora";
 import CursorRevealScene from "./cursor-reveal-scene";
 import EnvironmentDepthFade from "./environment-depth-fade";
@@ -14,11 +15,24 @@ import LoadingVeil from "./loading-veil";
 import Milpa from "./milpa";
 import Ocotillo from "./ocotillo";
 import OrbitCamera from "./orbit-camera";
+import PiedraDelSol from "./piedra-del-sol";
 import PostFX from "./post-fx";
 import RevealLighting from "./reveal-lighting";
+import SceneTextOverlay from "./scene-text-overlay";
+import overlayStyles from "./scene-text-overlay.module.css";
 import StagModel from "./stag-model";
 import Vines from "./vines";
 import styles from "./stag-scene.module.css";
+
+export type HomeContent = {
+  heroTitle: string;
+  heroText: string;
+  heroCta: string;
+  aboutTitle: string;
+  aboutText: string;
+  githubCta: string;
+  contactCta: string;
+};
 
 // Classe plate (pas une classe du module CSS scopé) : posée sur <body>,
 // lue depuis globals.css qui ne connaît pas les classes hashées de ce
@@ -38,21 +52,33 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
 }
 
 /**
- * Palier 0+1 de la DA Nahual (cf memory project-nahual-da) : le cerf
+ * Palier 0+1+2 de la DA Nahual (cf memory project-nahual-da) : le cerf
  * Quaternius, caméra en orbite pilotée par le scroll, et l'arc de reveal en
  * 4 temps (pénombre → conscience → face-à-face → chemins révélés, cf
- * src/lib/reveal-arc.ts). Toujours pas d'écho sur les autres pages, pas de
- * nav cardinale, pas de shader custom — paliers suivants. Volontairement
- * isolé sur /lab plutôt que branché sur la home en prod.
+ * src/lib/reveal-arc.ts). Depuis le 19/08, c'est la home en prod (plus
+ * `/lab`, supprimée) — le vrai contenu du site (hero + à-propos, déjà dans
+ * les dictionnaires i18n) habille la scène en overlay HTML plutôt que
+ * d'être caché derrière : hero visible dès le chargement (retour de
+ * Sylvain : "si rien n'invite au scroll, l'utilisateur va-t-il forcément y
+ * penser ?"), à-propos révélé à la fin de l'arc — la vraie sortie de
+ * scène, pas un simple lien. Toujours pas d'écho sur les autres pages, pas
+ * de nav cardinale, pas de shader custom, pas de vrai repli WebGL mobile
+ * complet — paliers suivants.
  */
 export default function StagScene({
   loadingPhrase,
   loadingTranslation,
   loadingLabel,
+  home,
+  servicesHref,
+  contactHref,
 }: {
   loadingPhrase: string;
   loadingTranslation: string;
   loadingLabel: string;
+  home: HomeContent;
+  servicesHref: string;
+  contactHref: string;
 }) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
@@ -137,6 +163,7 @@ export default function StagScene({
   return (
     <div ref={sectionRef} className={styles.scrollTrack}>
       <div className={styles.sticky}>
+        <PiedraDelSol progressRef={progressRef} reducedMotionRef={reducedMotionRef} />
         <Canvas camera={{ fov: 45, near: 0.1, far: 100 }} dpr={[1, perfProfile.dprCap]}>
           {/* Fond pur noir (cf .sticky en CSS) : couleur de fog identique
            * pour que les éléments lointains (sol, montagnes) se fondent dans
@@ -188,6 +215,38 @@ export default function StagScene({
            * vaille le coup. */}
           {perfProfile.postFx && <PostFX />}
         </Canvas>
+        {/* Accroche (hero) : visible dès le chargement, pas cachée derrière
+         * le scroll — s'efface avec la pénombre (getIntroOpacity) une fois
+         * la prise de conscience commencée. */}
+        <SceneTextOverlay progressRef={progressRef} reducedMotionRef={reducedMotionRef} getOpacity={getIntroOpacity} align="start">
+          <h1>{home.heroTitle}</h1>
+          <p>{home.heroText}</p>
+          <div className={overlayStyles.links}>
+            <Link href={servicesHref} className={overlayStyles.cta}>
+              {home.heroCta}
+            </Link>
+          </div>
+        </SceneTextOverlay>
+        {/* Sortie de scène : révélée à "chemins révélés" (getNavEmphasis,
+         * même moment que l'emphase de la nav) — la vraie porte de sortie
+         * vers Contact/GitHub, pas un simple lien posé en fin de scroll. */}
+        <SceneTextOverlay progressRef={progressRef} reducedMotionRef={reducedMotionRef} getOpacity={getNavEmphasis} align="end">
+          <h2>{home.aboutTitle}</h2>
+          <p>{home.aboutText}</p>
+          <div className={overlayStyles.links}>
+            <Link href={contactHref} className={overlayStyles.cta}>
+              {home.contactCta}
+            </Link>
+            <a
+              href="https://github.com/smaurier"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={overlayStyles.secondaryLink}
+            >
+              {home.githubCta}
+            </a>
+          </div>
+        </SceneTextOverlay>
         <LoadingVeil phrase={loadingPhrase} translation={loadingTranslation} label={loadingLabel} />
       </div>
     </div>

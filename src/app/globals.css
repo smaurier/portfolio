@@ -80,50 +80,6 @@ main {
   overflow: hidden;
 }
 
-#background-video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.5; /* Ajuste l'opacité pour un effet subtil */
-  z-index: 1; /* Vidéo en fond */
-  mix-blend-mode: darken; /* Applique un blend mode */
-}
-
-/* Adaptation de l'animation de la Piedra del Sol — ancrée au conteneur .main
-   (relative), pas au viewport, sinon elle se décale dès que le header prend
-   de la hauteur au-dessus (logo centré par flexbox = pas le même repère). */
-.piedraSol {
-  position: absolute;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  top: 0;
-  left: 0;
-  opacity: 0.08;
-}
-
-/* Animation d'opacité lors de l'affichage de la Piedra del Sol — opacité
-   basse volontairement (0.08) : à 0.2 elle mangeait le contraste du texte
-   du dessus (retour Sylvain 17/08). */
-@keyframes piedraFadeIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  100% {
-    opacity: 0.08;
-    transform: scale(1);
-  }
-}
-
-.piedraSol {
-  animation: piedraFadeIn 2s ease-in-out;
-}
-
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
@@ -134,12 +90,6 @@ main {
   stroke: #FFFFFF; /* Définit le contour en blanc */
   stroke-width: 2;
   fill: none; /* Désactive le remplissage */
-}
-
-/* Fond jade — uniquement sur le <main> de l'accueil (le "centre" de la
-   future nav cardinale, cf project-nahual-da), pas sur toutes les pages. */
-.main--home {
-  background: var(--jade-bg);
 }
 
 /* Header (composant global, une seule instance dans layout.js) */

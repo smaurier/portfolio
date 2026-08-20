@@ -165,3 +165,17 @@ export function getMilpaGrowth(progress: number, stagger: number = 0): number {
   const start = envelopeStart + clampProgress(stagger) * maxShift;
   return easeWithinRange(progress, start, envelopeEnd, 0, 1);
 }
+
+// Opacité de la couche "préface" superposée à la scène — le texte
+// d'accroche (hero) au premier plan, la Piedra del Sol en fond très
+// discret (mise à l'échelle par le composant, cf memory
+// project-nahual-da : "ce qui existe avant que le cerf n'apparaisse").
+// Pleinement visible en tout début de scroll (retour de Sylvain le 19/08 :
+// "si rien n'invite au scroll, l'utilisateur va-t-il forcément y penser ?"
+// — l'accroche doit donc se lire AVANT tout scroll, pas après), puis
+// s'efface sur la fenêtre de "pénombre" — le même rythme que la prise de
+// conscience du cerf, pour que l'accroche cède la place plutôt que de
+// s'attarder pendant que la scène change de sens.
+export function getIntroOpacity(progress: number): number {
+  return easeWithinRange(progress, PHASE_START.penombre, PHASE_START.conscience, 1, 0);
+}
