@@ -127,14 +127,22 @@ export function getIdleClipName(
 // Distance parcourue par le cerf pendant "Walk" — le clip lui-même n'a pas
 // de root motion (vérifié dans le rig : le nœud racine ne bouge quasiment
 // pas d'un keyframe à l'autre, cycle sur place), l'avancée réelle est donc
-// pilotée ici plutôt que par l'animation. Le long de +Z (vers la position
-// de départ de la caméra, cf camera-path.ts startRadius) : le cerf marche
-// depuis un peu plus loin/en retrait, puis s'arrête pile à sa position de
-// repos habituelle (0,0,0) à WALK_END — jamais de retour en arrière.
-// 1.1 -> 2.3 (même retour que WALK_END ci-dessus) : la fenêtre de marche a
-// plus que doublé, la distance parcourue suit pour rester cohérente —
-// sinon le cerf aurait mis longtemps à parcourir une toute petite distance.
-const WALK_START_OFFSET_Z = 2.3;
+// pilotée ici plutôt que par l'animation.
+//
+// -2.3 (pas +2.3) : bug de signe trouvé le 20/08 (Sylvain, en vérifiant en
+// direct avec une valeur exagérée pour le débugger : "je vois qu'il bouge
+// maintenant, même s'il va en arrière"). La caméra démarre à +Z (radius sur
+// +Z, cf camera-path.ts startRadius) — un Z de cerf plus GRAND le rapproche
+// de la caméra, plus PETIT (ou négatif) l'en éloigne. +2.3 faisait donc
+// partir le cerf plus PRÈS de la caméra qu'à son repos (Z=0), puis reculer
+// vers Z=0 en "marchant" — l'inverse de l'intention ("le cerf marche depuis
+// un peu plus loin/en retrait, puis s'arrête pile à sa position de repos").
+// -2.3 le fait démarrer plus LOIN (en retrait) et se rapprocher en marchant.
+// 1.1 -> 2.3 en magnitude (même retour que WALK_END ci-dessus) : la fenêtre
+// de marche a plus que doublé, la distance parcourue suit pour rester
+// cohérente — sinon le cerf aurait mis longtemps à parcourir une toute
+// petite distance.
+const WALK_START_OFFSET_Z = -2.3;
 
 export function getWalkOffsetZ(progress: number): number {
   return lerpWithinRange(progress, 0, WALK_END, WALK_START_OFFSET_Z, 0);

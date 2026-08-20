@@ -147,8 +147,13 @@ describe("getIdleClipName", () => {
 });
 
 describe("getWalkOffsetZ", () => {
-  it("part avec un décalage net, pas déjà à sa position de repos", () => {
-    expect(getWalkOffsetZ(0)).toBeGreaterThan(2);
+  it("part avec un décalage net (en retrait, vers -Z), pas déjà à sa position de repos", () => {
+    // Négatif = plus loin de la caméra (positionnée à +Z, cf camera-path.ts
+    // startRadius) : le cerf doit se rapprocher en marchant, pas s'en
+    // éloigner — bug de signe inversé trouvé le 20/08 (Sylvain, en
+    // vérifiant en direct : "je vois qu'il bouge maintenant, même s'il va
+    // en arrière" sur un test avec une valeur exagérée).
+    expect(getWalkOffsetZ(0)).toBeLessThan(-2);
   });
 
   it("atteint exactement 0 (position de repos) à la fin de la marche, et le reste après", () => {
