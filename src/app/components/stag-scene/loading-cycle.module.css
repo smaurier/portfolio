@@ -1,0 +1,55 @@
+/* Déborde du bloc de texte pour former un anneau AUTOUR (retour de
+   Sylvain : "un trajet tout autour de nos phrases et du loader"), pas un
+   simple contour collé au texte. inset seul (sans width/height explicites)
+   suffit à faire déborder le SVG en position:absolute par rapport à son
+   parent .stage (loading-veil.tsx). */
+.svg {
+  position: absolute;
+  inset: -22% -10%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* Turquoise : Xiuhcoatl se traduit littéralement "serpent turquoise" (autant
+   que "serpent de feu") — cf memory project-nahual-da, recherche du 20/08.
+   Discret (opacity < 1) : ce sont les phrases qui doivent porter l'attention
+   pendant le chargement, le serpent est une ambiance, pas le sujet. */
+.serpent {
+  fill: none;
+  stroke: #2fbf8f;
+  stroke-width: 0.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.55;
+  /* Valeur de repli volontairement énorme (bien au-delà de la vraie
+     longueur du tracé, ~250-300 en unités de viewBox) : sans dasharray, un
+     <path> s'affiche entièrement tracé par défaut — un flash d'anneau
+     complet le temps que l'effet JS calcule la vraie longueur via
+     getTotalLength() et pose le bon stroke-dashoffset (cf loading-cycle.tsx).
+     Avec ce repli, le tracé démarre invisible dans tous les cas, jamais
+     l'inverse. */
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 0.4s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .serpent {
+    transition: none;
+  }
+}
+
+/* Braise à la pointe de chaque serpent — Xiuhcoatl est autant "serpent de
+   feu" que "serpent turquoise" (cf memory project-nahual-da) : le corps
+   turquoise, la tête qui porte le feu. Sert aussi à lire "deux têtes qui
+   avancent l'une vers l'autre" plutôt qu'un simple anneau qui s'épaissit. */
+.ember {
+  fill: #f0b25c;
+  transition: opacity 0.3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ember {
+    transition: none;
+  }
+}

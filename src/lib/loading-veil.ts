@@ -23,3 +23,14 @@ export const MIN_VEIL_DURATION_MS = 1400;
 export function isLoadingDone(progress: number, minDurationElapsed: boolean): boolean {
   return progress >= 100 && minDurationElapsed;
 }
+
+/**
+ * Un pas d'approche exponentielle vers `target` — sert à faire "défiler" le
+ * pourcentage affiché (retour de Sylvain le 20/08) plutôt que de le coller
+ * directement à `useProgress()`, dont la valeur brute saute par paliers (un
+ * asset qui finit de charger d'un coup) au lieu de compter en continu.
+ * `factor` dans ]0,1] : plus petit = rattrape la cible plus lentement.
+ */
+export function easeToward(current: number, target: number, factor: number): number {
+  return current + (target - current) * factor;
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isLoadingDone, MIN_VEIL_DURATION_MS } from "./loading-veil";
+import { easeToward, isLoadingDone, MIN_VEIL_DURATION_MS } from "./loading-veil";
 
 describe("isLoadingDone", () => {
   it("n'est pas terminé tant que les assets ne sont pas à 100%, même après la durée minimale", () => {
@@ -21,5 +21,23 @@ describe("isLoadingDone", () => {
 
   it("expose une durée minimale strictement positive", () => {
     expect(MIN_VEIL_DURATION_MS).toBeGreaterThan(0);
+  });
+});
+
+describe("easeToward", () => {
+  it("se rapproche de la cible sans jamais dépasser (overshoot)", () => {
+    const next = easeToward(0, 100, 0.1);
+    expect(next).toBeGreaterThan(0);
+    expect(next).toBeLessThan(100);
+  });
+
+  it("reste sur place une fois la cible atteinte", () => {
+    expect(easeToward(100, 100, 0.1)).toBe(100);
+  });
+
+  it("un facteur plus grand rattrape plus vite", () => {
+    const slow = easeToward(0, 100, 0.05);
+    const fast = easeToward(0, 100, 0.3);
+    expect(fast).toBeGreaterThan(slow);
   });
 });
