@@ -3,6 +3,7 @@ import {
   getAmbientIntensity,
   getDirectionalIntensity,
   getFogColor,
+  getHeadTurnAmount,
   getIdleClipName,
   getIntroOpacity,
   getMilpaGrowth,
@@ -189,6 +190,32 @@ describe("getIntroOpacity", () => {
     const samples = [0, 0.05, 0.1, 0.15, 0.2, 0.25].map(getIntroOpacity);
     for (let i = 1; i < samples.length; i++) {
       expect(samples[i]).toBeLessThanOrEqual(samples[i - 1]);
+    }
+  });
+});
+
+describe("getHeadTurnAmount", () => {
+  it("est nul avant le face-à-face", () => {
+    expect(getHeadTurnAmount(0)).toBeCloseTo(0);
+    expect(getHeadTurnAmount(0.49)).toBeCloseTo(0);
+  });
+
+  it("est plein dès la fin du face-à-face, et le reste ensuite (pas de retour en arrière)", () => {
+    expect(getHeadTurnAmount(0.75)).toBeCloseTo(1);
+    expect(getHeadTurnAmount(0.9)).toBeCloseTo(1);
+    expect(getHeadTurnAmount(1)).toBeCloseTo(1);
+  });
+
+  it("monte pendant la fenêtre face-à-face elle-même (0.5 -> 0.75), pas avant ni dilué sur toute la plage", () => {
+    expect(getHeadTurnAmount(0.5)).toBeCloseTo(0);
+    expect(getHeadTurnAmount(0.625)).toBeGreaterThan(0);
+    expect(getHeadTurnAmount(0.625)).toBeLessThan(1);
+  });
+
+  it("croît de façon monotone", () => {
+    const samples = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75].map(getHeadTurnAmount);
+    for (let i = 1; i < samples.length; i++) {
+      expect(samples[i]).toBeGreaterThanOrEqual(samples[i - 1]);
     }
   });
 });

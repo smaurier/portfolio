@@ -1,12 +1,33 @@
 "use client";
 
 import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import type { Group } from "three";
-import { getDirectionalIntensity, getIdleClipName, getNavEmphasis, getRevealPhase } from "@/lib/reveal-arc";
+import { Vector3, type Group, type Object3D } from "three";
+import {
+  getDirectionalIntensity,
+  getHeadTurnAmount,
+  getIdleClipName,
+  getNavEmphasis,
+  getRevealPhase,
+} from "@/lib/reveal-arc";
 import { centerAndScale } from "./center-model";
+import { applyHeadLook } from "./head-look";
 import { applyRimLight, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
+
+// Nom de l'os tête dans le rig Quaternius (GLB inspecté le 21/08, cf memory
+// project-nahual-da : chaîne Neck1→Neck2→Neck3→Head→Stag_Horns/Head_end).
+const HEAD_BONE_NAME = "Head";
+
+// Plafond du regard caméra (21/08) : un seul os (Head) porte déjà une
+// courbure de repos importante dans le rig (le cou "grazing" du bind pose,
+// ~85° entre Neck3 et Head) — un blend complet (1) remplace cette courbure
+// par une orientation absolue vers la cible, ce qui pousse le cou en
+// extension complète et se lit comme cassé plutôt que comme un regard
+// attentif (vérifié visuellement le 21/08 : tête tendue vers le ciel à
+// blend=1). Plafonner à une fraction garde une partie de la pose naturelle
+// mélangée au regard — un vrai tour de tête, pas un remplacement total.
+const MAX_HEAD_TURN_BLEND = 0.4;
 
 const MODEL_PATH = "/models/stag.glb";
 // Hauteur voulue en unités de scène, pas l'échelle native du GLB (les packs
@@ -25,9 +46,7 @@ const TARGET_HEIGHT = 2;
  * bref) → Idle (tête relevée, état final dès qu'il "remarque" le
  * visiteur). Un temps "Walk" (avance scroll-scrubée) a existé entre le
  * 18/08 et le 20/08 — retiré (cf reveal-arc.ts pour le pourquoi), le cerf
- * apparaît directement à sa position de repos. Toujours pas de tête qui
- * pivote vers la caméra, ce beat-là reste au palier suivant (pas de clip
- * dédié dans le rig, nécessite une rotation d'os pilotée par code).
+ * apparaît directement à sa position de repos.
  *
  * `noticedRef` : partagé avec le parent (StagScene) plutôt que dérivé
  * seulement du scroll ici — retour de Sylvain le 18/08 : "on pourrait avoir
@@ -36,6 +55,14 @@ const TARGET_HEIGHT = 2;
  * révélation). Ce composant pose lui-même le déclencheur scroll (dès la
  * prise de conscience) mais n'est pas le seul à pouvoir mettre `noticedRef`
  * à true — jamais remis à false une fois vrai, quelle qu'en soit la cause.
+ *
+ * Regard caméra (21/08) : l'os Head pivote vers la caméra pendant le
+ * face-à-face (getHeadTurnAmount), en layering par-dessus la pose du mixer
+ * (applyHeadLook, cf head-look.ts — jamais un remplacement total). Pas de
+ * vérification explicite de prefers-reduced-motion ici : `progressRef` ne
+ * dépasse jamais 0 dans ce cas (le scroll est ignoré en amont, cf
+ * stag-scene.tsx), donc getHeadTurnAmount(0) = 0 sans code dédié — même
+ * raisonnement déjà appliqué à OrbitCamera/RevealLighting.
  */
 export default function StagModel({
   progressRef,
@@ -48,6 +75,11 @@ export default function StagModel({
   const { scene, animations } = useGLTF(MODEL_PATH);
   const { actions } = useAnimations(animations, group);
   const currentClipRef = useRef<string | null>(null);
+  const { camera } = useThree();
+  const headBoneRef = useRef<Object3D | null>(null);
+  // Scratch réutilisé d'une frame à l'autre (pas d'allocation dans la boucle
+  // de rendu) — même principe que les scratch de head-look.ts.
+  const cameraWorldPos = useMemo(() => new Vector3(), []);
   // useMemo plutôt qu'un ref réassigné dans un effet : eslint-plugin-react-
   // hooks (compilateur React 19) refuse de muter une valeur affectée
   // dans/à partir d'un effet — useMemo garde le tableau d'uniforms stable
@@ -63,6 +95,7 @@ export default function StagModel({
     // echo-stag-model.tsx, project-nahual-da) — deux contextes de rendu
     // séparés, jamais montés en même temps.
     centerAndScale(scene, TARGET_HEIGHT);
+    headBoneRef.current = scene.getObjectByName(HEAD_BONE_NAME) ?? null;
   }, [scene]);
 
   useEffect(() => {
@@ -106,6 +139,20 @@ export default function StagModel({
     // (getNavEmphasis), déjà jade au même instant : le liseré et le nav
     // deviennent le même signal de révélation.
     setRimLightColor(rimUniforms, getNavEmphasis(progressRef.current));
+  });
+
+  useFrame(() => {
+    // Registrée après les useFrame ci-dessus (mixer d'animation via
+    // useAnimations, puis rim-light) : dans la boucle de rendu par défaut de
+    // R3F, les callbacks de même priorité s'exécutent dans l'ordre
+    // d'inscription — la pose de l'os Head posée par le mixer ce tick est
+    // donc déjà à jour quand applyHeadLook la lit.
+    const headBone = headBoneRef.current;
+    if (!headBone) return;
+    const blend = getHeadTurnAmount(progressRef.current) * MAX_HEAD_TURN_BLEND;
+    if (blend <= 0) return;
+    camera.getWorldPosition(cameraWorldPos);
+    applyHeadLook(headBone, cameraWorldPos, blend);
   });
 
   return <primitive ref={group} object={scene} />;

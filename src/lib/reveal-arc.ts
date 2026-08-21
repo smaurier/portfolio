@@ -161,6 +161,18 @@ export function getMilpaGrowth(progress: number, stagger: number = 0): number {
   return easeWithinRange(progress, start, envelopeEnd, 0, 1);
 }
 
+// Regard caméra (palier suivant, 21/08, cf memory project-nahual-da —
+// "audit narration visuelle" du 20/08 : le climax émotionnel de tout l'arc
+// ne se passait jamais visuellement, la phase s'appelle "face-à-face" mais
+// rien ne regardait le visiteur). Monte sur la fenêtre face-à-face
+// elle-même — pas toute la plage pénombre->chemins-révélés comme la
+// lumière — pour rester un beat net plutôt que de se diluer dans la montée
+// générale d'intensité. Jamais de retour en arrière (même logique que le
+// reste de l'arc) : une fois le regard posé, il reste posé.
+export function getHeadTurnAmount(progress: number): number {
+  return easeWithinRange(progress, PHASE_START["face-a-face"], PHASE_START["chemins-reveles"], 0, 1);
+}
+
 // Opacité de la couche "préface" superposée à la scène — le texte
 // d'accroche (hero) au premier plan, la Piedra del Sol en fond très
 // discret (mise à l'échelle par le composant, cf memory
