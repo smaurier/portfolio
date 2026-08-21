@@ -17,7 +17,7 @@
 .serpent {
   fill: none;
   stroke: #2fbf8f;
-  stroke-width: 0.6;
+  stroke-width: 0.45;
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0.55;
@@ -35,6 +35,25 @@
 
 @media (prefers-reduced-motion: reduce) {
   .serpent {
+    transition: none;
+  }
+}
+
+/* Détails décoratifs (museau recourbé, queue trapèze-et-rayon, écailles) —
+   même couleur/traitement que le corps, mais sans dasharray : plusieurs
+   sous-tracés (plusieurs "M") rendent le dashoffset peu fiable pour un
+   tracé progressif propre, donc simple fondu piloté par `progress` (même
+   valeur que la braise) plutôt qu'une animation de tracé dédiée. */
+.detail {
+  fill: none;
+  stroke: #2fbf8f;
+  stroke-width: 0.45;
+  stroke-linecap: round;
+  transition: opacity 0.3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail {
     transition: none;
   }
 }
