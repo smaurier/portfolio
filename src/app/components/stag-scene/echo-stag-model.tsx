@@ -10,7 +10,7 @@ import { applyRimLight } from "./rim-light";
 const MODEL_PATH = "/models/stag.glb";
 const TARGET_HEIGHT = 2;
 
-export type EchoClip = "Idle" | "Idle_Headlow" | "Gallop";
+export type EchoClip = "Idle" | "Idle_Headlow" | "Idle_2" | "Gallop";
 
 /**
  * Le cerf rejoué en fenêtre décorative sur Services/Projets/Contact (cf

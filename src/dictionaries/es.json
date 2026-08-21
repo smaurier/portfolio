@@ -8,7 +8,8 @@
       "home": "Inicio",
       "services": "Servicios",
       "projects": "Proyectos",
-      "contact": "Contacto"
+      "contact": "Contacto",
+      "memoire": "Teyolía · Memoria"
     },
     "langSwitcherLabel": "Cambiar idioma",
     "showEmail": "Mostrar correo"
@@ -66,9 +67,27 @@
     "linkedinLinkText": "LinkedIn",
     "linkedinAfter": "."
   },
-  "blog": {
-    "title": "Blog",
-    "text": "Próximamente."
+  "memoire": {
+    "title": "Teyolía · Memoria",
+    "intro": "Teyolía — una de las tres entidades que, en el pensamiento náhuatl, componen a una persona: reside en el corazón, porta la memoria, y es la que viaja a Mictlán tras la muerte. Esta página no es un blog: es un epitafio — lo que no sobrevivió a la construcción de este sitio, conservado en lugar de borrado.",
+    "entries": [
+      {
+        "title": "La marcha",
+        "text": "El ciervo avanzaba con el scroll — un ciclo de zancada técnicamente correcto, ilegible en las pocas muescas de un scroll real. Retirado en lugar de ajustarlo una tercera vez: aportaba casi nada por lo que costaba."
+      },
+      {
+        "title": "El árbol que no era de aquí",
+        "text": "Un primer acento de flora, textura fotorrealista, sobredimensionado — desentonaba con el resto de la escena, plana y en vertex-color. Reemplazado por un ocotillo procedural, más fiel a la flora precolombina del centro de México."
+      },
+      {
+        "title": "Las serpientes",
+        "text": "Dos intentos de Xiuhcoatl para el velo de carga, dos fracasos asumidos: una polilínea demasiado fina sin cabeza reconocible, luego un trazado aún fallido. Retiradas a la espera de una silueta real dibujada a mano en lugar de otro intento procedural."
+      },
+      {
+        "title": "La intro que se disolvía",
+        "text": "La Piedra del Sol y el texto se disolvían en una nube de brasas antes de revelar la escena — una técnica vectorial real (muestreo de unos 250 trazados SVG), pero el efecto no servía a la historia. Retirada al día siguiente de su lanzamiento."
+      }
+    ]
   },
   "lab": {
     "loadingPhrase": "In xochitl, in cuicatl",

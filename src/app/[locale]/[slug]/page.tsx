@@ -39,6 +39,20 @@ const CONTACT_MOOD: EchoMood = {
   directionalIntensity: 0.9,
 };
 
+// Nord/Mictlampa — obsidienne (itztli), pas jade (Centre) ni turquoise
+// (Sud, déjà pris) : cf memory project-nahual-da, section "le centre doit
+// avoir quelle couleur". Clip Idle_2, seul clip d'idle du rig encore
+// inutilisé dans l'écho (Services=Idle, Projets=Gallop,
+// Contact=Idle_Headlow) — évite de dupliquer le mood calme de Contact.
+const MEMOIRE_MOOD: EchoMood = {
+  clip: "Idle_2",
+  rimColor: "#8983a8",
+  ambientColor: "#100d1a",
+  ambientIntensity: 0.4,
+  directionalColor: "#9d97c2",
+  directionalIntensity: 1.1,
+};
+
 export function generateStaticParams() {
   return locales.flatMap((locale) =>
     pageKeys.map((key) => ({ locale, slug: slugs[key][locale] }))
@@ -145,12 +159,23 @@ function ContactPage({ dict, showEmailLabel }: { dict: Dictionary["contact"]; sh
   );
 }
 
-function BlogPage({ dict }: { dict: Dictionary["blog"] }) {
+function MemoirePage({ dict }: { dict: Dictionary["memoire"] }) {
   return (
     <main>
       <div className="contentPage">
         <h1>{dict.title}</h1>
-        <p>{dict.text}</p>
+        <p>{dict.intro}</p>
+
+        <div className="echoWrap">
+          <EchoStag mood={MEMOIRE_MOOD} />
+        </div>
+
+        {dict.entries.map((entry) => (
+          <div className="serviceCard" key={entry.title}>
+            <h2>{entry.title}</h2>
+            <p>{entry.text}</p>
+          </div>
+        ))}
       </div>
     </main>
   );
@@ -177,7 +202,7 @@ export default async function LocalizedPage({
       return <ProjetsPage dict={fullDict.projets} />;
     case "contact":
       return <ContactPage dict={fullDict.contact} showEmailLabel={fullDict.common.showEmail} />;
-    case "blog":
-      return <BlogPage dict={fullDict.blog} />;
+    case "memoire":
+      return <MemoirePage dict={fullDict.memoire} />;
   }
 }

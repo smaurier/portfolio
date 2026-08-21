@@ -8,7 +8,8 @@
       "home": "Home",
       "services": "Services",
       "projects": "Projects",
-      "contact": "Contact"
+      "contact": "Contact",
+      "memoire": "Teyolía · Memory"
     },
     "langSwitcherLabel": "Switch language",
     "showEmail": "Show email"
@@ -66,9 +67,27 @@
     "linkedinLinkText": "LinkedIn",
     "linkedinAfter": "."
   },
-  "blog": {
-    "title": "Blog",
-    "text": "Coming soon."
+  "memoire": {
+    "title": "Teyolía · Memory",
+    "intro": "Teyolía — one of the three entities that, in Nahua thought, make up a person: it lives in the heart, carries memory, and it's the one that travels to Mictlán after death. This page isn't a blog: it's an epitaph — what didn't survive building this site, kept rather than erased.",
+    "entries": [
+      {
+        "title": "The walk",
+        "text": "The stag advanced with the scroll — a technically correct stride cycle, unreadable over the few notches of a real scroll. Removed rather than tuned a third time: it added almost nothing for what it cost."
+      },
+      {
+        "title": "The tree that wasn't from here",
+        "text": "A first accent of flora, photoreal texture, oversized — clashed with the rest of the scene, flat and vertex-colored. Replaced by a procedural ocotillo, truer to the pre-Columbian flora of central Mexico."
+      },
+      {
+        "title": "The serpents",
+        "text": "Two attempts at a Xiuhcoatl for the loading veil, two admitted failures: a polyline too thin with no recognizable head, then a still-flawed trace. Removed while waiting for a real hand-drawn silhouette instead of one more procedural pass."
+      },
+      {
+        "title": "The intro that dissolved",
+        "text": "The Piedra del Sol and the text dissolved into a cloud of embers before revealing the scene — a real vector technique (sampling around 250 SVG paths), but the effect didn't serve the story. Removed the day after it shipped."
+      }
+    ]
   },
   "lab": {
     "loadingPhrase": "In xochitl, in cuicatl",

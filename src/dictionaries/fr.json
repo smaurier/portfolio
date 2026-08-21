@@ -8,7 +8,8 @@
       "home": "Accueil",
       "services": "Services",
       "projects": "Projets",
-      "contact": "Contact"
+      "contact": "Contact",
+      "memoire": "Teyolía · Mémoire"
     },
     "langSwitcherLabel": "Changer de langue",
     "showEmail": "Afficher l'email"
@@ -66,9 +67,27 @@
     "linkedinLinkText": "LinkedIn",
     "linkedinAfter": "."
   },
-  "blog": {
-    "title": "Blog",
-    "text": "Bientôt."
+  "memoire": {
+    "title": "Teyolía · Mémoire",
+    "intro": "Teyolía — l'une des trois entités qui, dans la pensée nahua, composent une personne : elle réside dans le cœur, porte la mémoire, et c'est elle qui voyage vers Mictlán après la mort. Cette page n'est pas un blog : c'est une épitaphe — ce qui n'a pas survécu à la construction de ce site, gardé plutôt qu'effacé.",
+    "entries": [
+      {
+        "title": "La marche",
+        "text": "Le cerf avançait au fil du scroll — un cycle de foulée techniquement juste, mais illisible sur les quelques crans de molette d'un vrai scroll. Retirée plutôt que peaufinée une troisième fois : elle n'apportait presque rien pour ce qu'elle coûtait."
+      },
+      {
+        "title": "L'arbre qui ne venait pas d'ici",
+        "text": "Un premier accent de flore, texture photoréaliste, taille disproportionnée — jurait avec le reste du décor, plat et en vertex-color. Remplacé par un ocotillo procédural, plus fidèle à la flore précolombienne du centre du Mexique."
+      },
+      {
+        "title": "Les serpents",
+        "text": "Deux tentatives de Xiuhcoatl pour le voile de chargement, deux échecs assumés : une polyligne trop fine sans tête reconnaissable, puis un tracé encore raté. Retirés en attendant une vraie silhouette dessinée à la main plutôt qu'une génération procédurale de plus."
+      },
+      {
+        "title": "L'intro qui se dissolvait",
+        "text": "La Piedra del Sol et le texte se dissolvaient en un nuage de braises avant de révéler la scène — une vraie technique vectorielle (échantillonnage d'environ 250 tracés SVG), mais l'effet ne servait pas l'histoire. Retirée le lendemain de sa mise en ligne."
+      }
+    ]
   },
   "lab": {
     "loadingPhrase": "In xochitl, in cuicatl",

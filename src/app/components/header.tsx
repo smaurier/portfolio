@@ -74,6 +74,9 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
             <li>
               <Link href={getPath(locale, "contact")}>{dict.nav.contact}</Link>
             </li>
+            <li>
+              <Link href={getPath(locale, "memoire")}>{dict.nav.memoire}</Link>
+            </li>
           </ul>
         </nav>
       </div>
