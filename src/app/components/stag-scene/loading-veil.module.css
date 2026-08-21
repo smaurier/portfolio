@@ -32,11 +32,10 @@
   }
 }
 
-/* Conteneur de positionnement pour LoadingCycle (position:absolute, cf
-   loading-cycle.module.css) — sans lui, l'anneau des serpents se calerait
-   sur .veil (plein écran) au lieu d'entourer juste le texte. max-width
-   borne la taille de l'anneau à quelque chose de raisonnable sur grand
-   écran plutôt que de l'étirer sur toute la largeur disponible. */
+/* Bloc de texte centré. max-width évite que la phrase s'étire sur toute la
+   largeur disponible en grand écran. position:relative hérité de l'anneau
+   de serpents qui l'entourait (retiré le 21/08, cf loading-veil.tsx) —
+   gardé, sans effet sans élément absolute à l'intérieur. */
 .stage {
   position: relative;
   display: flex;

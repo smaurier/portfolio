@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useProgress } from "@react-three/drei";
 import { easeToward, isLoadingDone, MIN_VEIL_DURATION_MS } from "@/lib/loading-veil";
-import LoadingCycle from "./loading-cycle";
 import styles from "./loading-veil.module.css";
 
 // Vitesse de rattrapage du compteur affiché vers la vraie valeur de
@@ -104,12 +103,12 @@ export default function LoadingVeil({
       aria-live="polite"
       aria-label={label}
     >
-      {/* .stage : position:relative pour que LoadingCycle (position:absolute,
-       * cf loading-cycle.module.css) déborde autour du texte plutôt que de
-       * se caler sur le <div> plein écran .veil — retour de Sylvain le
-       * 20/08 : "un trajet tout autour de nos phrases et du loader". */}
+      {/* .stage : position:relative, hérité de l'anneau de serpents qui
+       * l'entourait (retiré le 21/08 — rendu final jugé raté par Sylvain,
+       * cf memory project-nahual-da, à refaire un jour avec une vraie
+       * silhouette dessinée plutôt qu'un tracé calculé). Gardé tel quel :
+       * n'a pas d'effet visible sans élément absolute à l'intérieur. */}
       <div className={styles.stage}>
-        <LoadingCycle progress={displayedProgress} />
         <p className={styles.phrase}>{phrase}</p>
         <p className={styles.translation}>{translation}</p>
         {/* aria-hidden : le pourcentage change plusieurs fois par seconde —
