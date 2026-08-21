@@ -34,15 +34,10 @@ export default function LoadingVeil({
   phrase,
   translation,
   label,
-  onComplete,
 }: {
   phrase: string;
   translation: string;
   label: string;
-  /** Appelé une fois le voile réellement retiré du DOM — signale à
-   * StagScene que IntroSequence (Piedra + dissolution en particules, cf
-   * memory project-nahual-da) peut démarrer sans se superposer au voile. */
-  onComplete?: () => void;
 }) {
   const { progress } = useProgress();
   const [minDurationElapsed, setMinDurationElapsed] = useState(false);
@@ -99,11 +94,6 @@ export default function LoadingVeil({
     const timer = setTimeout(() => setMounted(false), 600);
     return () => clearTimeout(timer);
   }, [done]);
-
-  useEffect(() => {
-    if (!mounted) onComplete?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted]);
 
   if (!mounted) return null;
 
