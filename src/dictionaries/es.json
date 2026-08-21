@@ -15,10 +15,10 @@
   },
   "home": {
     "heroTitle": "Nahual — estudio creativo",
-    "heroText": "Diseño y desarrollo sitios web a medida, accesibles desde el diseño.",
+    "heroText": "Entre los nahuas, pueblo mesoamericano, el venado (Mazātl) es el séptimo día del calendario sagrado: un mensajero entre mundos, asociado a la gracia, a la vigilancia, y a la capacidad de ocultar su verdadera naturaleza. El nahual es la misma idea: una esencia humana que se revela en su forma animal verdadera, encarnada aquí por este venado.",
     "heroCta": "Descubrir mis servicios",
     "aboutTitle": "Sobre mí",
-    "aboutText": "Sylvain Maurier — desarrollador frontend senior, 10 años de experiencia (React, Next.js, Vue/Nuxt, React Native). Especializado en accesibilidad digital (RGAA/WCAG), con una convicción simple: la accesibilidad se programa, no solo se audita.",
+    "aboutText": "Nahual, el estudio, aplica la misma lógica a la web: transformar una idea en un sitio real. ¿La prueba de que funcionó? Que funciona para todos.\n\nSylvain Maurier — desarrollador frontend senior, 10 años de experiencia (React, Next.js, Vue/Nuxt, React Native). Especializado en accesibilidad digital (RGAA/WCAG), con una convicción simple: la accesibilidad se programa, no solo se audita.",
     "githubCta": "Ver mi código en GitHub →",
     "contactCta": "Contactarme"
   },

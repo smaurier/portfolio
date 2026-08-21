@@ -53,6 +53,11 @@
   font-size: 0.98rem;
   line-height: 1.6;
   color: rgba(242, 236, 225, 0.78);
+  /* aboutText combine le hook (idée->produit) et la bio en deux paragraphes
+     dans un seul champ dictionnaire (\n\n) plutôt que deux props séparées —
+     pas besoin d'un deuxième slot dans HomeContent pour un seul bloc qui a
+     juste deux idées à distinguer visuellement. */
+  white-space: pre-line;
 }
 
 .links {

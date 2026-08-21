@@ -15,10 +15,10 @@
   },
   "home": {
     "heroTitle": "Nahual — studio de création",
-    "heroText": "Je conçois et développe des sites web sur-mesure, accessibles par design.",
+    "heroText": "Chez les Nahuas, peuple mésoaméricain, le cerf (Mazātl) est le septième jour du calendrier sacré : un messager entre les mondes, associé à la grâce, à la vigilance, et à la faculté de cacher sa vraie nature aux autres. Le nahual, c'est cette même idée : une essence humaine qui se révèle dans sa forme animale véritable, incarnée ici par ce cerf.",
     "heroCta": "Découvrir mes services",
     "aboutTitle": "À propos",
-    "aboutText": "Sylvain Maurier — développeur frontend senior, 10 ans d'expérience (React, Next.js, Vue/Nuxt, React Native). Spécialisé en accessibilité numérique (RGAA), avec une conviction simple : l'accessibilité se code, pas seulement s'audite.",
+    "aboutText": "Nahual, le studio, applique la même logique au web : transformer une idée en un site bien réel. La preuve que ça a marché ? Il fonctionne pour tout le monde.\n\nSylvain Maurier — développeur frontend senior, 10 ans d'expérience (React, Next.js, Vue/Nuxt, React Native). Spécialisé en accessibilité numérique (RGAA), avec une conviction simple : l'accessibilité se code, pas seulement s'audite.",
     "githubCta": "Voir mon code sur GitHub →",
     "contactCta": "Me contacter"
   },

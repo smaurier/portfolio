@@ -15,10 +15,10 @@
   },
   "home": {
     "heroTitle": "Nahual — creative studio",
-    "heroText": "I design and build custom websites, accessible by design.",
+    "heroText": "Among the Nahua, a Mesoamerican people, the deer (Mazātl) is the seventh day of the sacred calendar: a messenger between worlds, associated with grace, vigilance, and the ability to hide its true nature from others. The nahual is the same idea: a human essence revealed in its true animal form, embodied here by this deer.",
     "heroCta": "Discover my services",
     "aboutTitle": "About",
-    "aboutText": "Sylvain Maurier — senior frontend developer, 10 years of experience (React, Next.js, Vue/Nuxt, React Native). Specialized in digital accessibility (RGAA/WCAG), with one simple conviction: accessibility is built, not just audited.",
+    "aboutText": "Nahual, the studio, applies the same logic to the web: turning an idea into a real, working site. The proof it worked? It works for everyone.\n\nSylvain Maurier — senior frontend developer, 10 years of experience (React, Next.js, Vue/Nuxt, React Native). Specialized in digital accessibility (RGAA/WCAG), with one simple conviction: accessibility is built, not just audited.",
     "githubCta": "See my code on GitHub →",
     "contactCta": "Get in touch"
   },
