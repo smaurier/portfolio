@@ -12,6 +12,7 @@ import EnvironmentDepthFade from "./environment-depth-fade";
 import FadingBlock from "./fading-block";
 import Grass from "./grass";
 import Ground from "./ground";
+import IntroSequence from "./intro-sequence";
 import LoadingVeil from "./loading-veil";
 import Milpa from "./milpa";
 import Ocotillo from "./ocotillo";
@@ -93,6 +94,14 @@ export default function StagScene({
   // défaut (jamais de flash "version allégée" pendant l'hydratation).
   const [viewportWidth, setViewportWidth] = useState(0);
   const perfProfile = getPerfProfile(viewportWidth);
+  // Temps "Piedra del Sol" en préface (cf memory project-nahual-da, retour
+  // de Sylvain le 20/08) : ne démarre qu'une fois le voile de chargement
+  // réellement parti (loadingDone), pour ne jamais se superposer à lui.
+  // Une fois sa dissolution en particules terminée (introDone), le hero
+  // "normal" (bas à gauche, piloté par le scroll) peut prendre le relais —
+  // sans introDone, le même texte s'afficherait deux fois à l'écran.
+  const [loadingDone, setLoadingDone] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
 
   useEffect(() => {
     function handleResize() {
@@ -220,20 +229,26 @@ export default function StagScene({
          * pénombre) ; à-propos révélé à "chemins révélés" (getNavEmphasis,
          * même moment que l'emphase de la nav) — la vraie sortie de scène. */}
         <SceneTextOverlay>
-          <FadingBlock
-            progressRef={progressRef}
-            reducedMotionRef={reducedMotionRef}
-            getOpacity={getIntroOpacity}
-            initialOpacity={1}
-          >
-            <h1>{home.heroTitle}</h1>
-            <p>{home.heroText}</p>
-            <div className={overlayStyles.links}>
-              <Link href={servicesHref} className={overlayStyles.cta}>
-                {home.heroCta}
-              </Link>
-            </div>
-          </FadingBlock>
+          {/* Gardé hors du DOM tant que l'intro Piedra n'a pas fini de se
+           * dissoudre (introDone) : le même hero est déjà affiché, centré,
+           * par IntroSequence — le rendre ici en même temps le dupliquerait
+           * à l'écran. */}
+          {introDone && (
+            <FadingBlock
+              progressRef={progressRef}
+              reducedMotionRef={reducedMotionRef}
+              getOpacity={getIntroOpacity}
+              initialOpacity={1}
+            >
+              <h1>{home.heroTitle}</h1>
+              <p>{home.heroText}</p>
+              <div className={overlayStyles.links}>
+                <Link href={servicesHref} className={overlayStyles.cta}>
+                  {home.heroCta}
+                </Link>
+              </div>
+            </FadingBlock>
+          )}
           <FadingBlock
             progressRef={progressRef}
             reducedMotionRef={reducedMotionRef}
@@ -257,7 +272,19 @@ export default function StagScene({
             </div>
           </FadingBlock>
         </SceneTextOverlay>
-        <LoadingVeil phrase={loadingPhrase} translation={loadingTranslation} label={loadingLabel} />
+        {loadingDone && !introDone && (
+          <IntroSequence
+            heroTitle={home.heroTitle}
+            heroText={home.heroText}
+            onComplete={() => setIntroDone(true)}
+          />
+        )}
+        <LoadingVeil
+          phrase={loadingPhrase}
+          translation={loadingTranslation}
+          label={loadingLabel}
+          onComplete={() => setLoadingDone(true)}
+        />
       </div>
     </div>
   );

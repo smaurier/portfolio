@@ -1,0 +1,113 @@
+/* Racine : jamais d'opacité animée ici — seule .htmlLayer (le texte/la
+   Piedra statiques) doit s'effacer vite au début de la dissolution ;
+   .particlesLayer doit rester à pleine opacité tout du long, c'est le
+   shader (vAlpha, cf intro-particles.tsx) qui fait disparaître chaque
+   particule individuellement à son propre rythme. Les empiler sous la même
+   opacité de conteneur aurait coupé l'animation des particules après
+   seulement 0.6s (la durée du fondu HTML) au lieu des ~3s prévues. */
+.root {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+
+.htmlLayer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  transition: opacity 0.6s ease-out;
+}
+
+.htmlLayer.dissolving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .htmlLayer {
+    transition: none;
+  }
+}
+
+.particlesLayer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Espace de conception partagé avec intro-layout.ts (800x600 unités,
+   DESIGN_WIDTH/DESIGN_HEIGHT) — Piedra et texte y sont positionnés en %,
+   dérivés des mêmes constantes, pour que l'échantillonnage des particules
+   parte exactement d'où le HTML/SVG les affichait (transition invisible).
+   Règle dupliquée sur .particlesStage (même largeur/ratio) : le Canvas de
+   particules doit occuper exactement la même boîte que .stage pour que la
+   caméra orthographique (dimensionnée en unités de conception, cf
+   intro-sequence.tsx) corresponde 1 unité = 1px, pas une autre échelle. */
+.stage,
+.particlesStage {
+  position: relative;
+  width: min(90vw, 800px);
+  aspect-ratio: 800 / 600;
+  /* Sans ça, un enfant flex (parent display:flex) avec aspect-ratio peut se
+     faire rétrécir sous sa largeur explicite malgré la place disponible
+     (flex-shrink:1 par défaut) — constaté par inspection DOM directe (524px
+     de large au lieu de 800px), pas juste supposé. */
+  flex-shrink: 0;
+}
+
+.piedraBox {
+  position: absolute;
+  left: 20%;
+  top: 10%;
+  width: 60%;
+  height: 80%;
+}
+
+.piedraBox :global(.piedraSol) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Discrète : c'est le texte par-dessus qui doit rester le point de
+     lecture principal, pas le lacis de traits du monument. */
+  opacity: 0.4;
+}
+
+.textBox {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 0 12%;
+  color: #f2ece1;
+}
+
+.textBox h1 {
+  font-size: clamp(1.4rem, 3.4vw, 2.2rem);
+  font-weight: 600;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.textBox p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(242, 236, 225, 0.82);
+}
+
+/* Déborde de .particlesStage (marge de dispersion, cf intro-sequence.tsx —
+   la caméra orthographique couvre la même marge) pour que les braises ne
+   soient jamais coupées net en sortant du cadre. */
+.particlesCanvas {
+  position: absolute;
+  inset: -15%;
+}
