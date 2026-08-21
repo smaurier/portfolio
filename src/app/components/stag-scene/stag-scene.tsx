@@ -16,7 +16,11 @@ import LoadingVeil from "./loading-veil";
 import Milpa from "./milpa";
 import Ocotillo from "./ocotillo";
 import OrbitCamera from "./orbit-camera";
-import PiedraDelSol from "./piedra-del-sol";
+// Piedra del Sol retirée de la home (21/08, retour Sylvain : "elle fait de
+// trop, ça surcharge") — laissée en commentaire plutôt que supprimée, le
+// composant piedra-del-sol.tsx n'est pas touché, à réactiver ou réutiliser
+// ailleurs plus tard (cf memory project-nahual-da).
+// import PiedraDelSol from "./piedra-del-sol";
 import PostFX from "./post-fx";
 import RevealLighting from "./reveal-lighting";
 import SceneTextOverlay from "./scene-text-overlay";
@@ -164,7 +168,7 @@ export default function StagScene({
   return (
     <div ref={sectionRef} className={styles.scrollTrack}>
       <div className={styles.sticky}>
-        <PiedraDelSol progressRef={progressRef} reducedMotionRef={reducedMotionRef} />
+        {/* <PiedraDelSol progressRef={progressRef} reducedMotionRef={reducedMotionRef} /> */}
         <Canvas camera={{ fov: 45, near: 0.1, far: 100 }} dpr={[1, perfProfile.dprCap]}>
           {/* Le fog vit maintenant dans RevealLighting (couleur pilotée par
            * le scroll, cf getFogColor) — pas ici, un seul point de vérité. */}
