@@ -12,7 +12,9 @@
       "memoire": "Teyolía · Mémoire"
     },
     "langSwitcherLabel": "Changer de langue",
-    "showEmail": "Afficher l'email"
+    "showEmail": "Afficher l'email",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu"
   },
   "home": {
     "heroTitle": "Nahual — studio de création",

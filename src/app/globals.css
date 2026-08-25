@@ -199,6 +199,123 @@ main {
   font-weight: 600;
 }
 
+/* Bouton burger — visible seulement sous 768px (ajouté le 25/08,
+   retour Sylvain : "on fait un menu pour mobile ? car actuellement
+   la navigation est impossible"). Desktop garde la nav horizontale
+   et les liens externes du .header_up dans son coin. */
+.mobileMenuButton {
+  display: none;
+  background: transparent;
+  border: 0;
+  padding: 10px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.burgerIcon {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 22px;
+  height: 16px;
+}
+
+.burgerIcon span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transform-origin: center;
+}
+
+.burgerIconOpen span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.burgerIconOpen span:nth-child(2) {
+  opacity: 0;
+}
+
+.burgerIconOpen span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Panel plein écran ouvert. z:150 = au-dessus du header (z:100) et
+   du contenu (.flow z:1 / .stage z:0), sous le LoadingVeil (z:200)
+   qui doit continuer à couvrir tout au chargement initial. */
+.mobilePanel {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  padding: calc(var(--header-height) + 40px) 24px calc(var(--footer-height) + 40px);
+  background: rgba(10, 8, 14, 0.96);
+  backdrop-filter: blur(12px);
+  color: #f2ece1;
+  overflow-y: auto;
+}
+
+.mobileNav ul,
+.mobileExternal,
+.mobileLangSwitcher {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.mobileNav a {
+  font-size: clamp(1.3rem, 5vw, 1.8rem);
+  font-weight: 600;
+  color: #f2ece1;
+}
+
+.mobileExternal {
+  gap: 14px;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.mobileLangSwitcher {
+  flex-direction: row;
+  gap: 20px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mobileLangSwitcher a {
+  opacity: 0.55;
+}
+
+.mobileLangSwitcher a[aria-current="true"] {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 767px) {
+  .mobileMenuButton {
+    display: inline-flex;
+  }
+  /* Nav desktop et bandeau supérieur cachés en dessous du seuil —
+     leur contenu est repris dans le panel mobile. */
+  .header_up,
+  .header_bottom nav {
+    display: none;
+  }
+  /* Le header réduit à logo + burger : plus besoin de deux étages. */
+  .header {
+    padding: 10px 20px;
+  }
+}
+
 /* "Chemins révélés" — dernier temps de l'arc de reveal du cerf (palier 1,
    cf project-nahual-da), scopé à la page qui pose la classe (/lab
    seulement). La couleur elle-même est pilotée en JS (stag-scene.tsx,

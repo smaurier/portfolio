@@ -12,7 +12,9 @@
       "memoire": "Teyolía · Memoria"
     },
     "langSwitcherLabel": "Cambiar idioma",
-    "showEmail": "Mostrar correo"
+    "showEmail": "Mostrar correo",
+    "openMenu": "Abrir el menú",
+    "closeMenu": "Cerrar el menú"
   },
   "home": {
     "heroTitle": "Nahual — estudio creativo",
