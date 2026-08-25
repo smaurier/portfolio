@@ -31,7 +31,12 @@ export type RimLightOptions = {
 
 const DEFAULT_OPTIONS: RimLightOptions = {
   color: "#ffb35c",
-  power: 2.2,
+  // Power abaissé de 2.2 à 1.4 (25/08, retour Sylvain "hologramme
+  // franc") : le rim couvre davantage de surface (fresnel plus doux/
+  // large) au lieu d'être un liseré fin — cohérent avec l'esprit
+  // hologramme où la lumière semble venir du contour entier plutôt
+  // que d'un rebord photographique.
+  power: 1.4,
   intensity: 0.6,
 };
 
@@ -44,6 +49,12 @@ export type RimLightUniforms = {
   // venir sur le cerf"). Partage uRimColor comme cible ; amount séparé du
   // rim (le rim est un effet de bord net, le body tint est un fondu global).
   uBodyTintAmount: { value: number };
+  // Temps en secondes (clock.elapsedTime R3F) — pilote les scanlines
+  // animées et le blink du pattern hologramme, ajouté le 25/08 (retour
+  // Sylvain : "on pourrait mettre une sorte de lightning sur les
+  // contours du cerf... hologramme"). Mis à jour dans le useFrame de
+  // StagModel via setHoloTime.
+  uTime: { value: number };
 };
 
 // Stocke les uniforms branchés au shader par material, réutilisés au
@@ -99,6 +110,7 @@ export function applyRimLight(
         uRimIntensity: { value: intensity },
         uRimPower: { value: power },
         uBodyTintAmount: { value: 0 },
+        uTime: { value: 0 },
       };
       uniformsByMaterial.set(material, uniforms);
       allUniforms.push(uniforms);
@@ -108,6 +120,7 @@ export function applyRimLight(
         shader.uniforms.uRimIntensity = uniforms.uRimIntensity;
         shader.uniforms.uRimPower = uniforms.uRimPower;
         shader.uniforms.uBodyTintAmount = uniforms.uBodyTintAmount;
+        shader.uniforms.uTime = uniforms.uTime;
 
         shader.fragmentShader = shader.fragmentShader
           .replace(
@@ -116,7 +129,8 @@ export function applyRimLight(
             uniform vec3 uRimColor;
             uniform float uRimIntensity;
             uniform float uRimPower;
-            uniform float uBodyTintAmount;`,
+            uniform float uBodyTintAmount;
+            uniform float uTime;`,
           )
           .replace(
             "#include <dithering_fragment>",
@@ -125,13 +139,30 @@ export function applyRimLight(
             // le relais. Screen blend (1 - (1-a)*(1-b)) plutôt qu'un mix
             // linéaire — retour Sylvain 25/08 : "je trouve la teinte très
             // grossière" — le screen préserve les hautes lumières et
-            // dépose la couleur surtout dans les tons foncés/moyens, ce
-            // qui se lit comme un glow subtil plutôt qu'une couche de
-            // peinture plaquée. Plafond ×0.5.
+            // dépose la couleur surtout dans les tons foncés/moyens.
+            // Plafond ×0.5.
             vec3 bodyTinted = vec3(1.0) - (vec3(1.0) - gl_FragColor.rgb) * (vec3(1.0) - uRimColor);
             gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 0.5);
+
+            // ------- Pattern hologramme (ajouté 25/08, retour Sylvain
+            // "on pourrait mettre une sorte de lightning sur les
+            // contours... hologramme franc") -------
+            // Fresnel élargi (uRimPower 1.4 au lieu de 2.2) : la lumière
+            // du contour couvre plus de surface, moins photographique.
             float rimFresnel = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), uRimPower);
-            gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity;
+            // Scanlines horizontales anchored en screen space (gl_FragCoord
+            // suit la vue plutôt que la géométrie) : lecture "projection
+            // holographique" classique. Densité ~120px, vitesse de
+            // défilement lente (~1 bande par 1.5s).
+            float scanline = sin(gl_FragCoord.y * 0.4 - uTime * 2.2);
+            scanline = smoothstep(0.1, 1.0, scanline);
+            // Blink : oscillation lente entre 0.7 et 1.0 (~cycle 3.5s),
+            // touche uniquement le halo hologramme, pas le body tint.
+            float blink = 0.7 + 0.3 * sin(uTime * 1.8);
+            // Halo hologramme = rim × scanline × blink, additif — visible
+            // dès la pénombre (uRimIntensity a un plancher non nul dans
+            // StagModel), s'intensifie au climax.
+            gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity * scanline * blink;
             #include <dithering_fragment>`,
           );
       });
@@ -159,12 +190,24 @@ export function setRimLightIntensity(uniformsList: RimLightUniforms[], intensity
 /**
  * Fait varier le taux de teinte diffuse sur tout le corps — même raison
  * de fonction séparée que setRimLightIntensity (react-hooks/immutability).
- * `blend` : 0 = pas de teinte, 1 = teinte à saturation max (×0.35 dans
+ * `blend` : 0 = pas de teinte, 1 = teinte à saturation max (×0.5 dans
  * le shader, cf plafond). Passe getRimColorBlend(progress) en pratique.
  */
 export function setBodyTintAmount(uniformsList: RimLightUniforms[], blend: number) {
   for (const uniforms of uniformsList) {
     uniforms.uBodyTintAmount.value = blend;
+  }
+}
+
+/**
+ * Met à jour le temps du pattern hologramme (scanlines + blink) — appelé
+ * par StagModel dans son useFrame avec `clock.elapsedTime`. Une seule
+ * source de vérité pour tous les matériaux patchés (partagent tous le
+ * même horloge de scène).
+ */
+export function setHoloTime(uniformsList: RimLightUniforms[], time: number) {
+  for (const uniforms of uniformsList) {
+    uniforms.uTime.value = time;
   }
 }
 

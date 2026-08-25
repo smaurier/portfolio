@@ -13,7 +13,7 @@ import {
 } from "@/lib/reveal-arc";
 import { centerAndScale } from "./center-model";
 import { applyHeadLook } from "./head-look";
-import { applyRimLight, setBodyTintAmount, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
+import { applyRimLight, setBodyTintAmount, setHoloTime, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 
 // Nom de l'os tête dans le rig Quaternius (GLB inspecté le 21/08, cf memory
 // project-nahual-da : chaîne Neck1→Neck2→Neck3→Head→Stag_Horns/Head_end).
@@ -101,8 +101,12 @@ export default function StagModel({
   // rien de visible dans l'intervalle ne trahisse la page précédente.
   useEffect(() => {
     setRimLightColor(rimUniforms, 0, climaxRimColor);
-    setRimLightIntensity(rimUniforms, getDirectionalIntensity(0) * 0.4);
+    // Plancher hologramme (0.55) au reset, cohérent avec la formule
+    // du useFrame ci-dessous — évite un flash "rim faible" pendant
+    // le mount.
+    setRimLightIntensity(rimUniforms, 0.55);
     setBodyTintAmount(rimUniforms, 0);
+    setHoloTime(rimUniforms, 0);
   }, [rimUniforms, climaxRimColor]);
   // Centrage + résolution de l'os tête faits synchronement pendant le
   // render (pas dans un useEffect) : sans ça, une fenêtre d'un frame
@@ -148,13 +152,18 @@ export default function StagModel({
     currentClipRef.current = wantClip;
   });
 
-  useFrame(() => {
-    // Le liseré capte la lumière qui monte avec l'arc de reveal, comme le
-    // reste de la scène (RevealLighting) — jamais dominant (×0.4), un
-    // simple accent qui suit le même rythme dramatique plutôt qu'une
-    // intensité fixe déconnectée de la narration.
-    const intensity = getDirectionalIntensity(progressRef.current) * 0.4;
+  useFrame(({ clock }) => {
+    // Pattern hologramme (25/08, retour Sylvain "hologramme franc") :
+    // le rim garde un plancher visible dès la pénombre (0.55) et
+    // monte à ~1.15 au climax. Contraste avec l'ancien ×0.4 qui
+    // partait de 0.2 en pénombre — trop discret pour être lu comme
+    // un contour lumineux "hologramme". L'animation scanlines+blink
+    // est dans le shader, pilotée par uTime ci-dessous.
+    const holoBase = 0.55;
+    const holoRange = 0.6;
+    const intensity = holoBase + (getDirectionalIntensity(progressRef.current) - 0.5) / 1.3 * holoRange;
     setRimLightIntensity(rimUniforms, intensity);
+    setHoloTime(rimUniforms, clock.elapsedTime);
     // Doré (repos) -> teinte de la direction courante (climax) sur la
     // fenêtre du rim (getRimColorBlend, 0.5→1.0, élargie le 25/08 par
     // retour Sylvain : "que ça monte progressivement lorsqu'on arrive à
