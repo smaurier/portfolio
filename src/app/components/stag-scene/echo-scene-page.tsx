@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import type { DirectionKey } from "./direction-colors";
 import SceneContent from "./scene-content";
-import SceneStage, { type LoadingVeilProps } from "./scene-stage";
+import SceneStage from "./scene-stage";
 
 /**
  * Ossature des pages écho (Services/Projets/Contact/Mémoire) depuis le
@@ -15,22 +15,21 @@ import SceneStage, { type LoadingVeilProps } from "./scene-stage";
  *
  * `directionKey` (25/08 soir) : sélectionne la teinte cible du fog +
  * du liseré du cerf + de l'emphase de nav pour cette page (Codex
- * Nahual section 03). Le reste de la scène 3D reste identique — les
- * enrichissements par direction (pose du cerf, densité de flore,
- * ambiance) viendront quand nous les coderons (YAGNI).
+ * Nahual section 03).
+ *
+ * LoadingVeil n'est plus rendu ici — géré une seule fois par
+ * [locale]/layout.tsx, persiste entre navigations SPA (cf
+ * scene-stage.tsx pour le contexte, retour Sylvain 25/08).
  */
 export default function EchoScenePage({
-  loading,
   directionKey,
   children,
 }: {
-  loading: LoadingVeilProps;
   directionKey: DirectionKey;
   children: ReactNode;
 }) {
   return (
     <SceneStage
-      loading={loading}
       directionKey={directionKey}
       scene={({ progressRef, noticedRef, climaxRimColor, fogTint }) => (
         <SceneContent

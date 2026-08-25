@@ -138,11 +138,6 @@ export default async function LocalizedPage({
   if (!key) notFound();
 
   const fullDict = getDictionary(locale);
-  const loading = {
-    phrase: fullDict.lab.loadingPhrase,
-    translation: fullDict.lab.loadingTranslation,
-    label: fullDict.lab.loadingLabel,
-  };
 
   let content: React.ReactNode;
   switch (key) {
@@ -161,7 +156,7 @@ export default async function LocalizedPage({
   }
 
   return (
-    <EchoScenePage loading={loading} directionKey={DIRECTION_BY_PAGE[key]}>
+    <EchoScenePage directionKey={DIRECTION_BY_PAGE[key]}>
       {content}
     </EchoScenePage>
   );

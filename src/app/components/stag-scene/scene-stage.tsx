@@ -6,7 +6,6 @@ import { clampProgress } from "@/lib/camera-path";
 import { getPerfProfile, type PerfProfile } from "@/lib/mobile-perf";
 import { getNavEmphasis, type ColorRgb } from "@/lib/reveal-arc";
 import { deriveFogTint, hexToRgb, readDirectionColor, type DirectionKey } from "./direction-colors";
-import LoadingVeil from "./loading-veil";
 import PostFX from "./post-fx";
 import SceneTextOverlay from "./scene-text-overlay";
 import styles from "./scene-stage.module.css";
@@ -26,12 +25,6 @@ export type SceneStageCtx = {
   perfProfile: PerfProfile;
   climaxRimColor: string;
   fogTint: ColorRgb;
-};
-
-export type LoadingVeilProps = {
-  phrase: string;
-  translation: string;
-  label: string;
 };
 
 // Classe plate (pas une classe du module CSS scopé) : posée sur <body>,
@@ -63,15 +56,19 @@ const ARC_SCROLL_VIEWPORTS = 2;
  * spécifique et enrichie") : sélectionne la teinte cible du fog, du
  * liseré du cerf, et de l'emphase de nav — Codex Nahual section 03.
  * Défaut = jade (home / centre).
+ *
+ * LoadingVeil n'est plus rendu ici depuis le 25/08 (soir) — déplacé
+ * dans [locale]/layout.tsx pour être monté UNE seule fois par
+ * session (le layout persiste entre les navigations SPA, contrairement
+ * à SceneStage qui remonte à chaque page). Retour Sylvain : "on ne
+ * doit pas avoir l'écran de chargement à chaque changement de page".
  */
 export default function SceneStage({
-  loading,
   scene,
   overlay,
   children,
   directionKey = "jade",
 }: {
-  loading: LoadingVeilProps;
   scene: (ctx: SceneStageCtx) => ReactNode;
   overlay?: (ctx: SceneStageCtx) => ReactNode;
   children?: ReactNode;
@@ -90,12 +87,14 @@ export default function SceneStage({
   const [viewportWidth, setViewportWidth] = useState(0);
   const perfProfile = getPerfProfile(viewportWidth);
 
-  // Résolu une seule fois par mount (deps [directionKey]) : la valeur
-  // renvoyée par readDirectionColor dépend du thème système actif au
-  // moment de la lecture — si l'utilisateur change de thème sans
-  // reload, la teinte 3D ne suit pas (compromis assumé, cf
-  // direction-colors.ts). Les uniforms 3D et l'inline style de nav
-  // dérivent tous de ces mêmes valeurs — une seule source de vérité.
+  // Couleurs de la direction : dérivées au render via useMemo. La
+  // valeur SSR (window undefined → repli jade) est remplacée dès le
+  // premier render client par la valeur réelle lue via
+  // getComputedStyle sur :root. Le comportement "cerf pareil sur
+  // toutes les pages" remonté par Sylvain le 25/08 venait des
+  // intensités trop faibles (body tint 0.35 / fog 0.15), pas d'un bug
+  // de wiring — remontées depuis à 0.55 / 0.30, la teinte cardinale
+  // devient lisible à l'œil.
   const climaxRimColor = useMemo(() => readDirectionColor(directionKey), [directionKey]);
   const fogTint = useMemo(() => deriveFogTint(climaxRimColor), [climaxRimColor]);
   const navRgb = useMemo(() => hexToRgb(climaxRimColor), [climaxRimColor]);
@@ -119,10 +118,7 @@ export default function SceneStage({
     // navigateur restaure la position de scroll précédente au reload
     // (comportement par défaut `scrollRestoration: "auto"`), donc
     // progressRef est calculé sur cette position et l'arc démarre en
-    // fin de séquence au lieu de la pénombre. `scrollRestoration:
-    // "manual"` désactive la restauration côté navigateur, `scrollTo`
-    // ramène en haut. Piège déjà noté dans memory le 17/08 comme
-    // réflexe d'outillage, jamais implémenté avant.
+    // fin de séquence au lieu de la pénombre.
     const previousScrollRestoration = window.history.scrollRestoration;
     window.history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
@@ -194,7 +190,6 @@ export default function SceneStage({
         {overlay && <SceneTextOverlay>{overlay(ctx)}</SceneTextOverlay>}
       </div>
       <div className={styles.flow}>{children}</div>
-      <LoadingVeil phrase={loading.phrase} translation={loading.translation} label={loading.label} />
     </>
   );
 }

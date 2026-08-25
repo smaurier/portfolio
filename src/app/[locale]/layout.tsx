@@ -2,6 +2,7 @@ import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import Header from "../components/header";
+import LoadingVeil from "../components/stag-scene/loading-veil";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
 
 const geistSans = localFont({
@@ -60,6 +61,20 @@ export default async function LocaleLayout({
         <footer className="siteFooter">
           © {new Date().getFullYear()} NAHUAL Studio
         </footer>
+        {/* LoadingVeil monté ici (une seule instance par session)
+            plutôt que dans SceneStage (une par mount de page) depuis
+            le 25/08 : retour Sylvain "on ne doit pas avoir l'écran
+            de chargement à chaque changement de page. L'écran doit
+            charger toutes les ressources pour ensuite avoir une
+            navigation super fluide". Layout persiste entre les
+            navigations SPA — LoadingVeil s'auto-démonte après le
+            premier fondu (setMounted(false)) et ne remonte plus
+            jamais tant que l'utilisateur ne reload pas. */}
+        <LoadingVeil
+          phrase={dict.lab.loadingPhrase}
+          translation={dict.lab.loadingTranslation}
+          label={dict.lab.loadingLabel}
+        />
       </body>
     </html>
   );

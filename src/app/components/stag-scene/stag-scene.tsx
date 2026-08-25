@@ -29,23 +29,16 @@ export type HomeContent = {
  * le site partage la même scène plein écran).
  */
 export default function StagScene({
-  loadingPhrase,
-  loadingTranslation,
-  loadingLabel,
   home,
   servicesHref,
   contactHref,
 }: {
-  loadingPhrase: string;
-  loadingTranslation: string;
-  loadingLabel: string;
   home: HomeContent;
   servicesHref: string;
   contactHref: string;
 }) {
   return (
     <SceneStage
-      loading={{ phrase: loadingPhrase, translation: loadingTranslation, label: loadingLabel }}
       scene={({ progressRef, noticedRef, climaxRimColor, fogTint }) => (
         <SceneContent
           progressRef={progressRef}

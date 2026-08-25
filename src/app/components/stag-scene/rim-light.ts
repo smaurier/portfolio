@@ -104,9 +104,11 @@ export function applyRimLight(
             `// Body tint : la couleur cardinale se mélange progressivement à
             // tout le corps du cerf avant que le rim (bord net) prenne le
             // relais — retour Sylvain 25/08 : "la couleur progressive doit
-            // aussi venir sur le cerf". Plafond ×0.35 pour rester une
-            // teinte, jamais un aplat qui écraserait la matière PBR.
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, uRimColor, uBodyTintAmount * 0.35);
+            // aussi venir sur le cerf". Plafond ×0.55 (initialement 0.35,
+            // remonté après retour direct "quelque chose de très terne")
+            // — laisse encore respirer la matière PBR mais rend le
+            // changement de teinte lisible à l'œil.
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, uRimColor, uBodyTintAmount * 0.55);
             float rimFresnel = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), uRimPower);
             gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity;
             #include <dithering_fragment>`,

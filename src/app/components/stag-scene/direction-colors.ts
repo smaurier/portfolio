@@ -49,18 +49,19 @@ export function readDirectionColor(direction: DirectionKey): string {
 }
 
 /**
- * Teinte du fog dérivée de la couleur pleine : ~15% de saturation
- * pour rester une "lueur d'ambiance" plutôt qu'un aplat de couleur
- * plaqué (retour Sylvain 20/08, cf memory) — même règle que
- * FOG_JADE_TINT historique dans reveal-arc.ts, généralisée aux 4
- * autres directions. Le fog n'est jamais aussi vif que le rim/nav
- * (qui, eux, portent la couleur pleine).
+ * Teinte du fog dérivée de la couleur pleine : ~30% de saturation.
+ * Initialement 15% (jade seul, cf FOG_JADE_TINT historique dans
+ * reveal-arc.ts) — remonté après retour Sylvain 25/08 "quelque chose
+ * de très terne, la couleur doit changer sur le shine de fin".
+ * Reste en-dessous de la couleur pleine du rim/nav pour ne pas
+ * écraser l'ambiance nocturne construite par l'arc, mais assez
+ * saturé pour que la teinte cardinale soit lisible dans le fog.
  */
 export function deriveFogTint(directionColorHex: string): ColorRgb {
   const rgb = hexToRgb(directionColorHex);
   return {
-    r: Math.round(rgb.r * 0.15),
-    g: Math.round(rgb.g * 0.15),
-    b: Math.round(rgb.b * 0.15),
+    r: Math.round(rgb.r * 0.3),
+    g: Math.round(rgb.g * 0.3),
+    b: Math.round(rgb.b * 0.3),
   };
 }
