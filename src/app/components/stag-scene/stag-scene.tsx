@@ -1,33 +1,11 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Canvas } from "@react-three/fiber";
-import { clampProgress } from "@/lib/camera-path";
-import { getPerfProfile } from "@/lib/mobile-perf";
 import { getIntroOpacity, getNavEmphasis } from "@/lib/reveal-arc";
-import BackgroundFlora from "./background-flora";
-import CursorRevealScene from "./cursor-reveal-scene";
-import EnvironmentDepthFade from "./environment-depth-fade";
 import FadingBlock from "./fading-block";
-import Grass from "./grass";
-import Ground from "./ground";
-import LoadingVeil from "./loading-veil";
-import Milpa from "./milpa";
-import Ocotillo from "./ocotillo";
-import OrbitCamera from "./orbit-camera";
-// Piedra del Sol retirée de la home (21/08, retour Sylvain : "elle fait de
-// trop, ça surcharge") — laissée en commentaire plutôt que supprimée, le
-// composant piedra-del-sol.tsx n'est pas touché, à réactiver ou réutiliser
-// ailleurs plus tard (cf memory project-nahual-da).
-// import PiedraDelSol from "./piedra-del-sol";
-import PostFX from "./post-fx";
-import RevealLighting from "./reveal-lighting";
-import SceneTextOverlay from "./scene-text-overlay";
+import SceneContent from "./scene-content";
+import SceneStage from "./scene-stage";
 import overlayStyles from "./scene-text-overlay.module.css";
-import StagModel from "./stag-model";
-import Vines from "./vines";
-import styles from "./stag-scene.module.css";
 
 export type HomeContent = {
   heroTitle: string;
@@ -39,36 +17,16 @@ export type HomeContent = {
   contactCta: string;
 };
 
-// Classe plate (pas une classe du module CSS scopé) : posée sur <body>,
-// lue depuis globals.css qui ne connaît pas les classes hashées de ce
-// module — cf règle .header nav a sous body.nahual-lab-reveal.
-const REVEAL_SCOPE_CLASS = "nahual-lab-reveal";
-
-/** "#00a86b" -> {r,g,b}. Suffisant pour --jade-bg (toujours un hex 6 chiffres
- * dans globals.css) — pas un parseur de couleur CSS général. */
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const match = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
-  if (!match) return { r: 0, g: 168, b: 107 }; // repli sur le vert jade connu
-  return {
-    r: parseInt(match[1], 16),
-    g: parseInt(match[2], 16),
-    b: parseInt(match[3], 16),
-  };
-}
-
 /**
- * Palier 0+1+2 de la DA Nahual (cf memory project-nahual-da) : le cerf
- * Quaternius, caméra en orbite pilotée par le scroll, et l'arc de reveal en
- * 4 temps (pénombre → conscience → face-à-face → chemins révélés, cf
- * src/lib/reveal-arc.ts). Depuis le 19/08, c'est la home en prod (plus
- * `/lab`, supprimée) — le vrai contenu du site (hero + à-propos, déjà dans
- * les dictionnaires i18n) habille la scène en overlay HTML plutôt que
- * d'être caché derrière : hero visible dès le chargement (retour de
- * Sylvain : "si rien n'invite au scroll, l'utilisateur va-t-il forcément y
- * penser ?"), à-propos révélé à la fin de l'arc — la vraie sortie de
- * scène, pas un simple lien. Toujours pas d'écho sur les autres pages, pas
- * de nav cardinale, pas de shader custom, pas de vrai repli WebGL mobile
- * complet — paliers suivants.
+ * Consommateur home de SceneStage. Le layout scrollable et le contenu 3D
+ * sont partagés (cf scene-stage.tsx, scene-content.tsx) — cette page
+ * n'apporte que son overlay HTML propre : hero visible dès le chargement
+ * (getIntroOpacity, s'efface avec la pénombre) et à-propos révélé à
+ * "chemins révélés" (getNavEmphasis, même moment que l'emphase de la
+ * nav). Les pages écho (Services/Projets/Contact/Mémoire) suivent la
+ * même structure, chacune avec son propre overlay HTML (cf memory
+ * project-nahual-da, décision du 25/08 : plus de fenêtre 320×320, tout
+ * le site partage la même scène plein écran).
  */
 export default function StagScene({
   loadingPhrase,
@@ -85,145 +43,14 @@ export default function StagScene({
   servicesHref: string;
   contactHref: string;
 }) {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const progressRef = useRef(0);
-  const reducedMotionRef = useRef(false);
-  // "A-t-il remarqué le visiteur ?" — partagé entre le scroll (StagModel)
-  // et le mouvement de souris (CursorRevealScene), jamais remis à false une
-  // fois vrai (retour de Sylvain le 18/08).
-  const noticedRef = useRef(false);
-  // Filet mobile MINIMAL (cf src/lib/mobile-perf.ts, retour de Sylvain le
-  // 19/08) : 0 avant la première mesure côté client -> profil desktop par
-  // défaut (jamais de flash "version allégée" pendant l'hydratation).
-  const [viewportWidth, setViewportWidth] = useState(0);
-  const perfProfile = getPerfProfile(viewportWidth);
-
-  useEffect(() => {
-    function handleResize() {
-      setViewportWidth(window.innerWidth);
-    }
-    handleResize();
-    window.addEventListener("resize", handleResize, { passive: true });
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    reducedMotionRef.current = reducedMotionQuery.matches;
-
-    // Scope l'emphase de nav ("chemins révélés") à cette page : cette
-    // classe ne sert plus qu'à borner la sélection des liens ci-dessous,
-    // jamais à affecter la nav sur les autres pages.
-    document.body.classList.add(REVEAL_SCOPE_CLASS);
-
-    // Couleur/ligne posées inline en JS plutôt qu'en CSS pur : color-mix()
-    // et la syntaxe de couleur relative laissaient toutes deux un underline
-    // visible même à émphase 0 dans ce navigateur (constaté par inspection
-    // directe des styles calculés, pas juste à l'œil) — un rgba() construit
-    // à la main n'a pas cette ambiguïté.
-    const jadeRgb = hexToRgb(
-      getComputedStyle(document.documentElement).getPropertyValue("--jade-bg").trim(),
-    );
-
-    function applyNavEmphasis(progress: number) {
-      const emphasis = getNavEmphasis(progress);
-      const links = document.querySelectorAll<HTMLAnchorElement>(".header_bottom nav a");
-      links.forEach((link) => {
-        link.style.textDecorationLine = emphasis > 0.01 ? "underline" : "none";
-        link.style.textDecorationColor = `rgba(${jadeRgb.r}, ${jadeRgb.g}, ${jadeRgb.b}, ${emphasis})`;
-      });
-    }
-
-    function handleScroll() {
-      // prefers-reduced-motion : le cerf reste sur le cadrage par défaut
-      // (progress=0), aucune trajectoire pilotée par le scroll.
-      if (reducedMotionRef.current) return;
-
-      const section = sectionRef.current;
-      if (!section) return;
-
-      const rect = section.getBoundingClientRect();
-      const scrollableHeight = rect.height - window.innerHeight;
-      const scrolled = -rect.top;
-      progressRef.current = clampProgress(
-        scrollableHeight > 0 ? scrolled / scrollableHeight : 0,
-      );
-      applyNavEmphasis(progressRef.current);
-    }
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      document.body.classList.remove(REVEAL_SCOPE_CLASS);
-      // Remet la nav dans son état neutre (header/footer partagés avec
-      // toutes les autres pages, ne doivent rien garder de ce reveal).
-      document.querySelectorAll<HTMLAnchorElement>(".header_bottom nav a").forEach((link) => {
-        link.style.removeProperty("text-decoration-line");
-        link.style.removeProperty("text-decoration-color");
-      });
-    };
-  }, []);
-
   return (
-    <div ref={sectionRef} className={styles.scrollTrack}>
-      <div className={styles.sticky}>
-        {/* <PiedraDelSol progressRef={progressRef} reducedMotionRef={reducedMotionRef} /> */}
-        <Canvas camera={{ fov: 45, near: 0.1, far: 100 }} dpr={[1, perfProfile.dprCap]}>
-          {/* Le fog vit maintenant dans RevealLighting (couleur pilotée par
-           * le scroll, cf getFogColor) — pas ici, un seul point de vérité. */}
-          <RevealLighting progressRef={progressRef} />
-          {/* Perspective atmosphérique (18/08, retour Sylvain : "plus on est
-           * loin et plus ça devient gris, comme en peinture") — uniquement
-           * sur le décor/fond, jamais sur le cerf (rim-light.ts à la place)
-           * ni sur le maïs/les lianes (compagnons immédiats du sujet). Le
-           * sol (Ground) inclut maintenant les montagnes (bosses dans
-           * terrain-height.ts, cf ground.tsx) : les inclure ici est
-           * cohérent avec la perspective atmosphérique réelle — les
-           * éléments les plus lointains sont justement les plus estompés. */}
-          {/* Révélation par curseur (18/08, retour Sylvain : "au départ,
-           * tous les éléments doivent être translucides et en nuances de
-           * gris, avec le mouvement de souris ils se révèlent petit à
-           * petit") — portée confirmée : toute la scène 3D, cerf inclus
-           * (contrairement à EnvironmentDepthFade qui l'exclut). */}
-          <CursorRevealScene noticedRef={noticedRef} progressRef={progressRef}>
-            <EnvironmentDepthFade>
-              <Ground />
-              <Suspense fallback={null}>
-                <BackgroundFlora />
-              </Suspense>
-              <Suspense fallback={null}>
-                <Ocotillo />
-              </Suspense>
-              <Suspense fallback={null}>
-                <Grass />
-              </Suspense>
-            </EnvironmentDepthFade>
-            <Suspense fallback={null}>
-              <StagModel progressRef={progressRef} noticedRef={noticedRef} />
-            </Suspense>
-            <Suspense fallback={null}>
-              <Milpa progressRef={progressRef} />
-            </Suspense>
-            <Suspense fallback={null}>
-              <Vines progressRef={progressRef} />
-            </Suspense>
-          </CursorRevealScene>
-          <OrbitCamera progressRef={progressRef} />
-          {/* Post-processing coupé sous le seuil mobile (cf mobile-perf.ts) :
-           * le coût le plus concentré de la scène après le DPR, désactivé
-           * plutôt que réglé plus léger faute de valeur intermédiaire qui
-           * vaille le coup. */}
-          {perfProfile.postFx && <PostFX />}
-        </Canvas>
-        {/* Hero et à-propos, tous deux en bas à gauche (retour de Sylvain le
-         * 20/08) — empilés par SceneTextOverlay/FadingBlock, jamais
-         * superposés même si les deux sont visibles à la fois
-         * (prefers-reduced-motion). Hero visible dès le chargement, pas
-         * caché derrière le scroll (getIntroOpacity, s'efface avec la
-         * pénombre) ; à-propos révélé à "chemins révélés" (getNavEmphasis,
-         * même moment que l'emphase de la nav) — la vraie sortie de scène. */}
-        <SceneTextOverlay>
+    <SceneStage
+      loading={{ phrase: loadingPhrase, translation: loadingTranslation, label: loadingLabel }}
+      scene={({ progressRef, noticedRef }) => (
+        <SceneContent progressRef={progressRef} noticedRef={noticedRef} />
+      )}
+      overlay={({ progressRef, reducedMotionRef }) => (
+        <>
           <FadingBlock
             progressRef={progressRef}
             reducedMotionRef={reducedMotionRef}
@@ -260,9 +87,8 @@ export default function StagScene({
               </a>
             </div>
           </FadingBlock>
-        </SceneTextOverlay>
-        <LoadingVeil phrase={loadingPhrase} translation={loadingTranslation} label={loadingLabel} />
-      </div>
-    </div>
+        </>
+      )}
+    />
   );
 }

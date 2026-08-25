@@ -1,10 +1,16 @@
-/* Voile plein écran superposé au canvas — même fond noir en dur que
-   .sticky (stag-scene.module.css), pour qu'aucune couture de couleur ne
-   trahisse la transition entre "chargement" et "scène". */
+/* Voile plein écran superposé au canvas et au contenu HTML — même fond
+   noir en dur que .stage (scene-stage.module.css), pour qu'aucune
+   couture de couleur ne trahisse la transition entre "chargement" et
+   "scène". Depuis le 25/08 en position:fixed (au lieu d'absolute dans
+   le sticky) : SceneStage ne pose plus de conteneur sticky, le voile
+   doit lui-même s'ancrer au viewport pour couvrir la home ET le
+   contenu HTML des pages écho qui scrolle par-dessus le canvas fixe.
+   z-index supérieur au flow (z:1) et au stage (z:0), inférieur au
+   header/footer (z:100). */
 .veil {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 10;
+  z-index: 50;
   display: flex;
   flex-direction: column;
   align-items: center;

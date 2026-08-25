@@ -90,10 +90,6 @@ export default function StagModel({
 
   useEffect(() => {
     // Recadre le modèle sur son propre bounding box (cf center-model.ts).
-    // Mutation directe de `scene` (pas de clone) : la home garde une seule
-    // instance vivante, c'est l'écho sur les autres pages qui clone (cf
-    // echo-stag-model.tsx, project-nahual-da) — deux contextes de rendu
-    // séparés, jamais montés en même temps.
     centerAndScale(scene, TARGET_HEIGHT);
     headBoneRef.current = scene.getObjectByName(HEAD_BONE_NAME) ?? null;
   }, [scene]);

@@ -1,0 +1,22 @@
+/* Canvas plein écran fixe, présent partout et pour toutes les pages
+   (home + Services/Projets/Contact/Mémoire depuis le 25/08, cf memory
+   project-nahual-da). Renverse le pattern précédent (scroll track 300vh
+   + sticky 100vh) : ici, le canvas n'est plus dans le flux, il est
+   collé au viewport, et le contenu HTML des pages scroll par-dessus. */
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: #000;
+}
+
+/* Conteneur du contenu HTML de la page (soit vide pour la home, soit
+   `<main>` avec le contenu texte pour les pages écho) — s'empile
+   AU-DESSUS du canvas fixe et fournit la hauteur scrollable qui pilote
+   l'arc de reveal (300vh minimum garantissent que l'arc a assez de
+   distance pour se dérouler, même sur une page courte comme Contact). */
+.flow {
+  position: relative;
+  z-index: 1;
+  min-height: 300vh;
+}
