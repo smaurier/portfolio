@@ -5,12 +5,13 @@
    le sticky) : SceneStage ne pose plus de conteneur sticky, le voile
    doit lui-même s'ancrer au viewport pour couvrir la home ET le
    contenu HTML des pages écho qui scrolle par-dessus le canvas fixe.
-   z-index supérieur au flow (z:1) et au stage (z:0), inférieur au
-   header/footer (z:100). */
+   z-index au-dessus de TOUT (retour Sylvain 25/08 : "on voit encore
+   les menus, header, footer, logos") — donc supérieur à .header et
+   .siteFooter (z:100). */
 .veil {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 200;
   display: flex;
   flex-direction: column;
   align-items: center;
