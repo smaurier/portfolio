@@ -4,7 +4,12 @@ import type { MutableRefObject } from "react";
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import type { AmbientLight, DirectionalLight, Fog } from "three";
-import { getAmbientIntensity, getDirectionalIntensity, getFogColor } from "@/lib/reveal-arc";
+import {
+  getAmbientIntensity,
+  getDirectionalIntensity,
+  getFogColor,
+  type ColorRgb,
+} from "@/lib/reveal-arc";
 
 /**
  * Lumière (+ brouillard, depuis le 20/08) de l'arc de reveal (palier 1, cf
@@ -22,8 +27,10 @@ import { getAmbientIntensity, getDirectionalIntensity, getFogColor } from "@/lib
  */
 export default function RevealLighting({
   progressRef,
+  fogTint,
 }: {
   progressRef: MutableRefObject<number>;
+  fogTint?: ColorRgb;
 }) {
   const ambientRef = useRef<AmbientLight>(null);
   const directionalRef = useRef<DirectionalLight>(null);
@@ -37,7 +44,7 @@ export default function RevealLighting({
       directionalRef.current.intensity = getDirectionalIntensity(progressRef.current);
     }
     if (fogRef.current) {
-      fogRef.current.color.set(getFogColor(progressRef.current));
+      fogRef.current.color.set(getFogColor(progressRef.current, fogTint));
     }
   });
 

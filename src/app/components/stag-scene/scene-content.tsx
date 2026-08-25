@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, type MutableRefObject } from "react";
+import type { ColorRgb } from "@/lib/reveal-arc";
 import BackgroundFlora from "./background-flora";
 import CursorRevealScene from "./cursor-reveal-scene";
 import EnvironmentDepthFade from "./environment-depth-fade";
@@ -15,26 +16,33 @@ import Vines from "./vines";
 
 /**
  * Contenu 3D partagé entre la home et les pages écho (Services/Projets/
- * Contact/Mémoire) depuis le 25/08. Sylvain, même échange : "même arc de
- * reveal que la home mais il y aura des variantes, ne casse pas ce que
- * tu as commencé côté intérieur de la scène 3D. Chaque scène sera
- * spécifique et enrichie." — donc pour l'instant, aucune variante :
- * exactement la même scène partout, les enrichissements viendront quand
- * ils viendront (YAGNI). L'ossature de scroll/perf/loading vit dans
- * SceneStage, le mood/l'overlay HTML dans les appelants.
+ * Contact/Mémoire) depuis le 25/08. Première variante par direction
+ * activée le 25/08 (soir) : la couleur cible du fog et du liseré du
+ * cerf change par page (Codex Nahual section 03 — home=jade,
+ * Services=doré, Projets=turquoise, Contact=cendre, Mémoire=obsidienne).
+ * Les couleurs sont résolues une seule fois dans SceneStage (à partir
+ * de la variable CSS de la direction) et propagées ici via ctx. Le
+ * reste de la scène (flore, animations, cadrage caméra) reste
+ * identique — les enrichissements par direction (pose du cerf,
+ * densité de flore, ambiance) viendront quand nous les coderons
+ * (Sylvain : "chaque scène sera spécifique et enrichie").
  */
 export default function SceneContent({
   progressRef,
   noticedRef,
+  climaxRimColor,
+  fogTint,
 }: {
   progressRef: MutableRefObject<number>;
   noticedRef: MutableRefObject<boolean>;
+  climaxRimColor: string;
+  fogTint: ColorRgb;
 }) {
   return (
     <>
       {/* Le fog vit dans RevealLighting (couleur pilotée par le scroll,
        * cf getFogColor) — un seul point de vérité. */}
-      <RevealLighting progressRef={progressRef} />
+      <RevealLighting progressRef={progressRef} fogTint={fogTint} />
       {/* Perspective atmosphérique (18/08, retour Sylvain : "plus on est
        * loin et plus ça devient gris, comme en peinture") — uniquement
        * sur le décor/fond, jamais sur le cerf (rim-light.ts à la place)
@@ -55,7 +63,11 @@ export default function SceneContent({
           </Suspense>
         </EnvironmentDepthFade>
         <Suspense fallback={null}>
-          <StagModel progressRef={progressRef} noticedRef={noticedRef} />
+          <StagModel
+            progressRef={progressRef}
+            noticedRef={noticedRef}
+            climaxRimColor={climaxRimColor}
+          />
         </Suspense>
         <Suspense fallback={null}>
           <Milpa progressRef={progressRef} />

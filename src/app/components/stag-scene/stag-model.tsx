@@ -8,8 +8,8 @@ import {
   getDirectionalIntensity,
   getHeadTurnAmount,
   getIdleClipName,
-  getNavEmphasis,
   getRevealPhase,
+  getRimColorBlend,
 } from "@/lib/reveal-arc";
 import { centerAndScale } from "./center-model";
 import { applyHeadLook } from "./head-look";
@@ -67,9 +67,11 @@ const TARGET_HEIGHT = 2;
 export default function StagModel({
   progressRef,
   noticedRef,
+  climaxRimColor,
 }: {
   progressRef: MutableRefObject<number>;
   noticedRef: MutableRefObject<boolean>;
+  climaxRimColor?: string;
 }) {
   const group = useRef<Group>(null);
   const { scene, animations } = useGLTF(MODEL_PATH);
@@ -137,11 +139,14 @@ export default function StagModel({
     // intensité fixe déconnectée de la narration.
     const intensity = getDirectionalIntensity(progressRef.current) * 0.4;
     setRimLightIntensity(rimUniforms, intensity);
-    // Doré (repos) -> jade (climax) sur "chemins révélés" (retour de
-    // Sylvain le 20/08) — même fenêtre que l'emphase de nav
-    // (getNavEmphasis), déjà jade au même instant : le liseré et le nav
-    // deviennent le même signal de révélation.
-    setRimLightColor(rimUniforms, getNavEmphasis(progressRef.current));
+    // Doré (repos) -> teinte de la direction courante (climax) sur la
+    // fenêtre du rim (getRimColorBlend, 0.5→1.0, élargie le 25/08 par
+    // retour Sylvain : "que ça monte progressivement lorsqu'on arrive à
+    // la fin" — l'ancien getNavEmphasis, 0.75→1.0, se lisait comme un
+    // saut de couleur au tout dernier moment). Couleur cible par
+    // direction (Codex Nahual section 03, cf memory) — jade par défaut
+    // (home / centre) via `climaxRimColor`.
+    setRimLightColor(rimUniforms, getRimColorBlend(progressRef.current), climaxRimColor);
   });
 
   useFrame(() => {

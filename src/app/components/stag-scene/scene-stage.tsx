@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type MutableRefObject, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from "react";
 import { Canvas } from "@react-three/fiber";
 import { clampProgress } from "@/lib/camera-path";
 import { getPerfProfile, type PerfProfile } from "@/lib/mobile-perf";
-import { getNavEmphasis } from "@/lib/reveal-arc";
+import { getNavEmphasis, type ColorRgb } from "@/lib/reveal-arc";
+import { deriveFogTint, hexToRgb, readDirectionColor, type DirectionKey } from "./direction-colors";
 import LoadingVeil from "./loading-veil";
 import PostFX from "./post-fx";
 import SceneTextOverlay from "./scene-text-overlay";
@@ -13,14 +14,18 @@ import styles from "./scene-stage.module.css";
 /**
  * Contexte partagé passé aux render props `scene` et `overlay` de
  * SceneStage : refs de progression/notice, ref de préférence réduction
- * de mouvement, profil perf (utile aux consommateurs qui veulent adapter
- * la densité 3D côté mobile — même seuil que le DPR/PostFX gérés ici).
+ * de mouvement, profil perf, et les couleurs dérivées de la direction
+ * courante (fog + rim). Le consommateur les propage à SceneContent /
+ * RevealLighting / StagModel — jamais lus deux fois, une seule source
+ * de vérité par mount.
  */
 export type SceneStageCtx = {
   progressRef: MutableRefObject<number>;
   noticedRef: MutableRefObject<boolean>;
   reducedMotionRef: MutableRefObject<boolean>;
   perfProfile: PerfProfile;
+  climaxRimColor: string;
+  fogTint: ColorRgb;
 };
 
 export type LoadingVeilProps = {
@@ -43,18 +48,6 @@ const REVEAL_SCOPE_CLASS = "nahual-lab-reveal";
 // révélés".
 const ARC_SCROLL_VIEWPORTS = 2;
 
-/** "#00a86b" -> {r,g,b}. Suffisant pour --jade-bg (toujours un hex 6
- * chiffres dans globals.css) — pas un parseur de couleur CSS général. */
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const match = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
-  if (!match) return { r: 0, g: 168, b: 107 }; // repli sur le vert jade connu
-  return {
-    r: parseInt(match[1], 16),
-    g: parseInt(match[2], 16),
-    b: parseInt(match[3], 16),
-  };
-}
-
 /**
  * Ossature partagée de toutes les pages à scène 3D (home + Services/
  * Projets/Contact/Mémoire depuis le 25/08, cf memory project-nahual-da).
@@ -64,20 +57,25 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
  * la home, `<main>` pour les pages écho) s'empile au-dessus via `flow`,
  * qui garantit au moins 300vh de hauteur scrollable — assez pour que
  * l'arc de reveal (200vh) se joue complètement, même quand la page
- * elle-même est plus courte. La progression est calculée sur les deux
- * premières viewports de scroll, indépendamment de la longueur totale
- * du contenu.
+ * elle-même est plus courte.
+ *
+ * Prop `directionKey` (25/08, retour Sylvain "chaque scène sera
+ * spécifique et enrichie") : sélectionne la teinte cible du fog, du
+ * liseré du cerf, et de l'emphase de nav — Codex Nahual section 03.
+ * Défaut = jade (home / centre).
  */
 export default function SceneStage({
   loading,
   scene,
   overlay,
   children,
+  directionKey = "jade",
 }: {
   loading: LoadingVeilProps;
   scene: (ctx: SceneStageCtx) => ReactNode;
   overlay?: (ctx: SceneStageCtx) => ReactNode;
   children?: ReactNode;
+  directionKey?: DirectionKey;
 }) {
   const progressRef = useRef(0);
   const reducedMotionRef = useRef(false);
@@ -92,6 +90,16 @@ export default function SceneStage({
   const [viewportWidth, setViewportWidth] = useState(0);
   const perfProfile = getPerfProfile(viewportWidth);
 
+  // Résolu une seule fois par mount (deps [directionKey]) : la valeur
+  // renvoyée par readDirectionColor dépend du thème système actif au
+  // moment de la lecture — si l'utilisateur change de thème sans
+  // reload, la teinte 3D ne suit pas (compromis assumé, cf
+  // direction-colors.ts). Les uniforms 3D et l'inline style de nav
+  // dérivent tous de ces mêmes valeurs — une seule source de vérité.
+  const climaxRimColor = useMemo(() => readDirectionColor(directionKey), [directionKey]);
+  const fogTint = useMemo(() => deriveFogTint(climaxRimColor), [climaxRimColor]);
+  const navRgb = useMemo(() => hexToRgb(climaxRimColor), [climaxRimColor]);
+
   useEffect(() => {
     function handleResize() {
       setViewportWidth(window.innerWidth);
@@ -105,26 +113,19 @@ export default function SceneStage({
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     reducedMotionRef.current = reducedMotionQuery.matches;
 
-    // Scope l'emphase de nav ("chemins révélés") à cette page : cette
-    // classe ne sert plus qu'à borner la sélection des liens ci-dessous,
-    // jamais à affecter la nav sur les autres pages.
+    // Scope l'emphase de nav ("chemins révélés") à cette page (héritée
+    // du pattern /lab). La classe est aussi posée en dur sur <body>
+    // dans layout.tsx (SSR sans flash) — cet ajout reste par sécurité
+    // au cas où SceneStage serait utilisé isolément d'un layout
+    // futur.
     document.body.classList.add(REVEAL_SCOPE_CLASS);
-
-    // Couleur/ligne posées inline en JS plutôt qu'en CSS pur : color-mix()
-    // et la syntaxe de couleur relative laissaient toutes deux un
-    // underline visible même à émphase 0 dans ce navigateur (constaté
-    // par inspection directe des styles calculés, pas juste à l'œil) —
-    // un rgba() construit à la main n'a pas cette ambiguïté.
-    const jadeRgb = hexToRgb(
-      getComputedStyle(document.documentElement).getPropertyValue("--jade-bg").trim(),
-    );
 
     function applyNavEmphasis(progress: number) {
       const emphasis = getNavEmphasis(progress);
       const links = document.querySelectorAll<HTMLAnchorElement>(".header_bottom nav a");
       links.forEach((link) => {
         link.style.textDecorationLine = emphasis > 0.01 ? "underline" : "none";
-        link.style.textDecorationColor = `rgba(${jadeRgb.r}, ${jadeRgb.g}, ${jadeRgb.b}, ${emphasis})`;
+        link.style.textDecorationColor = `rgba(${navRgb.r}, ${navRgb.g}, ${navRgb.b}, ${emphasis})`;
       });
     }
 
@@ -145,16 +146,24 @@ export default function SceneStage({
     return () => {
       window.removeEventListener("scroll", handleScroll);
       document.body.classList.remove(REVEAL_SCOPE_CLASS);
-      // Remet la nav dans son état neutre (header/footer partagés avec
-      // toutes les autres pages, ne doivent rien garder de ce reveal).
+      // Remet la nav dans son état neutre.
       document.querySelectorAll<HTMLAnchorElement>(".header_bottom nav a").forEach((link) => {
         link.style.removeProperty("text-decoration-line");
         link.style.removeProperty("text-decoration-color");
       });
     };
-  }, []);
+    // navRgb en dep : si la direction change (navigation entre pages),
+    // le handler doit se réabonner avec la nouvelle couleur cible.
+  }, [navRgb]);
 
-  const ctx: SceneStageCtx = { progressRef, noticedRef, reducedMotionRef, perfProfile };
+  const ctx: SceneStageCtx = {
+    progressRef,
+    noticedRef,
+    reducedMotionRef,
+    perfProfile,
+    climaxRimColor,
+    fogTint,
+  };
 
   return (
     <>

@@ -2,17 +2,24 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import ObfuscatedEmail from "../../components/obfuscated-email";
 import EchoScenePage from "../../components/stag-scene/echo-scene-page";
+import type { DirectionKey } from "../../components/stag-scene/direction-colors";
 import { getDictionary, isLocale, locales, type Locale, type Dictionary } from "../../../dictionaries";
-import { pageKeys, slugs, getPageKeyFromSlug, getPath } from "../../../lib/routes";
+import { pageKeys, slugs, getPageKeyFromSlug, type PageKey, getPath } from "../../../lib/routes";
 
 // Depuis le 25/08 (cf memory project-nahual-da) : plus de fenêtre écho
 // 320×320 par page — la scène 3D plein écran de la home est généralisée
-// à Services/Projets/Contact/Mémoire via EchoScenePage. Les moods par
-// direction (Codex Nahual section 03 — or/turquoise/cendre/obsidienne)
-// ne sont plus lus ici : la scène est identique partout pour l'instant,
-// les variantes/enrichissements par page viendront quand nous les
-// coderons (Sylvain : "chaque scène sera spécifique et enrichie" — pas
-// tout de suite).
+// à Services/Projets/Contact/Mémoire via EchoScenePage. Depuis le
+// 25/08 soir, chaque page porte sa direction (Codex Nahual section
+// 03) — la couleur cible du fog + rim + nav emphasis change par page
+// (Est/doré, Sud/turquoise, Ouest/cendre, Nord/obsidienne). Les
+// enrichissements plus profonds (pose du cerf, densité de flore,
+// ambiance) viendront quand nous les coderons (YAGNI).
+const DIRECTION_BY_PAGE: Record<PageKey, DirectionKey> = {
+  services: "dore",
+  projets: "turquoise",
+  contact: "cendre",
+  memoire: "obsidienne",
+};
 
 export function generateStaticParams() {
   return locales.flatMap((locale) =>
@@ -153,5 +160,9 @@ export default async function LocalizedPage({
       break;
   }
 
-  return <EchoScenePage loading={loading}>{content}</EchoScenePage>;
+  return (
+    <EchoScenePage loading={loading} directionKey={DIRECTION_BY_PAGE[key]}>
+      {content}
+    </EchoScenePage>
+  );
 }

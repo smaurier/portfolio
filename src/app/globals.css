@@ -2,10 +2,22 @@
   --background: #ffffff;
   --foreground: #171717;
   --font-geist: "Geist VF", sans-serif;
-  /* Jade — couleur du centre (accueil) dans la nav cardinale à venir,
-     cf project-nahual-da. Teinte claire assez saturée pour rester lisible
-     sous du texte sombre (--foreground clair). */
+  /* Palette des 5 points cardinaux (Codex Nahual section 03, cf memory
+     project-nahual-da) — chacune a une teinte claire (thème light) et
+     une teinte assombrie (thème dark, redéfinie dans @media plus bas).
+     Toutes doivent rester lisibles sous du texte contrasté (--foreground)
+     dans leur thème respectif, et rester visibles en fond de canvas noir
+     comme teinte cible du fog/rim au climax de l'arc.
+     - jade (centre / Accueil)   : maïs/quetzal, existant
+     - doré (Est / Services)     : Tonatiuh, soleil levant
+     - turquoise (Sud / Projets) : Huitzilopochtli, mosaïques Xiuhtecuhtli
+     - cendre (Ouest / Contact)  : Cihuateteo, crépuscule mauve-gris
+     - obsidienne (Nord / Mémoire) : itztli, violet profond des reflets */
   --jade-bg: #00a86b;
+  --dore-bg: #e0a137;
+  --turquoise-bg: #22b3c6;
+  --cendre-bg: #a89aa0;
+  --obsidienne-bg: #7a6ba0;
   /* Hauteurs réelles de .header/.siteFooter, mesurées (getBoundingClientRect)
      plutôt que devinées — servent à réserver l'espace ailleurs maintenant
      que les deux sont en position:fixed (palier 2 DA Nahual, cf
@@ -19,9 +31,13 @@
     --background: #0a0a0a;
     --foreground: #ededed;
     --font-geist: "Geist VF", sans-serif;
-    /* Jade assombri pour rester cohérent avec le fond quasi-noir du mode
-       sombre, plutôt que la même teinte vive plaquée dessus. */
+    /* Palette assombrie pour rester cohérente avec le fond quasi-noir
+       du mode sombre, plutôt que la même teinte vive plaquée dessus. */
     --jade-bg: #0e4b3b;
+    --dore-bg: #7a5218;
+    --turquoise-bg: #14545e;
+    --cendre-bg: #4a4046;
+    --obsidienne-bg: #2b2340;
   }
 }
 

@@ -119,24 +119,35 @@ export function setRimLightIntensity(uniformsList: RimLightUniforms[], intensity
   }
 }
 
-// Couleur de repos (doré, DEFAULT_OPTIONS.color ci-dessus) -> jade
-// (--jade-bg #00a86b) au climax de "chemins révélés" — retour de Sylvain le
-// 20/08 : le jade doit être un signal narratif de la révélation, pas une
-// couleur de fond plaquée (cf memory project-nahual-da, étude
-// concurrentielle, piste "liseré au climax"). Cohérent avec le nav déjà
-// jade au même instant (applyNavEmphasis, stag-scene.tsx) : le jade devient
-// LA couleur de la révélation dans tout le site, pas juste ici.
+// Couleur de repos permanente (doré chaleureux, DEFAULT_OPTIONS.color
+// ci-dessus). Interpolée vers une teinte cible (climaxColor) sur la
+// fenêtre du rim (getRimColorBlend, cf reveal-arc.ts) — jade par
+// défaut, historique home. Depuis le 25/08, teinte cible par direction
+// (Codex Nahual section 03, cf memory project-nahual-da) — chaque page
+// passe la sienne à StagModel, qui la propage ici.
 const REST_COLOR = new Color(DEFAULT_OPTIONS.color);
-const CLIMAX_COLOR = new Color("#00a86b");
+const DEFAULT_CLIMAX_COLOR = "#00a86b";
+
+// Scratch alloué au module-level (une seule allocation, réutilisée) —
+// évite un `new Color` par frame quand la teinte cible varie ; pattern
+// déjà utilisé pour les scratchs Vector3/Quaternion dans head-look.ts.
+const climaxColorScratch = new Color();
 
 /**
- * Fait varier la couleur du liseré déjà branché — même raison de fonction
- * séparée que setRimLightIntensity ci-dessus (react-hooks/immutability).
- * `climaxBlend` : 0 = doré (repos), 1 = jade (climax) — l'appelant passe
- * `getNavEmphasis(progress)` (déjà la même fenêtre que l'emphase de nav).
+ * Fait varier la couleur du liseré déjà branché — même raison de
+ * fonction séparée que setRimLightIntensity ci-dessus
+ * (react-hooks/immutability). `climaxBlend` : 0 = REST_COLOR (doré),
+ * 1 = `climaxColorHex` (teinte de la direction courante, jade par
+ * défaut). L'appelant passe `getRimColorBlend(progress)` (fenêtre
+ * 0.5→1.0, plus progressive que l'ancien getNavEmphasis).
  */
-export function setRimLightColor(uniformsList: RimLightUniforms[], climaxBlend: number) {
+export function setRimLightColor(
+  uniformsList: RimLightUniforms[],
+  climaxBlend: number,
+  climaxColorHex: string = DEFAULT_CLIMAX_COLOR,
+) {
+  climaxColorScratch.set(climaxColorHex);
   for (const uniforms of uniformsList) {
-    uniforms.uRimColor.value.lerpColors(REST_COLOR, CLIMAX_COLOR, climaxBlend);
+    uniforms.uRimColor.value.lerpColors(REST_COLOR, climaxColorScratch, climaxBlend);
   }
 }

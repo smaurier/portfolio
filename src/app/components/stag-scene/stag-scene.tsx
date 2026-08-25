@@ -46,8 +46,13 @@ export default function StagScene({
   return (
     <SceneStage
       loading={{ phrase: loadingPhrase, translation: loadingTranslation, label: loadingLabel }}
-      scene={({ progressRef, noticedRef }) => (
-        <SceneContent progressRef={progressRef} noticedRef={noticedRef} />
+      scene={({ progressRef, noticedRef, climaxRimColor, fogTint }) => (
+        <SceneContent
+          progressRef={progressRef}
+          noticedRef={noticedRef}
+          climaxRimColor={climaxRimColor}
+          fogTint={fogTint}
+        />
       )}
       overlay={({ progressRef, reducedMotionRef }) => (
         <>
