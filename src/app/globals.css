@@ -228,52 +228,86 @@ body.nahual-lab-reveal .logoLink img {
   filter: none;
 }
 
-/* Contenu texte des pages Services / Projets / Contact / Teyolía · Mémoire */
-.contentPage {
-  max-width: 680px;
+/* Contenu texte des pages Services / Projets / Contact / Teyolía · Mémoire.
+   Depuis le 25/08 (cf memory project-nahual-da) : ces pages ont maintenant
+   la même scène 3D plein écran que la home, le contenu texte scrolle
+   par-dessus le canvas noir. La typo reprend celle de l'overlay home
+   (scene-text-overlay.module.css .block/.cta) — même palette crème, même
+   clamp de font-size, même CTA rond — pour éviter la rupture visuelle
+   entre les pages. Scopé sous body.nahual-lab-reveal (permanente, cf
+   layout.tsx). */
+body.nahual-lab-reveal main {
+  align-items: flex-start;
+  text-align: left;
+  padding: calc(40px + var(--header-height)) 6vw calc(80px + var(--footer-height));
+  color: #f2ece1;
+  gap: 32px;
+}
+
+body.nahual-lab-reveal .contentPage {
+  max-width: 560px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
   text-align: left;
 }
 
-.contentPage h1 {
-  font-size: 2rem;
+body.nahual-lab-reveal .contentPage h1,
+body.nahual-lab-reveal .contentPage h2 {
+  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+  font-weight: 600;
+  line-height: 1.15;
+  text-wrap: balance;
 }
 
-.contentPage p {
+body.nahual-lab-reveal .contentPage h2 {
+  font-size: clamp(1.3rem, 2.8vw, 1.8rem);
+}
+
+body.nahual-lab-reveal .contentPage p {
+  font-size: 0.98rem;
   line-height: 1.6;
+  color: rgba(242, 236, 225, 0.78);
 }
 
-.serviceCard {
+body.nahual-lab-reveal .contentPage a:not(.ctaButton) {
+  color: #f2ece1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+body.nahual-lab-reveal .serviceCard {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 24px;
-  border: 1px solid var(--gray-alpha-200, rgba(0, 0, 0, 0.08));
-  border-radius: 12px;
+  border: 1px solid rgba(242, 236, 225, 0.14);
+  border-radius: 16px;
+  background: rgba(13, 12, 17, 0.55);
+  backdrop-filter: blur(6px);
 }
 
-.note {
+body.nahual-lab-reveal .note {
   font-size: 0.85rem;
-  opacity: 0.7;
+  color: rgba(242, 236, 225, 0.55);
 }
 
-.ctaButton {
+body.nahual-lab-reveal .ctaButton {
   display: inline-flex;
   align-self: flex-start;
-  padding: 12px 28px;
-  border: 1px solid var(--foreground);
+  padding: 12px 26px;
+  border: 1px solid #f2ece1;
   border-radius: 999px;
   font-weight: 600;
+  color: #f2ece1;
   transition: background 0.2s, color 0.2s;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .ctaButton:hover {
-    background: var(--foreground);
-    color: var(--background);
+  body.nahual-lab-reveal .ctaButton:hover {
+    background: #f2ece1;
+    color: #17151c;
   }
 }
 
