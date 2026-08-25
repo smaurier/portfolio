@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 // voient rien. Ne bloque pas un bot qui exécute du JS, mais arrête la
 // grande majorité des collecteurs d'adresses. Vrai fix (formulaire, sans
 // email exposé du tout) : backlog.
-const USER = "sylvain.maurier";
-const DOMAIN = "gmail.com";
+const USER = "bonjour";
+const DOMAIN = "nahual.fr";
 
 export default function ObfuscatedEmail({
   className,
