@@ -88,6 +88,22 @@ export default function StagModel({
   // ci-dessous mute juste leurs `.value`, le seul moyen d'animer un uniform
   // Three.js par frame.
   const rimUniforms: RimLightUniforms[] = useMemo(() => applyRimLight(scene), [scene]);
+
+  // Reset explicite des uniforms au mount (ou quand la couleur de la
+  // direction change). Sans ce reset, les valeurs sont celles laissées
+  // par la dernière frame de la page précédente (useGLTF cache les
+  // materials → uniforms partagés entre navigations SPA) — visible
+  // pendant les ~16 ms qui séparent le mount du premier tick useFrame
+  // (retour Sylvain 25/08 : "le cerf garde la même teinte entre deux
+  // scènes... toutes les valeurs doivent être réinitialisées"). Le
+  // premier useFrame écrira les valeurs pour progress courant (0
+  // grâce au reset scroll de SceneStage), ce reset garantit juste que
+  // rien de visible dans l'intervalle ne trahisse la page précédente.
+  useEffect(() => {
+    setRimLightColor(rimUniforms, 0, climaxRimColor);
+    setRimLightIntensity(rimUniforms, getDirectionalIntensity(0) * 0.4);
+    setBodyTintAmount(rimUniforms, 0);
+  }, [rimUniforms, climaxRimColor]);
   // Centrage + résolution de l'os tête faits synchronement pendant le
   // render (pas dans un useEffect) : sans ça, une fenêtre d'un frame
   // existe entre le premier montage du `<primitive>` (scene à échelle

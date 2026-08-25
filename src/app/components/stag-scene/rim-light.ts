@@ -46,10 +46,19 @@ export type RimLightUniforms = {
   uBodyTintAmount: { value: number };
 };
 
-// Évite de repatcher un matériau déjà traité si plusieurs meshes le
-// partagent (courant sur un GLB avec peu de matériaux pour beaucoup de
-// pièces) — onBeforeCompile ne doit être posé qu'une fois par matériau.
-const patchedMaterials = new WeakSet<Material>();
+// Stocke les uniforms branchés au shader par material, réutilisés au
+// prochain appel d'applyRimLight (idempotent). Corrige un bug 25/08
+// (retour Sylvain : "entre deux scènes après changement de page, le
+// cerf garde la même teinte") : useGLTF met la scene en cache, donc
+// remount de StagModel sur navigation SPA rend applyRimLight sur la
+// même instance de materials — l'ancien WeakSet empêchait de
+// re-patcher (bien : on veut un seul onBeforeCompile par matériau)
+// mais retournait quand même des NOUVEAUX uniforms non branchés au
+// shader, donc setRimLightColor/Intensity mutait des objets orphelins
+// pendant que le shader continuait de lire les uniforms de la page
+// précédente. WeakMap remplace WeakSet : on retourne toujours les
+// uniforms effectivement branchés.
+const uniformsByMaterial = new WeakMap<Material, RimLightUniforms>();
 
 /**
  * Parcourt `root` et patche chaque MeshStandardMaterial rencontré. Renvoie
@@ -73,16 +82,26 @@ export function applyRimLight(
     for (const material of materials) {
       if (!(material instanceof MeshStandardMaterial)) continue;
 
+      const existing = uniformsByMaterial.get(material);
+      if (existing) {
+        // Material déjà patché sur un mount précédent (useGLTF cache
+        // la scene entre navigations SPA) : réutilise les uniforms
+        // effectivement branchés au shader. L'appelant les mutera au
+        // prochain useFrame — la couleur/intensité seront alors ce
+        // que la nouvelle page demande (progress=0 après le reset
+        // scroll de SceneStage), pas l'état de la page précédente.
+        allUniforms.push(existing);
+        continue;
+      }
+
       const uniforms: RimLightUniforms = {
         uRimColor: { value: new Color(color) },
         uRimIntensity: { value: intensity },
         uRimPower: { value: power },
         uBodyTintAmount: { value: 0 },
       };
+      uniformsByMaterial.set(material, uniforms);
       allUniforms.push(uniforms);
-
-      if (patchedMaterials.has(material)) continue;
-      patchedMaterials.add(material);
 
       addShaderModifier(material, (shader) => {
         shader.uniforms.uRimColor = uniforms.uRimColor;
@@ -101,14 +120,16 @@ export function applyRimLight(
           )
           .replace(
             "#include <dithering_fragment>",
-            `// Body tint : la couleur cardinale se mélange progressivement à
-            // tout le corps du cerf avant que le rim (bord net) prenne le
-            // relais — retour Sylvain 25/08 : "la couleur progressive doit
-            // aussi venir sur le cerf". Plafond ×0.55 (initialement 0.35,
-            // remonté après retour direct "quelque chose de très terne")
-            // — laisse encore respirer la matière PBR mais rend le
-            // changement de teinte lisible à l'œil.
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, uRimColor, uBodyTintAmount * 0.55);
+            `// Body tint : la couleur cardinale se dépose progressivement
+            // sur tout le corps du cerf avant que le rim (bord net) prenne
+            // le relais. Screen blend (1 - (1-a)*(1-b)) plutôt qu'un mix
+            // linéaire — retour Sylvain 25/08 : "je trouve la teinte très
+            // grossière" — le screen préserve les hautes lumières et
+            // dépose la couleur surtout dans les tons foncés/moyens, ce
+            // qui se lit comme un glow subtil plutôt qu'une couche de
+            // peinture plaquée. Plafond ×0.5.
+            vec3 bodyTinted = vec3(1.0) - (vec3(1.0) - gl_FragColor.rgb) * (vec3(1.0) - uRimColor);
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 0.5);
             float rimFresnel = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), uRimPower);
             gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity;
             #include <dithering_fragment>`,
