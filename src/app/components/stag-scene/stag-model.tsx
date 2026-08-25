@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { Vector3, type Group, type Object3D } from "three";
+import { Vector3, type Group } from "three";
 import {
   getDirectionalIntensity,
   getHeadTurnAmount,
@@ -76,7 +76,6 @@ export default function StagModel({
   const { actions } = useAnimations(animations, group);
   const currentClipRef = useRef<string | null>(null);
   const { camera } = useThree();
-  const headBoneRef = useRef<Object3D | null>(null);
   // Scratch réutilisé d'une frame à l'autre (pas d'allocation dans la boucle
   // de rendu) — même principe que les scratch de head-look.ts.
   const cameraWorldPos = useMemo(() => new Vector3(), []);
@@ -87,11 +86,19 @@ export default function StagModel({
   // ci-dessous mute juste leurs `.value`, le seul moyen d'animer un uniform
   // Three.js par frame.
   const rimUniforms: RimLightUniforms[] = useMemo(() => applyRimLight(scene), [scene]);
-
-  useEffect(() => {
-    // Recadre le modèle sur son propre bounding box (cf center-model.ts).
+  // Centrage + résolution de l'os tête faits synchronement pendant le
+  // render (pas dans un useEffect) : sans ça, une fenêtre d'un frame
+  // existe entre le premier montage du `<primitive>` (scene à échelle
+  // native, énorme) et l'exécution de l'effet — le LoadingVeil fade déjà
+  // pendant cette fenêtre (useProgress hit 100 dès que le glb est
+  // chargé) et l'utilisateur voit brièvement le cerf à taille brute
+  // (bug reload trouvé le 25/08, cf memory project-nahual-da).
+  // centerAndScale est désormais idempotente (reset avant mesure), un
+  // éventuel double-invoke de useMemo (strict mode React 19) ne cassera
+  // pas la mise à l'échelle.
+  const headBone = useMemo(() => {
     centerAndScale(scene, TARGET_HEIGHT);
-    headBoneRef.current = scene.getObjectByName(HEAD_BONE_NAME) ?? null;
+    return scene.getObjectByName(HEAD_BONE_NAME) ?? null;
   }, [scene]);
 
   useEffect(() => {
@@ -143,7 +150,6 @@ export default function StagModel({
     // R3F, les callbacks de même priorité s'exécutent dans l'ordre
     // d'inscription — la pose de l'os Head posée par le mixer ce tick est
     // donc déjà à jour quand applyHeadLook la lit.
-    const headBone = headBoneRef.current;
     if (!headBone) return;
     const blend = getHeadTurnAmount(progressRef.current) * MAX_HEAD_TURN_BLEND;
     if (blend <= 0) return;
