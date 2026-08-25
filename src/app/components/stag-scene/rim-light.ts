@@ -39,6 +39,11 @@ export type RimLightUniforms = {
   uRimColor: { value: Color };
   uRimIntensity: { value: number };
   uRimPower: { value: number };
+  // Teinte diffuse sur tout le corps du cerf (pas juste le liseré fin) —
+  // ajoutée le 25/08 (retour Sylvain : "la couleur progressive doit aussi
+  // venir sur le cerf"). Partage uRimColor comme cible ; amount séparé du
+  // rim (le rim est un effet de bord net, le body tint est un fondu global).
+  uBodyTintAmount: { value: number };
 };
 
 // Évite de repatcher un matériau déjà traité si plusieurs meshes le
@@ -72,6 +77,7 @@ export function applyRimLight(
         uRimColor: { value: new Color(color) },
         uRimIntensity: { value: intensity },
         uRimPower: { value: power },
+        uBodyTintAmount: { value: 0 },
       };
       allUniforms.push(uniforms);
 
@@ -82,6 +88,7 @@ export function applyRimLight(
         shader.uniforms.uRimColor = uniforms.uRimColor;
         shader.uniforms.uRimIntensity = uniforms.uRimIntensity;
         shader.uniforms.uRimPower = uniforms.uRimPower;
+        shader.uniforms.uBodyTintAmount = uniforms.uBodyTintAmount;
 
         shader.fragmentShader = shader.fragmentShader
           .replace(
@@ -89,11 +96,18 @@ export function applyRimLight(
             `#include <common>
             uniform vec3 uRimColor;
             uniform float uRimIntensity;
-            uniform float uRimPower;`,
+            uniform float uRimPower;
+            uniform float uBodyTintAmount;`,
           )
           .replace(
             "#include <dithering_fragment>",
-            `float rimFresnel = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), uRimPower);
+            `// Body tint : la couleur cardinale se mélange progressivement à
+            // tout le corps du cerf avant que le rim (bord net) prenne le
+            // relais — retour Sylvain 25/08 : "la couleur progressive doit
+            // aussi venir sur le cerf". Plafond ×0.35 pour rester une
+            // teinte, jamais un aplat qui écraserait la matière PBR.
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, uRimColor, uBodyTintAmount * 0.35);
+            float rimFresnel = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), uRimPower);
             gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity;
             #include <dithering_fragment>`,
           );
@@ -116,6 +130,18 @@ export function applyRimLight(
 export function setRimLightIntensity(uniformsList: RimLightUniforms[], intensity: number) {
   for (const uniforms of uniformsList) {
     uniforms.uRimIntensity.value = intensity;
+  }
+}
+
+/**
+ * Fait varier le taux de teinte diffuse sur tout le corps — même raison
+ * de fonction séparée que setRimLightIntensity (react-hooks/immutability).
+ * `blend` : 0 = pas de teinte, 1 = teinte à saturation max (×0.35 dans
+ * le shader, cf plafond). Passe getRimColorBlend(progress) en pratique.
+ */
+export function setBodyTintAmount(uniformsList: RimLightUniforms[], blend: number) {
+  for (const uniforms of uniformsList) {
+    uniforms.uBodyTintAmount.value = blend;
   }
 }
 

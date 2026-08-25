@@ -13,7 +13,7 @@ import {
 } from "@/lib/reveal-arc";
 import { centerAndScale } from "./center-model";
 import { applyHeadLook } from "./head-look";
-import { applyRimLight, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
+import { applyRimLight, setBodyTintAmount, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 
 // Nom de l'os tête dans le rig Quaternius (GLB inspecté le 21/08, cf memory
 // project-nahual-da : chaîne Neck1→Neck2→Neck3→Head→Stag_Horns/Head_end).
@@ -146,7 +146,13 @@ export default function StagModel({
     // saut de couleur au tout dernier moment). Couleur cible par
     // direction (Codex Nahual section 03, cf memory) — jade par défaut
     // (home / centre) via `climaxRimColor`.
-    setRimLightColor(rimUniforms, getRimColorBlend(progressRef.current), climaxRimColor);
+    const rimBlend = getRimColorBlend(progressRef.current);
+    setRimLightColor(rimUniforms, rimBlend, climaxRimColor);
+    // Body tint diffus sur tout le corps (pas juste le liseré) — même
+    // timing que le rim, retour Sylvain 25/08 : "la couleur progressive
+    // doit aussi venir sur le cerf" (le liseré seul se lisait comme un
+    // détail, pas une transformation).
+    setBodyTintAmount(rimUniforms, rimBlend);
   });
 
   useFrame(() => {

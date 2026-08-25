@@ -113,6 +113,20 @@ export default function SceneStage({
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     reducedMotionRef.current = reducedMotionQuery.matches;
 
+    // Reset scroll au mount (retour Sylvain 25/08 : "lorsqu'on
+    // recharge, le curseur doit se retrouver au plus haut aussi non ?
+    // Sinon le cerf reste dans sa position de fin") — sans ça, le
+    // navigateur restaure la position de scroll précédente au reload
+    // (comportement par défaut `scrollRestoration: "auto"`), donc
+    // progressRef est calculé sur cette position et l'arc démarre en
+    // fin de séquence au lieu de la pénombre. `scrollRestoration:
+    // "manual"` désactive la restauration côté navigateur, `scrollTo`
+    // ramène en haut. Piège déjà noté dans memory le 17/08 comme
+    // réflexe d'outillage, jamais implémenté avant.
+    const previousScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
+
     // Scope l'emphase de nav ("chemins révélés") à cette page (héritée
     // du pattern /lab). La classe est aussi posée en dur sur <body>
     // dans layout.tsx (SSR sans flash) — cet ajout reste par sécurité
@@ -146,6 +160,7 @@ export default function SceneStage({
     return () => {
       window.removeEventListener("scroll", handleScroll);
       document.body.classList.remove(REVEAL_SCOPE_CLASS);
+      window.history.scrollRestoration = previousScrollRestoration;
       // Remet la nav dans son état neutre.
       document.querySelectorAll<HTMLAnchorElement>(".header_bottom nav a").forEach((link) => {
         link.style.removeProperty("text-decoration-line");
