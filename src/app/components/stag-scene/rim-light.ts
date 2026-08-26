@@ -29,10 +29,16 @@ export type RimLightOptions = {
   intensity: number;
 };
 
+// power 2.2 → 4.5 (26/08 audit Playwright, retour Sylvain "coque
+// fresnel serrée") : le liseré devient un bord net plutôt qu'un
+// dégradé large qui se lisait comme "cerf doré-lumineux" plutôt que
+// "cerf ceint d'un liseré". Intensité 0.6 → 1.0 pour compenser la
+// surface éclairée réduite (rim plus serré = moins de pixels touchés,
+// il faut plus d'intensité pour rester lisible à l'œil).
 const DEFAULT_OPTIONS: RimLightOptions = {
   color: "#ffb35c",
-  power: 2.2,
-  intensity: 0.6,
+  power: 4.5,
+  intensity: 1.0,
 };
 
 export type RimLightUniforms = {

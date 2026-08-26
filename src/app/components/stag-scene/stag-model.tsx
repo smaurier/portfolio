@@ -14,6 +14,7 @@ import {
 import { centerAndScale } from "./center-model";
 import { applyHeadLook } from "./head-look";
 import { applyRimLight, setBodyTintAmount, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
+import StagAura from "./stag-aura";
 
 // Nom de l'os tête dans le rig Quaternius (GLB inspecté le 21/08, cf memory
 // project-nahual-da : chaîne Neck1→Neck2→Neck3→Head→Stag_Horns/Head_end).
@@ -148,12 +149,15 @@ export default function StagModel({
     currentClipRef.current = wantClip;
   });
 
-  useFrame(() => {
+  useFrame((state) => {
     // Le liseré capte la lumière qui monte avec l'arc de reveal, comme le
     // reste de la scène (RevealLighting) — jamais dominant (×0.4), un
     // simple accent qui suit le même rythme dramatique plutôt qu'une
     // intensité fixe déconnectée de la narration.
-    const intensity = getDirectionalIntensity(progressRef.current) * 0.4;
+    // 26/08 : pulse cardiaque ~4s (retour Sylvain post-audit — mêmes
+    // constantes que StagAura pour que rim et halo respirent en phase).
+    const pulse = 0.65 + 0.35 * Math.pow(Math.sin(state.clock.elapsedTime * Math.PI * 0.25), 4);
+    const intensity = getDirectionalIntensity(progressRef.current) * 0.4 * pulse;
     setRimLightIntensity(rimUniforms, intensity);
     // Doré (repos) -> teinte de la direction courante (climax) sur la
     // fenêtre du rim (getRimColorBlend, 0.5→1.0, élargie le 25/08 par
@@ -184,7 +188,19 @@ export default function StagModel({
     applyHeadLook(headBone, cameraWorldPos, blend);
   });
 
-  return <primitive ref={group} object={scene} />;
+  return (
+    <group>
+      <primitive ref={group} object={scene} />
+      {/* Halo diffus (26/08) — parenthèse dans le même repère que la
+        * scène (déjà normalisée par centerAndScale), donc positionné en
+        * dur au niveau du volume du cerf. climaxRimColor fallback jade
+        * comme le reste des systèmes cardinaux. */}
+      <StagAura
+        progressRef={progressRef}
+        climaxRimColor={climaxRimColor ?? "#00a86b"}
+      />
+    </group>
+  );
 }
 
 useGLTF.preload(MODEL_PATH);
