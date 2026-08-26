@@ -57,9 +57,23 @@ export type CursorRevealUniforms = {
  * position souris est globale, pas propre à chaque objet (contrairement à
  * rim-light.ts/depth-fade.ts). Muter ces deux Vector2 une fois par frame
  * met à jour tous les matériaux d'un coup, pas besoin de reparcourir une
- * liste. */
+ * liste.
+ *
+ * Depuis le 26/08 : singleton module-level, plus un nouvel objet par
+ * appel. Retour Sylvain "en navigant d'un onglet à l'autre, le cerf
+ * est transparent en fin de scroll" — même bug que rim-light fixé le
+ * 25/08 (69d70f2). useGLTF cache la scene entre navigations SPA →
+ * `patchedMaterials` (WeakSet) skip les matériaux déjà patchés lors
+ * du premier mount → tout mount ultérieur créait de NOUVEAUX uniforms
+ * jamais branchés au shader, pendant que setCursorRevealFloor mutait
+ * ces uniforms orphelins. Le shader continuait de lire les uniforms
+ * du premier mount, jamais actualisés, donc uMinOpacity resté à 0.4
+ * même à progress=1 → "cerf transparent en fin de scroll".
+ */
+let sharedUniforms: CursorRevealUniforms | null = null;
 export function createCursorRevealUniforms(): CursorRevealUniforms {
-  return {
+  if (sharedUniforms) return sharedUniforms;
+  sharedUniforms = {
     // Hors-écran tant qu'aucun mouvement n'a eu lieu : reveal=0 partout,
     // l'état voulu par Sylvain au chargement — pas une valeur à corriger.
     uMouse: { value: new Vector2(-9999, -9999) },
@@ -68,6 +82,7 @@ export function createCursorRevealUniforms(): CursorRevealUniforms {
     uMinOpacity: { value: MIN_OPACITY_START },
     uMinSaturation: { value: MIN_SATURATION_START },
   };
+  return sharedUniforms;
 }
 
 const patchedMaterials = new WeakSet<Material>();
