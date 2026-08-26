@@ -157,7 +157,11 @@ export default function StagModel({
     // 26/08 : pulse cardiaque ~4s (retour Sylvain post-audit — mêmes
     // constantes que StagAura pour que rim et halo respirent en phase).
     const pulse = 0.65 + 0.35 * Math.pow(Math.sin(state.clock.elapsedTime * Math.PI * 0.25), 4);
-    const intensity = getDirectionalIntensity(progressRef.current) * 0.4 * pulse;
+    // 26/08 : multiplicateur rim boosté 0.4 → 0.75 — puisque le body
+    // tint est ramené à 0.25 (retour "cerf uniforme"), le rim doit
+    // porter davantage la teinte cardinale au bord pour rester
+    // lisible comme signature de direction plutôt que juste un accent.
+    const intensity = getDirectionalIntensity(progressRef.current) * 0.75 * pulse;
     setRimLightIntensity(rimUniforms, intensity);
     // Doré (repos) -> teinte de la direction courante (climax) sur la
     // fenêtre du rim (getRimColorBlend, 0.5→1.0, élargie le 25/08 par

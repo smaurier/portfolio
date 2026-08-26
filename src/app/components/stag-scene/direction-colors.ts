@@ -33,19 +33,31 @@ export function hexToRgb(hex: string): ColorRgb {
 }
 
 /**
- * Lit la valeur courante de la variable CSS de la direction. Résolue
- * par le navigateur selon le thème actif (@media prefers-color-scheme
- * dans globals.css) — donc renvoie la teinte light ou dark
- * automatiquement. Une seule lecture au mount côté appelant : si
- * l'utilisateur change de thème sans reload, la teinte 3D restera
- * celle du thème initial (compromis, cf memory 25/08).
+ * Palette shader saturée constante, découplée des CSS backgrounds
+ * (26/08, retour Sylvain "couleur reste terne, rien qui peps") : les
+ * variantes dark des CSS (--jade-bg #0e4b3b, etc.) sont dessaturées
+ * pour rester lisibles en fond de surface — passées telles quelles au
+ * shader, elles donnent un screen blend quasi invisible sur un cerf
+ * bas-poly PBR chaud. Le shader/le fog/le rim utilisent cette palette
+ * vive constante ; les CSS surfaces continuent d'utiliser leurs
+ * variantes theme-dependent via --jade-bg et co.
+ */
+const DIRECTION_COLOR_VIVID: Record<DirectionKey, string> = {
+  jade: "#00c078",       // #00a86b boosté saturation
+  dore: "#f5a623",       // orange-or franc, plus punchy que #7a5218 dark
+  turquoise: "#22b3c6",  // conservé, déjà vif
+  cendre: "#c8b8c0",     // cendre plus lumineuse, teinte perceptible
+  obsidienne: "#8b7bc9", // violet-mauve saturé, plus lisible que #2b2340
+};
+
+/**
+ * Retourne la couleur shader saturée pour la direction (26/08).
+ * Ancien comportement (lecture de la CSS var themée) : abandonné —
+ * voir `DIRECTION_COLOR_VIVID` ci-dessus. Fonction garde son nom pour
+ * ne pas casser les appelants (SceneStage la lit une fois au mount).
  */
 export function readDirectionColor(direction: DirectionKey): string {
-  if (typeof window === "undefined") return "#00a86b";
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue(CSS_VAR_BY_DIRECTION[direction])
-    .trim();
-  return value || "#00a86b";
+  return DIRECTION_COLOR_VIVID[direction];
 }
 
 /**
