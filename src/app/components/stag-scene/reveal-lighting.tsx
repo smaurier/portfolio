@@ -1,13 +1,14 @@
 "use client";
 
 import type { MutableRefObject } from "react";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import type { AmbientLight, DirectionalLight, Fog } from "three";
+import { Color, type AmbientLight, type DirectionalLight, type Fog } from "three";
 import {
   getAmbientIntensity,
   getDirectionalIntensity,
   getFogColor,
+  getRimColorBlend,
   type ColorRgb,
 } from "@/lib/reveal-arc";
 
@@ -28,23 +29,52 @@ import {
 export default function RevealLighting({
   progressRef,
   fogTint,
+  climaxRimColor,
 }: {
   progressRef: MutableRefObject<number>;
   fogTint?: ColorRgb;
+  climaxRimColor?: string;
 }) {
   const ambientRef = useRef<AmbientLight>(null);
   const directionalRef = useRef<DirectionalLight>(null);
   const fogRef = useRef<Fog>(null);
 
+  // Palette pour tinter les lumières au climax (26/08, retour Sylvain
+  // "on a de la couleur sur le cerf mais il faudrait aussi en prévoir
+  // sur plusieurs faces du décor, la scène aussi devrait suivre le
+  // même traitement"). Tinter les lumières fait porter la teinte
+  // cardinale à TOUT le décor PBR (sol, montagnes, milpa, vines,
+  // ocotillo, cempasúchils, flore de fond) via l'éclairage — pas
+  // besoin de patcher chaque matériau.
+  const whiteColor = useMemo(() => new Color(1, 1, 1), []);
+  const cardinalColor = useMemo(() => new Color(climaxRimColor ?? "#00c078"), [climaxRimColor]);
+  // Scratchs alloués une seule fois — mutés dans useFrame plutôt que
+  // recréés à chaque tick (même pattern que rim-light climaxColorScratch).
+  const ambientColorScratch = useMemo(() => new Color(), []);
+  const directionalColorScratch = useMemo(() => new Color(), []);
+
   useFrame(() => {
+    const p = progressRef.current;
+    const blend = getRimColorBlend(p);
     if (ambientRef.current) {
-      ambientRef.current.intensity = getAmbientIntensity(progressRef.current);
+      ambientRef.current.intensity = getAmbientIntensity(p);
+      // Tint ambient : 40% de la teinte cardinale au climax
+      // (compromis : le décor prend clairement la direction sans
+      // devenir un aplat monochrome — le PBR d'origine reste lisible).
+      ambientColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.4);
+      ambientRef.current.color.copy(ambientColorScratch);
     }
     if (directionalRef.current) {
-      directionalRef.current.intensity = getDirectionalIntensity(progressRef.current);
+      directionalRef.current.intensity = getDirectionalIntensity(p);
+      // Tint directional plus discret (25%) — la directionnelle porte
+      // les hautes lumières, si elle est trop teintée les reliefs
+      // saillants (crête de montagne, plumes de milpa) virent au
+      // monochrome pur.
+      directionalColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.25);
+      directionalRef.current.color.copy(directionalColorScratch);
     }
     if (fogRef.current) {
-      fogRef.current.color.set(getFogColor(progressRef.current, fogTint));
+      fogRef.current.color.set(getFogColor(p, fogTint));
     }
   });
 

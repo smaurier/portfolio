@@ -41,8 +41,10 @@ export default function SceneContent({
   return (
     <>
       {/* Le fog vit dans RevealLighting (couleur pilotée par le scroll,
-       * cf getFogColor) — un seul point de vérité. */}
-      <RevealLighting progressRef={progressRef} fogTint={fogTint} />
+       * cf getFogColor) — un seul point de vérité. climaxRimColor tinte
+       * les lumières ambient+directional au climax pour que le décor
+       * PBR entier suive la direction cardinale (retour Sylvain 26/08). */}
+      <RevealLighting progressRef={progressRef} fogTint={fogTint} climaxRimColor={climaxRimColor} />
       {/* Perspective atmosphérique (18/08, retour Sylvain : "plus on est
        * loin et plus ça devient gris, comme en peinture") — uniquement
        * sur le décor/fond, jamais sur le cerf (rim-light.ts à la place)
