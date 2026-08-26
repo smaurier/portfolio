@@ -57,6 +57,14 @@ export type RimLightUniforms = {
   // discontinuité de normale nette, fwidth (dérivées d'écran) l'attrape.
   // Additif teinte cardinale, pulse partagé (StagModel pilote la valeur).
   uEdgeIntensity: { value: number };
+  // Pulse cardiaque brut 0.65..1.0 (26/08 recalibré, retour Sylvain
+  // "je voulais quelque chose de mouvant, que la ligne réagisse en
+  // fonction de la fréquence de respiration, peut-être jouer sur le
+  // colori, la forme"). Séparé d'uEdgeIntensity pour piloter à la fois
+  // l'épaisseur (fine en valley → épaisse en peak) et un flash blanc
+  // au sommet du battement — la ligne "respire" visuellement, pas
+  // juste une intensité modulée.
+  uEdgePulse: { value: number };
 };
 
 // Stocke les uniforms branchés au shader par material, réutilisés au
@@ -113,6 +121,7 @@ export function applyRimLight(
         uRimPower: { value: power },
         uBodyTintAmount: { value: 0 },
         uEdgeIntensity: { value: 0 },
+        uEdgePulse: { value: 0.65 },
       };
       uniformsByMaterial.set(material, uniforms);
       allUniforms.push(uniforms);
@@ -123,6 +132,7 @@ export function applyRimLight(
         shader.uniforms.uRimPower = uniforms.uRimPower;
         shader.uniforms.uBodyTintAmount = uniforms.uBodyTintAmount;
         shader.uniforms.uEdgeIntensity = uniforms.uEdgeIntensity;
+        shader.uniforms.uEdgePulse = uniforms.uEdgePulse;
 
         shader.fragmentShader = shader.fragmentShader
           .replace(
@@ -132,7 +142,8 @@ export function applyRimLight(
             uniform float uRimIntensity;
             uniform float uRimPower;
             uniform float uBodyTintAmount;
-            uniform float uEdgeIntensity;`,
+            uniform float uEdgeIntensity;
+            uniform float uEdgePulse;`,
           )
           .replace(
             "#include <dithering_fragment>",
@@ -164,17 +175,25 @@ export function applyRimLight(
             float rimFresnel = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), uRimPower);
             gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity;
             // Lignes claires sur les angles low-poly (26/08, retour
-            // Sylvain : lignes claires sur tous les angles qui pulsent
-            // en cadence avec le battement. fwidth(vNormal) capte la
-            // discontinuité de normale entre deux fragments voisins
-            // (sur un modèle flat-shaded, elle est nulle sur une face
-            // et grande à la jonction entre deux faces). length()
-            // agrège les 3 composantes, puis threshold+saturate donne
-            // une ligne franche. Additive teinte cardinale, intensité
-            // portée par le pulse cardiaque piloté par StagModel.
+            // Sylvain : lignes qui respirent, jouent sur le colori et
+            // la forme). fwidth(vNormal) capte la discontinuité de
+            // normale entre deux fragments voisins.
+            //
+            // Trois modulations pilotées par uEdgePulse (0.65..1.0
+            // formule cardiaque sin^4, cf StagModel/StagAura) :
+            //  1. Épaisseur : facteur seuil mix(6, 16, pulse) — ligne
+            //     fine en valley, épaisse en peak (la ligne "gonfle").
+            //  2. Flash blanc : au sommet du battement (pulse > 0.85)
+            //     la couleur mixe vers blanc — bioluminescence pulsée.
+            //  3. Intensité globale : multipliée par pulse — la ligne
+            //     s'éteint entre deux battements plutôt que rester
+            //     égale.
             vec3 edgeDeriv = fwidth(vNormal);
-            float edge = saturate(length(edgeDeriv) * 8.0);
-            gl_FragColor.rgb += uRimColor * edge * uEdgeIntensity;
+            float edgeThreshold = mix(6.0, 16.0, uEdgePulse);
+            float edge = saturate(length(edgeDeriv) * edgeThreshold);
+            float flash = saturate((uEdgePulse - 0.85) / 0.15);
+            vec3 edgeColor = mix(uRimColor, vec3(1.0), flash * 0.7);
+            gl_FragColor.rgb += edgeColor * edge * uEdgeIntensity * uEdgePulse;
             #include <dithering_fragment>`,
           );
       });
@@ -213,11 +232,25 @@ export function setBodyTintAmount(uniformsList: RimLightUniforms[], blend: numbe
 
 /**
  * Fait varier l'intensité des lignes claires sur les angles low-poly
- * (26/08). L'appelant passe blend * pulse cardiaque (StagModel).
+ * (26/08). L'appelant passe le blend (pas le pulse — celui-ci est
+ * appliqué séparément côté shader via uEdgePulse pour piloter la
+ * forme et la couleur en plus de l'intensité).
  */
 export function setEdgeIntensity(uniformsList: RimLightUniforms[], value: number) {
   for (const uniforms of uniformsList) {
     uniforms.uEdgeIntensity.value = value;
+  }
+}
+
+/**
+ * Pulse cardiaque brut 0..1 (26/08). Le shader s'en sert pour moduler
+ * épaisseur (fine → épaisse), colori (cardinal → flash blanc) et
+ * intensité globale de la ligne — la ligne "respire" au lieu d'une
+ * simple modulation d'intensité.
+ */
+export function setEdgePulse(uniformsList: RimLightUniforms[], value: number) {
+  for (const uniforms of uniformsList) {
+    uniforms.uEdgePulse.value = value;
   }
 }
 
