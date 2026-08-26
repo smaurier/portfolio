@@ -58,19 +58,20 @@ export default function RevealLighting({
     const blend = getRimColorBlend(p);
     if (ambientRef.current) {
       ambientRef.current.intensity = getAmbientIntensity(p);
-      // Tint ambient : 40% de la teinte cardinale au climax
-      // (compromis : le décor prend clairement la direction sans
-      // devenir un aplat monochrome — le PBR d'origine reste lisible).
-      ambientColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.4);
+      // Tint ambient : 85% de la teinte cardinale au climax (26/08
+      // recalibré, retour Sylvain "je ne vois pas le décor teinté"
+      // après premier essai à 40% — la lumière ambient blanche à 60%
+      // écrasait le tint cardinal à l'œil).
+      ambientColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.85);
       ambientRef.current.color.copy(ambientColorScratch);
     }
     if (directionalRef.current) {
       directionalRef.current.intensity = getDirectionalIntensity(p);
-      // Tint directional plus discret (25%) — la directionnelle porte
-      // les hautes lumières, si elle est trop teintée les reliefs
-      // saillants (crête de montagne, plumes de milpa) virent au
-      // monochrome pur.
-      directionalColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.25);
+      // Tint directional 60% (26/08 recalibré depuis 25%). La
+      // directionnelle porte les hautes lumières — plus fort et les
+      // crêtes virent monochrome, plus faible et le décor ne suit pas
+      // le cerf visuellement.
+      directionalColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.60);
       directionalRef.current.color.copy(directionalColorScratch);
     }
     if (fogRef.current) {
