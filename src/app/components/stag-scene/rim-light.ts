@@ -50,6 +50,13 @@ export type RimLightUniforms = {
   // venir sur le cerf"). Partage uRimColor comme cible ; amount séparé du
   // rim (le rim est un effet de bord net, le body tint est un fondu global).
   uBodyTintAmount: { value: number };
+  // Intensité des lignes claires sur les angles du modèle low-poly
+  // (26/08, retour Sylvain "lignes claires sur tous les angles qui
+  // pulsent en cadence avec notre battement"). Détectées via fwidth
+  // sur vNormal — les arêtes entre deux faces low-poly ont une
+  // discontinuité de normale nette, fwidth (dérivées d'écran) l'attrape.
+  // Additif teinte cardinale, pulse partagé (StagModel pilote la valeur).
+  uEdgeIntensity: { value: number };
 };
 
 // Stocke les uniforms branchés au shader par material, réutilisés au
@@ -105,6 +112,7 @@ export function applyRimLight(
         uRimIntensity: { value: intensity },
         uRimPower: { value: power },
         uBodyTintAmount: { value: 0 },
+        uEdgeIntensity: { value: 0 },
       };
       uniformsByMaterial.set(material, uniforms);
       allUniforms.push(uniforms);
@@ -114,6 +122,7 @@ export function applyRimLight(
         shader.uniforms.uRimIntensity = uniforms.uRimIntensity;
         shader.uniforms.uRimPower = uniforms.uRimPower;
         shader.uniforms.uBodyTintAmount = uniforms.uBodyTintAmount;
+        shader.uniforms.uEdgeIntensity = uniforms.uEdgeIntensity;
 
         shader.fragmentShader = shader.fragmentShader
           .replace(
@@ -122,7 +131,8 @@ export function applyRimLight(
             uniform vec3 uRimColor;
             uniform float uRimIntensity;
             uniform float uRimPower;
-            uniform float uBodyTintAmount;`,
+            uniform float uBodyTintAmount;
+            uniform float uEdgeIntensity;`,
           )
           .replace(
             "#include <dithering_fragment>",
@@ -153,6 +163,18 @@ export function applyRimLight(
             // les tons foncés qu'il écrasait la modulation PBR.
             float rimFresnel = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), uRimPower);
             gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity;
+            // Lignes claires sur les angles low-poly (26/08, retour
+            // Sylvain : lignes claires sur tous les angles qui pulsent
+            // en cadence avec le battement. fwidth(vNormal) capte la
+            // discontinuité de normale entre deux fragments voisins
+            // (sur un modèle flat-shaded, elle est nulle sur une face
+            // et grande à la jonction entre deux faces). length()
+            // agrège les 3 composantes, puis threshold+saturate donne
+            // une ligne franche. Additive teinte cardinale, intensité
+            // portée par le pulse cardiaque piloté par StagModel.
+            vec3 edgeDeriv = fwidth(vNormal);
+            float edge = saturate(length(edgeDeriv) * 8.0);
+            gl_FragColor.rgb += uRimColor * edge * uEdgeIntensity;
             #include <dithering_fragment>`,
           );
       });
@@ -186,6 +208,16 @@ export function setRimLightIntensity(uniformsList: RimLightUniforms[], intensity
 export function setBodyTintAmount(uniformsList: RimLightUniforms[], blend: number) {
   for (const uniforms of uniformsList) {
     uniforms.uBodyTintAmount.value = blend;
+  }
+}
+
+/**
+ * Fait varier l'intensité des lignes claires sur les angles low-poly
+ * (26/08). L'appelant passe blend * pulse cardiaque (StagModel).
+ */
+export function setEdgeIntensity(uniformsList: RimLightUniforms[], value: number) {
+  for (const uniforms of uniformsList) {
+    uniforms.uEdgeIntensity.value = value;
   }
 }
 

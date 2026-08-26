@@ -13,7 +13,7 @@ import {
 } from "@/lib/reveal-arc";
 import { centerAndScale } from "./center-model";
 import { applyHeadLook } from "./head-look";
-import { applyRimLight, setBodyTintAmount, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
+import { applyRimLight, setBodyTintAmount, setEdgeIntensity, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 import StagAura from "./stag-aura";
 
 // Nom de l'os tête dans le rig Quaternius (GLB inspecté le 21/08, cf memory
@@ -104,6 +104,7 @@ export default function StagModel({
     setRimLightColor(rimUniforms, 0, climaxRimColor);
     setRimLightIntensity(rimUniforms, getDirectionalIntensity(0) * 0.4);
     setBodyTintAmount(rimUniforms, 0);
+    setEdgeIntensity(rimUniforms, 0);
   }, [rimUniforms, climaxRimColor]);
   // Centrage + résolution de l'os tête faits synchronement pendant le
   // render (pas dans un useEffect) : sans ça, une fenêtre d'un frame
@@ -177,6 +178,11 @@ export default function StagModel({
     // doit aussi venir sur le cerf" (le liseré seul se lisait comme un
     // détail, pas une transformation).
     setBodyTintAmount(rimUniforms, rimBlend);
+    // Lignes claires sur les angles low-poly (26/08, retour Sylvain
+    // "lignes claires sur tous les angles qui pulsent en cadence avec
+    // notre battement"). Blend * pulse — même formule cardiaque que
+    // le rim et StagAura, pour respirer en phase avec le reste.
+    setEdgeIntensity(rimUniforms, rimBlend * pulse * 1.4);
   });
 
   useFrame(() => {
