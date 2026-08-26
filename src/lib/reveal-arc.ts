@@ -113,8 +113,12 @@ export function getFogColor(progress: number, tint: ColorRgb = FOG_JADE_TINT): s
 // smoothstep garde la courbe fluide (dérivée nulle aux deux bornes).
 // Le nav emphasis lui reste sur son dernier quart (les glyphes de nav
 // n'apparaissent qu'au moment "chemins révélés" par intention).
+// 26/08 : élargie encore à 0.3→1.0 (audit Playwright — le face-à-face
+// à p=0.6 était visuellement identique entre les 5 pages, la teinte
+// cardinale n'avait pas encore commencé à mordre ; Sylvain veut sentir
+// la mytho AVANT le climax, pas juste pendant les chemins révélés).
 export function getRimColorBlend(progress: number): number {
-  return easeWithinRange(progress, PHASE_START["face-a-face"], 1, 0, 1);
+  return easeWithinRange(progress, 0.3, 1, 0, 1);
 }
 
 // Séquence d'entrée du cerf (18/08, retour de Sylvain : "on pourrait le

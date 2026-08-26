@@ -49,18 +49,22 @@ export function readDirectionColor(direction: DirectionKey): string {
 }
 
 /**
- * Teinte du fog dérivée de la couleur pleine : ~22% de saturation.
+ * Teinte du fog dérivée de la couleur pleine : ~45% de saturation.
  * Historique : 15% (jade seul) → 30% (25/08 première passe couleurs
  * par direction, "trop terne") → 22% (25/08 deuxième retour Sylvain
- * "je trouve la teinte très grossière"). Compromis : reste
- * perceptible sans écraser l'ambiance nocturne ni transformer le fog
- * en aplat plaqué.
+ * "je trouve la teinte très grossière") → 45% (26/08 audit Playwright
+ * 15 captures : la teinte n'atteignait quasi que le corps du cerf, le
+ * fond restait noir neutre — retour Sylvain "couleur pas assez
+ * marquée"). Compromis : le fog porte maintenant clairement la
+ * direction cardinale à p=1 sans devenir un aplat plaqué (la
+ * courbe `getFogColor × getRevealFloor` amène cette valeur
+ * progressivement, jamais d'un coup).
  */
 export function deriveFogTint(directionColorHex: string): ColorRgb {
   const rgb = hexToRgb(directionColorHex);
   return {
-    r: Math.round(rgb.r * 0.22),
-    g: Math.round(rgb.g * 0.22),
-    b: Math.round(rgb.b * 0.22),
+    r: Math.round(rgb.r * 0.45),
+    g: Math.round(rgb.g * 0.45),
+    b: Math.round(rgb.b * 0.45),
   };
 }

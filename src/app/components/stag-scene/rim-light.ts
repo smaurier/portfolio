@@ -127,9 +127,11 @@ export function applyRimLight(
             // grossière" — le screen préserve les hautes lumières et
             // dépose la couleur surtout dans les tons foncés/moyens, ce
             // qui se lit comme un glow subtil plutôt qu'une couche de
-            // peinture plaquée. Plafond ×0.5.
+            // peinture plaquée. Plafond ×0.85 (26/08 audit Playwright,
+            // retour Sylvain "cerf plein de couleurs à p=1" — l'ancien
+            // plafond ×0.5 gardait un cerf lavé/washed-out au climax).
             vec3 bodyTinted = vec3(1.0) - (vec3(1.0) - gl_FragColor.rgb) * (vec3(1.0) - uRimColor);
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 0.5);
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 0.85);
             float rimFresnel = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), uRimPower);
             gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity;
             #include <dithering_fragment>`,
