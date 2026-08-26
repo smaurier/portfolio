@@ -137,13 +137,14 @@ export function applyRimLight(
             // retour Sylvain "cerf plein de couleurs à p=1" — l'ancien
             // plafond ×0.5 gardait un cerf lavé/washed-out au climax).
             vec3 bodyTinted = vec3(1.0) - (vec3(1.0) - gl_FragColor.rgb) * (vec3(1.0) - uRimColor);
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 1.0);
-            // Multiply pass en fin : re-sature en assombrissant les tons
-            // qui viennent d'être éclaircis par le screen — ramène le
-            // cerf vers une teinte pigmentée franche au climax plutôt
-            // qu'un glow pastel (retour 26/08 "je ne vois pas trop les
-            // changements" après premier boost à 0.85 screen seul).
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_FragColor.rgb * (uRimColor * 1.8 + vec3(0.2)), uBodyTintAmount * 0.4);
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 0.55);
+            // Note : pas de multiply pass en fin (testé le 26/08, retour
+            // Sylvain "cerf transparent + uniforme, on ne voit plus les
+            // éléments de son corps") — le multiply saturait tellement
+            // les tons foncés qu'il écrasait la modulation PBR qui
+            // donne son volume au cerf. Le screen seul (plafond ×0.55)
+            // pose une teinte préservant les hautes lumières et les
+            // micro-ombres du modèle bas-poly.
             float rimFresnel = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), uRimPower);
             gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity;
             #include <dithering_fragment>`,
