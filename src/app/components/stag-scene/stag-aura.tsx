@@ -58,7 +58,7 @@ export default function StagAura({
   });
 
   return (
-    <mesh position={[0, 1.0, 0]} scale={[1.6, 2.0, 1.6]} raycast={() => null}>
+    <mesh position={[0, 1.0, 0]} scale={[2.4, 2.6, 2.4]} raycast={() => null}>
       <sphereGeometry args={[1, 32, 16]} />
       <shaderMaterial
         ref={materialRef}
@@ -88,8 +88,8 @@ export default function StagAura({
             // que soit le côté rendu. Power 5.0 = halo doux, très étalé
             // sur les bords, presque nul au centre — pas un cerceau net
             // (ce serait de l'hologramme, rejeté par Sylvain 25/08).
-            float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 5.0);
-            float alpha = fres * uIntensity;
+            float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 3.5);
+            float alpha = fres * uIntensity * 1.5;
             gl_FragColor = vec4(uColor * alpha, alpha);
           }
         `}

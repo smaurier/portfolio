@@ -63,8 +63,8 @@ export function readDirectionColor(direction: DirectionKey): string {
 export function deriveFogTint(directionColorHex: string): ColorRgb {
   const rgb = hexToRgb(directionColorHex);
   return {
-    r: Math.round(rgb.r * 0.45),
-    g: Math.round(rgb.g * 0.45),
-    b: Math.round(rgb.b * 0.45),
+    r: Math.round(rgb.r * 0.75),
+    g: Math.round(rgb.g * 0.75),
+    b: Math.round(rgb.b * 0.75),
   };
 }
