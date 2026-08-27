@@ -39,11 +39,12 @@ export default function StagScene({
 }) {
   return (
     <SceneStage
-      scene={({ progressRef, noticedRef, climaxRimColor, fogTint }) => (
+      scene={({ progressRef, noticedRef, climaxRimColor, climaxAccentColor, fogTint }) => (
         <SceneContent
           progressRef={progressRef}
           noticedRef={noticedRef}
           climaxRimColor={climaxRimColor}
+          climaxAccentColor={climaxAccentColor}
           fogTint={fogTint}
         />
       )}

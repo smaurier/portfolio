@@ -70,10 +70,12 @@ export default function StagModel({
   progressRef,
   noticedRef,
   climaxRimColor,
+  climaxAccentColor,
 }: {
   progressRef: MutableRefObject<number>;
   noticedRef: MutableRefObject<boolean>;
   climaxRimColor?: string;
+  climaxAccentColor?: string;
 }) {
   const group = useRef<Group>(null);
   const { scene, animations } = useGLTF(MODEL_PATH);
@@ -221,6 +223,7 @@ export default function StagModel({
       <SpiritParticles
         progressRef={progressRef}
         climaxRimColor={climaxRimColor ?? "#00a86b"}
+        climaxAccentColor={climaxAccentColor ?? "#f97316"}
       />
     </group>
   );

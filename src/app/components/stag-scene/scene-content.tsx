@@ -31,11 +31,13 @@ export default function SceneContent({
   progressRef,
   noticedRef,
   climaxRimColor,
+  climaxAccentColor,
   fogTint,
 }: {
   progressRef: MutableRefObject<number>;
   noticedRef: MutableRefObject<boolean>;
   climaxRimColor: string;
+  climaxAccentColor: string;
   fogTint: ColorRgb;
 }) {
   return (
@@ -69,6 +71,7 @@ export default function SceneContent({
             progressRef={progressRef}
             noticedRef={noticedRef}
             climaxRimColor={climaxRimColor}
+            climaxAccentColor={climaxAccentColor}
           />
         </Suspense>
         <Suspense fallback={null}>

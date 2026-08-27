@@ -48,12 +48,19 @@ const PETAL_COUNT = 140;
 const EMISSION_RADIUS = 2.0;
 const EMISSION_HEIGHT_CENTER = 1.0;
 
+// Fraction des pétales qui portent la teinte accent (Phase 4, 27/08 —
+// palette accent complémentaire). 15% : assez pour créer un dialogue
+// chromatique, trop peu pour concurrencer la cardinale dominante.
+const ACCENT_RATIO = 0.15;
+
 export default function SpiritParticles({
   progressRef,
   climaxRimColor,
+  climaxAccentColor,
 }: {
   progressRef: MutableRefObject<number>;
   climaxRimColor: string;
+  climaxAccentColor: string;
 }) {
   const pointsRef = useRef<Points>(null);
   const materialRef = useRef<ShaderMaterial>(null);
@@ -63,6 +70,7 @@ export default function SpiritParticles({
     const positions = new Float32Array(PETAL_COUNT * 3);
     const seeds = new Float32Array(PETAL_COUNT);      // phase de vie + rotation
     const lifespans = new Float32Array(PETAL_COUNT);  // durée de vie individuelle
+    const accents = new Float32Array(PETAL_COUNT);    // 0 = cardinal, 1 = accent
 
     for (let i = 0; i < PETAL_COUNT; i++) {
       // Distribution uniforme sphérique (rejection sampling) autour
@@ -85,20 +93,26 @@ export default function SpiritParticles({
       // Lifespan entre 4 et 8 secondes — pas d'harmonique
       // synchronisée qui ferait "vagues" collectives.
       lifespans[i] = 4.0 + Math.random() * 4.0;
+      // 15% des pétales portent la teinte accent complémentaire
+      // (Phase 4). Marquage binaire par pétale, résolu dans le
+      // fragment shader via mix(uColor, uAccentColor, aAccent).
+      accents[i] = Math.random() < ACCENT_RATIO ? 1.0 : 0.0;
     }
     geo.setAttribute("position", new BufferAttribute(positions, 3));
     geo.setAttribute("aSeed", new BufferAttribute(seeds, 1));
     geo.setAttribute("aLifespan", new BufferAttribute(lifespans, 1));
+    geo.setAttribute("aAccent", new BufferAttribute(accents, 1));
 
     return {
       geometry: geo,
       uniforms: {
         uColor: { value: new Color(climaxRimColor) },
+        uAccentColor: { value: new Color(climaxAccentColor) },
         uIntensity: { value: 0 },
         uTime: { value: 0 },
       },
     };
-  }, [climaxRimColor]);
+  }, [climaxRimColor, climaxAccentColor]);
 
   useFrame((state) => {
     if (!materialRef.current) return;
@@ -122,9 +136,11 @@ export default function SpiritParticles({
         vertexShader={`
           attribute float aSeed;
           attribute float aLifespan;
+          attribute float aAccent;
           uniform float uTime;
           varying float vAlpha;
           varying float vRotation;
+          varying float vAccent;
 
           // Curl-ish flow field : trois sinus croisés sur des axes
           // couplés. Pas divergence-free au sens strict d'un vrai
@@ -169,6 +185,8 @@ export default function SpiritParticles({
             // (pas de spin frénétique). Suffit à casser l'uniformité
             // d'un disque radial.
             vRotation = aSeed * 6.2831853;
+            // Marquage cardinal/accent transmis au fragment.
+            vAccent = aAccent;
 
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_Position = projectionMatrix * mvPosition;
@@ -180,9 +198,11 @@ export default function SpiritParticles({
         `}
         fragmentShader={`
           uniform vec3 uColor;
+          uniform vec3 uAccentColor;
           uniform float uIntensity;
           varying float vAlpha;
           varying float vRotation;
+          varying float vAccent;
 
           void main() {
             // Rotation du gl_PointCoord autour du centre (0.5, 0.5).
@@ -202,12 +222,18 @@ export default function SpiritParticles({
             // point 32×32 pour éviter le clip du bord de sprite).
             float shape = 1.0 - smoothstep(0.15, 0.42, r);
 
+            // 15% des pétales portent la teinte accent complémentaire
+            // (Phase 4, cf direction-colors.ts DIRECTION_ACCENT_
+            // COMPLEMENTARY). Duo chromatique cardinal ↔ accent pour
+            // rompre le monochrome.
+            vec3 petalColor = mix(uColor, uAccentColor, vAccent);
+
             float alpha = shape * vAlpha * uIntensity;
             // Prémultiplié + alpha=1 pour AdditiveBlending (le
             // srcFactor SrcAlpha default squasherait uColor*alpha²
             // au lieu de uColor*alpha — même correction que
             // stag-aura.tsx).
-            gl_FragColor = vec4(uColor * alpha, 1.0);
+            gl_FragColor = vec4(petalColor * alpha, 1.0);
           }
         `}
       />

@@ -61,6 +61,35 @@ export function readDirectionColor(direction: DirectionKey): string {
 }
 
 /**
+ * Palette accent complémentaire par direction (Phase 4 du plan
+ * couleurs post-audit, 27/08). Chaque direction porte une couleur
+ * dominante (cardinale, cf DIRECTION_COLOR_VIVID) ET un accent
+ * chromatique complémentaire, appliqué par un sous-ensemble de
+ * pétales (~15%) — rompt le monochrome, crée un dialogue de teintes
+ * au lieu d'un aplat cardinal.
+ *
+ * Choix des complémentaires (roue chromatique) + intention mytho :
+ *  - jade (vert)       → orange chaud (#f97316), contraste net
+ *  - doré (jaune-or)   → bleu profond (#4c6ef5), fraîcheur contre chaleur
+ *  - turquoise (cyan)  → orange chaud (#f97316), même famille que jade↔orange
+ *  - cendre (rose)     → vert doux (#86efac), végétal contre minéral
+ *  - obsidienne (violet) → doré cempasúchil (#f5a623) : signature
+ *    Día de los Muertos — la fleur qui guide les âmes garde sa vraie
+ *    couleur contre le violet nord/mort, symbolisme direct.
+ */
+const DIRECTION_ACCENT_COMPLEMENTARY: Record<DirectionKey, string> = {
+  jade: "#f97316",
+  dore: "#4c6ef5",
+  turquoise: "#f97316",
+  cendre: "#86efac",
+  obsidienne: "#f5a623",
+};
+
+export function readDirectionAccentColor(direction: DirectionKey): string {
+  return DIRECTION_ACCENT_COMPLEMENTARY[direction];
+}
+
+/**
  * Teinte du fog dérivée de la couleur pleine : ~45% de saturation.
  * Historique : 15% (jade seul) → 30% (25/08 première passe couleurs
  * par direction, "trop terne") → 22% (25/08 deuxième retour Sylvain

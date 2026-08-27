@@ -5,7 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { clampProgress } from "@/lib/camera-path";
 import { getPerfProfile, type PerfProfile } from "@/lib/mobile-perf";
 import { getNavEmphasis, type ColorRgb } from "@/lib/reveal-arc";
-import { deriveFogTint, hexToRgb, readDirectionColor, type DirectionKey } from "./direction-colors";
+import { deriveFogTint, hexToRgb, readDirectionAccentColor, readDirectionColor, type DirectionKey } from "./direction-colors";
 import PostFX from "./post-fx";
 import SceneTextOverlay from "./scene-text-overlay";
 import styles from "./scene-stage.module.css";
@@ -24,6 +24,7 @@ export type SceneStageCtx = {
   reducedMotionRef: MutableRefObject<boolean>;
   perfProfile: PerfProfile;
   climaxRimColor: string;
+  climaxAccentColor: string;
   fogTint: ColorRgb;
 };
 
@@ -96,6 +97,7 @@ export default function SceneStage({
   // de wiring — remontées depuis à 0.55 / 0.30, la teinte cardinale
   // devient lisible à l'œil.
   const climaxRimColor = useMemo(() => readDirectionColor(directionKey), [directionKey]);
+  const climaxAccentColor = useMemo(() => readDirectionAccentColor(directionKey), [directionKey]);
   const fogTint = useMemo(() => deriveFogTint(climaxRimColor), [climaxRimColor]);
   const navRgb = useMemo(() => hexToRgb(climaxRimColor), [climaxRimColor]);
 
@@ -173,6 +175,7 @@ export default function SceneStage({
     reducedMotionRef,
     perfProfile,
     climaxRimColor,
+    climaxAccentColor,
     fogTint,
   };
 
