@@ -26,6 +26,14 @@
   border-radius: 18px;
   overflow: hidden;
   isolation: isolate;
+  /* 27/08 fix Sylvain "encadré vide au chargement" : opacity 0 forcé
+     tant que le climax n'est pas atteint. Transition rapide (400ms) au
+     reveal — la card entière apparaît, puis les animations enfants
+     enchaînent leur stagger. Ne pas déclarer sur .revealed pour ne pas
+     casser la cascade CSS ; le composant toggle .revealed selon
+     getNavEmphasis > 0.05. */
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
   /* Gradient direction subtle : le fond respire la teinte cardinale
      sans virer aplat, backdrop-blur fait le reste pour la lisibilité. */
   background:
@@ -66,6 +74,10 @@
   clip-path: inset(0 100% 0 0);
   transition: clip-path 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.05s;
   pointer-events: none;
+}
+
+.revealed {
+  opacity: 1;
 }
 
 .revealed.closure::before {

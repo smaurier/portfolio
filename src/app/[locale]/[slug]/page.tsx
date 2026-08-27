@@ -109,14 +109,33 @@ function ContactPage({ dict, showEmailLabel }: { dict: Dictionary["contact"]; sh
   );
 }
 
+// Chiffres romains — numérotation nahua codex sur les chapitres
+// memoire (27/08 Codex S4). Signature "manuscrit numéroté" cohérente
+// avec l'ontologie codex nahua (les codex historiques numéraient leurs
+// pages en glyphes). Limité à Memoire (7 chapitres) — sur Services
+// (2 offres) ou Projets (3 cases) ça ferait pédant.
+function toRoman(n: number): string {
+  const values = [10, 9, 5, 4, 1];
+  const symbols = ["X", "IX", "V", "IV", "I"];
+  let result = "";
+  for (let i = 0; i < values.length; i++) {
+    while (n >= values[i]) {
+      result += symbols[i];
+      n -= values[i];
+    }
+  }
+  return result;
+}
+
 function MemoirePage({ dict }: { dict: Dictionary["memoire"] }) {
   return (
     <div className="contentPage">
       <h1>{dict.title}</h1>
       <p>{dict.intro}</p>
 
-      {dict.entries.map((entry) => (
+      {dict.entries.map((entry, i) => (
         <div className="serviceCard" key={entry.title}>
+          <span className="cardIndex" aria-hidden>{toRoman(i + 1)}</span>
           <h2>{entry.title}</h2>
           <p>{entry.text}</p>
         </div>
