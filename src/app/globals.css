@@ -115,12 +115,20 @@ main {
   gap: 8px;
   padding: 12px 24px;
   border-bottom: 1px solid var(--gray-alpha-200, rgba(0, 0, 0, 0.08));
-  background: transparent;
+  /* Fond semi-opaque + backdrop-blur (26/08, retour Sylvain audit initial :
+     header memoire-p06 superposé au contenu long qui remontait derrière
+     un header 100% transparent). rgba noir 0.72 en dark : préserve
+     l'esprit "flottant" du palier 2 DA Nahual (la scène reste visible
+     à travers) tout en garantissant que la nav/le logo ne collisionnent
+     jamais avec un h2 qui remonte pendant le scroll. */
+  background: color-mix(in srgb, var(--background) 72%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   /* Overlay superposé plutôt qu'en flux (palier 2 DA Nahual, cf
-     project-nahual-da) : maintenant que le fond est transparent, la scène
-     du cerf peut se voir derrière la nav du tout premier pixel de scroll.
-     `main` réserve l'espace équivalent via --header-height pour que les
-     pages texte (Services/Projets/Contact) ne passent pas dessous. */
+     project-nahual-da) : maintenant que le fond est semi-opaque, la
+     scène du cerf reste visible derrière la nav. `main` réserve
+     l'espace équivalent via --header-height pour que le contenu texte
+     démarre sous le header, pas dessous. */
   position: fixed;
   top: 0;
   left: 0;
