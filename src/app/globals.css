@@ -492,64 +492,63 @@ body.nahual-lab-reveal .contentPage a:not(.ctaButton) {
 }
 
 body.nahual-lab-reveal .serviceCard {
-  /* Signature "page de codex nocturne" (27/08 Codex phase). Chaque
-     card = fragment de codex empilé, glass gradient direction subtle,
-     liseré 3px gauche cardinal qui pulse au rythme cardiaque (même
-     période 4s que rim/aura/edge), frise 1px top+bottom.
-     Zéro backdrop-filter (perf mobile) — le halo suffit. */
+  /* Signature codex nocturne épurée (27/08 auto-critique) : retire
+     border trait + border-left liseré + pulse cardiaque HTML + glow
+     bottom. Retour Sylvain "trop lourds avec le contour marqué à
+     gauche et le liseré". Refs Igloo Inc. SOTY 2024 / Antoine Boneat
+     / Immersive Garden : le vrai top-tier = zéro trait, gradient
+     direction ultra-subtile + frise codex minimale + hover discret.
+     Le pulse cardiaque reste porté par la scène 3D (shader rim/edge/
+     aura) — répliquer en HTML était invisible en pratique. */
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 22px 26px 22px 30px;
-  border: 1px solid color-mix(in srgb, var(--direction-color, rgba(242, 236, 225, 0.14)) 20%, transparent);
-  border-left: 3px solid var(--direction-color, rgba(242, 236, 225, 0.4));
+  padding: 22px 28px;
   border-radius: 14px;
   background:
     linear-gradient(
       135deg,
-      color-mix(in srgb, var(--direction-color, transparent) 6%, rgba(13, 12, 17, 0.42)),
-      color-mix(in srgb, var(--direction-color, transparent) 2%, rgba(13, 12, 17, 0.48))
+      color-mix(in srgb, var(--direction-color, transparent) 4%, rgba(13, 12, 17, 0.32)),
+      color-mix(in srgb, var(--direction-color, transparent) 1.5%, rgba(13, 12, 17, 0.38))
     );
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   transition:
     transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.35s ease-out,
     background 0.35s ease-out;
-  /* Pulse cardiaque sur le liseré gauche — même formule sin^4 4s que
-     le shader (rim/aura/edge), sync approximative visuellement OK à
-     l'œil. Cohérence complète scène 3D + HTML : la respiration du
-     cerf traverse aussi les pages de codex. */
-  animation: nahualHeartbeat 4s cubic-bezier(0.35, 0, 0.65, 1) infinite;
 }
 
-@keyframes nahualHeartbeat {
-  0%, 100% {
-    border-left-color: color-mix(in srgb, var(--direction-color, rgba(242, 236, 225, 0.4)) 60%, transparent);
-  }
-  50% {
-    border-left-color: var(--direction-color, rgba(242, 236, 225, 0.9));
+/* Inset shadow uniquement en mode clair (retour Sylvain : "on aura
+   un fond clair aussi à un moment"). Sur fond clair l'ombre interne
+   direction donne la sensation de creux/contour douce type Rauno.me/
+   Vercel. En dark, elle serait contradictoire avec la scène nocturne
+   et redondante avec le halo H1 — donc omise. */
+@media (prefers-color-scheme: light) {
+  body.nahual-lab-reveal .serviceCard {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--direction-color, rgba(0, 0, 0, 0.06)) 12%, transparent),
+                inset 0 -8px 24px color-mix(in srgb, var(--direction-color, transparent) 8%, transparent);
   }
 }
 
 /* Frise codex 1px en top+bottom — pattern répétitif points cardinaux,
-   opacity discrète. Rendu via pseudo-elements. */
+   opacity 35% (retour Sylvain "trop marqué"). Seule signature codex
+   nahua restante côté HTML — porte l'identité manuscrit sans peser. */
 body.nahual-lab-reveal .serviceCard::before,
 body.nahual-lab-reveal .serviceCard::after {
   content: "";
   position: absolute;
-  left: 30px;
-  right: 26px;
+  left: 28px;
+  right: 28px;
   height: 1px;
   background-image: radial-gradient(
     circle at center,
-    color-mix(in srgb, var(--direction-color, rgba(242, 236, 225, 0.35)) 55%, transparent) 0 1px,
+    color-mix(in srgb, var(--direction-color, rgba(242, 236, 225, 0.35)) 45%, transparent) 0 1px,
     transparent 1.5px
   );
   background-size: 12px 1px;
   background-repeat: repeat-x;
-  opacity: 0.65;
+  opacity: 0.35;
   pointer-events: none;
 }
 body.nahual-lab-reveal .serviceCard::before {
@@ -562,12 +561,11 @@ body.nahual-lab-reveal .serviceCard::after {
 @media (hover: hover) and (pointer: fine) {
   body.nahual-lab-reveal .serviceCard:hover {
     transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--direction-color, rgba(242, 236, 225, 0.14)) 45%, transparent);
     background:
       linear-gradient(
         135deg,
-        color-mix(in srgb, var(--direction-color, transparent) 10%, rgba(13, 12, 17, 0.38)),
-        color-mix(in srgb, var(--direction-color, transparent) 4%, rgba(13, 12, 17, 0.44))
+        color-mix(in srgb, var(--direction-color, transparent) 8%, rgba(13, 12, 17, 0.28)),
+        color-mix(in srgb, var(--direction-color, transparent) 3%, rgba(13, 12, 17, 0.34))
       );
   }
 }
@@ -595,7 +593,6 @@ body.nahual-lab-reveal .cardIndex {
 
 @media (prefers-reduced-motion: reduce) {
   body.nahual-lab-reveal .serviceCard {
-    animation: none;
     transition: none;
   }
 }
