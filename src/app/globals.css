@@ -378,7 +378,10 @@ body.nahual-lab-reveal .logoLink img {
    entre les pages. Scopé sous body.nahual-lab-reveal (permanente, cf
    layout.tsx). */
 body.nahual-lab-reveal main {
-  align-items: flex-start;
+  /* 27/08 : center → contentPage centrée horizontalement quel que soit
+     le viewport (mobile / tablet / desktop), symétrie visuelle et scène
+     3D perçue autour au lieu d'être coincée d'un côté. */
+  align-items: center;
   text-align: left;
   padding: calc(40px + var(--header-height)) 6vw calc(80px + var(--footer-height));
   color: #f2ece1;
@@ -386,12 +389,23 @@ body.nahual-lab-reveal main {
 }
 
 body.nahual-lab-reveal .contentPage {
-  max-width: 560px;
+  /* max-width 560 → 720 (27/08, audit responsive) : reading confortable
+     tablet+, mobile reste borné par main padding. Reading card
+     semi-opaque + backdrop-blur pour lisibilité continue au-dessus de
+     la scène 3D — signature scroll-story cohérente avec le header
+     fac065b (même palette d'opacité et de blur). */
+  max-width: 720px;
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 28px;
   text-align: left;
+  padding: 28px 32px;
+  background: color-mix(in srgb, #0d0c11 55%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(242, 236, 225, 0.08);
+  border-radius: 20px;
 }
 
 body.nahual-lab-reveal .contentPage h1,
@@ -425,8 +439,10 @@ body.nahual-lab-reveal .serviceCard {
   padding: 24px;
   border: 1px solid rgba(242, 236, 225, 0.14);
   border-radius: 16px;
-  background: rgba(13, 12, 17, 0.55);
-  backdrop-filter: blur(6px);
+  /* 27/08 : opacité réduite 0.55 → 0.28 puisque le parent .contentPage
+     porte désormais lui-même une reading card semi-opaque + blur —
+     éviter le double-layering visuel (aplat noir empilé). */
+  background: rgba(13, 12, 17, 0.28);
 }
 
 body.nahual-lab-reveal .note {
