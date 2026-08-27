@@ -15,6 +15,7 @@ import { centerAndScale } from "./center-model";
 import { applyHeadLook } from "./head-look";
 import { applyRimLight, setBodyTintAmount, setEdgeIntensity, setEdgePulse, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 import StagAura from "./stag-aura";
+import SpiritParticles from "./spirit-particles";
 
 // Nom de l'os tête dans le rig Quaternius (GLB inspecté le 21/08, cf memory
 // project-nahual-da : chaîne Neck1→Neck2→Neck3→Head→Stag_Horns/Head_end).
@@ -210,6 +211,14 @@ export default function StagModel({
         * dur au niveau du volume du cerf. climaxRimColor fallback jade
         * comme le reste des systèmes cardinaux. */}
       <StagAura
+        progressRef={progressRef}
+        climaxRimColor={climaxRimColor ?? "#00a86b"}
+      />
+      {/* Motes d'esprit cardinales (26/08, Phase 3 mytho) — flottent
+        * autour du cerf en dérive lente, pulsent en phase avec le rim
+        * et l'aura. Signal "esprits qui accompagnent le nahual" plus
+        * qu'un décor abstrait. */}
+      <SpiritParticles
         progressRef={progressRef}
         climaxRimColor={climaxRimColor ?? "#00a86b"}
       />
