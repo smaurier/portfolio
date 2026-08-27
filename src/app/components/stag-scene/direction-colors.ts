@@ -42,7 +42,7 @@ export function hexToRgb(hex: string): ColorRgb {
  * vive constante ; les CSS surfaces continuent d'utiliser leurs
  * variantes theme-dependent via --jade-bg et co.
  */
-const DIRECTION_COLOR_VIVID: Record<DirectionKey, string> = {
+export const DIRECTION_COLOR_VIVID: Record<DirectionKey, string> = {
   jade: "#00c078",       // #00a86b boosté saturation
   dore: "#f5a623",       // orange-or franc, plus punchy que #7a5218 dark
   turquoise: "#22b3c6",  // conservé, déjà vif
@@ -77,7 +77,7 @@ export function readDirectionColor(direction: DirectionKey): string {
  *    Día de los Muertos — la fleur qui guide les âmes garde sa vraie
  *    couleur contre le violet nord/mort, symbolisme direct.
  */
-const DIRECTION_ACCENT_COMPLEMENTARY: Record<DirectionKey, string> = {
+export const DIRECTION_ACCENT_COMPLEMENTARY: Record<DirectionKey, string> = {
   jade: "#f97316",
   dore: "#4c6ef5",
   turquoise: "#f97316",

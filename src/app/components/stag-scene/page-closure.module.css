@@ -1,0 +1,220 @@
+/*
+ * Overlay closure — signature "Codex nahua" (27/08, retour Sylvain
+ * "overlay fait grossier"). Card glass avec gradient direction, border
+ * cardinale 1px, H2 split par mot avec stagger, underline dorée qui
+ * se dessine, glyphe cardinal en marge, CTA stylée.
+ *
+ * Chaque enfant a sa propre courbe d'entrée déclenchée par la classe
+ * .revealed posée depuis le composant (via requestAnimationFrame qui
+ * lit getNavEmphasis). Timings enchaînés : glyphe → mots stagger →
+ * underline → poétique → CTA (~700ms total). Courbe cubic-bezier
+ * (0.22, 1, 0.36, 1) = ease-out-quart — signature Awwwards, plus
+ * élégante qu'un ease-out standard.
+ *
+ * Le composant expose deux CSS custom properties :
+ *  --closure-color   : teinte cardinale (rim direction courante)
+ *  --closure-accent  : teinte complémentaire (underline dorée + hover)
+ * Les couleurs proviennent de direction-colors.ts, propagées via
+ * inline style depuis PageClosure.
+ */
+
+.closure {
+  position: relative;
+  padding: 24px 28px 22px 28px;
+  min-width: 280px;
+  max-width: 420px;
+  border-radius: 18px;
+  overflow: hidden;
+  isolation: isolate;
+  /* Gradient direction subtle : le fond respire la teinte cardinale
+     sans virer aplat, backdrop-blur fait le reste pour la lisibilité. */
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--closure-color) 12%, rgba(13, 12, 17, 0.5)),
+      color-mix(in srgb, var(--closure-color) 3%, rgba(13, 12, 17, 0.55))
+    );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #f2ece1;
+  pointer-events: auto;
+}
+
+/* Border 1px cardinale en gradient — se trace au reveal via clip-path
+   qui s'ouvre gauche→droite (400ms), signature codex qui se déroule. */
+.closure::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  padding: 1px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--closure-color) 65%, transparent),
+      color-mix(in srgb, var(--closure-color) 20%, transparent) 50%,
+      transparent 90%
+    );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.05s;
+  pointer-events: none;
+}
+
+.revealed.closure::before {
+  clip-path: inset(0 0 0 0);
+}
+
+/* Micro-glyphe cardinal en marge — SVG 24×24, teinte cardinale à 45%. */
+.glyph {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  width: 22px;
+  height: 22px;
+  color: color-mix(in srgb, var(--closure-color) 55%, transparent);
+  opacity: 0;
+  transform: scale(0.7) rotate(-25deg);
+  transition:
+    opacity 0.55s ease-out 0.15s,
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
+  pointer-events: none;
+}
+
+.revealed .glyph {
+  opacity: 1;
+  transform: scale(1) rotate(0);
+}
+
+/* H2 avec split par mot — les .word sont rendus par PageClosure. */
+.title {
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 0 42px 6px 0; /* réserve à droite pour le glyphe */
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.35em;
+  color: #f2ece1;
+}
+
+.word {
+  display: inline-block;
+  transform: translateY(14px);
+  opacity: 0;
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.55s ease-out;
+}
+
+/* Stagger par mot — 5 slots au cas où (les titres codex font 2-4 mots). */
+.revealed .word:nth-child(1) { transition-delay: 200ms; }
+.revealed .word:nth-child(2) { transition-delay: 280ms; }
+.revealed .word:nth-child(3) { transition-delay: 360ms; }
+.revealed .word:nth-child(4) { transition-delay: 440ms; }
+.revealed .word:nth-child(5) { transition-delay: 520ms; }
+
+.revealed .word {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Underline sous le title — trait accent doré qui se dessine
+   gauche→droite (transform scaleX). */
+.underline {
+  position: relative;
+  height: 1px;
+  width: 60%;
+  max-width: 200px;
+  margin: 0 0 14px 0;
+  background: color-mix(in srgb, var(--closure-accent) 90%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.55s;
+}
+
+.revealed .underline {
+  transform: scaleX(1);
+}
+
+.poetic {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: rgba(242, 236, 225, 0.82);
+  margin: 0 0 16px 0;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.55s ease-out 0.65s,
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.65s;
+}
+
+.revealed .poetic {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* CTA — pill avec border cardinal + fond glass, chevron animé au hover. */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border: 1px solid color-mix(in srgb, var(--closure-color) 50%, rgba(242, 236, 225, 0.5));
+  border-radius: 999px;
+  color: #f2ece1;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  background: color-mix(in srgb, var(--closure-color) 8%, transparent);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.5s ease-out 0.8s,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.8s,
+    background 0.25s,
+    border-color 0.25s;
+}
+
+.revealed .cta {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cta:hover {
+    background: color-mix(in srgb, var(--closure-color) 30%, transparent);
+    border-color: color-mix(in srgb, var(--closure-color) 80%, transparent);
+  }
+
+  .cta:hover .arrow {
+    transform: translateX(3px);
+  }
+}
+
+.arrow {
+  display: inline-block;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .closure::before,
+  .glyph,
+  .word,
+  .underline,
+  .poetic,
+  .cta {
+    transition: none;
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+  }
+}
