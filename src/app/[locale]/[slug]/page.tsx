@@ -156,7 +156,7 @@ export default async function LocalizedPage({
   }
 
   return (
-    <EchoScenePage directionKey={DIRECTION_BY_PAGE[key]}>
+    <EchoScenePage directionKey={DIRECTION_BY_PAGE[key]} locale={locale}>
       {content}
     </EchoScenePage>
   );

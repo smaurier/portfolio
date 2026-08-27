@@ -1,7 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
+import type { Locale } from "../../../dictionaries";
 import type { DirectionKey } from "./direction-colors";
+import PageClosure from "./page-closure";
 import SceneContent from "./scene-content";
 import SceneStage from "./scene-stage";
 
@@ -23,9 +25,11 @@ import SceneStage from "./scene-stage";
  */
 export default function EchoScenePage({
   directionKey,
+  locale,
   children,
 }: {
   directionKey: DirectionKey;
+  locale: Locale;
   children: ReactNode;
 }) {
   return (
@@ -38,6 +42,14 @@ export default function EchoScenePage({
           climaxRimColor={climaxRimColor}
           climaxAccentColor={climaxAccentColor}
           fogTint={fogTint}
+        />
+      )}
+      overlay={({ progressRef, reducedMotionRef }) => (
+        <PageClosure
+          directionKey={directionKey}
+          locale={locale}
+          progressRef={progressRef}
+          reducedMotionRef={reducedMotionRef}
         />
       )}
     >
