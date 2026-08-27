@@ -13,33 +13,40 @@ import {
 import { getRimColorBlend } from "@/lib/reveal-arc";
 
 /**
- * Particules d'esprit autour du cerf (26/08, Phase 3 mytho du plan
- * couleurs post-audit — cf memory project-nahual-da). Motes de lumière
- * cardinale qui gravitent en dérive lente autour du sujet, respirent
- * avec le pulse cardiaque partagé (rim / edge / halo).
+ * Pétales de cempasúchil qui accompagnent le cerf (26/08, Phase 3
+ * mytho — cf memory project-nahual-da). Signature nahua directe :
+ * la fleur emblématique du Día de los Muertos, qui guide les âmes
+ * dans la cosmologie mésoaméricaine. Ici déclinée dans la teinte
+ * cardinale de la direction (pas juste orange fixe) : la palette
+ * assume le mytho fondateur ET la variation Codex Nahual section 03.
  *
- * Alternative retenue après abandon de la Piedra billboardée (tentée
- * puis retirée sans commit — le mesh disque billboardé était sujet
- * aux clipping de frustum + occlusion selon l'angle d'orbite). Les
- * particules Points additives contournent tous ces problèmes : rendues
- * quel que soit l'angle caméra, pas d'orientation à maintenir, pas de
- * risque de disparaître selon la position.
+ * Trois choix techniques qui poussent au-dessus du "point additif
+ * générique" :
+ *  1. **Curl-ish flow field** — dérive fluide dans le vertex shader
+ *     (pas un sinus par axe), les pétales suivent des lignes de
+ *     courant naturelles plutôt qu'un tremblement isotrope.
+ *  2. **Cycle de vie** — chaque pétale a une durée, fade in-out sur
+ *     sa lifespan, ré-injection au début quand elle expire. Densité
+ *     visuelle stable sans motion clichée "particules statiques qui
+ *     tremblent".
+ *  3. **Forme pétale procédurale + rotation individuelle** —
+ *     gl_PointCoord tourné en fragment, shape ellipse pointue
+ *     asymétrique (pas un disque parfait). Chaque pétale a son
+ *     orientation propre.
  *
- * Iconographie : "esprits qui accompagnent le nahual" — le cerf ne se
- * révèle pas seul, il porte sa direction cardinale avec des motes de
- * la teinte associée qui flottent dans son sillage.
- *
- * BufferGeometry statique avec vertex attribute `aOffset` (temps de
- * phase par particule) : la dérive est calculée dans le vertex shader
- * plutôt que muter le buffer côté CPU chaque frame — GPU-friendly,
- * pas de re-upload par tick.
+ * Points cloud plutôt que instanced planes billboardés : le screen-
+ * alignment natif de gl_PointSize suffit ici (les pétales tombent
+ * face caméra à toute distance), on gagne le coût d'un attribut
+ * quaternion par instance. gl_PointSize atrophie en périphérie du
+ * canvas selon certains drivers — acceptable pour ce cas d'usage,
+ * les pétales sur les bords ne sont pas la lecture centrale.
  */
-const PARTICLE_COUNT = 80;
+const PETAL_COUNT = 140;
 
-// Rayon du nuage autour du cerf. Le cerf est normalisé à hauteur 2,
-// centré au sol. Nuage 2.5 unités = enveloppe le corps sans devenir
-// une brume dense qui masquerait la silhouette.
-const CLOUD_RADIUS = 2.5;
+// Rayon d'émission autour du corps du cerf (normalisé à hauteur 2,
+// centré au sol). Volume enveloppant plutôt qu'une seule couche.
+const EMISSION_RADIUS = 2.0;
+const EMISSION_HEIGHT_CENTER = 1.0;
 
 export default function SpiritParticles({
   progressRef,
@@ -53,12 +60,15 @@ export default function SpiritParticles({
 
   const { geometry, uniforms } = useMemo(() => {
     const geo = new BufferGeometry();
-    const positions = new Float32Array(PARTICLE_COUNT * 3);
-    const offsets = new Float32Array(PARTICLE_COUNT);
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      // Distribution sphérique uniforme (Marsaglia) — pas juste des
-      // gaussiennes qui concentreraient au centre, ni un cube qui
-      // ferait des coins.
+    const positions = new Float32Array(PETAL_COUNT * 3);
+    const seeds = new Float32Array(PETAL_COUNT);      // phase de vie + rotation
+    const lifespans = new Float32Array(PETAL_COUNT);  // durée de vie individuelle
+
+    for (let i = 0; i < PETAL_COUNT; i++) {
+      // Distribution uniforme sphérique (rejection sampling) autour
+      // du corps du cerf — sphère de radius EMISSION_RADIUS centrée
+      // sur (0, EMISSION_HEIGHT_CENTER, 0). Répartition cube-rootée
+      // pour homogénéiser la densité (pas concentrée au centre).
       let x, y, z, s;
       do {
         x = Math.random() * 2 - 1;
@@ -66,18 +76,19 @@ export default function SpiritParticles({
         z = Math.random() * 2 - 1;
         s = x * x + y * y + z * z;
       } while (s >= 1 || s === 0);
-      const r = Math.cbrt(Math.random()) * CLOUD_RADIUS;
+      const r = Math.cbrt(Math.random()) * EMISSION_RADIUS;
       const norm = Math.sqrt(s);
       positions[i * 3] = (x / norm) * r;
-      // Baisse le y pour centrer autour du corps du cerf (hauteur 2
-      // total → milieu à 1) plutôt qu'autour de l'origine sol.
-      positions[i * 3 + 1] = (y / norm) * r + 1.0;
+      positions[i * 3 + 1] = (y / norm) * r + EMISSION_HEIGHT_CENTER;
       positions[i * 3 + 2] = (z / norm) * r;
-      // Phase aléatoire par particule pour dephaser la dérive.
-      offsets[i] = Math.random() * Math.PI * 2;
+      seeds[i] = Math.random();
+      // Lifespan entre 4 et 8 secondes — pas d'harmonique
+      // synchronisée qui ferait "vagues" collectives.
+      lifespans[i] = 4.0 + Math.random() * 4.0;
     }
     geo.setAttribute("position", new BufferAttribute(positions, 3));
-    geo.setAttribute("aOffset", new BufferAttribute(offsets, 1));
+    geo.setAttribute("aSeed", new BufferAttribute(seeds, 1));
+    geo.setAttribute("aLifespan", new BufferAttribute(lifespans, 1));
 
     return {
       geometry: geo,
@@ -93,6 +104,8 @@ export default function SpiritParticles({
     if (!materialRef.current) return;
     const p = progressRef.current;
     const blend = getRimColorBlend(p);
+    // Pulse partagé avec rim/edge/aura — les pétales respirent en
+    // phase avec le battement cardiaque (formule sin^4 période 4s).
     const pulse = 0.65 + 0.35 * Math.pow(Math.sin(state.clock.elapsedTime * Math.PI * 0.25), 4);
     uniforms.uIntensity.value = blend * pulse;
     uniforms.uTime.value = state.clock.elapsedTime;
@@ -107,45 +120,93 @@ export default function SpiritParticles({
         depthWrite={false}
         blending={AdditiveBlending}
         vertexShader={`
-          attribute float aOffset;
+          attribute float aSeed;
+          attribute float aLifespan;
           uniform float uTime;
-          varying float vTwinkle;
-          void main() {
-            // Dérive : oscillation locale par particule, amplitude
-            // faible (0.15) — les motes flottent sans partir, comme
-            // suspendues dans un champ énergétique autour du cerf.
-            vec3 pos = position;
-            pos.x += sin(uTime * 0.4 + aOffset) * 0.15;
-            pos.y += cos(uTime * 0.35 + aOffset * 1.3) * 0.12;
-            pos.z += sin(uTime * 0.45 + aOffset * 0.7) * 0.15;
+          varying float vAlpha;
+          varying float vRotation;
 
-            // Scintillement individuel : chaque mote pulse à sa propre
-            // fréquence légèrement décalée du rythme cardiaque global,
-            // ce qui évite l'effet clignotement synchrone (peu naturel).
-            vTwinkle = 0.5 + 0.5 * sin(uTime * 1.2 + aOffset * 2.0);
+          // Curl-ish flow field : trois sinus croisés sur des axes
+          // couplés. Pas divergence-free au sens strict d'un vrai
+          // curl noise, mais donne des lignes de courant visuellement
+          // fluides à peu de coût (contre un simplex noise à 6+
+          // iterations dans le shader).
+          vec3 flow(vec3 p) {
+            return vec3(
+              sin(p.y * 1.3 + p.z * 0.7),
+              cos(p.z * 1.1 + p.x * 0.9),
+              sin(p.x * 1.5 + p.y * 0.5)
+            );
+          }
+
+          void main() {
+            // Cycle de vie normalisé sur [0, 1) via mod. Chaque
+            // pétale démarre à sa propre phase (aSeed) pour éviter
+            // un "reset collectif" toutes les N secondes.
+            float phaseOffset = aSeed * aLifespan;
+            float t = mod(uTime + phaseOffset, aLifespan) / aLifespan;
+
+            vec3 pos = position;
+            // Dérive : le flow field échantillonné à la position
+            // initiale + une lente évolution du champ dans le temps
+            // (uTime * 0.05) — le champ "respire" doucement, les
+            // trajectoires ne sont pas rigidement fixes.
+            vec3 drift = flow(pos * 0.5 + uTime * 0.05);
+            pos += drift * t * 0.9;
+            // Montée légère (les pétales tombent lentement vers le
+            // haut, comme aspirés — signal "esprit qui s'élève").
+            pos.y += t * 0.6;
+
+            // Fade in-out sur la lifespan : rampe rapide au début
+            // (0→0.15 de la vie), plateau, rampe descendante en fin
+            // (0.7→1.0). smoothstep pour dérivées nulles aux bornes.
+            float fadeIn = smoothstep(0.0, 0.15, t);
+            float fadeOut = 1.0 - smoothstep(0.7, 1.0, t);
+            vAlpha = fadeIn * fadeOut;
+
+            // Rotation individuelle : orientation fixe par pétale
+            // (aSeed) — chaque pétale garde son angle pendant sa vie
+            // (pas de spin frénétique). Suffit à casser l'uniformité
+            // d'un disque radial.
+            vRotation = aSeed * 6.2831853;
 
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_Position = projectionMatrix * mvPosition;
-            // Taille en pixels : diminue avec la distance (perspective).
-            // ×220 ajusté à l'œil pour rester lisible sans dominer.
-            gl_PointSize = 220.0 / -mvPosition.z;
+            // Taille en pixels : décroît avec la distance
+            // (perspective réaliste). ×90 ajusté à l'œil pour rester
+            // lisible sans envahir.
+            gl_PointSize = 90.0 / -mvPosition.z;
           }
         `}
         fragmentShader={`
           uniform vec3 uColor;
           uniform float uIntensity;
-          varying float vTwinkle;
+          varying float vAlpha;
+          varying float vRotation;
+
           void main() {
-            // Chaque point est carré en gl_PointCoord (0..1). Un fondu
-            // radial depuis le centre donne un disque doux.
+            // Rotation du gl_PointCoord autour du centre (0.5, 0.5).
             vec2 uv = gl_PointCoord - 0.5;
-            float d = length(uv);
-            float alpha = smoothstep(0.5, 0.0, d);
-            alpha *= vTwinkle;
-            alpha *= uIntensity;
-            // Prémultiplié + alpha=1 pour AdditiveBlending (cf
-            // stag-aura.tsx : le srcFactor SrcAlpha default squasherait
-            // uColor*alpha*alpha au lieu de uColor*alpha).
+            float c = cos(vRotation);
+            float s = sin(vRotation);
+            uv = mat2(c, -s, s, c) * uv;
+
+            // Forme pétale : ellipse allongée verticalement +
+            // pointue en haut (y positif), plus large en bas. Une
+            // décentrage de l'origine en Y donne l'asymétrie
+            // caractéristique cempasúchil.
+            uv.y *= 1.8;
+            uv.y -= 0.08;
+            float r = length(uv);
+            // Bord doux ; rayon max 0.45 (garde une marge dans le
+            // point 32×32 pour éviter le clip du bord de sprite).
+            float shape = 1.0 - smoothstep(0.15, 0.42, r);
+
+            float alpha = shape * vAlpha * uIntensity;
+            // Prémultiplié + alpha=1 pour AdditiveBlending (le
+            // srcFactor SrcAlpha default squasherait uColor*alpha²
+            // au lieu de uColor*alpha — même correction que
+            // stag-aura.tsx).
             gl_FragColor = vec4(uColor * alpha, 1.0);
           }
         `}
