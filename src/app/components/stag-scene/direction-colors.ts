@@ -81,7 +81,7 @@ const DIRECTION_ACCENT_COMPLEMENTARY: Record<DirectionKey, string> = {
   jade: "#f97316",
   dore: "#4c6ef5",
   turquoise: "#f97316",
-  cendre: "#86efac",
+  cendre: "#4ade80",
   obsidienne: "#f5a623",
 };
 
