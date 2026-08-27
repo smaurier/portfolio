@@ -1,6 +1,6 @@
 "use client";
 
-import type { MutableRefObject } from "react";
+import { useEffect, useRef, type MutableRefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { getOrbitCameraPosition, getOrbitCameraTarget } from "@/lib/camera-path";
 
@@ -9,18 +9,65 @@ import { getOrbitCameraPosition, getOrbitCameraTarget } from "@/lib/camera-path"
  * progressRef est un ref (pas un state) : la position du scroll change à
  * haute fréquence, la faire transiter par le state React re-rendrait tout
  * l'arbre à chaque tick pour rien — useFrame lit le ref directement.
+ *
+ * Parallaxe souris (27/08, retour Sylvain "effet paralaxe sur cerf pour
+ * les mouvements de souris"). Signature Awwwards-level classique :
+ * la caméra décale légèrement selon la position souris (XY normalisée
+ * -1..1), la cible reste sur le cerf → l'orbite pivote autour du sujet
+ * en fonction de l'utilisateur. Amplitude sub-unitaire pour rester
+ * subtile (pas de gimmick), lerp 0.08 pour lisser les tremblements du
+ * pointeur.
+ *
+ * Respect prefers-reduced-motion : parallaxe désactivée sous ce media,
+ * même garde-fou d'accessibilité que le reste de l'arc (cf reveal-arc.ts
+ * et cursor-reveal.ts).
  */
+const PARALLAX_X = 0.35;
+const PARALLAX_Y = 0.25;
+const MOUSE_LERP = 0.08;
+
 export default function OrbitCamera({
   progressRef,
 }: {
   progressRef: MutableRefObject<number>;
 }) {
   const { camera } = useThree();
+  // Position souris cible (normalisée -1..1) et position lissée qui
+  // rattrape doucement — évite un mouvement caméra saccadé sur chaque
+  // événement pointermove.
+  const mouseTargetRef = useRef({ x: 0, y: 0 });
+  const mouseSmoothRef = useRef({ x: 0, y: 0 });
+  const reducedMotionRef = useRef(false);
+
+  useEffect(() => {
+    reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function onPointerMove(event: PointerEvent) {
+      // -1..1 normalisé sur toute la fenêtre. clientY inversé plus tard
+      // dans useFrame (convention "haut d'écran = vers le haut du monde"
+      // pour le décalage caméra).
+      mouseTargetRef.current.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouseTargetRef.current.y = (event.clientY / window.innerHeight) * 2 - 1;
+    }
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onPointerMove);
+  }, []);
 
   useFrame(() => {
+    // Lissage exponentiel de la souris (pas de deriv brusque au tick suivant).
+    mouseSmoothRef.current.x += (mouseTargetRef.current.x - mouseSmoothRef.current.x) * MOUSE_LERP;
+    mouseSmoothRef.current.y += (mouseTargetRef.current.y - mouseSmoothRef.current.y) * MOUSE_LERP;
+
     const position = getOrbitCameraPosition(progressRef.current);
     const target = getOrbitCameraTarget();
-    camera.position.set(position.x, position.y, position.z);
+
+    // Parallaxe : décale la position caméra XY selon la souris, la cible
+    // reste ancrée sur le cerf → orbite légère autour du sujet. Y inversé
+    // (clientY descend, caméra doit monter).
+    const parallaxX = reducedMotionRef.current ? 0 : mouseSmoothRef.current.x * PARALLAX_X;
+    const parallaxY = reducedMotionRef.current ? 0 : -mouseSmoothRef.current.y * PARALLAX_Y;
+
+    camera.position.set(position.x + parallaxX, position.y + parallaxY, position.z);
     camera.lookAt(target.x, target.y, target.z);
   });
 
