@@ -34,12 +34,13 @@ import { DIRECTION_ACCENT_COMPLEMENTARY, DIRECTION_COLOR_VIVID } from "./directi
  * (progress = 0), aucun coût GPU en repos.
  */
 
-const PARTICLE_COUNT = 600;
-const STORM_BOX = { x: 16, y: 10, z: 16 };
+const PARTICLE_COUNT = 2500;
+const STORM_BOX = { x: 30, y: 18, z: 30 };
 const STORM_CENTER_Y = 1.5;
-const STORM_LIFE_MS = 800; // Un peu plus long que le burst de nav 500ms
-                          // pour que la tempête déborde sur le mount
-                          // de la nouvelle page.
+const STORM_LIFE_MS = 1600; // Déborde sur le fade-in de la nouvelle page
+                          // (burst 1200ms + fade-in 400ms). La tempête
+                          // couvre visuellement toute la transition,
+                          // masquant tout hic de re-mount du contenu.
 
 export default function PetalStorm() {
   const pointsRef = useRef<Points>(null);
@@ -148,7 +149,7 @@ export default function PetalStorm() {
             vAccent = step(0.85, aSeed); // ~15% accent complémentaire
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_Position = projectionMatrix * mvPosition;
-            gl_PointSize = 130.0 / -mvPosition.z;
+            gl_PointSize = 220.0 / -mvPosition.z;
           }
         `}
         fragmentShader={`

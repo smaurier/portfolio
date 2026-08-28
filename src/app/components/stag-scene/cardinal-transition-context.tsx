@@ -84,16 +84,17 @@ export function CardinalTransitionProvider({ children }: { children: ReactNode }
       if (t < 1) {
         requestAnimationFrame(tick);
       } else {
-        // Navigation à la fin du burst — la nouvelle page mount et
-        // reset progress au tick suivant du nouveau SceneStage.
+        // Fade-out complète : nav vers la nouvelle page. Le body
+        // class `nahual-transitioning` reste posée pour que la
+        // nouvelle page mount avec opacity 0.15 (via CSS) et fade
+        // IN progressivement pendant les 400ms suivants — évite la
+        // coupure "old fade to black, new snap in" qui donnait
+        // l'impression de rechargement brutal.
         onComplete();
-        // Petit délai avant reset direction pour laisser la nouvelle
-        // page hydratée absorber le repos initial (l'anim de mount
-        // remplace visuellement le burst finissant).
         setTimeout(() => {
           transitionProgressRef.current = 0;
           setTransitionDirection(null);
-        }, 60);
+        }, 400);
       }
     }
     requestAnimationFrame(tick);

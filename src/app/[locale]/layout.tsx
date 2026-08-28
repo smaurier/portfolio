@@ -5,6 +5,7 @@ import Header from "../components/header";
 import LoadingVeil from "../components/stag-scene/loading-veil";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
 import PersistentScene from "../components/stag-scene/persistent-scene";
+import PetalCurtain from "../components/stag-scene/petal-curtain";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
 
@@ -93,6 +94,12 @@ export default async function LocaleLayout({
             translation={dict.lab.loadingTranslation}
             label={dict.lab.loadingLabel}
           />
+          {/* Curtain 2D fullscreen — désintégration cempasúchils
+              visible garantie pendant transition cardinale (28/08
+              retour Sylvain "je ne vois pas de désintégration").
+              Overlay screen-space z:110, impossible à rater
+              visuellement, masque la coupure re-mount contenu HTML. */}
+          <PetalCurtain />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
       </body>
