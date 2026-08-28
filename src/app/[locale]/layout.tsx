@@ -5,6 +5,7 @@ import CustomCursor from "../components/custom-cursor";
 import EasterEgg from "../components/easter-egg";
 import KeyboardNav from "../components/keyboard-nav";
 import SoundDesign from "../components/sound-design";
+import TiltCards from "../components/tilt-cards";
 import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
 import SkipNav from "../components/skip-nav";
@@ -225,6 +226,10 @@ export default async function LocaleLayout({
               naviguent entre pages dans l'ordre menu (Accueil premier,
               rotation cardinale). Trigger transitions VT comme click. */}
           <KeyboardNav />
+          {/* Hover tilt 3D micro-interaction (28/08 task #65) — sur
+              hover projectCase/serviceCard, tilt subtil perspective
+              6° selon position souris. Reset au leave. */}
+          <TiltCards />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
       </body>
