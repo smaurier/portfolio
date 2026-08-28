@@ -50,9 +50,12 @@ export default function CursorTrail() {
 
     function tick() {
       if (!ctx || !canvas) return;
-      // Fade global (destination-out) : efface progressivement le passe
+      // Fade global (destination-out) : efface progressivement le passe.
+      // 0.06 → 0.15 (28/08 retour Sylvain "trace doit s'estomper au
+      // bout de X secondes") — disparition complete en ~0.7s au lieu
+      // de ~2s. Trace subtile mais transient.
       ctx.globalCompositeOperation = "destination-out";
-      ctx.fillStyle = "rgba(0, 0, 0, 0.06)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
       // Draw ligne du prev au current en jade subtile
       if (mouseRef.current.active && prevX > -500) {

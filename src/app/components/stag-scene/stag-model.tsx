@@ -267,8 +267,12 @@ export default function StagModel({
     // sur les axes lateraux (X) et vertical (Y). Le cerf regarde donc
     // legerement decale ou est le curseur, pas juste vers la camera fixe.
     mouseWorldTargetScratch.copy(cameraWorldPos);
-    mouseWorldTargetScratch.x += mouseSmoothRef.current.x * 2.5;
-    mouseWorldTargetScratch.y -= mouseSmoothRef.current.y * 1.5;
+    // Fix 28/08 (retour Sylvain "cerf déformé") : amplitude mouse
+    // offset 2.5/1.5 → 0.8/0.5. L'ancien trop grand poussait head-
+    // look cou en extension excessive, cerf paraissait tordu au
+    // hover extreme souris.
+    mouseWorldTargetScratch.x += mouseSmoothRef.current.x * 0.8;
+    mouseWorldTargetScratch.y -= mouseSmoothRef.current.y * 0.5;
     applyHeadLook(headBone, mouseWorldTargetScratch, blend);
   });
 
