@@ -10,6 +10,7 @@ import {
   DIRECTION_COLOR_VIVID,
   type DirectionKey,
 } from "./direction-colors";
+import DirectionGlyph from "./direction-glyph";
 import styles from "./page-closure.module.css";
 
 /**
@@ -74,72 +75,6 @@ const CLOSURES: Record<DirectionKey, ClosureContent> = {
   },
 };
 
-/**
- * Micro-glyphes cardinaux SVG 24×24, tracés en stroke pour hériter de
- * la teinte via `currentColor`. Formes procédurales inspirées du Codex
- * Nahual mais simplifiées (pas de reproduction textuelle d'un glyphe
- * historique — évocation, pas citation).
- */
-function DirectionGlyph({ direction }: { direction: DirectionKey }) {
-  const common = {
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.4,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    className: styles.glyph,
-    "aria-hidden": true,
-  };
-  switch (direction) {
-    case "jade":
-      // Centre — quinconce (Nahui Ollin simplifié) : croix + 4 points.
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="1.6" fill="currentColor" />
-          <circle cx="12" cy="4" r="1.2" fill="currentColor" />
-          <circle cx="12" cy="20" r="1.2" fill="currentColor" />
-          <circle cx="4" cy="12" r="1.2" fill="currentColor" />
-          <circle cx="20" cy="12" r="1.2" fill="currentColor" />
-        </svg>
-      );
-    case "dore":
-      // Est — soleil rayonnant (Tonatiuh) : cercle + 8 rayons.
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="3.5" />
-          <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" />
-        </svg>
-      );
-    case "turquoise":
-      // Sud — Xochitl (fleur 4 pétales).
-      return (
-        <svg {...common}>
-          <path d="M12 5c-2 0-3.5 1.5-3.5 3.5S10 12 12 12s3.5-1.5 3.5-3.5S14 5 12 5z" />
-          <path d="M5 12c0-2 1.5-3.5 3.5-3.5S12 10 12 12s-1.5 3.5-3.5 3.5S5 14 5 12z" />
-          <path d="M12 19c-2 0-3.5-1.5-3.5-3.5S10 12 12 12s3.5 1.5 3.5 3.5S14 19 12 19z" />
-          <path d="M19 12c0 2-1.5 3.5-3.5 3.5S12 14 12 12s1.5-3.5 3.5-3.5S19 10 19 12z" />
-          <circle cx="12" cy="12" r="1.2" fill="currentColor" />
-        </svg>
-      );
-    case "cendre":
-      // Ouest — Iztli (silex/couteau d'obsidienne), triangle pointu.
-      return (
-        <svg {...common}>
-          <path d="M12 3l5 14H7L12 3z" />
-          <path d="M9.5 10.5h5" />
-        </svg>
-      );
-    case "obsidienne":
-      // Nord — Ollin (mouvement) : spirale.
-      return (
-        <svg {...common}>
-          <path d="M12 12m-0.5-0.5a1.5 1.5 0 0 1 2.5 1.5a3 3 0 0 1-4.5 2a5 5 0 0 1-2-6.5a7 7 0 0 1 9-2.5" />
-        </svg>
-      );
-  }
-}
-
 export default function PageClosure({
   directionKey,
   locale,
@@ -187,7 +122,7 @@ export default function PageClosure({
 
   return (
     <div ref={rootRef} className={styles.closure} style={style}>
-      <DirectionGlyph direction={directionKey} />
+      <DirectionGlyph direction={directionKey} size={22} className={styles.glyph} />
       <h2 className={styles.title}>
         {cardinalWords.map((word, i) => (
           <span key={i} className={styles.word}>

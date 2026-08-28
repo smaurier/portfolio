@@ -1,0 +1,19 @@
+.wrap {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 140;
+  pointer-events: none;
+  /* Halo autour du glyphe : lueur cardinale via drop-shadow, signature
+     "codex qui s'illumine". Le drop-shadow utilise la couleur en cours
+     (currentColor via SVG stroke), teinte cardinale portée par le
+     style inline sur wrap. */
+  filter: drop-shadow(0 0 22px currentColor);
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrap {
+    filter: none;
+  }
+}
