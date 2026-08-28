@@ -79,6 +79,11 @@ export default function StagModel({
   climaxAccentColor?: string;
 }) {
   const group = useRef<Group>(null);
+  // Wrapper dedie au breath cycle (28/08 fix majeur) — separe de
+  // group=<primitive> qui refere le scene interne deja scale par
+  // centerAndScale. Baseline 1, multiplie par breath (0.997..1.003)
+  // uniforme sans casser scene interne.
+  const breathGroupRef = useRef<Group>(null);
   const { scene, animations } = useGLTF(MODEL_PATH);
   const { actions } = useAnimations(animations, group);
   const currentClipRef = useRef<string | null>(null);
@@ -215,13 +220,17 @@ export default function StagModel({
   }, []);
 
   useFrame((state) => {
-    // Cerf breath cycle (28/08 boite outil A, re-add subtile apres
-    // retour Sylvain "ce serait bien d'essayer de le remettre").
-    // Amplitude 0.005 → 0.003, uniforme via setScalar. Sub-pixel
-    // quasi-invisible, ne deforme pas.
-    if (group.current) {
+    // Cerf breath cycle (28/08 boite outil A, FIX MAJEUR 28/08 apres
+    // retour Sylvain "cerf toujours super gros" + analyse code : mon
+    // group.current.scale.setScalar(breath) ecrivait sur scene.scale
+    // (car ref={group} etait sur <primitive> pas sur wrapper <group>)
+    // qui a un scale centerAndScale ~0.4. setScalar(1.003) → cerf 2.5x
+    // plus grand. Fix : breathGroupRef sur nouveau wrapper <group>
+    // parent qui commence baseline 1, multiplie par breath sans casser
+    // scene interne.
+    if (breathGroupRef.current) {
       const breath = 1 + Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.003;
-      group.current.scale.setScalar(breath);
+      breathGroupRef.current.scale.setScalar(breath);
     }
     // Registrée après les useFrame ci-dessus (mixer d'animation via
     // useAnimations, puis rim-light) : dans la boucle de rendu par défaut de
@@ -277,7 +286,12 @@ export default function StagModel({
 
   return (
     <group>
-      <primitive ref={group} object={scene} />
+      {/* Wrapper breath cycle (fix 28/08) — reference l'os scale
+          separement de scene interne. Group parent breathGroupRef
+          scaled uniforme 0.997..1.003, primitive interne inchange. */}
+      <group ref={breathGroupRef}>
+        <primitive ref={group} object={scene} />
+      </group>
       {/* Halo diffus (26/08) — parenthèse dans le même repère que la
         * scène (déjà normalisée par centerAndScale), donc positionné en
         * dur au niveau du volume du cerf. climaxRimColor fallback jade
