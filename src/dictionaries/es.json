@@ -119,6 +119,38 @@
       {
         "title": "La intro que se disolvía",
         "text": "La Piedra del Sol y el texto se disolvían en una nube de brasas antes de revelar la escena. Una técnica vectorial real (muestreo de unos 250 trazados SVG), pero el efecto no servía a la historia. Retirada al día siguiente de su lanzamiento."
+      },
+      {
+        "title": "Los glifos del calendario",
+        "text": "Cinco glifos híbridos — Nahui Ollin para el Centro, Tonatiuh para el Este, Xochitl para el Sur, Iztli para el Oeste, Ollin para el Norte — dibujados para animar las transiciones cardinales. Técnicamente logrados, pero su fidelidad al códice los hacía sagrados. Retirados sin remordimientos, por respeto."
+      },
+      {
+        "title": "La cortina de pétalos 2D",
+        "text": "Primer intento de transición entre páginas: 1800 elipses sólidas en mix-blend screen atravesando la pantalla como confeti. Rápido de programar, cheap de mirar. Sustituido por la View Transitions API nativa, más elegante."
+      },
+      {
+        "title": "La cuchilla de corte",
+        "text": "Un overlay HTML que cortaba la pantalla en tiras horizontales y las deslizaba en la dirección cardinal, como un origami desplegándose. Demasiado mecánico, demasiado legible como efecto, no lo bastante orgánico para la cosmología del sitio."
+      },
+      {
+        "title": "La tormenta de pétalos 3D",
+        "text": "Una lluvia de partículas Three.js expulsadas del ciervo durante la transición. Señal fuerte pero lectura confusa: no había punto focal claro. Duplicaba la dispersión de los pétalos existentes. Retirada cuando la View Transitions API tomó el relevo."
+      },
+      {
+        "title": "El fundido brutal",
+        "text": "Primera iteración de las transiciones: router.push sin burst, corte seco del canvas WebGL, página siguiente apareciendo al instante. Correcto técnicamente, desastroso narrativamente. El ciervo se teletransportaba entre los mundos en lugar de atravesarlos."
+      },
+      {
+        "title": "El cursor pegajoso",
+        "text": "Primer intento del cursor custom: lerp 0.02, un anillo que tardaba dos segundos en alcanzar al ratón. Sensación «chicle». Corregido a 0.15 para dejar respirar la estela sin pegarla."
+      },
+      {
+        "title": "La llama jade axial",
+        "text": "Primera Xiuhtecuhtli del Centro: una columna de fuego de tres metros atravesando al ciervo. Firma fuerte, pero cegaba la lectura del sujeto. Reducida a modestos embers que suben en círculo en lugar de un eje único dominante."
+      },
+      {
+        "title": "Los god-rays fotorrealistas",
+        "text": "Primer Tonatiuh del Este: shader post-processing GodRaysEffect con muestreo volumétrico completo. Espléndido a 60fps en GPU dedicada, catastrófico en móvil (30fps). Reemplazado por planos triangulares aditivos, mesh-based, gratis en render."
       }
     ],
     "creditNote": "Los motivos cardinales del sitio (sol, flor, pedernal, espiral, quincunce) son evocaciones estilizadas inspiradas en la iconografía mesoamericana, no reproducciones de glifos sagrados. Homenaje familiar a la cultura náhuatl viva, para Elda y nuestras hijas."

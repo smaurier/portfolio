@@ -119,6 +119,38 @@
       {
         "title": "L'intro qui se dissolvait",
         "text": "La Piedra del Sol et le texte se dissolvaient en un nuage de braises avant de révéler la scène. Une vraie technique vectorielle (échantillonnage d'environ 250 tracés SVG), mais l'effet ne servait pas l'histoire. Retirée le lendemain de sa mise en ligne."
+      },
+      {
+        "title": "Les glyphes calendaires",
+        "text": "Cinq glyphes hybrides — Nahui Ollin pour le Centre, Tonatiuh pour l'Est, Xochitl pour le Sud, Iztli pour l'Ouest, Ollin pour le Nord — dessinés pour animer les transitions cardinales. Techniquement réussis, mais leur fidélité au codex les rendait sacrés. Retirés sans regret, par respect."
+      },
+      {
+        "title": "Le rideau de pétales 2D",
+        "text": "Première tentative de transition inter-page : 1800 ellipses solides en mix-blend screen qui traversaient l'écran comme des confettis. Rapide à coder, cheap à regarder. Remplacé par la View Transitions API native, plus élégante."
+      },
+      {
+        "title": "La lame de découpe",
+        "text": "Un overlay HTML qui découpait l'écran en tranches horizontales et les faisait glisser dans la direction cardinale, comme un origami qui se déplie. Trop mécanique, trop lisible comme effet, pas assez organique pour la cosmologie du site."
+      },
+      {
+        "title": "La tempête de pétales 3D",
+        "text": "Une pluie de particules Three.js éjectées du cerf pendant la transition. Signal fort mais lecture confuse : on ne savait plus où regarder. Doublonnait la dispersion des pétales existants. Retirée quand la View Transitions API a pris le relais."
+      },
+      {
+        "title": "Le fondu brutal",
+        "text": "Toute première itération des transitions : router.push sans burst, coupure sec du canvas WebGL, page suivante qui apparaît instantanée. Correct techniquement, désastreux narrativement. Le cerf téléportait entre les mondes au lieu de les traverser."
+      },
+      {
+        "title": "Le curseur ventouse",
+        "text": "Premier essai du curseur custom : lerp 0.02, un ring qui mettait deux secondes à rattraper la souris. Sensation « chewing-gum ». Corrigé à 0.15 pour laisser respirer la trainée sans la coller."
+      },
+      {
+        "title": "La flamme jade axiale",
+        "text": "Première Xiuhtecuhtli du Centre : une colonne de feu de trois mètres qui traversait le cerf. Signature forte, mais elle aveuglait la lecture du sujet. Réduite à des embers modestes qui montent en cercle plutôt qu'à un axe unique dominant."
+      },
+      {
+        "title": "Les god-rays photoréalistes",
+        "text": "Premier Tonatiuh de l'Est : shader post-processing GodRaysEffect avec sampling volumétrique complet. Superbe à 60fps sur GPU dédié, catastrophique sur mobile (30fps). Remplacé par des planes triangulaires additifs, mesh-based, gratuit à l'affichage."
       }
     ],
     "creditNote": "Les motifs cardinaux du site (soleil, fleur, silex, spirale, quinconce) sont des évocations stylisées inspirées de l'iconographie mésoaméricaine, pas des reproductions de glyphes sacrés. Hommage familial à la culture nahua vivante, pour Elda et nos filles."

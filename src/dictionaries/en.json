@@ -119,6 +119,38 @@
       {
         "title": "The intro that dissolved",
         "text": "The Piedra del Sol and the text dissolved into a cloud of embers before revealing the scene. A real vector technique (sampling around 250 SVG paths), but the effect didn't serve the story. Removed the day after it shipped."
+      },
+      {
+        "title": "The calendar glyphs",
+        "text": "Five hybrid glyphs — Nahui Ollin for Center, Tonatiuh for East, Xochitl for South, Iztli for West, Ollin for North — drawn to animate cardinal transitions. Technically successful, but their codex fidelity made them sacred. Removed without regret, out of respect."
+      },
+      {
+        "title": "The 2D petal curtain",
+        "text": "First attempt at inter-page transition: 1800 solid ellipses in mix-blend screen crossing the screen like confetti. Fast to code, cheap to watch. Replaced by native View Transitions API, more elegant."
+      },
+      {
+        "title": "The slicing blade",
+        "text": "An HTML overlay that cut the screen into horizontal slices and slid them in the cardinal direction, like unfolding origami. Too mechanical, too readable as an effect, not organic enough for the site's cosmology."
+      },
+      {
+        "title": "The 3D petal storm",
+        "text": "A rain of Three.js particles ejected from the stag during transition. Strong signal but confused reading: no clear focal point. Duplicated the existing petals' dispersion. Removed when View Transitions API took over."
+      },
+      {
+        "title": "The brutal fade",
+        "text": "First iteration of transitions: router.push without burst, sharp WebGL canvas cut, next page appearing instantly. Technically correct, narratively disastrous. The stag teleported between worlds instead of crossing them."
+      },
+      {
+        "title": "The sticky cursor",
+        "text": "First custom cursor attempt: lerp 0.02, a ring that took two seconds to catch up with the mouse. \"Chewing gum\" feel. Fixed to 0.15 to let the trail breathe without gluing it."
+      },
+      {
+        "title": "The axial jade flame",
+        "text": "First Center Xiuhtecuhtli: a three-meter fire column crossing the stag. Strong signature, but it blinded the subject. Reduced to modest embers rising in a circle rather than a single dominant axis."
+      },
+      {
+        "title": "The photorealistic god-rays",
+        "text": "First East Tonatiuh: GodRaysEffect post-processing shader with full volumetric sampling. Gorgeous at 60fps on dedicated GPU, catastrophic on mobile (30fps). Replaced with additive triangular planes, mesh-based, free to render."
       }
     ],
     "creditNote": "The cardinal motifs on this site (sun, flower, blade, spiral, quincunx) are stylized evocations inspired by Mesoamerican iconography, not reproductions of sacred glyphs. A family tribute to the living Nahua culture, for Elda and our daughters."
