@@ -95,15 +95,29 @@
 
 @media (max-width: 767px) {
   .compass {
-    bottom: 6rem;
+    /* Mobile (28/08 retour Sylvain "boussole + bouton audio pas
+       visibles mobile") : remonte + bg dense + border visible, meme
+       en dark. Aligne verticalement avec sound button gauche
+       (bottom 1.2rem = meme baseline). */
+    bottom: 1.2rem;
     right: 1rem;
-    width: 60px;
-    height: 60px;
-    padding: 6px;
+    width: 64px;
+    height: 64px;
+    padding: 8px;
+    background: rgba(15, 12, 22, 0.75);
+    border: 1px solid rgba(0, 192, 120, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 1;
   }
-  .dot[data-active="true"]::before {
+  .dot::before {
     width: 8px;
     height: 8px;
+    background: rgba(244, 234, 213, 0.5);
+  }
+  .dot[data-active="true"]::before {
+    width: 11px;
+    height: 11px;
   }
 }
 

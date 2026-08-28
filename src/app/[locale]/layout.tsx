@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
     },
     icons: {
-      icon: [{ url: "/img/logo.svg", type: "image/svg+xml" }],
+      icon: [{ url: "/img/mini-logo.svg", type: "image/svg+xml" }],
     },
     category: "portfolio",
   };
@@ -136,7 +136,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <head>
-        <link rel="icon" href="/img/logo.svg" type="image/svg+xml" />
+        <link rel="icon" href="/img/mini-logo.svg" type="image/svg+xml" />
         {/* JSON-LD structuré (28/08) — Person + WebSite + ProfessionalService.
             Injecté dans <head> plutôt que <body> pour être détecté par les
             crawlers dès le premier byte. Un script par entité (schema.org

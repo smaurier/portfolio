@@ -11,3 +11,5 @@ export const AUTHOR_NAME = "Sylvain Maurier";
 export const AUTHOR_EMAIL = "bonjour@nahual.fr";
 export const AUTHOR_LINKEDIN = "https://www.linkedin.com/in/sylvain-maurier/";
 export const AUTHOR_GITHUB = "https://github.com/smaurier";
+
+export const FAVICON_PATH = "/img/mini-logo.svg";
