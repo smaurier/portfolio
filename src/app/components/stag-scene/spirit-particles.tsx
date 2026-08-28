@@ -7,10 +7,12 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
+  Vector3,
   type Points,
   type ShaderMaterial,
 } from "three";
 import { getRimColorBlend } from "@/lib/reveal-arc";
+import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
 
 /**
  * Pétales de cempasúchil qui accompagnent le cerf (26/08, Phase 3
@@ -110,9 +112,17 @@ export default function SpiritParticles({
         uAccentColor: { value: new Color(climaxAccentColor) },
         uIntensity: { value: 0 },
         uTime: { value: 0 },
+        // Force cardinale du vent (28/08, signature Ehecatl dieu du
+        // vent). En repos : (0,0,0) = pas de vent. Pendant burst
+        // transition : cardinal vector × amplitude bell curve, les
+        // pétales sont poussées dans la direction cible.
+        uCardinalWind: { value: new Vector3(0, 0, 0) },
       },
     };
   }, [climaxRimColor, climaxAccentColor]);
+
+  const transition = useCardinalTransition();
+  const windScratch = useMemo(() => new Vector3(), []);
 
   useFrame((state) => {
     if (!materialRef.current) return;
@@ -123,6 +133,21 @@ export default function SpiritParticles({
     const pulse = 0.65 + 0.35 * Math.pow(Math.sin(state.clock.elapsedTime * Math.PI * 0.25), 4);
     uniforms.uIntensity.value = blend * pulse;
     uniforms.uTime.value = state.clock.elapsedTime;
+
+    // Vent cardinal Ehecatl pendant burst transition — pousse les
+    // pétales dans la direction cible. Bell curve sur le progress
+    // (0→1→0), amplitude ~2.5 unités monde par frame ≈ dérive nette
+    // sur 500ms sans jamais sortir violemment.
+    if (transition?.transitionDirection && transition.transitionProgressRef.current > 0) {
+      const t = transition.transitionProgressRef.current;
+      const bell = Math.sin(t * Math.PI);
+      const amp = bell * 2.5;
+      const vec = CARDINAL_VECTORS[transition.transitionDirection];
+      windScratch.set(vec[0] * amp, vec[1] * amp, vec[2] * amp);
+      uniforms.uCardinalWind.value.copy(windScratch);
+    } else if (uniforms.uCardinalWind.value.lengthSq() > 0.0001) {
+      uniforms.uCardinalWind.value.set(0, 0, 0);
+    }
   });
 
   return (
@@ -138,6 +163,7 @@ export default function SpiritParticles({
           attribute float aLifespan;
           attribute float aAccent;
           uniform float uTime;
+          uniform vec3 uCardinalWind;
           varying float vAlpha;
           varying float vRotation;
           varying float vAccent;
@@ -172,6 +198,13 @@ export default function SpiritParticles({
             // Montée légère (les pétales tombent lentement vers le
             // haut, comme aspirés — signal "esprit qui s'élève").
             pos.y += t * 0.6;
+            // Vent cardinal Ehecatl (28/08) — pendant le burst de
+            // transition, uCardinalWind pousse toutes les pétales
+            // dans la direction cible. Multiplié par une phase
+            // continue par pétale (aSeed) pour que la réponse ne soit
+            // pas plaquée uniforme : certaines pétales sont plus vite
+            // emportées que d'autres, comme dans un vrai souffle.
+            pos += uCardinalWind * (0.6 + 0.8 * aSeed);
 
             // Fade in-out sur la lifespan : rampe rapide au début
             // (0→0.15 de la vie), plateau, rampe descendante en fin

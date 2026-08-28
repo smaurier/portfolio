@@ -399,6 +399,29 @@ body.nahual-lab-reveal main {
 body.nahual-transitioning main {
   opacity: 0.15;
   pointer-events: none;
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Slide léger du content HTML dans la direction cardinale cible pendant
+   le burst (28/08). Amplitude 40px : subtile, signature "codex qui
+   glisse vers la nouvelle direction" sans nausée ni perte de repère.
+   Convention data-transition-direction posée par le Provider. */
+body.nahual-transitioning[data-transition-direction="dore"] main {
+  transform: translateX(40px);
+}
+body.nahual-transitioning[data-transition-direction="turquoise"] main {
+  transform: translateY(40px);
+}
+body.nahual-transitioning[data-transition-direction="cendre"] main {
+  transform: translateX(-40px);
+}
+body.nahual-transitioning[data-transition-direction="obsidienne"] main {
+  transform: translateY(-40px);
+}
+body.nahual-transitioning[data-transition-direction="jade"] main {
+  transform: scale(0.98);
 }
 
 @media (prefers-reduced-motion: reduce) {

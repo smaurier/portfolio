@@ -50,13 +50,20 @@ export function CardinalTransitionProvider({ children }: { children: ReactNode }
 
   // Classe body pendant la transition — le CSS lit
   // `body.nahual-transitioning` pour fader main content, appliquer
-  // pointer-events:none temporaire, etc.
+  // pointer-events:none temporaire, etc. `data-transition-direction`
+  // sert au CSS pour orienter le slide translate cardinal du content.
   useEffect(() => {
     if (typeof document === "undefined") return;
     const active = transitionDirection !== null;
     document.body.classList.toggle("nahual-transitioning", active);
+    if (active && transitionDirection) {
+      document.body.setAttribute("data-transition-direction", transitionDirection);
+    } else {
+      document.body.removeAttribute("data-transition-direction");
+    }
     return () => {
       document.body.classList.remove("nahual-transitioning");
+      document.body.removeAttribute("data-transition-direction");
     };
   }, [transitionDirection]);
 
