@@ -1,19 +1,78 @@
+/*
+ * Glyphe cardinal burst — 3 canaux d'expression (28/08 amélioration
+ * "devrait plus exploser") :
+ *   A — Glyphe central : scale spring bounce 0.6→1.28→1 + trace SVG
+ *   B — Halo bloom : radial gradient qui explose 0.4→3.5 en volume
+ *   C — Radial rings : 3 anneaux concentriques stagger scale+fade
+ *
+ * Chaque canal a son propre transform/opacity contrôlé par
+ * cardinal-glyph-burst.tsx via inline styles (progress driven rAF).
+ * Pas de @keyframes CSS : la sync avec le burst 500ms doit rester
+ * pilotée par le progressRef partagé avec la scène 3D pour rester
+ * cohérente avec cerf head-look / camera dérive / content slide.
+ */
+
 .wrap {
   position: fixed;
   top: 50%;
   left: 50%;
   z-index: 140;
   pointer-events: none;
-  /* Halo autour du glyphe : lueur cardinale via drop-shadow, signature
-     "codex qui s'illumine". Le drop-shadow utilise la couleur en cours
-     (currentColor via SVG stroke), teinte cardinale portée par le
-     style inline sur wrap. */
-  filter: drop-shadow(0 0 22px currentColor);
+  width: 0;
+  height: 0;
+  /* color hérité inline par direction (currentColor sur SVG stroke) */
+}
+
+/* Halo bloom — radial gradient plein pot */
+.halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(24px);
+  will-change: opacity, transform;
+  transform-origin: center center;
+}
+
+/* Radial rings SVG conteneur */
+.rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 460px;
+  height: 460px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: visible;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+.rings circle {
+  transform-origin: 100px 100px;
+  transform-box: view-box;
+}
+
+/* Glyphe central */
+.glyphSlot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+  /* Drop-shadow multi-layer pour bloom marqué (retour Sylvain :
+     "plus exploser") : couche proche + couche lointaine énorme. */
+  filter:
+    drop-shadow(0 0 12px currentColor)
+    drop-shadow(0 0 34px currentColor);
   will-change: opacity, transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wrap {
+  .halo,
+  .rings,
+  .glyphSlot {
     filter: none;
   }
 }
