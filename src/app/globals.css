@@ -707,6 +707,20 @@ body.nahual-lab-reveal .serviceCard {
   }
 }
 
+/* Dark mode (28/08 retour Sylvain "fond transparent en dark mode,
+   inner shadow a rendre transparent aussi") : les .serviceCard
+   perdent leur bg gradient dense + blur → flottent nues sur canvas
+   3D noir. Cohérent avec compass dark transparent. Signature "moins
+   d'UI, plus de scène". */
+@media (prefers-color-scheme: dark) {
+  body.nahual-lab-reveal .serviceCard {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+  }
+}
+
 /* Frise codex 1px en top+bottom — pattern répétitif points cardinaux,
    opacity 35% (retour Sylvain "trop marqué"). Seule signature codex
    nahua restante côté HTML — porte l'identité manuscrit sans peser. */
