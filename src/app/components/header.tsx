@@ -95,15 +95,17 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
           <Image src="/img/mini-logo.svg" alt="" width={32} height={32} />
           <span className="logoText">Nahual</span>
         </CardinalLink>
-        {/* Ordre cardinal (28/08 task #59) : Accueil oblige en premier
-            (convention traditionnelle nav), puis rotation cardinale
-            Est→Sud→Ouest→Nord→Centre (soleil qui monte, midi,
-            crepuscule, nuit, feu axial). Chaque item = une direction
-            cardinale du Codex Nahual. */}
+        {/* Ordre narratif 28/08 retour Sylvain : Accueil → Mémoire
+            (racines, ce qui a été gardé) → Services (offre) → Projets
+            (preuves) → Contact (canal). Codex retiré du menu principal
+            (accessible via footer). */}
         <nav>
           <ul>
             <li>
               <CardinalLink href={`/${locale}`}>{dict.nav.home}</CardinalLink>
+            </li>
+            <li>
+              <CardinalLink href={getPath(locale, "memoire")}>{dict.nav.memoire}</CardinalLink>
             </li>
             <li>
               <CardinalLink href={getPath(locale, "services")}>{dict.nav.services}</CardinalLink>
@@ -113,12 +115,6 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
             </li>
             <li>
               <CardinalLink href={getPath(locale, "contact")}>{dict.nav.contact}</CardinalLink>
-            </li>
-            <li>
-              <CardinalLink href={getPath(locale, "memoire")}>{dict.nav.memoire}</CardinalLink>
-            </li>
-            <li>
-              <CardinalLink href={getPath(locale, "codex")}>{dict.nav.codex}</CardinalLink>
             </li>
           </ul>
         </nav>
@@ -149,6 +145,9 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
                 <CardinalLink href={`/${locale}`} onClick={close}>{dict.nav.home}</CardinalLink>
               </li>
               <li>
+                <CardinalLink href={getPath(locale, "memoire")} onClick={close}>{dict.nav.memoire}</CardinalLink>
+              </li>
+              <li>
                 <CardinalLink href={getPath(locale, "services")} onClick={close}>{dict.nav.services}</CardinalLink>
               </li>
               <li>
@@ -156,12 +155,6 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
               </li>
               <li>
                 <CardinalLink href={getPath(locale, "contact")} onClick={close}>{dict.nav.contact}</CardinalLink>
-              </li>
-              <li>
-                <CardinalLink href={getPath(locale, "memoire")} onClick={close}>{dict.nav.memoire}</CardinalLink>
-              </li>
-              <li>
-                <CardinalLink href={getPath(locale, "codex")} onClick={close}>{dict.nav.codex}</CardinalLink>
               </li>
             </ul>
           </nav>
