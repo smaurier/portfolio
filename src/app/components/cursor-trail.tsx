@@ -54,18 +54,17 @@ export default function CursorTrail() {
       if (!ctx || !canvas) return;
       const now = performance.now();
       const idleMs = now - lastMoveT;
-      // Fade rate adaptatif : 2% par frame si mouse active/recente
-      // (persistance 6-7s), monte a 10% si idle > 1s (disparition
-      // rapide 0.5s pour purge visuelle). Retour Sylvain "ligne ne
-      // s'en va jamais".
-      const fadeAlpha = idleMs > 1000 ? 0.1 : 0.02;
+      // Fade rate progressif continu (retour Sylvain "baisser l'opacité
+      // au max progressivement puis detruire, pas d'un coup") :
+      // interpolation smoothstep entre 500ms (fade 2%) et 4000ms
+      // (fade 12%). Pas de clearRect brutal — le fade converge
+      // naturellement vers 0 sans coupure visible.
+      const rampProgress = Math.min(1, Math.max(0, (idleMs - 500) / 3500));
+      const smooth = rampProgress * rampProgress * (3 - 2 * rampProgress);
+      const fadeAlpha = 0.02 + smooth * 0.10;
       ctx.globalCompositeOperation = "destination-out";
       ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-      // Full clear apres 3s d'inactivite mouse (garantie disparition).
-      if (idleMs > 3000) {
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      }
       // Draw ligne du prev au current seulement si mouse a bouge
       // recemment (< 500ms) — evite dessiner segment 0-length inutile.
       if (mouseRef.current.active && prevX > -500 && idleMs < 500) {
