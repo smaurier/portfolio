@@ -214,15 +214,11 @@ export default function StagModel({
     return () => window.removeEventListener("pointermove", onMove);
   }, []);
 
-  useFrame((state) => {
-    // Cerf breath cycle (28/08 boite outil A, fix 28/08 : scale
-    // uniforme via setScalar au lieu de scale.y seul qui deformait
-    // asymetriquement). Sub-pixel breathing periode 4s amplitude
-    // 0.005 sur le group entier. Signature "vivant" quasi-imperceptible.
-    if (group.current) {
-      const breath = 1 + Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.005;
-      group.current.scale.setScalar(breath);
-    }
+  useFrame(() => {
+    // Cerf breath cycle retire 28/08 (retour Sylvain "cerf toujours
+    // deforme"). Meme setScalar uniforme causait perception vibratoire
+    // combinee au rim light + PostFX. Le cerf reste fige, sa vie
+    // passe par head-look camera + rim pulse breath uniforme.
     // Registrée après les useFrame ci-dessus (mixer d'animation via
     // useAnimations, puis rim-light) : dans la boucle de rendu par défaut de
     // R3F, les callbacks de même priorité s'exécutent dans l'ordre
