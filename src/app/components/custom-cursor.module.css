@@ -69,3 +69,22 @@
   height: 52px;
   opacity: 0.85;
 }
+
+/* État pressed (pointerdown) : ring se resserre vers dot, dot pulse
+   plus vif. Signature "click acknowledgment" (28/08 retour Sylvain
+   "resserer le rayon du cercle indicateur au clic"). */
+.cursor[data-pressed="true"] .ring {
+  width: 22px;
+  height: 22px;
+  opacity: 1;
+}
+.cursor[data-pressed="true"] .dot {
+  width: 12px;
+  height: 12px;
+}
+/* Combine hover + pressed : ring encore plus resserre autour du dot
+   quand click sur un CTA aimante — feedback "accroche" complete. */
+.cursor[data-hover="true"][data-pressed="true"] .ring {
+  width: 26px;
+  height: 26px;
+}

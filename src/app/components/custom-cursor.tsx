@@ -106,9 +106,19 @@ export default function CustomCursor() {
       }
     }
 
+    function onPointerDown() {
+      cursorRef.current?.setAttribute("data-pressed", "true");
+    }
+    function onPointerUp() {
+      cursorRef.current?.setAttribute("data-pressed", "false");
+    }
+
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     document.addEventListener("pointerover", onPointerOver, { passive: true });
     document.addEventListener("pointerout", onPointerOut, { passive: true });
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("pointerup", onPointerUp, { passive: true });
+    window.addEventListener("pointercancel", onPointerUp, { passive: true });
 
     let rafId = 0;
     function tick() {
@@ -145,6 +155,9 @@ export default function CustomCursor() {
       window.removeEventListener("pointermove", onPointerMove);
       document.removeEventListener("pointerover", onPointerOver);
       document.removeEventListener("pointerout", onPointerOut);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
       cancelAnimationFrame(rafId);
       document.body.classList.remove("nahual-custom-cursor");
       activeRef.current = false;
