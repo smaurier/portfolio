@@ -16,6 +16,7 @@ import { applyHeadLook } from "./head-look";
 import { applyRimLight, setBodyTintAmount, setEdgeIntensity, setEdgePulse, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 import StagAura from "./stag-aura";
 import SpiritParticles from "./spirit-particles";
+import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
 
 // Nom de l'os tête dans le rig Quaternius (GLB inspecté le 21/08, cf memory
 // project-nahual-da : chaîne Neck1→Neck2→Neck3→Head→Stag_Horns/Head_end).
@@ -192,6 +193,11 @@ export default function StagModel({
     setEdgePulse(rimUniforms, pulse);
   });
 
+  const transition = useCardinalTransition();
+  // Scratch pour cible cardinale pendant la transition "cerf mène"
+  // (28/08). Évite un new Vector3 par frame.
+  const cardinalTargetScratch = useMemo(() => new Vector3(), []);
+
   useFrame(() => {
     // Registrée après les useFrame ci-dessus (mixer d'animation via
     // useAnimations, puis rim-light) : dans la boucle de rendu par défaut de
@@ -199,6 +205,31 @@ export default function StagModel({
     // d'inscription — la pose de l'os Head posée par le mixer ce tick est
     // donc déjà à jour quand applyHeadLook la lit.
     if (!headBone) return;
+
+    // Signature "cerf mène" (28/08) : pendant la fenêtre de transition
+    // cardinale (500ms), la tête du cerf pivote vers un vecteur cardinal
+    // au lieu de la caméra. Le blend est un ease-out sur les 500ms +
+    // un plafond adaptatif (au-delà de MAX_HEAD_TURN_BLEND 0.4 par
+    // moment court, jamais au-delà de 0.7 pour éviter le cou en
+    // extension complète documenté 21/08).
+    if (transition?.transitionDirection && transition.transitionProgressRef.current > 0) {
+      const t = transition.transitionProgressRef.current; // 0→1 sur 500ms
+      // Bell curve : monte 0→0.55 sur première moitié, reste au plafond
+      // puis relâche à la toute fin — pointe la direction au plus fort
+      // au milieu du burst, pas juste à la sortie.
+      const bell = Math.sin(t * Math.PI); // 0→1→0
+      const blend = Math.min(0.55, bell * 0.55);
+      if (blend > 0.01) {
+        const vec = CARDINAL_VECTORS[transition.transitionDirection];
+        // Point cardinal éloigné dans la direction, hauteur légèrement
+        // relevée pour que le cou reste dans un angle naturel.
+        cardinalTargetScratch.set(vec[0] * 8, 1.5 + vec[1] * 4, vec[2] * 8);
+        applyHeadLook(headBone, cardinalTargetScratch, blend);
+        return;
+      }
+    }
+
+    // Cas normal : cible = caméra, blend selon getHeadTurnAmount.
     const blend = getHeadTurnAmount(progressRef.current) * MAX_HEAD_TURN_BLEND;
     if (blend <= 0) return;
     camera.getWorldPosition(cameraWorldPos);

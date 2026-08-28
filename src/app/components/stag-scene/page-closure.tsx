@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, type CSSProperties, type MutableRefObject } from "react";
+import CardinalLink from "./cardinal-link";
 import { getNavEmphasis } from "@/lib/reveal-arc";
 import { getPath, type PageKey } from "@/lib/routes";
 import type { Locale } from "../../../dictionaries";
@@ -197,12 +197,12 @@ export default function PageClosure({
       </h2>
       <div className={styles.underline} />
       <p className={styles.poetic}>{closure.poetic}</p>
-      <Link href={nextHref} className={styles.cta}>
+      <CardinalLink href={nextHref} className={styles.cta}>
         {closure.nextLabel}
         <span className={styles.arrow} aria-hidden>
           {closure.nextKey ? "→" : "↺"}
         </span>
-      </Link>
+      </CardinalLink>
     </div>
   );
 }

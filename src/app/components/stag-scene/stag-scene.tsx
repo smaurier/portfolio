@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { getIntroOpacity, getNavEmphasis } from "@/lib/reveal-arc";
+import CardinalLink from "./cardinal-link";
 import FadingBlock from "./fading-block";
 import SceneContent from "./scene-content";
 import SceneStage from "./scene-stage";
@@ -59,9 +59,9 @@ export default function StagScene({
             <h1>{home.heroTitle}</h1>
             <p>{home.heroText}</p>
             <div className={overlayStyles.links}>
-              <Link href={servicesHref} className={overlayStyles.cta}>
+              <CardinalLink href={servicesHref} className={overlayStyles.cta}>
                 {home.heroCta}
-              </Link>
+              </CardinalLink>
             </div>
           </FadingBlock>
           <FadingBlock
@@ -73,9 +73,9 @@ export default function StagScene({
             <h2>{home.aboutTitle}</h2>
             <p>{home.aboutText}</p>
             <div className={overlayStyles.links}>
-              <Link href={contactHref} className={overlayStyles.cta}>
+              <CardinalLink href={contactHref} className={overlayStyles.cta}>
                 {home.contactCta}
-              </Link>
+              </CardinalLink>
               <a
                 href="https://github.com/smaurier"
                 target="_blank"

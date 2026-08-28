@@ -388,6 +388,25 @@ body.nahual-lab-reveal main {
   gap: 32px;
   position: relative;
   isolation: isolate;
+  /* Fade rapide pendant la transition cardinale "cerf mène" (28/08) —
+     opacity 1→0.15 sur 500ms cubic-bezier. Combiné au cerf qui pivote
+     tête et à la caméra qui dérive vers direction cardinale, le
+     content HTML s'estompe pour laisser la scène 3D porter la
+     transition. Retour à 1 après remount de la nouvelle page. */
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.nahual-transitioning main {
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.nahual-lab-reveal main,
+  body.nahual-transitioning main {
+    transition: none;
+    opacity: 1;
+  }
 }
 
 /* Grain film organique (27/08 Codex S2) — SVG turbulence en data-uri

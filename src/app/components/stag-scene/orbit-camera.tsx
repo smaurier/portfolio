@@ -3,6 +3,7 @@
 import { useEffect, useRef, type MutableRefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { getOrbitCameraPosition, getOrbitCameraTarget } from "@/lib/camera-path";
+import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
 
 /**
  * Applique à chaque frame la trajectoire pure de src/lib/camera-path.ts.
@@ -38,6 +39,7 @@ export default function OrbitCamera({
   const mouseTargetRef = useRef({ x: 0, y: 0 });
   const mouseSmoothRef = useRef({ x: 0, y: 0 });
   const reducedMotionRef = useRef(false);
+  const transition = useCardinalTransition();
 
   useEffect(() => {
     reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -67,7 +69,30 @@ export default function OrbitCamera({
     const parallaxX = reducedMotionRef.current ? 0 : mouseSmoothRef.current.x * PARALLAX_X;
     const parallaxY = reducedMotionRef.current ? 0 : -mouseSmoothRef.current.y * PARALLAX_Y;
 
-    camera.position.set(position.x + parallaxX, position.y + parallaxY, position.z);
+    // Burst cardinal "cerf mène" (28/08) — pendant la fenêtre de
+    // transition (500ms), la caméra dérive doucement dans la
+    // direction cible en plus de sa position d'orbite normale. Bell
+    // curve sur le progress transition, amplitude ~0.6 unité monde
+    // (subtile). Combiné au head-look cerf : les 2 tirent le regard
+    // vers la nouvelle direction avant le mount de la nouvelle page.
+    let burstX = 0;
+    let burstY = 0;
+    let burstZ = 0;
+    if (transition?.transitionDirection && transition.transitionProgressRef.current > 0) {
+      const t = transition.transitionProgressRef.current;
+      const bell = Math.sin(t * Math.PI); // 0→1→0
+      const amp = bell * 0.6;
+      const vec = CARDINAL_VECTORS[transition.transitionDirection];
+      burstX = vec[0] * amp;
+      burstY = vec[1] * amp;
+      burstZ = vec[2] * amp;
+    }
+
+    camera.position.set(
+      position.x + parallaxX + burstX,
+      position.y + parallaxY + burstY,
+      position.z + burstZ,
+    );
     camera.lookAt(target.x, target.y, target.z);
   });
 

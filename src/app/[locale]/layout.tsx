@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import "../globals.css";
 import Header from "../components/header";
 import LoadingVeil from "../components/stag-scene/loading-veil";
+import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
 
 const geistSans = localFont({
@@ -56,25 +57,34 @@ export default async function LocaleLayout({
           l'hydratation (texte sombre invisible sur canvas noir avant que
           l'effet client réapplique le scope). */}
       <body className={`${geistSans.variable} ${geistMono.variable} nahual-lab-reveal`}>
-        <Header locale={locale} dict={dict.common} />
-        {children}
-        <footer className="siteFooter">
-          © {new Date().getFullYear()} NAHUAL Studio
-        </footer>
-        {/* LoadingVeil monté ici (une seule instance par session)
-            plutôt que dans SceneStage (une par mount de page) depuis
-            le 25/08 : retour Sylvain "on ne doit pas avoir l'écran
-            de chargement à chaque changement de page. L'écran doit
-            charger toutes les ressources pour ensuite avoir une
-            navigation super fluide". Layout persiste entre les
-            navigations SPA — LoadingVeil s'auto-démonte après le
-            premier fondu (setMounted(false)) et ne remonte plus
-            jamais tant que l'utilisateur ne reload pas. */}
-        <LoadingVeil
-          phrase={dict.lab.loadingPhrase}
-          translation={dict.lab.loadingTranslation}
-          label={dict.lab.loadingLabel}
-        />
+        {/* Provider transition cardinale "cerf mène" (28/08) — expose
+            transitionDirection + progressRef aux consommateurs scène
+            3D (StagModel head-look override, OrbitCamera burst
+            orbit) et l'API startTransition à CardinalLink. Persiste
+            au niveau layout (survit aux navigations SPA), sinon la
+            transition serait cassée par le mount de la nouvelle page
+            avant que le burst finisse. */}
+        <CardinalTransitionProvider>
+          <Header locale={locale} dict={dict.common} />
+          {children}
+          <footer className="siteFooter">
+            © {new Date().getFullYear()} NAHUAL Studio
+          </footer>
+          {/* LoadingVeil monté ici (une seule instance par session)
+              plutôt que dans SceneStage (une par mount de page) depuis
+              le 25/08 : retour Sylvain "on ne doit pas avoir l'écran
+              de chargement à chaque changement de page. L'écran doit
+              charger toutes les ressources pour ensuite avoir une
+              navigation super fluide". Layout persiste entre les
+              navigations SPA — LoadingVeil s'auto-démonte après le
+              premier fondu (setMounted(false)) et ne remonte plus
+              jamais tant que l'utilisateur ne reload pas. */}
+          <LoadingVeil
+            phrase={dict.lab.loadingPhrase}
+            translation={dict.lab.loadingTranslation}
+            label={dict.lab.loadingLabel}
+          />
+        </CardinalTransitionProvider>
       </body>
     </html>
   );

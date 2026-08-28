@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import ObfuscatedEmail from "./obfuscated-email";
+import CardinalLink from "./stag-scene/cardinal-link";
 import type { Dictionary, Locale } from "../../dictionaries";
 import { getPageKeyFromSlug, getPath } from "../../lib/routes";
 
@@ -90,26 +91,26 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
         </ul>
       </div>
       <div className="header_bottom">
-        <Link href={`/${locale}`} className="logoLink" onClick={close}>
+        <CardinalLink href={`/${locale}`} className="logoLink" onClick={close}>
           <Image src="/img/mini-logo.svg" alt="" width={32} height={32} />
           <span className="logoText">Nahual</span>
-        </Link>
+        </CardinalLink>
         <nav>
           <ul>
             <li>
-              <Link href={`/${locale}`}>{dict.nav.home}</Link>
+              <CardinalLink href={`/${locale}`}>{dict.nav.home}</CardinalLink>
             </li>
             <li>
-              <Link href={getPath(locale, "services")}>{dict.nav.services}</Link>
+              <CardinalLink href={getPath(locale, "services")}>{dict.nav.services}</CardinalLink>
             </li>
             <li>
-              <Link href={getPath(locale, "projets")}>{dict.nav.projects}</Link>
+              <CardinalLink href={getPath(locale, "projets")}>{dict.nav.projects}</CardinalLink>
             </li>
             <li>
-              <Link href={getPath(locale, "contact")}>{dict.nav.contact}</Link>
+              <CardinalLink href={getPath(locale, "contact")}>{dict.nav.contact}</CardinalLink>
             </li>
             <li>
-              <Link href={getPath(locale, "memoire")}>{dict.nav.memoire}</Link>
+              <CardinalLink href={getPath(locale, "memoire")}>{dict.nav.memoire}</CardinalLink>
             </li>
           </ul>
         </nav>
@@ -137,19 +138,19 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
           <nav className="mobileNav" aria-label={dict.nav.home}>
             <ul>
               <li>
-                <Link href={`/${locale}`} onClick={close}>{dict.nav.home}</Link>
+                <CardinalLink href={`/${locale}`} onClick={close}>{dict.nav.home}</CardinalLink>
               </li>
               <li>
-                <Link href={getPath(locale, "services")} onClick={close}>{dict.nav.services}</Link>
+                <CardinalLink href={getPath(locale, "services")} onClick={close}>{dict.nav.services}</CardinalLink>
               </li>
               <li>
-                <Link href={getPath(locale, "projets")} onClick={close}>{dict.nav.projects}</Link>
+                <CardinalLink href={getPath(locale, "projets")} onClick={close}>{dict.nav.projects}</CardinalLink>
               </li>
               <li>
-                <Link href={getPath(locale, "contact")} onClick={close}>{dict.nav.contact}</Link>
+                <CardinalLink href={getPath(locale, "contact")} onClick={close}>{dict.nav.contact}</CardinalLink>
               </li>
               <li>
-                <Link href={getPath(locale, "memoire")} onClick={close}>{dict.nav.memoire}</Link>
+                <CardinalLink href={getPath(locale, "memoire")} onClick={close}>{dict.nav.memoire}</CardinalLink>
               </li>
             </ul>
           </nav>
