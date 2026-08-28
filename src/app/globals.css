@@ -579,7 +579,11 @@ body.nahual-lab-reveal main::before {
   pointer-events: none;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.93 0 0 0 0 0.88 0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   background-repeat: repeat;
-  opacity: 0.035;
+  /* 28/08 : opacity 0.035 → 0.012 (retour Sylvain "fond sous le
+     texte" — le grain film mix-blend overlay + embers Xiuhtecuhtli
+     particles derriere creaient un halo lisible autour du contenu
+     hero. Reduit a quasi-invisible pour purger le fond. */
+  opacity: 0.012;
   mix-blend-mode: overlay;
 }
 
