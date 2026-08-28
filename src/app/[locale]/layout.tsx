@@ -4,7 +4,6 @@ import "../globals.css";
 import Header from "../components/header";
 import LoadingVeil from "../components/stag-scene/loading-veil";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
-import CardinalGlyphBurst from "../components/stag-scene/cardinal-glyph-burst";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
 
 const geistSans = localFont({
@@ -85,11 +84,6 @@ export default async function LocaleLayout({
             translation={dict.lab.loadingTranslation}
             label={dict.lab.loadingLabel}
           />
-          {/* Glyphe cardinal qui se dessine au centre viewport pendant
-              le burst 500ms de transition (28/08 Cabbi pattern nahua)
-              — amplifie signal "cerf mène" avec marqueur
-              pictographique fort. */}
-          <CardinalGlyphBurst />
         </CardinalTransitionProvider>
       </body>
     </html>

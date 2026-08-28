@@ -84,33 +84,18 @@
   clip-path: inset(0 0 0 0);
 }
 
-/* Micro-glyphe cardinal en marge — SVG 24×24, teinte cardinale à 45%. */
-.glyph {
-  position: absolute;
-  top: 20px;
-  right: 22px;
-  width: 22px;
-  height: 22px;
-  color: color-mix(in srgb, var(--closure-color) 55%, transparent);
-  opacity: 0;
-  transform: scale(0.7) rotate(-25deg);
-  transition:
-    opacity 0.55s ease-out 0.15s,
-    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
-  pointer-events: none;
-}
-
-.revealed .glyph {
-  opacity: 1;
-  transform: scale(1) rotate(0);
-}
+/* Note (28/08) : .glyph retiré — le glyphe iconographique cardinal
+   dans la closure a été supprimé (voie sécurité anti-appropriation
+   culturelle). Signature nahua conservée par les noms nahuatl
+   (Tlalxicco/Tlahuizcalpan/Huitztlampa/Cihuatlampa/Mictlampa) +
+   baseline poétique + palette cardinale + pétales cempasúchils. */
 
 /* H2 avec split par mot — les .word sont rendus par PageClosure. */
 .title {
   font-size: clamp(1.35rem, 2.4vw, 1.85rem);
   font-weight: 600;
   line-height: 1.15;
-  margin: 0 42px 6px 0; /* réserve à droite pour le glyphe */
+  margin: 0 0 6px 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
@@ -219,7 +204,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .closure::before,
-  .glyph,
   .word,
   .underline,
   .poetic,

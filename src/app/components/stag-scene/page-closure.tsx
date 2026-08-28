@@ -10,7 +10,6 @@ import {
   DIRECTION_COLOR_VIVID,
   type DirectionKey,
 } from "./direction-colors";
-import DirectionGlyph from "./direction-glyph";
 import styles from "./page-closure.module.css";
 
 /**
@@ -122,7 +121,6 @@ export default function PageClosure({
 
   return (
     <div ref={rootRef} className={styles.closure} style={style}>
-      <DirectionGlyph direction={directionKey} size={22} className={styles.glyph} />
       <h2 className={styles.title}>
         {cardinalWords.map((word, i) => (
           <span key={i} className={styles.word}>
