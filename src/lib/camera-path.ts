@@ -44,8 +44,11 @@ const DEFAULT_OPTIONS: OrbitCameraOptions = {
   // touchées (déjà réglées précisément contre un bug documenté : à
   // endRadius=4 la tête sortait du cadre, cf startHeight ci-dessous —
   // change isolé, une seule variable à la fois).
+  // endRadius 3.2 → 4.5 (28/08 retour Sylvain "cerf entier visible
+  // desktop bottom aussi") — 3.2 coupait les bois en haut du cadre
+  // à progress=1. Recul + hauteur permet vue 3/4 complete avec bois.
   startRadius: 7,
-  endRadius: 3.2,
+  endRadius: 4.5,
   // 4 -> 2.6 (retour Sylvain palier 1) : à 4, la tête du cerf en
   // Idle_Headlow (posture "inconscient" de la pénombre, cf reveal-arc.ts)
   // sortait du cadre par le haut — le passage tête-basse -> tête-haute au
@@ -53,7 +56,7 @@ const DEFAULT_OPTIONS: OrbitCameraOptions = {
   // startRadius) aide aussi : à distance, tout le corps rentre dans le
   // cadre même à hauteur de caméra modeste.
   startHeight: 2.6,
-  endHeight: 1.4,
+  endHeight: 2.0,
   turns: 1,
   targetY: 1,
   climaxProgress: 0.75,
