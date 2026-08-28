@@ -183,17 +183,21 @@ export default function OrbitCamera({
       // burst. camera est une PerspectiveCamera (Canvas fov: 45),
       // updateProjectionMatrix nécessaire pour que le changement
       // prenne effet visuel.
+      // Base FOV responsive (28/08 retour Sylvain "l'ecran mobile
+      // coupait la partie droite de la tete") — mobile <768px : 58° pour
+      // capturer cerf entier + bois, sinon 45°.
+      const baseFov = typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45;
       const perspCam = camera as PerspectiveCamera;
       if (perspCam.isPerspectiveCamera) {
-        perspCam.fov = 45 + bell * 6;
+        perspCam.fov = baseFov + bell * 6;
         perspCam.updateProjectionMatrix();
       }
     } else {
-      // Retour repos FOV — si perspective, s'assure qu'on n'a pas
-      // laissé un FOV drifté du burst précédent (safety).
+      // Retour repos FOV — safety, réévalue le base FOV responsive.
+      const baseFov = typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45;
       const perspCam = camera as PerspectiveCamera;
-      if (perspCam.isPerspectiveCamera && perspCam.fov !== 45) {
-        perspCam.fov = 45;
+      if (perspCam.isPerspectiveCamera && Math.abs(perspCam.fov - baseFov) > 0.5) {
+        perspCam.fov = baseFov;
         perspCam.updateProjectionMatrix();
       }
     }
