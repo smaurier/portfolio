@@ -156,7 +156,14 @@ export default async function LocaleLayout({
           donc le scope est permanent. Le poser SSR évite le flash pendant
           l'hydratation (texte sombre invisible sur canvas noir avant que
           l'effet client réapplique le scope). */}
-      <body className={`${geistSans.variable} ${geistMono.variable} nahual-lab-reveal`}>
+      {/* suppressHydrationWarning : extensions browser (ColorZilla,
+          Grammarly, etc.) injectent des attributs sur body avant
+          l'hydration React. Sans ce flag, react-dev throw warning
+          "attributes didn't match" pour cz-shortcut-listen et co. */}
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} nahual-lab-reveal`}
+        suppressHydrationWarning
+      >
         {/* Provider transition cardinale "cerf mène" (28/08) — expose
             transitionDirection + progressRef aux consommateurs scène
             3D (StagModel head-look override, OrbitCamera burst
