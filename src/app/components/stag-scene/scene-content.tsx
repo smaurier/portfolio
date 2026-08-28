@@ -3,6 +3,7 @@
 import { Suspense, type MutableRefObject } from "react";
 import type { ColorRgb } from "@/lib/reveal-arc";
 import BackgroundFlora from "./background-flora";
+import CardinalAmbience from "./ambience/cardinal-ambience";
 import CursorRevealScene from "./cursor-reveal-scene";
 import EnvironmentDepthFade from "./environment-depth-fade";
 import Grass from "./grass";
@@ -82,10 +83,12 @@ export default function SceneContent({
         </Suspense>
       </CursorRevealScene>
       <OrbitCamera progressRef={progressRef} />
-      {/* PetalStorm retiré 28/08 — la signature dissolve est portée
-        * par PageSlicer (overlay HTML slices cardinal, plus élégant
-        * qu'une pluie de particules 3D éparpillées). PetalStorm
-        * doublonnait sans lisibilité claire. */}
+      {/* Ambiances mytho par direction (28/08 task #43) — 5 moods
+          nahua : god-rays Est/Tonatiuh, colibri Sud/Huitzilopochtli,
+          streamers vent Ouest/Ehecatl, fumée + éclats Nord/Mictlante-
+          cuhtli, embers Centre/Xiuhtecuhtli. Un seul mount, crossfade
+          smooth 800ms au changement de direction. */}
+      <CardinalAmbience />
     </>
   );
 }
