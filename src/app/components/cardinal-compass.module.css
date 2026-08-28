@@ -88,3 +88,7 @@
     height: 8px;
   }
 }
+
+/* Pulse cross-widget defini dans globals.css (sélecteurs cross-
+   component avec body[data-cardinal-hover] ne peuvent pas etre en
+   CSS module scope local). */

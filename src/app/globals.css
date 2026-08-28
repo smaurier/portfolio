@@ -993,3 +993,42 @@ body.konami-flash::after {
     animation: none;
   }
 }
+
+/* Pulse cross-widget cardinal (28/08 retour Sylvain) — quand body
+   porte data-cardinal-hover=X (pose par cardinal-hover-sync sur
+   pointerover d'un nav item OU compass dot), le dot compass
+   correspondant pulse couleur cardinale. Signature "map vivante".
+   Selecteur global (cross-component), pas de CSS-module scope. */
+body[data-cardinal-hover] [data-compass-direction] {
+  --compass-color: #00c078;
+}
+body[data-cardinal-hover="jade"] [data-compass-direction="jade"] > *,
+body[data-cardinal-hover="dore"] [data-compass-direction="dore"] > *,
+body[data-cardinal-hover="turquoise"] [data-compass-direction="turquoise"] > *,
+body[data-cardinal-hover="cendre"] [data-compass-direction="cendre"] > *,
+body[data-cardinal-hover="obsidienne"] [data-compass-direction="obsidienne"] > * {
+  animation: none;
+}
+
+/* La cible reelle est le ::before de chaque button.dot (module scope).
+   On cible via attribut natif data-compass-direction (hors scope
+   module) + :where pour ne pas gagner en specifite. */
+body[data-cardinal-hover="jade"] button[data-compass-direction="jade"],
+body[data-cardinal-hover="dore"] button[data-compass-direction="dore"],
+body[data-cardinal-hover="turquoise"] button[data-compass-direction="turquoise"],
+body[data-cardinal-hover="cendre"] button[data-compass-direction="cendre"],
+body[data-cardinal-hover="obsidienne"] button[data-compass-direction="obsidienne"] {
+  animation: cardinalPulse 1.2s ease-out infinite;
+}
+
+@keyframes cardinalPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-cardinal-hover] button[data-compass-direction] {
+    animation: none;
+  }
+}

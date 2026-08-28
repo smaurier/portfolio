@@ -121,7 +121,8 @@ export default function CardinalCompass({ locale }: { locale: string }) {
         type="button"
         className={styles.dot}
         data-active={active ? "true" : "false"}
-        style={active ? { ["--compass-color" as string]: CARDINAL_COLORS[slot.direction] } : undefined}
+        data-compass-direction={slot.direction}
+        style={{ ["--compass-color" as string]: CARDINAL_COLORS[slot.direction] }}
         onClick={() => navigate(slot)}
         aria-label={slot.label[l]}
         aria-current={active ? "page" : undefined}

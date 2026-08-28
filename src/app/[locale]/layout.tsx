@@ -2,6 +2,7 @@ import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import CardinalCompass from "../components/cardinal-compass";
+import CardinalHoverSync from "../components/cardinal-hover-sync";
 import CustomCursor from "../components/custom-cursor";
 import EasterEgg from "../components/easter-egg";
 import KeyboardNav from "../components/keyboard-nav";
@@ -203,12 +204,10 @@ export default async function LocaleLayout({
             translation={dict.lab.loadingTranslation}
             label={dict.lab.loadingLabel}
           />
-          {/* Intro cinématique one-shot par session (28/08 task #45) —
-              letterbox reveal + phrase Codex + Piedra del Sol + logo.
-              LocalStorage flag nahual-intro-seen : joue une seule
-              fois. Skip button visible. Signature "premier wow jury"
-              SOTY. */}
-          <NahualIntro locale={locale} />
+          {/* Intro cinématique retiree 28/08 (retour Sylvain "gros
+              encadré qui charge" — trop lourd au premier load).
+              Composant existe encore, remonte-le si besoin.
+              <NahualIntro locale={locale} /> */}
           {/* Curseur custom (28/08 task #47) — point cardinal + ring
               qui suit, morph cardinal au survol des liens nav
               (data-cardinal-direction), magnetic attraction sur CTAs
@@ -235,6 +234,10 @@ export default async function LocaleLayout({
               droite croix 5 points, direction courante highlight
               couleur cardinale, cliquable nav rapide. */}
           <CardinalCompass locale={locale} />
+          {/* Hover sync (28/08 retour Sylvain) — poste
+              body[data-cardinal-hover=X] au pointerover sur nav ou
+              compass, permet pulse cross-widget des points cardinaux. */}
+          <CardinalHoverSync />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
       </body>
