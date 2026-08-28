@@ -1,0 +1,71 @@
+/* Curseur custom (28/08 task #47). Point cardinal + ring qui suit,
+   morph cardinal au survol des liens nav, magnetic attraction sur
+   CTAs. Actif uniquement sur (hover: hover) and (pointer: fine) —
+   touch/pen exclu. */
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9000;
+  mix-blend-mode: normal;
+  transition: opacity 0.2s ease;
+  will-change: transform;
+}
+
+/* Cache la souris native uniquement sur la zone hover/fine — les
+   utilisateurs touch/pen n'ont pas de curseur, pas besoin de le
+   masquer. Application sur body pour couvrir tout le viewport. */
+@media (hover: hover) and (pointer: fine) {
+  body.nahual-custom-cursor,
+  body.nahual-custom-cursor * {
+    cursor: none !important;
+  }
+}
+
+/* Dot central : petit cercle jade, suit exactement le pointeur.
+   Morph vers couleur cardinale sur hover d'un lien avec
+   data-cardinal. */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cursor-color, #00c078);
+  transform: translate(-50%, -50%);
+  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 12px var(--cursor-color, #00c078);
+  will-change: transform, background;
+}
+
+/* Ring extérieur : cercle 36px qui suit avec lerp lent (trainée
+   organique). Morph border color aussi. */
+.ring {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--cursor-color, #00c078);
+  transform: translate(-50%, -50%);
+  transition: border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease;
+  opacity: 0.55;
+  will-change: transform, border-color;
+}
+
+/* État hover : le dot rétrécit (aspiré vers le clic), le ring
+   s'agrandit et devient plus opaque. Signature "curseur qui
+   respire" quand on approche un CTA. */
+.cursor[data-hover="true"] .dot {
+  width: 6px;
+  height: 6px;
+}
+.cursor[data-hover="true"] .ring {
+  width: 52px;
+  height: 52px;
+  opacity: 0.85;
+}

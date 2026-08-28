@@ -158,8 +158,16 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
     });
   }
 
+  const direction = directionFromHref(href);
   return (
-    <Link ref={ref} href={href} onClick={handleClick} {...rest}>
+    <Link
+      ref={ref}
+      href={href}
+      onClick={handleClick}
+      data-cardinal-direction={direction ?? undefined}
+      data-magnetic={direction ? "" : undefined}
+      {...rest}
+    >
       {children}
     </Link>
   );

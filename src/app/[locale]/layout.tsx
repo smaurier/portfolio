@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import "../globals.css";
+import CustomCursor from "../components/custom-cursor";
 import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
 import LoadingVeil from "../components/stag-scene/loading-veil";
@@ -187,6 +188,11 @@ export default async function LocaleLayout({
               fois. Skip button visible. Signature "premier wow jury"
               SOTY. */}
           <NahualIntro locale={locale} />
+          {/* Curseur custom (28/08 task #47) — point cardinal + ring
+              qui suit, morph cardinal au survol des liens nav
+              (data-cardinal-direction), magnetic attraction sur CTAs
+              (data-magnetic). Actif uniquement hover:hover + pointer:fine. */}
+          <CustomCursor />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
       </body>
