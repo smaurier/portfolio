@@ -64,7 +64,7 @@ export default function RevealLighting({
       // sobre témoin"). 65% laisse assez de lumière blanche
       // résiduelle pour que les matériaux gardent leurs couleurs
       // natives, cardinal se lit dans les tons moyens.
-      ambientColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.35);
+      ambientColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.15);
       ambientRef.current.color.copy(ambientColorScratch);
     }
     if (directionalRef.current) {
@@ -74,7 +74,7 @@ export default function RevealLighting({
       // colore les crêtes cerf+décor uniformément, 45% laisse un
       // éclairage principal quasi-blanc qui préserve la lecture
       // "cerf brun mystique".
-      directionalColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.25);
+      directionalColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.1);
       directionalRef.current.color.copy(directionalColorScratch);
     }
     if (fogRef.current) {

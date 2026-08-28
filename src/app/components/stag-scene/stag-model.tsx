@@ -167,7 +167,7 @@ export default function StagModel({
     // tint est ramené à 0.25 (retour "cerf uniforme"), le rim doit
     // porter davantage la teinte cardinale au bord pour rester
     // lisible comme signature de direction plutôt que juste un accent.
-    const intensity = getDirectionalIntensity(progressRef.current) * 0.4 * pulse;
+    const intensity = getDirectionalIntensity(progressRef.current) * 0.25 * pulse;
     setRimLightIntensity(rimUniforms, intensity);
     // Doré (repos) -> teinte de la direction courante (climax) sur la
     // fenêtre du rim (getRimColorBlend, 0.5→1.0, élargie le 25/08 par
@@ -189,7 +189,7 @@ export default function StagModel({
     // + colori (le shader multiplie les deux ensuite pour l'intensité
     // finale). Ligne fine + cardinal en valley, ligne épaisse + flash
     // blanc en peak → la ligne respire au lieu de juste s'atténuer.
-    setEdgeIntensity(rimUniforms, rimBlend * 1.2);
+    setEdgeIntensity(rimUniforms, rimBlend * 0.6);
     setEdgePulse(rimUniforms, pulse);
   });
 

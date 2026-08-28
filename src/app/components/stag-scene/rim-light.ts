@@ -158,7 +158,7 @@ export function applyRimLight(
             // retour Sylvain "cerf plein de couleurs à p=1" — l'ancien
             // plafond ×0.5 gardait un cerf lavé/washed-out au climax).
             vec3 bodyTinted = vec3(1.0) - (vec3(1.0) - gl_FragColor.rgb) * (vec3(1.0) - uRimColor);
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 0.12);
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 0.06);
             // Body tint plafond 0.12 (28/08 retour Sylvain "couleur
             // trop forte sur les cerfs, redistribuer sur autres
             // éléments"). Historique : 0.85 → 0.7+emissive →
