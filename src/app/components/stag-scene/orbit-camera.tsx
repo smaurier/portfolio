@@ -124,7 +124,16 @@ export default function OrbitCamera({
     mouseSmoothRef.current.x += (mouseTargetRef.current.x - mouseSmoothRef.current.x) * MOUSE_LERP;
     mouseSmoothRef.current.y += (mouseTargetRef.current.y - mouseSmoothRef.current.y) * MOUSE_LERP;
 
-    const position = getOrbitCameraPosition(progressRef.current);
+    // Mobile-aware camera path (28/08 retour Sylvain "le cerf doit
+    // etre totalement visible en fin de page aussi"). Sur mobile
+    // <768px, augmente radius + height pour garder cerf entier dans
+    // le cadre malgre FOV plus large. Recalcule chaque frame (cheap)
+    // pour reagir au resize.
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const position = getOrbitCameraPosition(
+      progressRef.current,
+      isMobile ? { startRadius: 8, endRadius: 4.8, startHeight: 3.2, endHeight: 2.0 } : {}
+    );
     const target = getOrbitCameraTarget();
 
     // Parallaxe : décale la position caméra XY selon la souris, la cible
