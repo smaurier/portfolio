@@ -158,16 +158,16 @@ export function applyRimLight(
             // retour Sylvain "cerf plein de couleurs à p=1" — l'ancien
             // plafond ×0.5 gardait un cerf lavé/washed-out au climax).
             vec3 bodyTinted = vec3(1.0) - (vec3(1.0) - gl_FragColor.rgb) * (vec3(1.0) - uRimColor);
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 0.25);
-            // Body tint plafond 0.25 : le corps du cerf garde son PBR
-            // brun natif comme base — la teinte cardinale se lit
-            // surtout au RIM (bord net) et dans le FOG qui l'entoure,
-            // pas sur le corps entier. Historique : 0.5 (uniforme),
-            // 0.55, 0.7 + emissive (aplat), 0.5 + emissive 0.18
-            // (encore uniforme), 0.25 (26/08 retour Sylvain "cerf
-            // uniforme, on ne voit plus les éléments du corps"). Le
-            // PBR bas-poly a peu de contraste ombre/lumière — tout
-            // screen blend fort tue la modélisation restante.
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 0.12);
+            // Body tint plafond 0.12 (28/08 retour Sylvain "couleur
+            // trop forte sur les cerfs, redistribuer sur autres
+            // éléments"). Historique : 0.85 → 0.7+emissive →
+            // 0.5+emissive → 0.25 → 0.12. Le cerf devient témoin de
+            // la palette qui l'entoure (ambient light + fog + décor
+            // teintés portent la couleur), reste "nahual brun
+            // mystique" plutôt que décoration monochrome cardinale.
+            // Refs Igloo Inc./Antoine Boneat/Bruno Simon : sujet
+            // sobre, environnement porte la couleur.
             // Note : pas de multiply pass en fin (testé le 26/08, retour
             // Sylvain "cerf transparent + uniforme, on ne voit plus les
             // éléments de son corps") — le multiply saturait tellement

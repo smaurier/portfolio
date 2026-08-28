@@ -58,20 +58,23 @@ export default function RevealLighting({
     const blend = getRimColorBlend(p);
     if (ambientRef.current) {
       ambientRef.current.intensity = getAmbientIntensity(p);
-      // Tint ambient : 85% de la teinte cardinale au climax (26/08
-      // recalibré, retour Sylvain "je ne vois pas le décor teinté"
-      // après premier essai à 40% — la lumière ambient blanche à 60%
-      // écrasait le tint cardinal à l'œil).
-      ambientColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.85);
+      // Tint ambient 65% (28/08 recalibré après boost raté à 100% —
+      // trop d'ambient teinté coloriait le cerf ENTIER uniformément
+      // via l'éclairage global, contradictoire avec l'objectif "cerf
+      // sobre témoin"). 65% laisse assez de lumière blanche
+      // résiduelle pour que les matériaux gardent leurs couleurs
+      // natives, cardinal se lit dans les tons moyens.
+      ambientColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.35);
       ambientRef.current.color.copy(ambientColorScratch);
     }
     if (directionalRef.current) {
       directionalRef.current.intensity = getDirectionalIntensity(p);
-      // Tint directional 60% (26/08 recalibré depuis 25%). La
-      // directionnelle porte les hautes lumières — plus fort et les
-      // crêtes virent monochrome, plus faible et le décor ne suit pas
-      // le cerf visuellement.
-      directionalColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.60);
+      // Directional 45% (recalibré 28/08 depuis 75%) : la
+      // directionnelle porte les hautes lumières — trop teintée elle
+      // colore les crêtes cerf+décor uniformément, 45% laisse un
+      // éclairage principal quasi-blanc qui préserve la lecture
+      // "cerf brun mystique".
+      directionalColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.25);
       directionalRef.current.color.copy(directionalColorScratch);
     }
     if (fogRef.current) {
