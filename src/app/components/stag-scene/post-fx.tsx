@@ -1,12 +1,10 @@
 "use client";
 
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import { Bloom, ChromaticAberration, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
-
-// ChromaticAberration a un bug de typage en amont (postprocessing@6.36 —
-// Omit<Partial<...|undefined>, "offset"> perd la propriété blendFunction
-// côté TS) : pas de blendFunction explicite ci-dessous, sa valeur par
-// défaut (BlendFunction.NORMAL) est déjà celle qu'on veut.
+import { useCardinalTransition } from "./cardinal-transition-context";
 
 /**
  * Post-processing — retour de Sylvain le 18/08, après audit comparé à des
@@ -28,12 +26,51 @@ import { BlendFunction } from "postprocessing";
  * - ChromaticAberration : décalage minime, juste assez pour casser le
  *   rendu "trop propre"/synthétique par défaut d'un rendu WebGL sans
  *   grain — pas un effet de lentille appuyé.
+ *
+ * Phase C cinématographie (28/08) — pendant le burst de transition
+ * cardinale, Bloom.intensity + ChromaticAberration.offset boostés en
+ * bell curve. Signal cinéma renforcé synchro avec dolly caméra + FOV
+ * shift (OrbitCamera) + head-look cerf (StagModel). Rester dans les
+ * ordres de grandeur "sobres" (bloom max ~1.4, CA max ~0.002) — le
+ * boost doit rester subtile SOTA cinéma, pas gimmick.
  */
+
+const BLOOM_BASE = 0.6;
+const BLOOM_BURST_ADD = 0.8;
+const CA_BASE = 0.0006;
+const CA_BURST_ADD = 0.0012;
+
 export default function PostFX() {
+  const bloomRef = useRef<{ intensity: number } | null>(null);
+  const caRef = useRef<{ offset: { x: number; y: number } } | null>(null);
+  const transition = useCardinalTransition();
+
+  useFrame(() => {
+    if (!transition) return;
+    const p = transition.transitionProgressRef.current;
+    const active = transition.transitionDirection !== null && p > 0;
+    const bell = active ? Math.sin(p * Math.PI) : 0;
+
+    if (bloomRef.current) {
+      bloomRef.current.intensity = BLOOM_BASE + bell * BLOOM_BURST_ADD;
+    }
+    if (caRef.current) {
+      const offset = CA_BASE + bell * CA_BURST_ADD;
+      caRef.current.offset.x = offset;
+      caRef.current.offset.y = offset;
+    }
+  });
+
   return (
     <EffectComposer multisampling={4}>
-      <Bloom intensity={0.6} luminanceThreshold={0.35} luminanceSmoothing={0.3} mipmapBlur />
-      <ChromaticAberration offset={[0.0006, 0.0006]} />
+      <Bloom
+        ref={bloomRef as never}
+        intensity={BLOOM_BASE}
+        luminanceThreshold={0.35}
+        luminanceSmoothing={0.3}
+        mipmapBlur
+      />
+      <ChromaticAberration ref={caRef as never} offset={[CA_BASE, CA_BASE]} />
       <Vignette eskil={false} offset={0.25} darkness={0.85} blendFunction={BlendFunction.NORMAL} />
     </EffectComposer>
   );

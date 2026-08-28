@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type MutableRefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import type { PerspectiveCamera } from "three";
 import { getOrbitCameraPosition, getOrbitCameraTarget } from "@/lib/camera-path";
 import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
 
@@ -70,22 +71,43 @@ export default function OrbitCamera({
     const parallaxY = reducedMotionRef.current ? 0 : -mouseSmoothRef.current.y * PARALLAX_Y;
 
     // Burst cardinal "cerf mène" (28/08) — pendant la fenêtre de
-    // transition (500ms), la caméra dérive doucement dans la
-    // direction cible en plus de sa position d'orbite normale. Bell
-    // curve sur le progress transition, amplitude ~0.6 unité monde
-    // (subtile). Combiné au head-look cerf : les 2 tirent le regard
-    // vers la nouvelle direction avant le mount de la nouvelle page.
+    // transition (500ms), la caméra dérive dans la direction cible +
+    // son FOV s'ouvre en zoom-out cinématique (Phase C
+    // cinématographie). Bell curve sur le progress transition.
+    // Amplitude dolly 1.4 (boostée de 0.6, retour Sylvain "vraie
+    // désintégration + cinématographique"), FOV shift +6°
+    // (45→51→45). Combiné au head-look cerf + PostFX bloom boost
+    // (PostFX) : les 3 systèmes tirent la sensation cinéma vers la
+    // direction cardinale.
     let burstX = 0;
     let burstY = 0;
     let burstZ = 0;
     if (transition?.transitionDirection && transition.transitionProgressRef.current > 0) {
       const t = transition.transitionProgressRef.current;
       const bell = Math.sin(t * Math.PI); // 0→1→0
-      const amp = bell * 0.6;
+      const amp = bell * 1.4;
       const vec = CARDINAL_VECTORS[transition.transitionDirection];
       burstX = vec[0] * amp;
       burstY = vec[1] * amp;
       burstZ = vec[2] * amp;
+
+      // FOV shift zoom-out cinema — la caméra "respire" pendant le
+      // burst. camera est une PerspectiveCamera (Canvas fov: 45),
+      // updateProjectionMatrix nécessaire pour que le changement
+      // prenne effet visuel.
+      const perspCam = camera as PerspectiveCamera;
+      if (perspCam.isPerspectiveCamera) {
+        perspCam.fov = 45 + bell * 6;
+        perspCam.updateProjectionMatrix();
+      }
+    } else {
+      // Retour repos FOV — si perspective, s'assure qu'on n'a pas
+      // laissé un FOV drifté du burst précédent (safety).
+      const perspCam = camera as PerspectiveCamera;
+      if (perspCam.isPerspectiveCamera && perspCam.fov !== 45) {
+        perspCam.fov = 45;
+        perspCam.updateProjectionMatrix();
+      }
     }
 
     camera.position.set(
