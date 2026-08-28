@@ -29,6 +29,17 @@ const PARALLAX_Y = 0.25;
 const MOUSE_LERP = 0.08;
 
 /**
+ * Touch drag orbit (28/08 task #50 mobile). Sur devices touch, un
+ * swipe horizontal/vertical dérive l'orbite caméra avec accumulation
+ * persistante — le cerf peut être observé sous plusieurs angles au
+ * lieu du parallax souris limité aux -1..1 souris. Reset progressif
+ * au relâchement pour ne pas rester bloqué.
+ */
+const TOUCH_ORBIT_X = 0.008; // rad par px horizontal
+const TOUCH_ORBIT_Y = 0.005;
+const TOUCH_DECAY = 0.02; // retour à 0 par frame
+
+/**
  * Dolly amplitude par direction (28/08 task #44 camera cinéma). Chaque
  * direction reçoit son intensité de recul caméra pendant le burst,
  * conforme à sa signature mytho :
@@ -66,20 +77,46 @@ export default function OrbitCamera({
   const mouseTargetRef = useRef({ x: 0, y: 0 });
   const mouseSmoothRef = useRef({ x: 0, y: 0 });
   const reducedMotionRef = useRef(false);
+  // Touch drag orbit (task #50 mobile). Accumule un offset X/Y en radians
+  // pendant le drag, decay à 0 progressif au relâchement.
+  const touchOffsetRef = useRef({ x: 0, y: 0 });
+  const touchLastRef = useRef<{ x: number; y: number } | null>(null);
   const transition = useCardinalTransition();
 
   useEffect(() => {
     reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     function onPointerMove(event: PointerEvent) {
-      // -1..1 normalisé sur toute la fenêtre. clientY inversé plus tard
-      // dans useFrame (convention "haut d'écran = vers le haut du monde"
-      // pour le décalage caméra).
+      if (event.pointerType === "touch" && touchLastRef.current) {
+        const dx = event.clientX - touchLastRef.current.x;
+        const dy = event.clientY - touchLastRef.current.y;
+        touchOffsetRef.current.x += dx * TOUCH_ORBIT_X;
+        touchOffsetRef.current.y += dy * TOUCH_ORBIT_Y;
+        touchLastRef.current = { x: event.clientX, y: event.clientY };
+        return;
+      }
+      // Souris / stylet : parallax comme avant
       mouseTargetRef.current.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouseTargetRef.current.y = (event.clientY / window.innerHeight) * 2 - 1;
     }
+    function onPointerDown(event: PointerEvent) {
+      if (event.pointerType === "touch") {
+        touchLastRef.current = { x: event.clientX, y: event.clientY };
+      }
+    }
+    function onPointerUp() {
+      touchLastRef.current = null;
+    }
     window.addEventListener("pointermove", onPointerMove, { passive: true });
-    return () => window.removeEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("pointerup", onPointerUp, { passive: true });
+    window.addEventListener("pointercancel", onPointerUp, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+    };
   }, []);
 
   useFrame(() => {
@@ -95,6 +132,15 @@ export default function OrbitCamera({
     // (clientY descend, caméra doit monter).
     const parallaxX = reducedMotionRef.current ? 0 : mouseSmoothRef.current.x * PARALLAX_X;
     const parallaxY = reducedMotionRef.current ? 0 : -mouseSmoothRef.current.y * PARALLAX_Y;
+
+    // Touch orbit offset — décay progressif au relâchement, sinon
+    // reste. Ajoute au parallax pour combiner drag + repos.
+    if (!touchLastRef.current) {
+      touchOffsetRef.current.x *= 1 - TOUCH_DECAY;
+      touchOffsetRef.current.y *= 1 - TOUCH_DECAY;
+    }
+    const touchX = reducedMotionRef.current ? 0 : touchOffsetRef.current.x * 2.0;
+    const touchY = reducedMotionRef.current ? 0 : -touchOffsetRef.current.y * 2.0;
 
     // Burst cardinal "cerf mène" (28/08) — pendant la fenêtre de
     // transition (500ms), la caméra dérive dans la direction cible +
@@ -153,8 +199,8 @@ export default function OrbitCamera({
     }
 
     camera.position.set(
-      position.x + parallaxX + burstX,
-      position.y + parallaxY + burstY,
+      position.x + parallaxX + touchX + burstX,
+      position.y + parallaxY + touchY + burstY,
       position.z + burstZ,
     );
     // Whip pan : décale la target du lookAt dans la direction cardinale.
