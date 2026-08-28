@@ -4,6 +4,8 @@ import "../globals.css";
 import Header from "../components/header";
 import LoadingVeil from "../components/stag-scene/loading-veil";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
+import PersistentScene from "../components/stag-scene/persistent-scene";
+import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
 
 const geistSans = localFont({
@@ -64,8 +66,15 @@ export default async function LocaleLayout({
             au niveau layout (survit aux navigations SPA), sinon la
             transition serait cassée par le mount de la nouvelle page
             avant que le burst finisse. */}
+        <SceneRefsProvider>
         <CardinalTransitionProvider>
           <Header locale={locale} dict={dict.common} />
+          {/* Scène 3D persistante (28/08 Phase A refactor) — Canvas
+              vit ici pour survivre à toutes les navigations SPA,
+              plus de coupure. Direction cardinale lue via
+              usePathname côté PersistentScene, palette anime en
+              douceur au changement d'URL. */}
+          <PersistentScene />
           {children}
           <footer className="siteFooter">
             © {new Date().getFullYear()} NAHUAL Studio
@@ -85,6 +94,7 @@ export default async function LocaleLayout({
             label={dict.lab.loadingLabel}
           />
         </CardinalTransitionProvider>
+        </SceneRefsProvider>
       </body>
     </html>
   );

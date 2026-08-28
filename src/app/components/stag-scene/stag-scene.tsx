@@ -3,7 +3,6 @@
 import { getIntroOpacity, getNavEmphasis } from "@/lib/reveal-arc";
 import CardinalLink from "./cardinal-link";
 import FadingBlock from "./fading-block";
-import SceneContent from "./scene-content";
 import SceneStage from "./scene-stage";
 import overlayStyles from "./scene-text-overlay.module.css";
 
@@ -39,15 +38,6 @@ export default function StagScene({
 }) {
   return (
     <SceneStage
-      scene={({ progressRef, noticedRef, climaxRimColor, climaxAccentColor, fogTint }) => (
-        <SceneContent
-          progressRef={progressRef}
-          noticedRef={noticedRef}
-          climaxRimColor={climaxRimColor}
-          climaxAccentColor={climaxAccentColor}
-          fogTint={fogTint}
-        />
-      )}
       overlay={({ progressRef, reducedMotionRef }) => (
         <>
           <FadingBlock

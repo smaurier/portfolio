@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import type { Locale } from "../../../dictionaries";
 import type { DirectionKey } from "./direction-colors";
 import PageClosure from "./page-closure";
-import SceneContent from "./scene-content";
 import SceneStage from "./scene-stage";
 
 /**
@@ -35,15 +34,6 @@ export default function EchoScenePage({
   return (
     <SceneStage
       directionKey={directionKey}
-      scene={({ progressRef, noticedRef, climaxRimColor, climaxAccentColor, fogTint }) => (
-        <SceneContent
-          progressRef={progressRef}
-          noticedRef={noticedRef}
-          climaxRimColor={climaxRimColor}
-          climaxAccentColor={climaxAccentColor}
-          fogTint={fogTint}
-        />
-      )}
       overlay={({ progressRef, reducedMotionRef }) => (
         <PageClosure
           directionKey={directionKey}
