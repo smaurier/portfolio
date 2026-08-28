@@ -38,7 +38,7 @@ export default function WestEhecatl({ alphaRef }: { alphaRef: MutableRefObject<n
       uniforms: {
         uAlpha: { value: 0 },
         uTime: { value: 0 },
-        uColor: { value: new Color("#c8b8c0") }, // cendre lumineuse
+        uColor: { value: new Color("#d76464") }, // cendre lumineuse
       },
     };
   }, []);

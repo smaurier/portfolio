@@ -49,7 +49,7 @@ export default function NorthMictlantecuhtli({ alphaRef }: { alphaRef: MutableRe
         uAlpha: { value: 0 },
         uTime: { value: 0 },
         uSmokeColor: { value: new Color("#3a2f4a") }, // gris violet dense
-        uShardColor: { value: new Color("#8b7bc9") }, // obsidien violet vif
+        uShardColor: { value: new Color("#6b3fa8") }, // obsidien violet vif
       },
     };
   }, []);

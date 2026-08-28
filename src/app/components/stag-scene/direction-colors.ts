@@ -43,11 +43,15 @@ export function hexToRgb(hex: string): ColorRgb {
  * variantes theme-dependent via --jade-bg et co.
  */
 export const DIRECTION_COLOR_VIVID: Record<DirectionKey, string> = {
-  jade: "#00c078",       // #00a86b boosté saturation
-  dore: "#f5a623",       // orange-or franc, plus punchy que #7a5218 dark
-  turquoise: "#22b3c6",  // conservé, déjà vif
-  cendre: "#c8b8c0",     // cendre plus lumineuse, teinte perceptible
-  obsidienne: "#8b7bc9", // violet-mauve saturé, plus lisible que #2b2340
+  // Palette tranchee 28/08 (retour Sylvain "couleurs trop proches
+  // entre rubriques"). 5 teintes bien separees du cercle chromatique
+  // (vert / jaune-or / bleu / rose corail / violet fonce), aucune
+  // ne trahit son ancrage mytho — juste plus saturees / tranchees.
+  jade: "#00c078",       // Centre Xiuhtecuhtli — jade sacre nahua
+  dore: "#ffb400",       // Est Tonatiuh — or franc soleil zenith
+  turquoise: "#0f6bb8",  // Sud Huitzilopochtli — bleu chalchihuitl profond
+  cendre: "#d76464",     // Ouest Cihuateteo — rose corail crepuscule
+  obsidienne: "#6b3fa8", // Nord Mictlantecuhtli — violet profond mysterieux
 };
 
 /**
@@ -76,13 +80,17 @@ export function readDirectionColor(direction: DirectionKey): string {
  *  - obsidienne (violet) → doré cempasúchil (#f5a623) : signature
  *    Día de los Muertos — la fleur qui guide les âmes garde sa vraie
  *    couleur contre le violet nord/mort, symbolisme direct.
+ *
+ * 28/08 : accents realignes sur palette tranchee. Cendre passe rose
+ * corail (main), accent vert doux (complementaire). Turquoise passe
+ * bleu profond (main), accent or franc (complementaire chaud).
  */
 export const DIRECTION_ACCENT_COMPLEMENTARY: Record<DirectionKey, string> = {
   jade: "#f97316",
   dore: "#4c6ef5",
-  turquoise: "#f97316",
+  turquoise: "#ffb400",
   cendre: "#4ade80",
-  obsidienne: "#f5a623",
+  obsidienne: "#ffb400",
 };
 
 export function readDirectionAccentColor(direction: DirectionKey): string {

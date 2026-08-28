@@ -20,10 +20,10 @@ export function generateStaticParams() {
 
 const CARDINAL = {
   jade: "#00c078",
-  dore: "#d4a747",
-  turquoise: "#2ac9d1",
-  cendre: "#8a8a8a",
-  obsidienne: "#6b3fa0",
+  dore: "#ffb400",
+  turquoise: "#0f6bb8",
+  cendre: "#d76464",
+  obsidienne: "#6b3fa8",
 };
 
 const CODEX_PHRASE: Record<string, { line: string; translation: string }> = {

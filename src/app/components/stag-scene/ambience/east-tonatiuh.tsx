@@ -41,7 +41,7 @@ export default function EastTonatiuh({ alphaRef }: { alphaRef: MutableRefObject<
     return items;
   }, []);
 
-  const color = useMemo(() => new Color("#f5a623"), []);
+  const color = useMemo(() => new Color("#ffb400"), []);
 
   useFrame((state) => {
     const alpha = alphaRef.current;

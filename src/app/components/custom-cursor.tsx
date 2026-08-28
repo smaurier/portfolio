@@ -30,10 +30,10 @@ const RING_LERP_MAGNETIC = 0.35; // ring suit plus vite quand aimanté
 
 const CARDINAL_COLORS: Record<string, string> = {
   jade: "#00c078",
-  dore: "#f5a623",
-  turquoise: "#22b3c6",
-  cendre: "#c8b8c0",
-  obsidienne: "#8b7bc9",
+  dore: "#ffb400",
+  turquoise: "#0f6bb8",
+  cendre: "#d76464",
+  obsidienne: "#6b3fa8",
 };
 
 export default function CustomCursor() {

@@ -13,11 +13,14 @@
      - turquoise (Sud / Projets) : Huitzilopochtli, mosaïques Xiuhtecuhtli
      - cendre (Ouest / Contact)  : Cihuateteo, crépuscule mauve-gris
      - obsidienne (Nord / Mémoire) : itztli, violet profond des reflets */
-  --jade-bg: #00a86b;
-  --dore-bg: #e0a137;
-  --turquoise-bg: #22b3c6;
-  --cendre-bg: #a89aa0;
-  --obsidienne-bg: #7a6ba0;
+  /* Palette tranchee 28/08 (retour Sylvain) — 5 teintes distinctes
+     cercle chromatique, ancrees mytho. Alignees sur DIRECTION_COLOR_
+     VIVID (direction-colors.ts). */
+  --jade-bg: #00c078;
+  --dore-bg: #ffb400;
+  --turquoise-bg: #0f6bb8;
+  --cendre-bg: #d76464;
+  --obsidienne-bg: #6b3fa8;
   /* Hauteurs réelles de .header/.siteFooter, mesurées (getBoundingClientRect)
      plutôt que devinées — servent à réserver l'espace ailleurs maintenant
      que les deux sont en position:fixed (palier 2 DA Nahual, cf
@@ -33,11 +36,13 @@
     --font-geist: "Geist VF", sans-serif;
     /* Palette assombrie pour rester cohérente avec le fond quasi-noir
        du mode sombre, plutôt que la même teinte vive plaquée dessus. */
-    --jade-bg: #0e4b3b;
-    --dore-bg: #7a5218;
-    --turquoise-bg: #14545e;
-    --cendre-bg: #4a4046;
-    --obsidienne-bg: #2b2340;
+    /* Variantes dark tranchees — meme hue que vivid, luminosite
+       reduite pour rester bg surfaces sombres. */
+    --jade-bg: #003e28;
+    --dore-bg: #5a4000;
+    --turquoise-bg: #082347;
+    --cendre-bg: #4d1e1e;
+    --obsidienne-bg: #24123a;
   }
 }
 
@@ -585,20 +590,20 @@ body.nahual-lab-reveal main[data-direction="jade"] {
   --direction-accent: #f97316;
 }
 body.nahual-lab-reveal main[data-direction="dore"] {
-  --direction-color: #f5a623;
+  --direction-color: #ffb400;
   --direction-accent: #4c6ef5;
 }
 body.nahual-lab-reveal main[data-direction="turquoise"] {
-  --direction-color: #22b3c6;
-  --direction-accent: #f97316;
+  --direction-color: #0f6bb8;
+  --direction-accent: #ffb400;
 }
 body.nahual-lab-reveal main[data-direction="cendre"] {
-  --direction-color: #c8b8c0;
+  --direction-color: #d76464;
   --direction-accent: #4ade80;
 }
 body.nahual-lab-reveal main[data-direction="obsidienne"] {
-  --direction-color: #8b7bc9;
-  --direction-accent: #f5a623;
+  --direction-color: #6b3fa8;
+  --direction-accent: #ffb400;
 }
 
 body.nahual-lab-reveal .contentPage {
@@ -976,10 +981,10 @@ body.konami-flash::after {
 
 @keyframes konamiFlash {
   0%   { background: #00c078; opacity: 0.4; }
-  20%  { background: #f5a623; opacity: 0.35; }
-  40%  { background: #22b3c6; opacity: 0.35; }
-  60%  { background: #c8b8c0; opacity: 0.35; }
-  80%  { background: #8b7bc9; opacity: 0.35; }
+  20%  { background: #ffb400; opacity: 0.35; }
+  40%  { background: #0f6bb8; opacity: 0.35; }
+  60%  { background: #d76464; opacity: 0.35; }
+  80%  { background: #6b3fa8; opacity: 0.35; }
   100% { background: #00c078; opacity: 0; }
 }
 

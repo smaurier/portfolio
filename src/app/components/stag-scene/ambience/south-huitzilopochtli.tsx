@@ -45,7 +45,7 @@ export default function SouthHuitzilopochtli({ alphaRef }: { alphaRef: MutableRe
       uniforms: {
         uAlpha: { value: 0 },
         uTime: { value: 0 },
-        uColor: { value: new Color("#22b3c6") },
+        uColor: { value: new Color("#0f6bb8") },
         uAccent: { value: new Color("#f97316") }, // orange complémentaire, gorge du colibri
       },
     };
