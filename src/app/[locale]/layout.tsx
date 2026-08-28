@@ -2,6 +2,7 @@ import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import CustomCursor from "../components/custom-cursor";
+import EasterEgg from "../components/easter-egg";
 import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
 import SkipNav from "../components/skip-nav";
@@ -209,6 +210,10 @@ export default async function LocaleLayout({
               (data-cardinal-direction), magnetic attraction sur CTAs
               (data-magnetic). Actif uniquement hover:hover + pointer:fine. */}
           <CustomCursor />
+          {/* Easter egg (28/08 task #56) — tape "nahual" au clavier
+              n'importe ou sur le site (hors input), reveal toast
+              discret 5s. Signature "site vivant" cachee. */}
+          <EasterEgg locale={locale} />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
       </body>

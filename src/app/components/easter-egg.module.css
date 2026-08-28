@@ -1,0 +1,42 @@
+/* Easter egg (28/08 task #56). Toast temporaire au bas de l'écran
+   quand l'utilisateur tape le mot "nahual". Signature discrète
+   pour visiteurs curieux, aucun signe visible avant activation. */
+
+.toast {
+  position: fixed;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  z-index: 9500;
+  padding: 1rem 1.8rem;
+  background: rgba(15, 12, 22, 0.92);
+  border: 1px solid rgba(0, 192, 120, 0.5);
+  border-radius: 6px;
+  color: #f4ead5;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 24px rgba(0, 192, 120, 0.15);
+  max-width: 90vw;
+  text-align: center;
+}
+
+.toast[data-visible="true"] {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast em {
+  color: #00c078;
+  font-style: normal;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  display: block;
+  margin-bottom: 0.4rem;
+}
