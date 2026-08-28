@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import "../globals.css";
+import CardinalCompass from "../components/cardinal-compass";
 import CustomCursor from "../components/custom-cursor";
 import EasterEgg from "../components/easter-egg";
 import KeyboardNav from "../components/keyboard-nav";
@@ -230,6 +231,10 @@ export default async function LocaleLayout({
               hover projectCase/serviceCard, tilt subtil perspective
               6° selon position souris. Reset au leave. */}
           <TiltCards />
+          {/* Cardinal compass (28/08 retour Sylvain) — indicateur bas
+              droite croix 5 points, direction courante highlight
+              couleur cardinale, cliquable nav rapide. */}
+          <CardinalCompass locale={locale} />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
       </body>
