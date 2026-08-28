@@ -49,20 +49,42 @@
   },
   "projets": {
     "title": "Projects",
-    "intro": "A look at what I build.",
+    "intro": "Three recent projects. Deep case studies rather than a screenshot gallery.",
+    "labels": {
+      "context": "Context",
+      "role": "Role",
+      "stack": "Stack",
+      "highlights": "Key choices",
+      "outcome": "Outcome"
+    },
     "nuada": {
       "title": "Nuada · RGAA accessibility audit",
-      "text": "Showcase site and RGAA audit engine. Compliance, multilingual SEO, positioned as \"the auditor who codes the fix.\"",
+      "text": "Showcase site and RGAA audit engine. WCAG 2.2 compliance, multilingual SEO, positioned as \"the auditor who codes the fix.\"",
+      "context": "The French RGAA audit market is saturated with PDF reports no one knows how to implement. Nuada was built around a simple idea: deliver the fix code, not just the diagnosis.",
+      "role": "Product owner, art direction, complete development. Solo builder.",
+      "stack": "Astro, TypeScript, MDX, native i18n fr/en/es, Netlify hosting.",
+      "highlights": "Rare positioning against classic firms (\"the auditor who codes\"). Public transparent pricing grid. Quick online audit demo on submitted URL.",
+      "outcome": "Live since August 2026. First conversations with 3 prospects between September and October.",
       "cta": "Visit the site →"
     },
     "kleyfrance": {
       "title": "KleyFrance",
-      "text": "Logo and art direction for KleyFrance's (WordPress) website, a manufacturer of custom lifting and handling solutions for the oil, offshore and defense sectors.",
+      "text": "Full WordPress site rebuild + logo creation for a manufacturer of custom lifting solutions (oil, offshore, military).",
+      "context": "Aging site, not responsive, no visual charter. International B2B target with demanding, very technical vocabulary (slinging, marine winches, LOLER).",
+      "role": "Art direction, logo creation, WordPress custom theme rebuild.",
+      "stack": "WordPress, ACF Pro, responsive custom theme, subtle GSAP animations.",
+      "highlights": "Industrial visual charter without falling into \"heavy metal\" cliché. Product photothèque organized by sector (naval / offshore / defense). B2B multilingual SEO.",
+      "outcome": "Site live, loading time cut by 3, mobile-friendly, unified quote forms.",
       "cta": "Visit the site →"
     },
     "synapse": {
       "title": "Synapse",
-      "text": "Open-source plugin for Claude Code: links an AI assistant's memory across machines and projects instead of duplicating it. A tool for developers, tested (283 tests, green CI).",
+      "text": "Open-source plugin for Claude Code: syncs an AI assistant's memory across machines and projects instead of duplicating it.",
+      "context": "Using Claude Code on 3 machines (personal, LR mission, laptop), I kept losing continuity: each machine had its own memory, none knew the others' context. Time-consuming and fragile manual duplication.",
+      "role": "Concept, architecture, complete dev, tests, docs, publication. Solo.",
+      "stack": "Node.js, TypeScript, Claude Code hooks, background git sync, smart local cache.",
+      "highlights": "Sync collision detection (two machines writing at the same time). Named memory structure (feedback/project/user/reference). 283 tests, green CI from day 1. Published open-source from day 1.",
+      "outcome": "Published on github.com/smaurier/claude-synapse. Plugin adopted daily on my 3 machines. Solid base for a future community.",
       "cta": "View the code →"
     },
     "moreBefore": "More projects on",

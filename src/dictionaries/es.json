@@ -49,20 +49,42 @@
   },
   "projets": {
     "title": "Proyectos",
-    "intro": "Un vistazo a lo que construyo.",
+    "intro": "Tres proyectos recientes. Case studies profundos en lugar de una galería de capturas.",
+    "labels": {
+      "context": "Contexto",
+      "role": "Rol",
+      "stack": "Stack",
+      "highlights": "Decisiones clave",
+      "outcome": "Resultado"
+    },
     "nuada": {
       "title": "Nuada · auditoría de accesibilidad RGAA",
-      "text": "Sitio vitrina y motor de auditoría RGAA. Conformidad, SEO multilingüe, posicionamiento como «el auditor que programa la solución».",
+      "text": "Sitio vitrina y motor de auditoría RGAA. Conformidad WCAG 2.2, SEO multilingüe, posicionamiento como «el auditor que programa la solución».",
+      "context": "El mercado francés de auditorías RGAA está saturado de informes PDF que nadie sabe implementar. Nuada nació con una idea simple: entregar el código de corrección, no solo el diagnóstico.",
+      "role": "Product owner, dirección artística, desarrollo completo. Solo builder.",
+      "stack": "Astro, TypeScript, MDX, i18n nativo fr/en/es, alojamiento Netlify.",
+      "highlights": "Posicionamiento raro frente a firmas clásicas («el auditor que programa»). Tarifas públicas transparentes. Demo de auditoría rápida en línea sobre URL enviada.",
+      "outcome": "En línea desde agosto 2026. Primeras conversaciones con 3 prospectos entre septiembre y octubre.",
       "cta": "Ver el sitio →"
     },
     "kleyfrance": {
       "title": "KleyFrance",
-      "text": "Logo y dirección artística del sitio (WordPress) de KleyFrance, fabricante de soluciones de elevación y manutención a medida para los sectores petrolero, oceanográfico y militar.",
+      "text": "Rediseño completo del sitio WordPress + creación del logo para un fabricante de soluciones de elevación a medida (petrolero, oceanográfico, militar).",
+      "context": "Sitio envejecido, no responsivo, sin carta gráfica. Objetivo B2B internacional exigente, vocabulario técnico muy específico (eslingado, cabrestantes marinos, LOLER).",
+      "role": "Dirección artística, creación del logo, rediseño del tema WordPress a medida.",
+      "stack": "WordPress, ACF Pro, tema responsivo a medida, animaciones GSAP sutiles.",
+      "highlights": "Carta visual industrial sin caer en el cliché «heavy metal». Fototeca de productos organizada por sector (naval / offshore / defensa). SEO B2B multilingüe.",
+      "outcome": "Sitio en línea, tiempo de carga dividido por 3, mobile-friendly, formularios de presupuesto unificados.",
       "cta": "Ver el sitio →"
     },
     "synapse": {
       "title": "Synapse",
-      "text": "Plugin de código abierto para Claude Code: conecta la memoria de un asistente de IA entre varias máquinas y proyectos en lugar de duplicarla. Herramienta para desarrolladores, probada (283 tests, CI en verde).",
+      "text": "Plugin de código abierto para Claude Code: sincroniza la memoria de un asistente de IA entre varias máquinas y proyectos en lugar de duplicarla.",
+      "context": "Usando Claude Code en 3 máquinas (personal, misión LR, laptop), perdía la continuidad: cada máquina tenía su propia memoria, ninguna conocía el contexto de las demás. Duplicación manual lenta y frágil.",
+      "role": "Concepto, arquitectura, desarrollo completo, tests, docs, publicación. Solo.",
+      "stack": "Node.js, TypeScript, hooks de Claude Code, sincronización git en segundo plano, caché local inteligente.",
+      "highlights": "Detección de colisiones de sync (dos máquinas escribiendo al mismo tiempo). Estructura de memoria nombrada (feedback/project/user/reference). 283 tests, CI en verde desde el primer día. Publicado en código abierto desde el día 1.",
+      "outcome": "Publicado en github.com/smaurier/claude-synapse. Plugin adoptado diariamente en mis 3 máquinas. Base sólida para una comunidad futura.",
       "cta": "Ver el código →"
     },
     "moreBefore": "Más proyectos en",

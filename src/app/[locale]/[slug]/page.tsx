@@ -55,29 +55,44 @@ function ProjetsPage({ dict }: { dict: Dictionary["projets"] }) {
       <h1>{dict.title}</h1>
       <p>{dict.intro}</p>
 
-      <div className="serviceCard">
-        <h2>{dict.nuada.title}</h2>
-        <p>{dict.nuada.text}</p>
-        <a href="https://nuada-audit.netlify.app" target="_blank" rel="noopener noreferrer" className="ctaButton">
-          {dict.nuada.cta}
-        </a>
-      </div>
+      <ProjectCase
+        title={dict.nuada.title}
+        text={dict.nuada.text}
+        context={dict.nuada.context}
+        role={dict.nuada.role}
+        stack={dict.nuada.stack}
+        highlights={dict.nuada.highlights}
+        outcome={dict.nuada.outcome}
+        labels={dict.labels}
+        href="https://nuada-audit.netlify.app"
+        cta={dict.nuada.cta}
+      />
 
-      <div className="serviceCard">
-        <h2>{dict.kleyfrance.title}</h2>
-        <p>{dict.kleyfrance.text}</p>
-        <a href="https://kleyfrance.fr/" target="_blank" rel="noopener noreferrer" className="ctaButton">
-          {dict.kleyfrance.cta}
-        </a>
-      </div>
+      <ProjectCase
+        title={dict.kleyfrance.title}
+        text={dict.kleyfrance.text}
+        context={dict.kleyfrance.context}
+        role={dict.kleyfrance.role}
+        stack={dict.kleyfrance.stack}
+        highlights={dict.kleyfrance.highlights}
+        outcome={dict.kleyfrance.outcome}
+        labels={dict.labels}
+        href="https://kleyfrance.fr/"
+        cta={dict.kleyfrance.cta}
+      />
 
-      <div className="serviceCard">
-        <h2>{dict.synapse.title}</h2>
-        <p>{dict.synapse.text}</p>
-        <a href="https://github.com/smaurier/claude-synapse" target="_blank" rel="noopener noreferrer" className="ctaButton">
-          {dict.synapse.cta}
-        </a>
-      </div>
+      <ProjectCase
+        title={dict.synapse.title}
+        text={dict.synapse.text}
+        context={dict.synapse.context}
+        role={dict.synapse.role}
+        stack={dict.synapse.stack}
+        highlights={dict.synapse.highlights}
+        outcome={dict.synapse.outcome}
+        labels={dict.labels}
+        href="https://github.com/smaurier/claude-synapse"
+        cta={dict.synapse.cta}
+      />
 
       <p>
         {dict.moreBefore}{" "}
@@ -87,6 +102,57 @@ function ProjetsPage({ dict }: { dict: Dictionary["projets"] }) {
         {dict.moreAfter}
       </p>
     </div>
+  );
+}
+
+/**
+ * Case study card (28/08 task #51 audit SOTY). Passe des 3 lignes stub
+ * a un vrai case study : contexte + role + stack + choix marquants +
+ * resultat + CTA. Signature "portfolio pro" (vs galerie captures).
+ */
+function ProjectCase({
+  title,
+  text,
+  context,
+  role,
+  stack,
+  highlights,
+  outcome,
+  labels,
+  href,
+  cta,
+}: {
+  title: string;
+  text: string;
+  context: string;
+  role: string;
+  stack: string;
+  highlights: string;
+  outcome: string;
+  labels: { context: string; role: string; stack: string; highlights: string; outcome: string };
+  href: string;
+  cta: string;
+}) {
+  return (
+    <article className="projectCase">
+      <h2>{title}</h2>
+      <p className="projectCaseText">{text}</p>
+      <dl className="projectCaseDetails">
+        <dt>{labels.context}</dt>
+        <dd>{context}</dd>
+        <dt>{labels.role}</dt>
+        <dd>{role}</dd>
+        <dt>{labels.stack}</dt>
+        <dd>{stack}</dd>
+        <dt>{labels.highlights}</dt>
+        <dd>{highlights}</dd>
+        <dt>{labels.outcome}</dt>
+        <dd>{outcome}</dd>
+      </dl>
+      <a href={href} target="_blank" rel="noopener noreferrer" className="ctaButton">
+        {cta}
+      </a>
+    </article>
   );
 }
 

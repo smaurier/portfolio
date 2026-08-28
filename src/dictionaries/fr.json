@@ -49,20 +49,42 @@
   },
   "projets": {
     "title": "Projets",
-    "intro": "Un aperçu de ce que je construis.",
+    "intro": "Trois projets récents. Case studies profonds plutôt qu'une galerie de captures.",
+    "labels": {
+      "context": "Contexte",
+      "role": "Rôle",
+      "stack": "Stack",
+      "highlights": "Choix marquants",
+      "outcome": "Résultat"
+    },
     "nuada": {
       "title": "Nuada · audit accessibilité RGAA",
-      "text": "Site vitrine et moteur d'audit RGAA. Conformité, SEO multilingue, positionnement « l'auditeur qui code la solution ».",
+      "text": "Site vitrine et moteur d'audit RGAA. Conformité WCAG 2.2, SEO multilingue, positionnement « l'auditeur qui code la solution ».",
+      "context": "Le marché de l'audit RGAA en France est saturé de rapports PDF que personne ne sait implémenter. Nuada s'est monté autour d'une idée simple : livrer le code de correction, pas seulement le diagnostic.",
+      "role": "Product owner, direction artistique, développement complet. Solo builder.",
+      "stack": "Astro, TypeScript, MDX, i18n natif fr/en/es, hébergement Netlify.",
+      "highlights": "Positionnement rare face aux cabinets classiques (« l'auditeur qui code »). Grille tarifaire publique transparente. Démo audit rapide en ligne sur URL soumise.",
+      "outcome": "En ligne depuis août 2026. Premiers échanges avec 3 prospects entre septembre et octobre.",
       "cta": "Voir le site →"
     },
     "kleyfrance": {
       "title": "KleyFrance",
-      "text": "Logo et direction artistique du site (WordPress) de KleyFrance, fabricant de solutions de levage et de manutention sur-mesure pour les secteurs pétrolier, océanographique et militaire.",
+      "text": "Refonte complète du site WordPress + création du logo pour un fabricant de solutions de levage sur-mesure (pétrolier, océanographique, militaire).",
+      "context": "Site vieillissant, pas responsive, charte graphique inexistante. Cible B2B internationale exigeante, vocabulaire technique très pointu (élinguage, treuils marins, LOLER).",
+      "role": "Direction artistique, création logo, refonte WordPress theme sur-mesure.",
+      "stack": "WordPress, ACF Pro, thème custom responsive, animations GSAP subtiles.",
+      "highlights": "Charte visuelle industrielle sans céder au cliché « heavy metal ». Photothèque produits organisée par secteur (naval / offshore / défense). SEO multilingue B2B.",
+      "outcome": "Site en ligne, temps de chargement divisé par 3, mobile-friendly, formulaires devis unifiés.",
       "cta": "Voir le site →"
     },
     "synapse": {
       "title": "Synapse",
-      "text": "Plugin open-source pour Claude Code : relie la mémoire d'un assistant IA entre plusieurs machines et projets au lieu de la dupliquer. Outil pour développeurs, testé (283 tests, CI verte).",
+      "text": "Plugin open-source pour Claude Code : synchronise la mémoire d'un assistant IA entre plusieurs machines et projets au lieu de la dupliquer.",
+      "context": "En utilisant Claude Code sur 3 postes (perso, mission LR, laptop), je perdais la continuité : chaque machine avait sa propre mémoire, aucune ne connaissait le contexte des autres. Duplication manuelle chronophage et fragile.",
+      "role": "Concept, architecture, dev complet, tests, doc, publication. Solo.",
+      "stack": "Node.js, TypeScript, hooks Claude Code, sync git en arrière-plan, cache local intelligent.",
+      "highlights": "Détection de collisions de sync (deux machines qui écrivent en même temps). Structure de mémoire nommée (feedback/project/user/reference). 283 tests, CI verte dès la première PR. Publié en open-source dès le jour 1.",
+      "outcome": "Publié sur github.com/smaurier/claude-synapse. Plugin adopté quotidiennement sur mes 3 postes. Base solide pour une communauté future.",
       "cta": "Voir le code →"
     },
     "moreBefore": "D'autres projets sur",

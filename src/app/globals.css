@@ -825,3 +825,60 @@ button:focus-visible,
   outline-offset: 3px;
   border-radius: 2px;
 }
+
+/* Case study cards (28/08 task #51) — signature "portfolio pro" vs
+   galerie captures. Article distinct par projet, structure dl
+   context/role/stack/highlights/outcome. */
+.projectCase {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem 2.2rem;
+  border: 1px solid rgba(244, 234, 213, 0.15);
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  background: rgba(15, 12, 22, 0.65);
+  backdrop-filter: blur(4px);
+}
+.projectCase h2 {
+  font-size: 1.4rem;
+  margin: 0;
+  color: #f4ead5;
+}
+.projectCaseText {
+  font-size: 1.05rem;
+  line-height: 1.55;
+  opacity: 0.9;
+  margin: 0;
+}
+.projectCaseDetails {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1.5rem;
+  margin: 0.5rem 0 1rem;
+}
+.projectCaseDetails dt {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  padding-top: 0.2rem;
+}
+.projectCaseDetails dd {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+@media (max-width: 767px) {
+  .projectCaseDetails {
+    grid-template-columns: 1fr;
+    gap: 0.15rem 0;
+  }
+  .projectCaseDetails dt {
+    padding-top: 0.8rem;
+  }
+  .projectCaseDetails dt:first-child {
+    padding-top: 0;
+  }
+}
