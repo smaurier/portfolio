@@ -283,6 +283,22 @@ main {
   overflow-y: auto;
 }
 
+/* Burger button z-index (28/08 retour Sylvain "menu burger open
+   impossible a fermer, croix illisible") — remonte au-dessus du
+   mobilePanel z:150 pour rester cliquable et visible. */
+.mobileMenuButton {
+  z-index: 200;
+}
+
+/* Force fond header sombre nahual (28/08 retour Sylvain "header
+   gris moche mobile") — sans ce override, var(--background) suit
+   prefers-color-scheme systeme qui peut etre light → header 72%
+   blanc = gris. Le site est en dark permanent (color-scheme
+   force ligne body.nahual-lab-reveal), le header doit suivre. */
+body.nahual-lab-reveal .header {
+  background: rgba(10, 8, 14, 0.82);
+}
+
 .mobileNav ul,
 .mobileExternal,
 .mobileLangSwitcher {
