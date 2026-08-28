@@ -2,6 +2,7 @@ import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import Header from "../components/header";
+import NahualIntro from "../components/nahual-intro";
 import LoadingVeil from "../components/stag-scene/loading-veil";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
 import PersistentScene from "../components/stag-scene/persistent-scene";
@@ -180,6 +181,12 @@ export default async function LocaleLayout({
             translation={dict.lab.loadingTranslation}
             label={dict.lab.loadingLabel}
           />
+          {/* Intro cinématique one-shot par session (28/08 task #45) —
+              letterbox reveal + phrase Codex + Piedra del Sol + logo.
+              LocalStorage flag nahual-intro-seen : joue une seule
+              fois. Skip button visible. Signature "premier wow jury"
+              SOTY. */}
+          <NahualIntro locale={locale} />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
       </body>
