@@ -1,7 +1,7 @@
 "use client";
 
 import Link, { type LinkProps } from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { forwardRef, type MouseEvent, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { pageKeys, slugs, type PageKey } from "@/lib/routes";
@@ -74,6 +74,7 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
   ref,
 ) {
   const router = useRouter();
+  const pathname = usePathname();
   const transition = useCardinalTransition();
 
   function handleClick(e: MouseEvent<HTMLAnchorElement>) {
@@ -88,6 +89,18 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
       rest.target === "_blank"
     ) {
       onClick?.(e);
+      return;
+    }
+    // Click sur lien page courante (28/08 retour Sylvain) : au lieu
+    // de rejouer le burst + VT inutile (snapshot new === old = anim
+    // invisible), scroll to top smooth. Retour au sanctuaire de la
+    // scene. Signature "tu es deja ici, remonte au centre".
+    const currentPath = pathname?.replace(/\/$/, "") || "";
+    const targetPath = href.replace(/\/$/, "");
+    if (currentPath === targetPath) {
+      e.preventDefault();
+      onClick?.(e);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     const direction = directionFromHref(href);
