@@ -39,7 +39,7 @@ export default function StagScene({
   return (
     <SceneStage
       overlay={({ progressRef, reducedMotionRef }) => (
-        <>
+        <main id="main">
           <FadingBlock
             progressRef={progressRef}
             reducedMotionRef={reducedMotionRef}
@@ -76,7 +76,7 @@ export default function StagScene({
               </a>
             </div>
           </FadingBlock>
-        </>
+        </main>
       )}
     />
   );

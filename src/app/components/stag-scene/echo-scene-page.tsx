@@ -43,7 +43,7 @@ export default function EchoScenePage({
         />
       )}
     >
-      <main data-direction={directionKey}>{children}</main>
+      <main id="main" data-direction={directionKey}>{children}</main>
     </SceneStage>
   );
 }

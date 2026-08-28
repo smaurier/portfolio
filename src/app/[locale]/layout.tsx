@@ -4,6 +4,7 @@ import "../globals.css";
 import CustomCursor from "../components/custom-cursor";
 import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
+import SkipNav from "../components/skip-nav";
 import SmoothScroll from "../components/smooth-scroll";
 import LoadingVeil from "../components/stag-scene/loading-veil";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
@@ -158,6 +159,10 @@ export default async function LocaleLayout({
             avant que le burst finisse. */}
         <SceneRefsProvider>
         <CardinalTransitionProvider>
+          {/* Skip nav a11y (28/08 task #49) — premier element focusable,
+              premier tab depuis top = "aller au contenu principal".
+              Sr-only par defaut, visible au focus. */}
+          <SkipNav label={dict.common.skipNav} />
           {/* Lenis smooth scroll (28/08 task #48) — signature silky
               scroll. Respect reducedMotion (pas monte du tout).
               window.scrollY reste synchro, la scene 3D reveal-arc

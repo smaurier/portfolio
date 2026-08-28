@@ -1,0 +1,29 @@
+/* Skip nav (28/08 task #49). Sr-only par défaut, visible au focus.
+   Signature a11y : premier tab depuis le haut du document révèle
+   le lien "aller au contenu principal" en top-left. Bypass du
+   header pour utilisateurs clavier. */
+
+.skipNav {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 10500;
+  padding: 0.75rem 1.25rem;
+  background: #f4ead5;
+  color: #0a0710;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  border-radius: 4px;
+  border: 2px solid #00c078;
+  transform: translateY(-140%);
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.skipNav:focus,
+.skipNav:focus-visible {
+  transform: translateY(0);
+  outline: none;
+}

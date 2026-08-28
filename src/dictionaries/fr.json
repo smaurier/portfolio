@@ -14,7 +14,15 @@
     "langSwitcherLabel": "Changer de langue",
     "showEmail": "Afficher l'email",
     "openMenu": "Ouvrir le menu",
-    "closeMenu": "Fermer le menu"
+    "closeMenu": "Fermer le menu",
+    "skipNav": "Aller au contenu principal",
+    "direction": {
+      "jade": "Accueil · direction Centre",
+      "dore": "Services · direction Est",
+      "turquoise": "Projets · direction Sud",
+      "cendre": "Contact · direction Ouest",
+      "obsidienne": "Mémoire · direction Nord"
+    }
   },
   "home": {
     "heroTitle": "Nahual · studio de création",

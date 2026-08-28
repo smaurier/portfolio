@@ -815,3 +815,13 @@ body.nahual-lab-reveal .ctaButton {
   right: 0;
   z-index: 100;
 }
+/* Focus rings a11y (28/08 task #49). Signature palette cardinale :
+   focus visible avec anneau jade sur tous les elements focusables.
+   :focus-visible seulement (souris ne montre pas) — clavier + shortcut. */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #00c078;
+  outline-offset: 3px;
+  border-radius: 2px;
+}

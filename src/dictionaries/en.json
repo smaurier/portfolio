@@ -14,7 +14,15 @@
     "langSwitcherLabel": "Switch language",
     "showEmail": "Show email",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "skipNav": "Skip to main content",
+    "direction": {
+      "jade": "Home · Center direction",
+      "dore": "Services · East direction",
+      "turquoise": "Projects · South direction",
+      "cendre": "Contact · West direction",
+      "obsidienne": "Memory · North direction"
+    }
   },
   "home": {
     "heroTitle": "Nahual · creative studio",
