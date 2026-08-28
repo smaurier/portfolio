@@ -17,25 +17,25 @@
     "closeMenu": "Close menu"
   },
   "home": {
-    "heroTitle": "Nahual — creative studio",
+    "heroTitle": "Nahual · creative studio",
     "heroText": "Among the Nahua, a Mesoamerican people, the deer (Mazātl) is the seventh day of the sacred calendar: a messenger between worlds, associated with grace, vigilance, and the ability to hide its true nature from others. The nahual is the same idea: a human essence revealed in its true animal form, embodied here by this deer.",
     "heroCta": "Discover my services",
     "aboutTitle": "About",
-    "aboutText": "Nahual, the studio, applies the same logic to the web: turning an idea into a real, working site. The proof it worked? It works for everyone.\n\nSylvain Maurier — senior frontend developer, 10 years of experience (React, Next.js, Vue/Nuxt, React Native). Specialized in digital accessibility (RGAA/WCAG), with one simple conviction: accessibility is built, not just audited.",
+    "aboutText": "Nahual, the studio, applies the same logic to the web: turning an idea into a real, working site. The proof it worked? It works for everyone.\n\nSylvain Maurier, senior frontend developer, 10 years of experience (React, Next.js, Vue/Nuxt, React Native). Specialized in digital accessibility (RGAA/WCAG), with one simple conviction: accessibility is built, not just audited.",
     "githubCta": "See my code on GitHub →",
     "contactCta": "Get in touch"
   },
   "services": {
     "title": "Services",
-    "intro": "Nahual is Sylvain Maurier's creative studio — a senior frontend developer specialized in digital accessibility. Two offers, one goal: websites that work, for everyone.",
+    "intro": "Nahual is Sylvain Maurier's creative studio, a senior frontend developer specialized in digital accessibility. Two offers, one goal: websites that work, for everyone.",
     "webCard": {
       "title": "Website development",
       "text": "Showcase sites, custom applications: frontend and fullstack development (React, Next.js, Vue/Nuxt), design systems, performance. From spec to launch."
     },
     "auditCard": {
       "title": "RGAA accessibility audit",
-      "text": "RGAA/WCAG compliance audits with directly implementable recommendations — I deliver the fix code, not just a report.",
-      "note": "Certification in progress (access42 exam, October 23, 2026) — not yet obtained."
+      "text": "RGAA/WCAG compliance audits with directly implementable recommendations. I deliver the fix code, not just a report.",
+      "note": "Certification in progress (access42 exam, October 23, 2026), not yet obtained."
     },
     "cta": "Let's talk about your project →"
   },
@@ -43,7 +43,7 @@
     "title": "Projects",
     "intro": "A look at what I build.",
     "nuada": {
-      "title": "Nuada — RGAA accessibility audit",
+      "title": "Nuada · RGAA accessibility audit",
       "text": "Showcase site and RGAA audit engine. Compliance, multilingual SEO, positioned as \"the auditor who codes the fix.\"",
       "cta": "Visit the site →"
     },
@@ -63,23 +63,23 @@
   },
   "contact": {
     "title": "Contact",
-    "intro": "A website project or an accessibility audit need? I'm available for new missions — let's talk.",
-    "note": "An idea worth exploring over coffee, or just want to talk tech — either works for me.",
+    "intro": "A website project or an accessibility audit need? I'm available for new missions, let's talk.",
+    "note": "An idea worth exploring over coffee, or just want to talk tech, either works for me.",
     "linkedinBefore": "Or on",
     "linkedinLinkText": "LinkedIn",
     "linkedinAfter": "."
   },
   "memoire": {
     "title": "Teyolía · Memory",
-    "intro": "Teyolía — one of the three entities that, in Nahua thought, make up a person: it lives in the heart, carries memory, and it's the one that travels to Mictlán after death. This page isn't a blog: it's an epitaph — what didn't survive building this site, kept rather than erased.",
+    "intro": "Teyolía, one of the three entities that, in Nahua thought, make up a person: it lives in the heart, carries memory, and it's the one that travels to Mictlán after death. This page isn't a blog: it's an epitaph. What didn't survive building this site, kept rather than erased.",
     "entries": [
       {
         "title": "The walk",
-        "text": "The stag advanced with the scroll — a technically correct stride cycle, unreadable over the few notches of a real scroll. Removed rather than tuned a third time: it added almost nothing for what it cost."
+        "text": "The stag advanced with the scroll, a technically correct stride cycle, unreadable over the few notches of a real scroll. Removed rather than tuned a third time: it added almost nothing for what it cost."
       },
       {
         "title": "The tree that wasn't from here",
-        "text": "A first accent of flora, photoreal texture, oversized — clashed with the rest of the scene, flat and vertex-colored. Replaced by a procedural ocotillo, truer to the pre-Columbian flora of central Mexico."
+        "text": "A first accent of flora, photoreal texture, oversized, clashed with the rest of the scene, flat and vertex-colored. Replaced by a procedural ocotillo, truer to the pre-Columbian flora of central Mexico."
       },
       {
         "title": "The serpents",
@@ -87,13 +87,13 @@
       },
       {
         "title": "The intro that dissolved",
-        "text": "The Piedra del Sol and the text dissolved into a cloud of embers before revealing the scene — a real vector technique (sampling around 250 SVG paths), but the effect didn't serve the story. Removed the day after it shipped."
+        "text": "The Piedra del Sol and the text dissolved into a cloud of embers before revealing the scene. A real vector technique (sampling around 250 SVG paths), but the effect didn't serve the story. Removed the day after it shipped."
       }
     ]
   },
   "lab": {
     "loadingPhrase": "In xochitl, in cuicatl",
-    "loadingTranslation": "\"Flower and song\" — the only truth, according to the Nahua sages",
+    "loadingTranslation": "\"Flower and song\", the only truth according to the Nahua sages",
     "loadingLabel": "Loading the scene"
   }
 }

@@ -44,31 +44,31 @@ type ClosureContent = {
 const CLOSURES: Record<DirectionKey, ClosureContent> = {
   jade: {
     cardinal: "Centre · Tlalxicco",
-    poetic: "Le nombril du monde — d'où partent les chemins.",
+    poetic: "Le nombril du monde. D'où partent les chemins.",
     nextKey: "services",
     nextLabel: "Est · Doré",
   },
   dore: {
     cardinal: "Est · Tlahuizcalpan",
-    poetic: "L'aube dorée — Tonatiuh se lève, la journée s'ouvre.",
+    poetic: "L'aube dorée. Tonatiuh se lève, la journée s'ouvre.",
     nextKey: "projets",
     nextLabel: "Sud · Turquoise",
   },
   turquoise: {
     cardinal: "Sud · Huitztlampa",
-    poetic: "Xochitl, la fleur — Huitzilopochtli veille sur ce qui pousse.",
+    poetic: "Xochitl, la fleur. Huitzilopochtli veille sur ce qui pousse.",
     nextKey: "contact",
     nextLabel: "Ouest · Cendre",
   },
   cendre: {
     cardinal: "Ouest · Cihuatlampa",
-    poetic: "Le crépuscule mauve — Cihuateteo raccompagnent le soleil.",
+    poetic: "Le crépuscule mauve. Cihuateteo raccompagnent le soleil.",
     nextKey: "memoire",
     nextLabel: "Nord · Obsidienne",
   },
   obsidienne: {
     cardinal: "Nord · Mictlampa",
-    poetic: "Le lieu du repos — Mictlán reçoit ce qui a été vécu.",
+    poetic: "Le lieu du repos. Mictlán reçoit ce qui a été vécu.",
     nextKey: null,
     nextLabel: "Retour au Centre",
   },

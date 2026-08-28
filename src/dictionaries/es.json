@@ -17,25 +17,25 @@
     "closeMenu": "Cerrar el menú"
   },
   "home": {
-    "heroTitle": "Nahual — estudio creativo",
+    "heroTitle": "Nahual · estudio creativo",
     "heroText": "Entre los nahuas, pueblo mesoamericano, el venado (Mazātl) es el séptimo día del calendario sagrado: un mensajero entre mundos, asociado a la gracia, a la vigilancia, y a la capacidad de ocultar su verdadera naturaleza. El nahual es la misma idea: una esencia humana que se revela en su forma animal verdadera, encarnada aquí por este venado.",
     "heroCta": "Descubrir mis servicios",
     "aboutTitle": "Sobre mí",
-    "aboutText": "Nahual, el estudio, aplica la misma lógica a la web: transformar una idea en un sitio real. ¿La prueba de que funcionó? Que funciona para todos.\n\nSylvain Maurier — desarrollador frontend senior, 10 años de experiencia (React, Next.js, Vue/Nuxt, React Native). Especializado en accesibilidad digital (RGAA/WCAG), con una convicción simple: la accesibilidad se programa, no solo se audita.",
+    "aboutText": "Nahual, el estudio, aplica la misma lógica a la web: transformar una idea en un sitio real. ¿La prueba de que funcionó? Que funciona para todos.\n\nSylvain Maurier, desarrollador frontend senior, 10 años de experiencia (React, Next.js, Vue/Nuxt, React Native). Especializado en accesibilidad digital (RGAA/WCAG), con una convicción simple: la accesibilidad se programa, no solo se audita.",
     "githubCta": "Ver mi código en GitHub →",
     "contactCta": "Contactarme"
   },
   "services": {
     "title": "Servicios",
-    "intro": "Nahual es el estudio creativo de Sylvain Maurier — desarrollador frontend senior especializado en accesibilidad digital. Dos ofertas, un solo objetivo: sitios que funcionan, para todos.",
+    "intro": "Nahual es el estudio creativo de Sylvain Maurier, desarrollador frontend senior especializado en accesibilidad digital. Dos ofertas, un solo objetivo: sitios que funcionan, para todos.",
     "webCard": {
       "title": "Creación de sitios web",
       "text": "Sitios vitrina, aplicaciones a medida: desarrollo frontend y fullstack (React, Next.js, Vue/Nuxt), sistema de diseño, rendimiento. Del pliego de condiciones a la puesta en línea."
     },
     "auditCard": {
       "title": "Auditoría de accesibilidad RGAA",
-      "text": "Auditoría de conformidad RGAA/WCAG con recomendaciones directamente implementables — entrego el código de corrección, no solo un informe.",
-      "note": "Certificación en curso (examen access42, 23 de octubre de 2026) — aún no obtenida."
+      "text": "Auditoría de conformidad RGAA/WCAG con recomendaciones directamente implementables. Entrego el código de corrección, no solo un informe.",
+      "note": "Certificación en curso (examen access42, 23 de octubre de 2026), aún no obtenida."
     },
     "cta": "Hablemos de tu proyecto →"
   },
@@ -43,7 +43,7 @@
     "title": "Proyectos",
     "intro": "Un vistazo a lo que construyo.",
     "nuada": {
-      "title": "Nuada — auditoría de accesibilidad RGAA",
+      "title": "Nuada · auditoría de accesibilidad RGAA",
       "text": "Sitio vitrina y motor de auditoría RGAA. Conformidad, SEO multilingüe, posicionamiento como «el auditor que programa la solución».",
       "cta": "Ver el sitio →"
     },
@@ -63,23 +63,23 @@
   },
   "contact": {
     "title": "Contacto",
-    "intro": "¿Un proyecto de sitio web o una necesidad de auditoría de accesibilidad? Estoy disponible para nuevas misiones — hablemos.",
-    "note": "Una idea que explorar con un café, o simplemente ganas de hablar de tecnología — ambas me van bien.",
+    "intro": "¿Un proyecto de sitio web o una necesidad de auditoría de accesibilidad? Estoy disponible para nuevas misiones, hablemos.",
+    "note": "Una idea que explorar con un café, o simplemente ganas de hablar de tecnología, ambas me van bien.",
     "linkedinBefore": "O en",
     "linkedinLinkText": "LinkedIn",
     "linkedinAfter": "."
   },
   "memoire": {
     "title": "Teyolía · Memoria",
-    "intro": "Teyolía — una de las tres entidades que, en el pensamiento náhuatl, componen a una persona: reside en el corazón, porta la memoria, y es la que viaja a Mictlán tras la muerte. Esta página no es un blog: es un epitafio — lo que no sobrevivió a la construcción de este sitio, conservado en lugar de borrado.",
+    "intro": "Teyolía, una de las tres entidades que, en el pensamiento náhuatl, componen a una persona: reside en el corazón, porta la memoria, y es la que viaja a Mictlán tras la muerte. Esta página no es un blog: es un epitafio. Lo que no sobrevivió a la construcción de este sitio, conservado en lugar de borrado.",
     "entries": [
       {
         "title": "La marcha",
-        "text": "El ciervo avanzaba con el scroll — un ciclo de zancada técnicamente correcto, ilegible en las pocas muescas de un scroll real. Retirado en lugar de ajustarlo una tercera vez: aportaba casi nada por lo que costaba."
+        "text": "El ciervo avanzaba con el scroll, un ciclo de zancada técnicamente correcto, ilegible en las pocas muescas de un scroll real. Retirado en lugar de ajustarlo una tercera vez: aportaba casi nada por lo que costaba."
       },
       {
         "title": "El árbol que no era de aquí",
-        "text": "Un primer acento de flora, textura fotorrealista, sobredimensionado — desentonaba con el resto de la escena, plana y en vertex-color. Reemplazado por un ocotillo procedural, más fiel a la flora precolombina del centro de México."
+        "text": "Un primer acento de flora, textura fotorrealista, sobredimensionado, desentonaba con el resto de la escena, plana y en vertex-color. Reemplazado por un ocotillo procedural, más fiel a la flora precolombina del centro de México."
       },
       {
         "title": "Las serpientes",
@@ -87,13 +87,13 @@
       },
       {
         "title": "La intro que se disolvía",
-        "text": "La Piedra del Sol y el texto se disolvían en una nube de brasas antes de revelar la escena — una técnica vectorial real (muestreo de unos 250 trazados SVG), pero el efecto no servía a la historia. Retirada al día siguiente de su lanzamiento."
+        "text": "La Piedra del Sol y el texto se disolvían en una nube de brasas antes de revelar la escena. Una técnica vectorial real (muestreo de unos 250 trazados SVG), pero el efecto no servía a la historia. Retirada al día siguiente de su lanzamiento."
       }
     ]
   },
   "lab": {
     "loadingPhrase": "In xochitl, in cuicatl",
-    "loadingTranslation": "«Flor y canto» — la única verdad, según los sabios nahuas",
+    "loadingTranslation": "«Flor y canto», la única verdad, según los sabios nahuas",
     "loadingLabel": "Cargando la escena"
   }
 }
