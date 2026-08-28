@@ -37,10 +37,12 @@ export default function CursorTrail() {
     resize();
     window.addEventListener("resize", resize);
 
+    let lastMoveT = 0;
     function onMove(e: PointerEvent) {
       mouseRef.current.x = e.clientX;
       mouseRef.current.y = e.clientY;
       mouseRef.current.active = true;
+      lastMoveT = performance.now();
     }
     window.addEventListener("pointermove", onMove, { passive: true });
 
@@ -50,16 +52,23 @@ export default function CursorTrail() {
 
     function tick() {
       if (!ctx || !canvas) return;
-      // Fade global (destination-out) : disparition ~6s progressive
-      // (retour Sylvain "s'efface au bout de 6-7 secondes / traînée
-      // pas gribouilli"). Alpha 0.02 balance persistance + subtilite.
+      const now = performance.now();
+      const idleMs = now - lastMoveT;
+      // Fade rate adaptatif : 2% par frame si mouse active/recente
+      // (persistance 6-7s), monte a 10% si idle > 1s (disparition
+      // rapide 0.5s pour purge visuelle). Retour Sylvain "ligne ne
+      // s'en va jamais".
+      const fadeAlpha = idleMs > 1000 ? 0.1 : 0.02;
       ctx.globalCompositeOperation = "destination-out";
-      ctx.fillStyle = "rgba(0, 0, 0, 0.02)";
+      ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-      // Draw ligne du prev au current : opacite 0.35 → 0.08
-      // (retour Sylvain "super opaque") — trait fin subtile, fade
-      // progressif visible sans "gribouillage" massif.
-      if (mouseRef.current.active && prevX > -500) {
+      // Full clear apres 3s d'inactivite mouse (garantie disparition).
+      if (idleMs > 3000) {
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      }
+      // Draw ligne du prev au current seulement si mouse a bouge
+      // recemment (< 500ms) — evite dessiner segment 0-length inutile.
+      if (mouseRef.current.active && prevX > -500 && idleMs < 500) {
         ctx.globalCompositeOperation = "source-over";
         ctx.strokeStyle = "rgba(0, 192, 120, 0.08)";
         ctx.lineWidth = 1;
