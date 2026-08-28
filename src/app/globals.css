@@ -178,6 +178,12 @@ main {
   display: flex;
   align-items: center;
   gap: 10px;
+  /* Shared element pour View Transitions API (28/08). Chrome/Edge/Safari
+     18.2+ interpolent position + taille du logo pendant le swap de page,
+     signature "élément qui persiste visuellement" plutôt que juste
+     glissement uniforme. Nom unique dans le document — header persiste
+     dans layout, donc un seul owner par frame, jamais de conflit. */
+  view-transition-name: nahual-logo;
 }
 
 /* mini-logo.svg est en blanc plein (fill="#fff" en dur dans le fichier) :
@@ -441,6 +447,16 @@ body.nahual-transitioning[data-transition-direction="jade"] main {
    nav posé sur <html> avant startViewTransition, retiré à la fin. */
 
 ::view-transition-group(root) {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Shared element logo (28/08). .logoLink porte view-transition-name:
+   nahual-logo — le browser sort le logo de la snapshot root et l'anime
+   séparément (position + taille interpolées). Même easing que root
+   pour rester cohérent avec le slide cardinal. Le logo "flotte" et
+   reste ancré au coin gauche pendant que la scène glisse dessous. */
+::view-transition-group(nahual-logo) {
   animation-duration: 0.8s;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }

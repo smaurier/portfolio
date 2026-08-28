@@ -101,10 +101,50 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
       // ::view-transition-old/new sélectionnent la bonne animation
       // cardinale (défini dans globals.css).
       document.documentElement.setAttribute("data-cardinal-nav", direction);
-      const doNav = () => router.push(href);
+      // Callback ASYNC (28/08 fix) — router.push est sync mais React
+      // commit le nouveau DOM au tick suivant. Browser capture le new
+      // snapshot dès que le callback retourne : sync = new === old =
+      // pas d'anim visible. Attendre 2 rAF garantit que React a
+      // commité + peint la nouvelle route avant snapshot new, donc les
+      // @keyframes slide cardinales jouent vraiment (retour Sylvain
+      // 28/08 "on a perdu les keyframes").
+      const doNav = () =>
+        new Promise<void>((resolve) => {
+          // Attente robuste du commit React via MutationObserver sur
+          // <main> (28/08 fix). Diagnostic Playwright : router.push
+          // change l'URL sync mais React commit ~150ms plus tard (RSC
+          // streaming), 2 rAF = 32ms trop court → snapshot new pris
+          // avant le nouveau contenu → keyframes invisibles (retour
+          // Sylvain "on a perdu les keyframes"). L'observer attend un
+          // vrai changement DOM puis 1 rAF pour la peinture. Fallback
+          // 500ms si mutation ne fire pas (nav sans DOM change).
+          const target = document.querySelector("main");
+          if (!target) {
+            router.push(href);
+            setTimeout(() => resolve(), 200);
+            return;
+          }
+          const before = target.textContent || "";
+          let done = false;
+          const finish = () => {
+            if (done) return;
+            done = true;
+            obs.disconnect();
+            clearTimeout(fallback);
+            requestAnimationFrame(() => resolve());
+          };
+          const obs = new MutationObserver(() => {
+            if ((target.textContent || "") !== before) finish();
+          });
+          obs.observe(target, { childList: true, subtree: true, characterData: true });
+          const fallback = setTimeout(finish, 500);
+          router.push(href);
+        });
       // Chrome/Edge/Safari 18.2+ supportent. Firefox pas encore.
       // Fallback gracieux = nav standard sans view transition.
-      type ViewTransitionDocument = Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
+      type ViewTransitionDocument = Document & {
+        startViewTransition?: (cb: () => void | Promise<void>) => { finished: Promise<void> };
+      };
       const doc = document as ViewTransitionDocument;
       if (typeof doc.startViewTransition === "function") {
         const vt = doc.startViewTransition(doNav);
@@ -112,7 +152,7 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
           document.documentElement.removeAttribute("data-cardinal-nav");
         });
       } else {
-        doNav();
+        router.push(href);
         setTimeout(() => document.documentElement.removeAttribute("data-cardinal-nav"), 500);
       }
     });
