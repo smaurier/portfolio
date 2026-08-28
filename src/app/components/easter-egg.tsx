@@ -45,17 +45,17 @@ export default function EasterEgg({ locale }: { locale: string }) {
     function onKeyDown(e: KeyboardEvent) {
       // Ignore si l'utilisateur tape dans un champ de saisie
       const target = e.target as HTMLElement | null;
-      if (!target) return;
-      const tag = target.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea" || target.isContentEditable) return;
+      const tag = target?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || target?.isContentEditable) return;
 
-      // Une seule lettre à la fois — ignore modifiers, tabs, etc.
-      if (e.key.length !== 1) {
-        bufferRef.current = "";
-        return;
-      }
+      // Seulement les lettres a-z (28/08 fix debug). Filtre plus strict
+      // que "length === 1" qui laissait passer espace, ponctuation,
+      // chiffres — cassait le buffer entre les lettres tapees.
+      // ".toLowerCase" pour supporter shift+N = 'N' → 'n'.
+      const ch = e.key.toLowerCase();
+      if (!/^[a-z]$/.test(ch)) return;
 
-      bufferRef.current = (bufferRef.current + e.key.toLowerCase()).slice(-TRIGGER.length);
+      bufferRef.current = (bufferRef.current + ch).slice(-TRIGGER.length);
       if (bufferRef.current === TRIGGER) {
         bufferRef.current = "";
         setVisible(true);
@@ -64,9 +64,12 @@ export default function EasterEgg({ locale }: { locale: string }) {
       }
     }
 
-    window.addEventListener("keydown", onKeyDown);
+    // Capture phase pour attraper l'event AVANT que Lenis ou tout
+    // autre listener global preventDefault. useCapture=true garantit
+    // priorite descendante.
+    window.addEventListener("keydown", onKeyDown, true);
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keydown", onKeyDown, true);
       if (timerRef.current !== null) window.clearTimeout(timerRef.current);
     };
   }, []);
