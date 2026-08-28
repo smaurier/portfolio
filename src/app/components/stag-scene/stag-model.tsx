@@ -17,6 +17,7 @@ import { applyRimLight, setBodyTintAmount, setEdgeIntensity, setEdgePulse, setRi
 import StagAura from "./stag-aura";
 import SpiritParticles from "./spirit-particles";
 import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
+import { useSceneRefs } from "./scene-refs-context";
 
 // Nom de l'os tête dans le rig Quaternius (GLB inspecté le 21/08, cf memory
 // project-nahual-da : chaîne Neck1→Neck2→Neck3→Head→Stag_Horns/Head_end).
@@ -84,6 +85,7 @@ export default function StagModel({
   // centerAndScale. Baseline 1, multiplie par breath (0.997..1.003)
   // uniforme sans casser scene interne.
   const breathGroupRef = useRef<Group>(null);
+  const sceneRefs = useSceneRefs();
   const { scene, animations } = useGLTF(MODEL_PATH);
   const { actions } = useAnimations(animations, group);
   const currentClipRef = useRef<string | null>(null);
@@ -229,7 +231,10 @@ export default function StagModel({
     // parent qui commence baseline 1, multiplie par breath sans casser
     // scene interne.
     if (breathGroupRef.current) {
-      const breath = 1 + Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.003;
+      // Freeze breath cycle si prefers-reduced-motion (RGAA 13.6).
+      const breath = sceneRefs?.reducedMotionRef.current
+        ? 1
+        : 1 + Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.003;
       breathGroupRef.current.scale.setScalar(breath);
     }
     // Registrée après les useFrame ci-dessus (mixer d'animation via

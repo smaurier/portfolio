@@ -31,6 +31,11 @@
   max-width: 420px;
   text-align: left;
   color: #f2ece1;
+  /* Text-shadow subtile (RGAA 3.2 fix) — garantit contraste minimum
+     texte crème sur canvas 3D dynamique, meme quand ambiances claires
+     (Est dore, Xiuhtecuhtli embers) illuminent la zone. Halo noir
+     translucide autour glyphes. */
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.55), 0 0 2px rgba(0, 0, 0, 0.7);
   transition: opacity 0.6s ease-out;
   pointer-events: auto;
 }

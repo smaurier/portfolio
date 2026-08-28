@@ -4,6 +4,7 @@ import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import type { DirectionKey } from "../direction-colors";
 import { useCurrentDirection } from "../use-current-direction";
+import { useSceneRefs } from "../scene-refs-context";
 import EastTonatiuh from "./east-tonatiuh";
 import SouthHuitzilopochtli from "./south-huitzilopochtli";
 import WestEhecatl from "./west-ehecatl";
@@ -46,9 +47,18 @@ export default function CardinalAmbience() {
 
   const activeDirectionRef = useRef(direction);
   activeDirectionRef.current = direction;
+  const sceneRefs = useSceneRefs();
 
   useFrame(() => {
+    // Freeze crossfade si prefers-reduced-motion (RGAA 13.6) —
+    // snap direction active a 1, autres a 0, sans lerp.
     const active = activeDirectionRef.current;
+    if (sceneRefs?.reducedMotionRef.current) {
+      for (const key of Object.keys(alphaRefs) as DirectionKey[]) {
+        alphaRefs[key].current = key === active ? 1 : 0;
+      }
+      return;
+    }
     for (const key of Object.keys(alphaRefs) as DirectionKey[]) {
       const target = key === active ? 1 : 0;
       const cur = alphaRefs[key].current;

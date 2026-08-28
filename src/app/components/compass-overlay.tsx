@@ -34,6 +34,10 @@ export default function CompassOverlay({
   onClose: () => void;
 }) {
   useEffect(() => {
+    // Return focus au trigger (bouton expand compass) a la fermeture
+    // (RGAA 7.3 modal focus trap fix). Save activeElement AVANT
+    // mount, refocus AU cleanup.
+    const previousFocus = document.activeElement as HTMLElement | null;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
@@ -42,6 +46,10 @@ export default function CompassOverlay({
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
+      // Return focus au trigger si toujours dans le DOM
+      if (previousFocus && document.contains(previousFocus)) {
+        previousFocus.focus();
+      }
     };
   }, [onClose]);
 

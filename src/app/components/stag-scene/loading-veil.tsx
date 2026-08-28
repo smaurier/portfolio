@@ -109,7 +109,7 @@ export default function LoadingVeil({
        * silhouette dessinée plutôt qu'un tracé calculé). Gardé tel quel :
        * n'a pas d'effet visible sans élément absolute à l'intérieur. */}
       <div className={styles.stage}>
-        <p className={styles.phrase}>{phrase}</p>
+        <p className={styles.phrase} lang="nah">{phrase}</p>
         <p className={styles.translation}>{translation}</p>
         {/* aria-hidden : le pourcentage change plusieurs fois par seconde —
          * l'annoncer à chaque tick via la région aria-live du parent serait

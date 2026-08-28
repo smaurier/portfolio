@@ -226,9 +226,37 @@ export default async function LocaleLayout({
               <div className="footerCol">
                 <h3>{dict.common.footer.contactCol}</h3>
                 <ul>
-                  <li><a href={AUTHOR_LINKEDIN} target="_blank" rel="noopener noreferrer" className="footerLink">{dict.common.footer.linkedin}</a></li>
-                  <li><a href={AUTHOR_GITHUB} target="_blank" rel="noopener noreferrer" className="footerLink">{dict.common.footer.github}</a></li>
-                  <li><a href={`mailto:${AUTHOR_EMAIL}`} className="footerLink">{dict.common.footer.email}</a></li>
+                  <li>
+                    <a
+                      href={AUTHOR_LINKEDIN}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="footerLink"
+                      aria-label={`${dict.common.footer.linkedin} de ${AUTHOR_NAME} (${locale === "fr" ? "nouvelle fenêtre" : locale === "en" ? "new window" : "nueva ventana"})`}
+                    >
+                      {dict.common.footer.linkedin}
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href={AUTHOR_GITHUB}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="footerLink"
+                      aria-label={`${dict.common.footer.github} de ${AUTHOR_NAME} (${locale === "fr" ? "nouvelle fenêtre" : locale === "en" ? "new window" : "nueva ventana"})`}
+                    >
+                      {dict.common.footer.github}
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href={`mailto:${AUTHOR_EMAIL}`}
+                      className="footerLink"
+                      aria-label={`${dict.common.footer.email} : ${AUTHOR_EMAIL}`}
+                    >
+                      {dict.common.footer.email}
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
