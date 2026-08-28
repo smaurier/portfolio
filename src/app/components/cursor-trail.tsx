@@ -50,18 +50,19 @@ export default function CursorTrail() {
 
     function tick() {
       if (!ctx || !canvas) return;
-      // Fade global (destination-out) : efface progressivement le passe.
-      // 0.008 → disparition complete ~6-7s (retour Sylvain "trainee
-      // pas gribouilli"). Trace persiste comme un tracé rituel qui
-      // s'efface tres lentement.
+      // Fade global (destination-out) : disparition ~6s progressive
+      // (retour Sylvain "s'efface au bout de 6-7 secondes / traînée
+      // pas gribouilli"). Alpha 0.02 balance persistance + subtilite.
       ctx.globalCompositeOperation = "destination-out";
-      ctx.fillStyle = "rgba(0, 0, 0, 0.008)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.02)";
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-      // Draw ligne du prev au current en jade subtile
+      // Draw ligne du prev au current : opacite 0.35 → 0.08
+      // (retour Sylvain "super opaque") — trait fin subtile, fade
+      // progressif visible sans "gribouillage" massif.
       if (mouseRef.current.active && prevX > -500) {
         ctx.globalCompositeOperation = "source-over";
-        ctx.strokeStyle = "rgba(0, 192, 120, 0.35)";
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "rgba(0, 192, 120, 0.08)";
+        ctx.lineWidth = 1;
         ctx.lineCap = "round";
         ctx.beginPath();
         ctx.moveTo(prevX, prevY);

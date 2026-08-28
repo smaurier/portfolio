@@ -213,26 +213,16 @@ export default function OrbitCamera({
       }
     }
 
-    // Pin face-a-face dolly + fov (28/08 boite outil #6, re-add
-    // apres retour Sylvain "j'aimais bien"). Valeurs plus douces
-    // pour eviter distortion perspective : dolly factor 0.90 (au
-    // lieu de 0.75 initial), fov -2° (au lieu de -6°). Zoom in
-    // subtile "focus intense" sans deformer cerf.
-    const pinLevel = sceneRefs?.pinProgressRef.current ?? 0;
-    const pinDollyFactor = 1 - pinLevel * 0.10;
-    if (pinLevel > 0.01) {
-      const perspCam2 = camera as PerspectiveCamera;
-      if (perspCam2.isPerspectiveCamera) {
-        const baseFov = typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45;
-        perspCam2.fov = baseFov - pinLevel * 2;
-        perspCam2.updateProjectionMatrix();
-      }
-    }
-
+    // Pin face-a-face (boite outil #6) : retire dolly + fov shift
+    // definitivement (retour Sylvain 28/08 "cerf super gros" ET
+    // "deforme"). Le pin garde uniquement le bloom boost via PostFX
+    // + palette shift future. Camera reste path normal, cerf reste
+    // meme taille. La contemplation se fait par la lumiere qui
+    // pulse, pas par le zoom close.
     camera.position.set(
-      (position.x + parallaxX + touchX + burstX) * pinDollyFactor,
+      position.x + parallaxX + touchX + burstX,
       position.y + parallaxY + touchY + burstY,
-      (position.z + burstZ) * pinDollyFactor,
+      position.z + burstZ,
     );
     // Whip pan : décale la target du lookAt dans la direction cardinale.
     // La caméra pivote pour "regarder vers" la direction, puis revient
