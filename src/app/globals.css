@@ -1033,16 +1033,18 @@ body[data-cardinal-hover="obsidienne"] button[data-compass-direction="obsidienne
   }
 }
 
-/* Projets page : layout dedie pour laisser voir cerf complet en top
-   viewport (retour Sylvain 28/08 "projet doit permettre de voir le
-   canvas du cerf complet sans rien au dessus"). Le contenu texte
-   demarre apres un hero 90vh vide (canvas visible), puis descend en
-   scroll. Cards conservent bg dense pour lisibilite au scroll. */
-body.nahual-lab-reveal main[data-direction="turquoise"] {
+/* Toutes les pages echo (Services/Projets/Contact/Memoire/Codex) :
+   hero 90vh laisse voir cerf complet top viewport, contenu texte
+   descend en scroll. Retours Sylvain 28/08 successifs :
+   "projet doit permettre de voir le canvas du cerf complet sans rien
+   au dessus (encadré projet)" + "pour toutes les pages d'ailleurs
+   garder ce principe". Signature scroll-driven cinema : la scene 3D
+   respire avant que le contenu apparaisse. */
+body.nahual-lab-reveal main[data-direction] {
   justify-content: flex-start;
-  padding-top: calc(90vh);
+  padding-top: 90vh;
 }
-body.nahual-lab-reveal main[data-direction="turquoise"] .contentPage {
+body.nahual-lab-reveal main[data-direction] .contentPage {
   max-width: 640px;
   margin: 0 auto;
 }
