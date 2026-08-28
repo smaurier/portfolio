@@ -83,11 +83,6 @@ export default function SceneContent({
         </Suspense>
       </CursorRevealScene>
       <OrbitCamera progressRef={progressRef} />
-      {/* Ambiances mytho par direction (28/08 task #43) — 5 moods
-          nahua : god-rays Est/Tonatiuh, colibri Sud/Huitzilopochtli,
-          streamers vent Ouest/Ehecatl, fumée + éclats Nord/Mictlante-
-          cuhtli, embers Centre/Xiuhtecuhtli. Un seul mount, crossfade
-          smooth 800ms au changement de direction. */}
       <CardinalAmbience />
     </>
   );

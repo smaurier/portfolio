@@ -78,9 +78,40 @@ export default function Ground() {
       <mesh geometry={geometry} position={[0, -0.005, 0]}>
         <meshStandardMaterial color={GROUND_COLOR} flatShading />
       </mesh>
+      {/* Contact shadow (28/08 retour Sylvain "c'est quoi le cercle
+          noir sous le cerf" — trop marque). Remplace disc noir opaque
+          par un shader radial gradient : plus opaque au centre (sous
+          les pattes), fade doux vers le bord. Signature "ombre de
+          contact" naturelle vs disque plaque. */}
       <mesh position={[0, 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[CONTACT_SHADOW_RADIUS, 24]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.4} />
+        <circleGeometry args={[CONTACT_SHADOW_RADIUS, 32]} />
+        <shaderMaterial
+          transparent
+          depthWrite={false}
+          uniforms={{}}
+          vertexShader={`
+            varying vec2 vUv;
+            void main() {
+              vUv = uv;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `}
+          fragmentShader={`
+            varying vec2 vUv;
+            void main() {
+              vec2 c = vUv - 0.5;
+              float r = length(c) * 2.0;
+              float alpha = 1.0 - smoothstep(0.0, 1.0, r);
+              alpha = pow(alpha, 1.6);
+              // Additive blend NOIR = darken subtile (le noir additif
+              // = 0, donc en pratique on soustrait via -alpha impossible
+              // ; on utilise plutot NormalBlending equivalent via mix
+              // qui pose noir semi opaque). Fallback : couleur noir +
+              // alpha, gl_FragColor.a fait le job en NormalBlending.
+              gl_FragColor = vec4(0.0, 0.0, 0.0, alpha * 0.35);
+            }
+          `}
+        />
       </mesh>
     </>
   );

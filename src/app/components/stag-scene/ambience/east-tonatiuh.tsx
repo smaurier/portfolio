@@ -2,124 +2,100 @@
 
 import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
-import { AdditiveBlending, Color, DoubleSide, type Mesh, type ShaderMaterial } from "three";
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, type Points, type ShaderMaterial } from "three";
 
 /**
- * Est / Tonatiuh (28/08 task #43). Le soleil du 5e âge nahua. Signature
- * mytho : god-rays chauds, shafts volumétriques venant du haut-droite.
+ * Est / Tonatiuh (28/08 task #43, refonte 28/08 bug canvas noir).
+ * Signature soleil : particules dorées scintillantes en volume au
+ * quart supérieur droit, courbe descendante vers le sol comme un
+ * halo solaire tombant en biais.
  *
- * Implémentation : 6 planes triangulaires en éventail, positionnés dans
- * le quart supérieur droit du monde, orientés vers le sol au centre.
- * Shader fragment = gradient chaud additif avec noise scintillant. Le
- * uAlpha global fade tout l'ensemble en douceur.
- *
- * Pas de post-processing god-rays effect coûteux : cette version
- * mesh-based tourne à ~zero coût GPU même sur mobile modeste, tout en
- * donnant l'illusion volumétrique cherchée (rays qui se croisent au
- * point de convergence, halo chaud).
+ * Refonte : ancien = 6 planes DoubleSide additifs → occultaient toute
+ * la scène 3D sur pages non-jade (bug canvas noir services isolé
+ * par bisection). Nouveau = Points system 120 particules jaunes,
+ * même pattern que SpiritParticles/autres moods (Points additive
+ * légers, pas de conflit depth).
  */
-const SHAFT_COUNT = 6;
-const SHAFT_LENGTH = 8;
-const SHAFT_WIDTH = 1.4;
+const PARTICLE_COUNT = 120;
 
 export default function EastTonatiuh({ alphaRef }: { alphaRef: MutableRefObject<number> }) {
-  const groupRef = useRef<Mesh[]>([]);
-  const materialsRef = useRef<ShaderMaterial[]>([]);
+  const pointsRef = useRef<Points>(null);
+  const materialRef = useRef<ShaderMaterial>(null);
 
-  const shafts = useMemo(() => {
-    const items: Array<{ rotation: [number, number, number]; offset: [number, number, number]; seed: number }> = [];
-    // Angles espacés dans un cône ~40° en fan
-    for (let i = 0; i < SHAFT_COUNT; i++) {
-      const spread = (i / (SHAFT_COUNT - 1) - 0.5) * 0.6; // ~35° total
-      items.push({
-        // Origine top-right, rotation vers bas-gauche
-        offset: [4 + Math.random() * 0.3, 5 + Math.random() * 0.3, -1 + Math.random() * 0.5],
-        rotation: [-0.4 + spread * 0.2, 0.5 + spread, spread * 0.3],
-        seed: Math.random(),
-      });
+  const { geometry, uniforms } = useMemo(() => {
+    const geo = new BufferGeometry();
+    const positions = new Float32Array(PARTICLE_COUNT * 3);
+    const seeds = new Float32Array(PARTICLE_COUNT);
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      // Distribution biaisée quart supérieur droit + descendante :
+      // t 0..1 le long d'un vecteur descendant depuis (4, 5, -1) vers (0, 1, 1)
+      const t = Math.random();
+      const jitter = 0.6;
+      positions[i * 3] = 4 * (1 - t) + (Math.random() - 0.5) * jitter;
+      positions[i * 3 + 1] = 5 - t * 4 + (Math.random() - 0.5) * jitter;
+      positions[i * 3 + 2] = -1 + t * 2 + (Math.random() - 0.5) * jitter;
+      seeds[i] = Math.random();
     }
-    return items;
+    geo.setAttribute("position", new BufferAttribute(positions, 3));
+    geo.setAttribute("aSeed", new BufferAttribute(seeds, 1));
+    return {
+      geometry: geo,
+      uniforms: {
+        uAlpha: { value: 0 },
+        uTime: { value: 0 },
+        uColor: { value: new Color("#ffb400") },
+      },
+    };
   }, []);
 
-  const color = useMemo(() => new Color("#ffb400"), []);
-
   useFrame((state) => {
-    const alpha = alphaRef.current;
-    materialsRef.current.forEach((mat, i) => {
-      if (!mat) return;
-      mat.uniforms.uAlpha.value = alpha;
-      mat.uniforms.uTime.value = state.clock.elapsedTime + shafts[i].seed * 10;
-      // Discard early si invisible : le shader check uAlpha < 0.01 discard.
-    });
+    if (!materialRef.current) return;
+    materialRef.current.uniforms.uAlpha.value = alphaRef.current;
+    materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
   });
 
-  if (shafts.length === 0) return null;
-
   return (
-    <group>
-      {shafts.map((s, i) => (
-        <mesh
-          key={i}
-          position={s.offset}
-          rotation={s.rotation}
-          ref={(m) => {
-            if (m) groupRef.current[i] = m;
-          }}
-          raycast={() => null}
-        >
-          <planeGeometry args={[SHAFT_WIDTH, SHAFT_LENGTH]} />
-          <shaderMaterial
-            ref={(m) => {
-              if (m) materialsRef.current[i] = m as ShaderMaterial;
-            }}
-            transparent
-            depthWrite={false}
-            side={DoubleSide}
-            blending={AdditiveBlending}
-            uniforms={{
-              uAlpha: { value: 0 },
-              uTime: { value: 0 },
-              uColor: { value: color },
-            }}
-            vertexShader={`
-              varying vec2 vUv;
-              void main() {
-                vUv = uv;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-              }
-            `}
-            fragmentShader={`
-              uniform float uAlpha;
-              uniform float uTime;
-              uniform vec3 uColor;
-              varying vec2 vUv;
+    <points ref={pointsRef} geometry={geometry} raycast={() => null}>
+      <shaderMaterial
+        ref={materialRef}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+        blending={AdditiveBlending}
+        vertexShader={`
+          attribute float aSeed;
+          uniform float uTime;
+          varying float vTwinkle;
 
-              // Hash bruit peu coûteux
-              float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-              float noise(vec2 p) {
-                vec2 i = floor(p);
-                vec2 f = fract(p);
-                f = f * f * (3.0 - 2.0 * f);
-                return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x),
-                           mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
-              }
+          void main() {
+            vec3 pos = position;
+            // Léger flottement lent
+            pos.x += sin(uTime * 0.3 + aSeed * 6.28) * 0.15;
+            pos.y += cos(uTime * 0.25 + aSeed * 4.0) * 0.12;
+            // Twinkle scintillement individuel (fréquence variée par seed)
+            vTwinkle = 0.3 + 0.7 * pow(0.5 + 0.5 * sin(uTime * (2.0 + aSeed * 3.0) + aSeed * 6.28), 3.0);
 
-              void main() {
-                if (uAlpha < 0.01) discard;
-                // Gradient centre chaud, bords fade
-                float cx = 1.0 - abs(vUv.x - 0.5) * 2.0;
-                cx = pow(cx, 2.2);
-                // Fade top→bottom : le shaft s'éteint vers le sol
-                float fy = smoothstep(0.0, 0.3, vUv.y) * (1.0 - smoothstep(0.7, 1.0, vUv.y));
-                // Scintillement subtil dans le shaft
-                float shimmer = 0.7 + 0.3 * noise(vec2(vUv.x * 8.0, vUv.y * 3.0 + uTime * 0.3));
-                float shape = cx * fy * shimmer;
-                gl_FragColor = vec4(uColor * shape * uAlpha * 0.9, 1.0);
-              }
-            `}
-          />
-        </mesh>
-      ))}
-    </group>
+            vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+            gl_Position = projectionMatrix * mv;
+            gl_PointSize = 28.0 / -mv.z;
+          }
+        `}
+        fragmentShader={`
+          uniform vec3 uColor;
+          uniform float uAlpha;
+          varying float vTwinkle;
+
+          void main() {
+            if (uAlpha < 0.01) discard;
+            vec2 uv = gl_PointCoord - 0.5;
+            float r = length(uv);
+            float shape = 1.0 - smoothstep(0.0, 0.5, r);
+            shape = pow(shape, 1.4);
+            float a = shape * vTwinkle * uAlpha;
+            gl_FragColor = vec4(uColor * a, 1.0);
+          }
+        `}
+      />
+    </points>
   );
 }
