@@ -13,42 +13,42 @@
  */
 
 .wrap {
+  /* 28/08 fix "forme qui vient d'en haut à gauche" : passage de
+     position:fixed top/left 50% + children translate(-50%,-50%)
+     (chain de centering fragile qui causait des offsets subtils
+     selon les scale) à un grid full viewport avec place-items:center.
+     Les enfants occupent tous la même cell et sont centrés
+     automatiquement — les transform scale s'appliquent alors autour
+     du centre réel de chaque element (default transform-origin
+     50% 50% du element = center visible), pas d'offset caché. */
   position: fixed;
-  top: 50%;
-  left: 50%;
+  inset: 0;
   z-index: 140;
+  display: grid;
+  place-items: center;
   pointer-events: none;
-  width: 0;
-  height: 0;
   /* color hérité inline par direction (currentColor sur SVG stroke) */
 }
 
-/* Halo bloom — radial gradient plein pot (28/08 : refonte
-   "implosion vers centre subtile", retour Sylvain "pas fin, plus
-   subtil"). Tailles et blur réduits pour ne pas dominer l'écran. */
+/* Halo bloom — radial gradient plein pot. Grid child, taille fixe,
+   pas de top/left. Transform scale/opacity géré inline. */
 .halo {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+  grid-column: 1;
+  grid-row: 1;
   width: 260px;
   height: 260px;
   border-radius: 50%;
   pointer-events: none;
   filter: blur(20px);
   will-change: opacity, transform;
-  transform-origin: center center;
 }
 
-/* Radial rings SVG conteneur — commence grand puis contract vers
-   centre (implosion). Taille réduite 460 → 320 pour cadrage
-   subtile. */
+/* Radial rings SVG conteneur — grid child centrée. Taille 320. */
 .rings {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+  grid-column: 1;
+  grid-row: 1;
   width: 320px;
   height: 320px;
-  transform: translate(-50%, -50%);
   pointer-events: none;
   overflow: visible;
   filter: drop-shadow(0 0 4px currentColor);
@@ -69,11 +69,13 @@
    crème halo cardinal" — signature codex plus signifiante que
    pleine couleur cardinale plaquée sur le stroke. */
 .glyphSlot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+  grid-column: 1;
+  grid-row: 1;
   pointer-events: none;
   will-change: opacity, transform;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Note : drop-shadow cardinal appliqué inline dans le composant sur

@@ -121,7 +121,7 @@ export default function CardinalGlyphBurst() {
         className={styles.halo}
         style={{
           opacity: haloOpacity,
-          transform: `translate(-50%, -50%) scale(${haloScale})`,
+          transform: `scale(${haloScale})`,
           background: `radial-gradient(circle, ${color} 0%, transparent 60%)`,
         }}
       />
@@ -195,7 +195,7 @@ export default function CardinalGlyphBurst() {
         className={styles.glyphSlot}
         style={{
           opacity: fade,
-          transform: `translate(-50%, -50%) scale(${scale})`,
+          transform: `scale(${scale})`,
           color: "#f2ece1",
           filter: `drop-shadow(0 0 18px ${color}) drop-shadow(0 0 4px ${color})`,
         }}
