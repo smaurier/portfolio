@@ -95,6 +95,11 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
           <Image src="/img/mini-logo.svg" alt="" width={32} height={32} />
           <span className="logoText">Nahual</span>
         </CardinalLink>
+        {/* Ordre cardinal (28/08 task #59) : Accueil oblige en premier
+            (convention traditionnelle nav), puis rotation cardinale
+            Est→Sud→Ouest→Nord→Centre (soleil qui monte, midi,
+            crepuscule, nuit, feu axial). Chaque item = une direction
+            cardinale du Codex Nahual. */}
         <nav>
           <ul>
             <li>
@@ -111,6 +116,9 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
             </li>
             <li>
               <CardinalLink href={getPath(locale, "memoire")}>{dict.nav.memoire}</CardinalLink>
+            </li>
+            <li>
+              <CardinalLink href={getPath(locale, "codex")}>{dict.nav.codex}</CardinalLink>
             </li>
           </ul>
         </nav>
@@ -151,6 +159,9 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
               </li>
               <li>
                 <CardinalLink href={getPath(locale, "memoire")} onClick={close}>{dict.nav.memoire}</CardinalLink>
+              </li>
+              <li>
+                <CardinalLink href={getPath(locale, "codex")} onClick={close}>{dict.nav.codex}</CardinalLink>
               </li>
             </ul>
           </nav>

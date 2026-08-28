@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import "../globals.css";
 import CustomCursor from "../components/custom-cursor";
 import EasterEgg from "../components/easter-egg";
+import KeyboardNav from "../components/keyboard-nav";
 import SoundDesign from "../components/sound-design";
 import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
@@ -220,6 +221,10 @@ export default async function LocaleLayout({
               default mute. Ambient drone + chime cardinal par click
               + whoosh transition. */}
           <SoundDesign label={dict.common.sound} />
+          {/* Nav clavier flèches (28/08 task #58) — ArrowLeft/Right
+              naviguent entre pages dans l'ordre menu (Accueil premier,
+              rotation cardinale). Trigger transitions VT comme click. */}
+          <KeyboardNav />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
       </body>
