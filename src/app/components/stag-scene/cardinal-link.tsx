@@ -3,6 +3,7 @@
 import Link, { type LinkProps } from "next/link";
 import { useRouter } from "next/navigation";
 import { forwardRef, type MouseEvent, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { pageKeys, slugs, type PageKey } from "@/lib/routes";
 import { useCardinalTransition, type CardinalDirection } from "./cardinal-transition-context";
 
@@ -109,42 +110,21 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
       // commité + peint la nouvelle route avant snapshot new, donc les
       // @keyframes slide cardinales jouent vraiment (retour Sylvain
       // 28/08 "on a perdu les keyframes").
-      const doNav = () =>
-        new Promise<void>((resolve) => {
-          // Attente robuste du commit React via MutationObserver sur
-          // <main> (28/08 fix). Diagnostic Playwright : router.push
-          // change l'URL sync mais React commit ~150ms plus tard (RSC
-          // streaming), 2 rAF = 32ms trop court → snapshot new pris
-          // avant le nouveau contenu → keyframes invisibles (retour
-          // Sylvain "on a perdu les keyframes"). L'observer attend un
-          // vrai changement DOM puis 1 rAF pour la peinture. Fallback
-          // 500ms si mutation ne fire pas (nav sans DOM change).
-          const target = document.querySelector("main");
-          if (!target) {
-            router.push(href);
-            setTimeout(() => resolve(), 200);
-            return;
-          }
-          const before = target.textContent || "";
-          let done = false;
-          const finish = () => {
-            if (done) return;
-            done = true;
-            obs.disconnect();
-            clearTimeout(fallback);
-            requestAnimationFrame(() => resolve());
-          };
-          const obs = new MutationObserver(() => {
-            if ((target.textContent || "") !== before) finish();
-          });
-          obs.observe(target, { childList: true, subtree: true, characterData: true });
-          const fallback = setTimeout(finish, 500);
+      const doNav = () => {
+        // Pattern officiel Next 16 + View Transitions API : flushSync
+        // force React a commit le router.push SYNCHRONEMENT dans le
+        // callback startViewTransition. Sans flushSync le commit se
+        // fait apres cb resolve, snapshot new === old, keyframes
+        // slide invisibles. Cb sync avec flushSync = snapshot new
+        // capture la nouvelle page directement.
+        flushSync(() => {
           router.push(href);
         });
+      };
       // Chrome/Edge/Safari 18.2+ supportent. Firefox pas encore.
       // Fallback gracieux = nav standard sans view transition.
       type ViewTransitionDocument = Document & {
-        startViewTransition?: (cb: () => void | Promise<void>) => { finished: Promise<void> };
+        startViewTransition?: (cb: () => void) => { finished: Promise<void> };
       };
       const doc = document as ViewTransitionDocument;
       if (typeof doc.startViewTransition === "function") {
