@@ -83,10 +83,29 @@ export default function CardinalCompass({ locale }: { locale: string }) {
     return isLocale(locale) ? locale : "fr";
   }
 
-  function navigate(slot: Slot) {
+  function spawnRipple(x: number, y: number, color: string) {
+    // Ripple click cardinal (28/08 boite outil #5) — onde concentrique
+    // qui traverse ecran depuis point click, couleur direction.
+    // Auto-supprime apres anim CSS via animationend.
+    if (typeof document === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const ripple = document.createElement("div");
+    ripple.className = "cardinalRipple";
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    ripple.style.setProperty("--ripple-color", color);
+    document.body.appendChild(ripple);
+    ripple.addEventListener("animationend", () => ripple.remove(), { once: true });
+  }
+
+  function navigate(slot: Slot, event?: React.MouseEvent<HTMLButtonElement>) {
     const l = localeSafe();
     const href = slot.page === "home" ? `/${l}` : getPath(l, slot.page);
     const direction = slot.direction as CardinalDirection;
+    // Ripple depuis le point de click (ou centre du dot si event vide)
+    if (event) {
+      spawnRipple(event.clientX, event.clientY, CARDINAL_COLORS[slot.direction]);
+    }
     if (!transition) {
       router.push(href);
       return;
@@ -123,7 +142,7 @@ export default function CardinalCompass({ locale }: { locale: string }) {
         data-active={active ? "true" : "false"}
         data-compass-direction={slot.direction}
         style={{ ["--compass-color" as string]: CARDINAL_COLORS[slot.direction] }}
-        onClick={() => navigate(slot)}
+        onClick={(e) => navigate(slot, e)}
         aria-label={slot.label[l]}
         aria-current={active ? "page" : undefined}
       />
