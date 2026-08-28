@@ -36,7 +36,13 @@
     "aboutTitle": "Sobre mí",
     "aboutText": "Nahual, el estudio, aplica la misma lógica a la web: transformar una idea en un sitio real. ¿La prueba de que funcionó? Que funciona para todos.\n\nSylvain Maurier, desarrollador frontend senior, 10 años de experiencia (React, Next.js, Vue/Nuxt, React Native). Especializado en accesibilidad digital (RGAA/WCAG), con una convicción simple: la accesibilidad se programa, no solo se audita.",
     "githubCta": "Ver mi código en GitHub →",
-    "contactCta": "Contactarme"
+    "contactCta": "Contactarme",
+    "chapters": [
+      { "kicker": "I · La aproximación", "line": "Pastorea en la penumbra, indiferente al camino que lleva hacia él." },
+      { "kicker": "II · La mirada", "line": "El ciervo te ha notado. No huye — espera." },
+      { "kicker": "III · Cara a cara", "line": "Un silencio. Tres entidades: tu cuerpo, su cuerpo, lo que pasa entre los dos." },
+      { "kicker": "IV · Los caminos", "line": "Cuatro direcciones a tu alrededor, una quinta en el centro. Tu decisión." }
+    ]
   },
   "services": {
     "title": "Servicios",

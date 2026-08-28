@@ -207,3 +207,35 @@ export function getHeadTurnAmount(progress: number): number {
 export function getIntroOpacity(progress: number): number {
   return easeWithinRange(progress, PHASE_START.penombre, PHASE_START.conscience, 1, 0);
 }
+
+/**
+ * Scroll-driven storytelling multi-chapitres (28/08 task #63). 4 bells
+ * successives, chacune ancree au milieu d'une phase du reveal-arc. Le
+ * texte apparait puis fade out avant le suivant : narration cardinale
+ * qui accompagne le scroll sans jamais occulter la scene 3D.
+ *
+ * Chapitres :
+ *  0 : L'approche       (penombre ~0.05-0.18)
+ *  1 : Le regard         (conscience ~0.28-0.42)
+ *  2 : Face-a-face       (face-a-face ~0.53-0.67)
+ *  3 : Les chemins       (chemins-reveles ~0.78-0.92)
+ */
+const CHAPTER_WINDOWS: [number, number][] = [
+  [0.05, 0.18],
+  [0.28, 0.42],
+  [0.53, 0.67],
+  [0.78, 0.92],
+];
+
+export function getChapterOpacity(progress: number, chapterIdx: number): number {
+  const w = CHAPTER_WINDOWS[chapterIdx];
+  if (!w) return 0;
+  const [start, end] = w;
+  const p = clampProgress(progress);
+  if (p < start || p > end) return 0;
+  // Bell curve : monte 30% du window, plateau 40%, redescend 30%
+  const t = (p - start) / (end - start); // 0..1 dans le window
+  const fadeIn = Math.min(1, t / 0.3);
+  const fadeOut = Math.min(1, (1 - t) / 0.3);
+  return Math.min(fadeIn, fadeOut);
+}

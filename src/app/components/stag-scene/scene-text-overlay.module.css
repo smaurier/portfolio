@@ -94,3 +94,29 @@
 .secondaryLink:hover {
   color: #f2ece1;
 }
+
+/* Chapitres scroll-driven storytelling (28/08 task #63) — texte
+   narratif qui apparait par chapitre, ancre autour du milieu d'une
+   phase reveal-arc. Kicker discret jade, ligne texte crème centree. */
+.chapterKicker {
+  font-size: 0.75rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #00c078;
+  opacity: 0.8;
+  margin: 0 0 0.8rem;
+  text-align: center;
+  font-style: italic;
+}
+
+.chapterLine {
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: clamp(1.3rem, 2.4vw, 1.8rem);
+  color: #f4ead5;
+  line-height: 1.5;
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+}

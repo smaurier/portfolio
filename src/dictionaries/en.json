@@ -36,7 +36,13 @@
     "aboutTitle": "About",
     "aboutText": "Nahual, the studio, applies the same logic to the web: turning an idea into a real, working site. The proof it worked? It works for everyone.\n\nSylvain Maurier, senior frontend developer, 10 years of experience (React, Next.js, Vue/Nuxt, React Native). Specialized in digital accessibility (RGAA/WCAG), with one simple conviction: accessibility is built, not just audited.",
     "githubCta": "See my code on GitHub →",
-    "contactCta": "Get in touch"
+    "contactCta": "Get in touch",
+    "chapters": [
+      { "kicker": "I · The approach", "line": "He grazes in the half-light, indifferent to the path leading toward him." },
+      { "kicker": "II · The gaze", "line": "The stag has noticed you. He doesn't flee — he waits." },
+      { "kicker": "III · Face to face", "line": "A silence. Three entities: your body, his body, what passes between them." },
+      { "kicker": "IV · The paths", "line": "Four directions around you, a fifth at the center. Yours to choose." }
+    ]
   },
   "services": {
     "title": "Services",

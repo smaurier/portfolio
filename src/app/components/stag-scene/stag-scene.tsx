@@ -1,6 +1,6 @@
 "use client";
 
-import { getIntroOpacity, getNavEmphasis } from "@/lib/reveal-arc";
+import { getChapterOpacity, getIntroOpacity, getNavEmphasis } from "@/lib/reveal-arc";
 import CardinalLink from "./cardinal-link";
 import FadingBlock from "./fading-block";
 import SceneStage from "./scene-stage";
@@ -14,6 +14,7 @@ export type HomeContent = {
   aboutText: string;
   githubCta: string;
   contactCta: string;
+  chapters: { kicker: string; line: string }[];
 };
 
 /**
@@ -54,6 +55,22 @@ export default function StagScene({
               </CardinalLink>
             </div>
           </FadingBlock>
+          {/* 4 chapitres narratifs scroll-driven (28/08 task #63).
+              Chacun apparait puis fade out avant le suivant, ancre
+              autour du milieu d'une phase du reveal-arc. Signature
+              SOTY scroll-driven storytelling. */}
+          {home.chapters.map((chapter, i) => (
+            <FadingBlock
+              key={i}
+              progressRef={progressRef}
+              reducedMotionRef={reducedMotionRef}
+              getOpacity={(p) => getChapterOpacity(p, i)}
+              initialOpacity={0}
+            >
+              <p className={overlayStyles.chapterKicker}>{chapter.kicker}</p>
+              <p className={overlayStyles.chapterLine}>{chapter.line}</p>
+            </FadingBlock>
+          ))}
           <FadingBlock
             progressRef={progressRef}
             reducedMotionRef={reducedMotionRef}
