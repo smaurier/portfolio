@@ -140,6 +140,12 @@ function MemoirePage({ dict }: { dict: Dictionary["memoire"] }) {
           <p>{entry.text}</p>
         </div>
       ))}
+
+      {/* Crédit respectueux motifs cardinaux (28/08 option A) — l'ajout
+        * de motifs iconographiques mésoaméricains sur le site nécessite
+        * une mention explicite : évocation stylisée, pas reproduction,
+        * hommage familial. Prévention appropriation culturelle. */}
+      <p className="creditNote">{dict.creditNote}</p>
     </div>
   );
 }

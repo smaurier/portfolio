@@ -620,6 +620,20 @@ body.nahual-lab-reveal .serviceCard[data-index]::before {
      dédié dans le composant (cf MemoirePage TSX). */
 }
 
+body.nahual-lab-reveal .creditNote {
+  margin-top: 20px;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  font-style: italic;
+  color: rgba(242, 236, 225, 0.55);
+  text-align: center;
+  max-width: 640px;
+  padding: 0 8px;
+  align-self: center;
+  /* Mention respectueuse discrète (28/08) — ne concurrence pas les
+     chapitres memoire, se donne à lire à qui parcourt en entier. */
+}
+
 body.nahual-lab-reveal .cardIndex {
   position: absolute;
   top: 20px;
