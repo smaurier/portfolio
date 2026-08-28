@@ -34,7 +34,12 @@ export const CARDINAL_VECTORS: Record<CardinalDirection, [number, number, number
   obsidienne: [0, 0.1, -1], // Nord = devant (vers Z-)
 };
 
-export const TRANSITION_DURATION_MS = 500;
+// 500 → 1200ms (28/08 après diagnostic Sylvain "je ne vois rien" — la
+// mécanique fonctionne (capture Playwright mid-burst confirme cerf +
+// palette + PetalStorm rendus), mais 500ms était trop rapide pour
+// que l'œil perçoive la signature. Allongé à 1200ms pour laisser
+// respirer sans traîner. Reste dans la plage acceptable pour UX nav.
+export const TRANSITION_DURATION_MS = 1200;
 
 type TransitionState = {
   transitionDirection: CardinalDirection | null;
