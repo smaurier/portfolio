@@ -960,3 +960,31 @@ button:focus-visible,
 body.nahual-lab-reveal {
   color-scheme: dark;
 }
+
+/* Konami flash palette (28/08 task #64) — cycle rapide 5 direction
+   colors sur body pendant 2s au trigger. Signature "site vivant"
+   gamer easter egg. */
+body.konami-flash::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9100;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  animation: konamiFlash 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes konamiFlash {
+  0%   { background: #00c078; opacity: 0.4; }
+  20%  { background: #f5a623; opacity: 0.35; }
+  40%  { background: #22b3c6; opacity: 0.35; }
+  60%  { background: #c8b8c0; opacity: 0.35; }
+  80%  { background: #8b7bc9; opacity: 0.35; }
+  100% { background: #00c078; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.konami-flash::after {
+    animation: none;
+  }
+}

@@ -4,69 +4,112 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./easter-egg.module.css";
 
 /**
- * Easter egg (28/08 task #56). Toast discret révélé quand
- * l'utilisateur tape le mot "nahual" au clavier n'importe où sur
- * le site (pas dans un input). Signature "site vivant" cachée aux
- * curieux, aucun indice visible avant activation.
+ * Easter eggs (28/08 tasks #56 + #64). Toasts discrets révélés par
+ * mots-clés tapés au clavier OU konami code. Ne s'active pas dans
+ * un contexte de saisie.
  *
- * Ne s'active pas dans un contexte de saisie (input/textarea/
- * contenteditable) pour ne pas piéger les vrais utilisateurs qui
- * tapent le mot dans le formulaire de contact par exemple.
- *
- * Localisation : messages fr/en/es via prop.
+ * Triggers :
+ *  - "nahual"  : Tu es nahual — essence forme animale
+ *  - "muertos" : Los que se fueron siguen aquí — présence des morts
+ *  - "mazatl"  : Le cerf te regarde — reveal du regard
+ *  - Konami (↑↑↓↓←→←→ba) : palette flash cardinal + toast
  */
 
-const TRIGGER = "nahual";
 const TOAST_DURATION_MS = 5000;
+const KONAMI = ["arrowup","arrowup","arrowdown","arrowdown","arrowleft","arrowright","arrowleft","arrowright","b","a"];
 
-const MESSAGES: Record<string, { label: string; line: string }> = {
-  fr: {
-    label: "Tú también eres nahual",
-    line: "Toi aussi tu es nahual · l'essence qui se révèle sous la forme animale véritable.",
-  },
-  en: {
-    label: "Tú también eres nahual",
-    line: "You too are nahual · the essence that reveals itself in its true animal form.",
-  },
-  es: {
-    label: "Tú también eres nahual",
-    line: "Tú también eres nahual · la esencia que se revela bajo la verdadera forma animal.",
-  },
+type MessageSet = Record<string, { label: string; line: string }>;
+
+const NAHUAL: MessageSet = {
+  fr: { label: "Tú también eres nahual", line: "Toi aussi tu es nahual · l'essence qui se révèle sous la forme animale véritable." },
+  en: { label: "Tú también eres nahual", line: "You too are nahual · the essence that reveals itself in its true animal form." },
+  es: { label: "Tú también eres nahual", line: "Tú también eres nahual · la esencia que se revela bajo la verdadera forma animal." },
 };
 
+const MUERTOS: MessageSet = {
+  fr: { label: "Los que se fueron siguen aquí", line: "Ceux qui sont partis restent ici · la mémoire est un chemin, pas une frontière." },
+  en: { label: "Los que se fueron siguen aquí", line: "Those who left remain here · memory is a path, not a border." },
+  es: { label: "Los que se fueron siguen aquí", line: "Los que se fueron siguen aquí · la memoria es un camino, no una frontera." },
+};
+
+const MAZATL: MessageSet = {
+  fr: { label: "Mazātl", line: "Le cerf te regarde. Sois digne de son silence." },
+  en: { label: "Mazātl", line: "The stag is watching you. Be worthy of its silence." },
+  es: { label: "Mazātl", line: "El ciervo te mira. Sé digno de su silencio." },
+};
+
+const KONAMI_MSG: MessageSet = {
+  fr: { label: "Ce n'est pas un jeu", line: "Mais tu joues comme il faut. Cinq directions, tu les connais toutes maintenant." },
+  en: { label: "This isn't a game", line: "But you're playing right. Five directions, you know them all now." },
+  es: { label: "No es un juego", line: "Pero juegas bien. Cinco direcciones, ya las conoces todas." },
+};
+
+const TRIGGERS: { word: string; msg: MessageSet }[] = [
+  { word: "nahual", msg: NAHUAL },
+  { word: "muertos", msg: MUERTOS },
+  { word: "mazatl", msg: MAZATL },
+];
+
+const MAX_WORD_LEN = Math.max(...TRIGGERS.map((t) => t.word.length));
+
 export default function EasterEgg({ locale }: { locale: string }) {
-  const [visible, setVisible] = useState(false);
-  const bufferRef = useRef<string>("");
+  const [current, setCurrent] = useState<MessageSet | null>(null);
+  const wordBufRef = useRef<string>("");
+  const konamiIdxRef = useRef<number>(0);
   const timerRef = useRef<number | null>(null);
+  const konamiFlashRef = useRef<boolean>(false);
+
+  function showMessage(msg: MessageSet, konamiFlash = false) {
+    konamiFlashRef.current = konamiFlash;
+    if (konamiFlash) {
+      // Palette flash cardinal — cycle rapide direction sur body via
+      // data-attribute anime en CSS (voir globals.css .konami-flash)
+      document.body.classList.add("konami-flash");
+      window.setTimeout(() => document.body.classList.remove("konami-flash"), 2000);
+    }
+    setCurrent(msg);
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => setCurrent(null), TOAST_DURATION_MS);
+  }
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     function onKeyDown(e: KeyboardEvent) {
-      // Ignore si l'utilisateur tape dans un champ de saisie
       const target = e.target as HTMLElement | null;
       const tag = target?.tagName?.toLowerCase();
       if (tag === "input" || tag === "textarea" || target?.isContentEditable) return;
 
-      // Seulement les lettres a-z (28/08 fix debug). Filtre plus strict
-      // que "length === 1" qui laissait passer espace, ponctuation,
-      // chiffres — cassait le buffer entre les lettres tapees.
-      // ".toLowerCase" pour supporter shift+N = 'N' → 'n'.
-      const ch = e.key.toLowerCase();
-      if (!/^[a-z]$/.test(ch)) return;
+      const raw = e.key.toLowerCase();
 
-      bufferRef.current = (bufferRef.current + ch).slice(-TRIGGER.length);
-      if (bufferRef.current === TRIGGER) {
-        bufferRef.current = "";
-        setVisible(true);
-        if (timerRef.current !== null) window.clearTimeout(timerRef.current);
-        timerRef.current = window.setTimeout(() => setVisible(false), TOAST_DURATION_MS);
+      // Konami detect (arrowup, arrowdown, etc + b, a)
+      const expected = KONAMI[konamiIdxRef.current];
+      if (raw === expected) {
+        konamiIdxRef.current++;
+        if (konamiIdxRef.current === KONAMI.length) {
+          konamiIdxRef.current = 0;
+          showMessage(KONAMI_MSG, true);
+          return;
+        }
+      } else if (KONAMI.includes(raw)) {
+        // Restart konami si on tape 1er char correct
+        konamiIdxRef.current = raw === KONAMI[0] ? 1 : 0;
+      } else {
+        konamiIdxRef.current = 0;
+      }
+
+      // Word buffer
+      if (!/^[a-z]$/.test(raw)) return;
+      wordBufRef.current = (wordBufRef.current + raw).slice(-MAX_WORD_LEN);
+      for (const t of TRIGGERS) {
+        if (wordBufRef.current.endsWith(t.word)) {
+          wordBufRef.current = "";
+          showMessage(t.msg);
+          return;
+        }
       }
     }
 
-    // Capture phase pour attraper l'event AVANT que Lenis ou tout
-    // autre listener global preventDefault. useCapture=true garantit
-    // priorite descendante.
     window.addEventListener("keydown", onKeyDown, true);
     return () => {
       window.removeEventListener("keydown", onKeyDown, true);
@@ -74,12 +117,17 @@ export default function EasterEgg({ locale }: { locale: string }) {
     };
   }, []);
 
-  const msg = MESSAGES[locale] ?? MESSAGES.fr;
+  const msg = current?.[locale] ?? current?.fr ?? null;
+  const visible = current !== null;
 
   return (
     <div className={styles.toast} data-visible={visible ? "true" : "false"} role="status" aria-live="polite">
-      <em>{msg.label}</em>
-      {msg.line}
+      {msg && (
+        <>
+          <em>{msg.label}</em>
+          {msg.line}
+        </>
+      )}
     </div>
   );
 }
