@@ -82,7 +82,11 @@ export default function PostFX() {
       const audioLevel = typeof window !== "undefined"
         ? (window as unknown as { __nahualAudioLevel?: { current: number } }).__nahualAudioLevel?.current ?? 0
         : 0;
-      bloomRef.current.intensity = BLOOM_BASE + bell * BLOOM_BURST_ADD + audioLevel * 0.6;
+      // Pin face-a-face bloom boost (28/08 boite outil #6) — pendant
+      // scrub pin, bloom monte de 0 a +1.5 = pic dramatique "regard
+      // silencieux amplifie".
+      const pinLevel = refs?.pinProgressRef.current ?? 0;
+      bloomRef.current.intensity = BLOOM_BASE + bell * BLOOM_BURST_ADD + audioLevel * 0.6 + pinLevel * 1.5;
     }
     if (caRef.current) {
       const offset = CA_BASE + bell * CA_BURST_ADD;

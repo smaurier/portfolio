@@ -38,6 +38,11 @@ export type SceneRefs = {
   noticedRef: MutableRefObject<boolean>;
   reducedMotionRef: MutableRefObject<boolean>;
   perfProfile: PerfProfile;
+  // Pin face-a-face progress (28/08 boite outil #6) — 0..1 sur la
+  // fenetre de scroll pin (300vh apres l'arc reveal). Alimente par
+  // FaceAFacePin composant via GSAP ScrollTrigger scrub. Consommé par
+  // PostFX (bloom boost) + OrbitCamera (dolly + fov).
+  pinProgressRef: MutableRefObject<number>;
 };
 
 const SceneRefsContext = createContext<SceneRefs | null>(null);
@@ -46,6 +51,7 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
   const progressRef = useRef(0);
   const reducedMotionRef = useRef(false);
   const noticedRef = useRef(false);
+  const pinProgressRef = useRef(0);
   const [viewportWidth, setViewportWidth] = useState(0);
   const perfProfile = getPerfProfile(viewportWidth);
 
@@ -91,7 +97,7 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<SceneRefs>(
-    () => ({ progressRef, noticedRef, reducedMotionRef, perfProfile }),
+    () => ({ progressRef, noticedRef, reducedMotionRef, perfProfile, pinProgressRef }),
     [perfProfile],
   );
 

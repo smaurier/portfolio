@@ -2,6 +2,12 @@
 
 import { useEffect } from "react";
 import Lenis from "lenis";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 /**
  * Lenis smooth scroll (28/08 task #48). Signature léché SOTY :
@@ -33,15 +39,19 @@ export default function SmoothScroll() {
       smoothWheel: true,
     });
 
-    let rafId = 0;
-    function raf(time: number) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
+    // Coordination Lenis + GSAP ScrollTrigger (28/08 boite outil #6) —
+    // pattern officiel Lenis docs : ticker gsap pilote lenis raf,
+    // lenis on('scroll') pousse update ScrollTrigger. Sinon les pin
+    // ScrollTrigger jittent avec le scroll smooth Lenis.
+    lenis.on("scroll", ScrollTrigger.update);
+    const gsapTicker = (time: number) => {
+      lenis.raf(time * 1000);
+    };
+    gsap.ticker.add(gsapTicker);
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      gsap.ticker.remove(gsapTicker);
       lenis.destroy();
     };
   }, []);

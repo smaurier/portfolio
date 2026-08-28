@@ -3,6 +3,7 @@
 import { getChapterOpacity, getIntroOpacity, getNavEmphasis } from "@/lib/reveal-arc";
 import RevealText from "../reveal-text";
 import CardinalLink from "./cardinal-link";
+import FaceAFacePin from "./face-a-face-pin";
 import FadingBlock from "./fading-block";
 import SceneStage from "./scene-stage";
 import overlayStyles from "./scene-text-overlay.module.css";
@@ -56,22 +57,30 @@ export default function StagScene({
               </CardinalLink>
             </div>
           </FadingBlock>
-          {/* 4 chapitres narratifs scroll-driven (28/08 task #63).
-              Chacun apparait puis fade out avant le suivant, ancre
-              autour du milieu d'une phase du reveal-arc. Signature
-              SOTY scroll-driven storytelling. */}
-          {home.chapters.map((chapter, i) => (
-            <FadingBlock
-              key={i}
-              progressRef={progressRef}
-              reducedMotionRef={reducedMotionRef}
-              getOpacity={(p) => getChapterOpacity(p, i)}
-              initialOpacity={0}
-            >
-              <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
-              <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
-            </FadingBlock>
-          ))}
+          {/* Chapitres narratifs scroll-driven (28/08 task #63).
+              Le chapitre 3 (face-a-face) est enveloppe dans un
+              FaceAFacePin (boite outil #6) qui pin le contenu sur
+              200vh de scroll extra + scrub PostFX bloom + camera fov
+              via pinProgressRef partage. */}
+          {home.chapters.map((chapter, i) => {
+            const block = (
+              <FadingBlock
+                key={i}
+                progressRef={progressRef}
+                reducedMotionRef={reducedMotionRef}
+                getOpacity={(p) => getChapterOpacity(p, i)}
+                initialOpacity={0}
+              >
+                <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
+                <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
+              </FadingBlock>
+            );
+            // Chapter 3 (index 2) = "Face à face" → pin sur 200vh
+            if (i === 2) {
+              return <FaceAFacePin key={i}>{block}</FaceAFacePin>;
+            }
+            return block;
+          })}
           <FadingBlock
             progressRef={progressRef}
             reducedMotionRef={reducedMotionRef}
