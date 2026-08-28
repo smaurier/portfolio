@@ -183,12 +183,49 @@ export default async function LocaleLayout({
               douceur au changement d'URL. */}
           <PersistentScene />
           {children}
+          {/* Footer exhaustif (28/08 retour Sylvain) — 4 colonnes :
+              Navigation, Ressources, Légal, Contact. Bottom row : ©
+              + baseline localisée. */}
           <footer className="siteFooter">
-            <span>© {new Date().getFullYear()} NAHUAL Studio</span>
-            <span aria-hidden="true"> · </span>
-            <a href={getPath(locale, "codex")} className="footerLink">
-              {dict.common.nav.codex}
-            </a>
+            <div className="footerCols">
+              <div className="footerCol">
+                <h3>{dict.common.footer.navigation}</h3>
+                <ul>
+                  <li><a href={`/${locale}`} className="footerLink">{dict.common.nav.home}</a></li>
+                  <li><a href={getPath(locale, "memoire")} className="footerLink">{dict.common.nav.memoire}</a></li>
+                  <li><a href={getPath(locale, "services")} className="footerLink">{dict.common.nav.services}</a></li>
+                  <li><a href={getPath(locale, "projets")} className="footerLink">{dict.common.nav.projects}</a></li>
+                  <li><a href={getPath(locale, "contact")} className="footerLink">{dict.common.nav.contact}</a></li>
+                </ul>
+              </div>
+              <div className="footerCol">
+                <h3>{dict.common.footer.resources}</h3>
+                <ul>
+                  <li><a href={getPath(locale, "codex")} className="footerLink">{dict.common.nav.codex}</a></li>
+                  <li><a href={getPath(locale, "credits")} className="footerLink">{dict.common.footer.credits}</a></li>
+                  <li><a href={getPath(locale, "planDuSite")} className="footerLink">{dict.common.footer.planDuSite}</a></li>
+                </ul>
+              </div>
+              <div className="footerCol">
+                <h3>{dict.common.footer.legal}</h3>
+                <ul>
+                  <li><a href={getPath(locale, "mentionsLegales")} className="footerLink">{dict.common.footer.mentionsLegales}</a></li>
+                  <li><a href={getPath(locale, "accessibilite")} className="footerLink">{dict.common.footer.accessibilite}</a></li>
+                  <li><a href={getPath(locale, "confidentialite")} className="footerLink">{dict.common.footer.confidentialite}</a></li>
+                </ul>
+              </div>
+              <div className="footerCol">
+                <h3>{dict.common.footer.contactCol}</h3>
+                <ul>
+                  <li><a href={AUTHOR_LINKEDIN} target="_blank" rel="noopener noreferrer" className="footerLink">{dict.common.footer.linkedin}</a></li>
+                  <li><a href={AUTHOR_GITHUB} target="_blank" rel="noopener noreferrer" className="footerLink">{dict.common.footer.github}</a></li>
+                  <li><a href={`mailto:${AUTHOR_EMAIL}`} className="footerLink">{dict.common.footer.email}</a></li>
+                </ul>
+              </div>
+            </div>
+            <div className="footerBottom">
+              © {new Date().getFullYear()} NAHUAL Studio · Sylvain Maurier
+            </div>
           </footer>
           {/* LoadingVeil monté ici (une seule instance par session)
               plutôt que dans SceneStage (une par mount de page) depuis

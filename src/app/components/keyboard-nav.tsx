@@ -27,6 +27,11 @@ const DIRECTION_BY_KEY: Record<PageKey, CardinalDirection> = {
   contact: "cendre",
   memoire: "obsidienne",
   codex: "jade",
+  mentionsLegales: "jade",
+  planDuSite: "jade",
+  accessibilite: "jade",
+  confidentialite: "jade",
+  credits: "jade",
 };
 
 function isLocale(v: string): v is Locale {

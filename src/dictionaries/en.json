@@ -21,6 +21,20 @@
       "on": "Turn sound on",
       "off": "Turn sound off"
     },
+    "footer": {
+      "navigation": "Navigation",
+      "resources": "Resources",
+      "legal": "Legal information",
+      "contactCol": "Contact",
+      "credits": "Credits",
+      "mentionsLegales": "Legal notices",
+      "accessibilite": "Accessibility",
+      "confidentialite": "Privacy",
+      "planDuSite": "Sitemap",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "Email"
+    },
     "direction": {
       "jade": "Home · Center direction",
       "dore": "Services · East direction",
@@ -199,6 +213,70 @@
       "title": "What inspired me",
       "text": "Sacred Labs and Joseph Santamaria for WebGL sobriety, Lusion and Immersive Garden for web cinematography, Bruno Simon for the narrative daring of a 3D portfolio. The Fejérváry-Mayer and Borgia codices for the cosmological structure. Miguel León-Portilla's and Alfredo López Austin's studies for the depth of Nahua philosophy. Thanks to Elda for the patience, to Léo for the micro-naps that saved a few deadlines."
     }
+  },
+  "mentionsLegales": {
+    "title": "Legal notices",
+    "intro": "Legal information for the nahual.fr site under French LCEN law of June 21, 2004.",
+    "sections": [
+      { "title": "Publisher", "text": "Nahual · Creative Studio. Sylvain Maurier, sole proprietor. SIRET: to be completed. Email: bonjour@nahual.fr. Phone: on request." },
+      { "title": "Publication director", "text": "Sylvain Maurier." },
+      { "title": "Hosting", "text": "Netlify Inc., 44 Montgomery Street, Suite 300, San Francisco, CA 94104, USA. https://www.netlify.com." },
+      { "title": "Intellectual property", "text": "All content (text, images, structure, original source code) is the property of Sylvain Maurier, unless otherwise indicated on the Credits page. The 3D models and fonts used are under open license (see Credits)." },
+      { "title": "Applicable law", "text": "The site is subject to French law. Any dispute falls under the exclusive jurisdiction of French courts." }
+    ]
+  },
+  "planDuSite": {
+    "title": "Sitemap",
+    "intro": "Overview of the site's pages (RGAA criterion 12.1).",
+    "sections": [
+      { "title": "Main pages", "links": [
+        { "label": "Home", "href": "/en" },
+        { "label": "Teyolía · Memory", "href": "/en/memory" },
+        { "label": "Services", "href": "/en/services" },
+        { "label": "Projects", "href": "/en/projects" },
+        { "label": "Contact", "href": "/en/contact" }
+      ] },
+      { "title": "Resources", "links": [
+        { "label": "Codex (cosmogony + about)", "href": "/en/codex" },
+        { "label": "Credits", "href": "/en/credits" }
+      ] },
+      { "title": "Legal information", "links": [
+        { "label": "Legal notices", "href": "/en/legal-notices" },
+        { "label": "Accessibility statement", "href": "/en/accessibility" },
+        { "label": "Privacy policy", "href": "/en/privacy" }
+      ] }
+    ]
+  },
+  "accessibilite": {
+    "title": "Accessibility statement",
+    "intro": "Nahual is committed to making its site accessible under the French General Accessibility Improvement Reference (RGAA) version 4.1.",
+    "sections": [
+      { "title": "Conformance state", "text": "This site is partially compliant with RGAA 4.1. A full audit is planned after the 2026 redesign stabilizes." },
+      { "title": "Non-accessible content", "text": "The interactive 3D scene (WebGL canvas) is decorative: main textual content (titles, texts, links) is accessible to assistive technologies. prefers-reduced-motion is respected." },
+      { "title": "Statement drafting", "text": "This statement was drafted on August 28, 2026 based on self-assessment. An external audit is planned after obtaining RGAA certification (October 2026)." },
+      { "title": "Feedback and contact", "text": "To report an access issue or obtain an alternative version of content, contact bonjour@nahual.fr. If no response within 60 days, contact the French Rights Defender: https://www.defenseurdesdroits.fr." }
+    ]
+  },
+  "confidentialite": {
+    "title": "Privacy policy",
+    "intro": "This site complies with the General Data Protection Regulation (GDPR) and the French Data Protection Act.",
+    "sections": [
+      { "title": "Data collected", "text": "No data is collected without your explicit action. Sending a message via the email shown on the Contact page is the only entry point: the information provided (email, message content) is used solely to reply." },
+      { "title": "Cookies and trackers", "text": "This site does not use tracking cookies or third-party analytics tools (no Google Analytics, no Meta Pixel). Only local storage (localStorage) is used to remember your sound preference (on/off) and whether you've already seen certain animations. This data stays in your browser and is never transmitted." },
+      { "title": "Retention", "text": "Messages received by email are kept for the time needed to process them, then archived in the responsible party's personal mailbox for future reference. You can request their deletion at any time." },
+      { "title": "Your rights", "text": "Under GDPR, you have the right to access, rectify, erase, and port your data. Contact: bonjour@nahual.fr." }
+    ]
+  },
+  "credits": {
+    "title": "Credits and attributions",
+    "intro": "This site uses resources created by others. Recognition and gratitude.",
+    "sections": [
+      { "title": "3D models", "text": "The stag and part of the flora come from Quaternius open-source packs (CC0 license). Complementary models (ocotillo, vines, flowers) are procedurally generated." },
+      { "title": "Fonts", "text": "Geist Sans and Geist Mono, created by Vercel (SIL Open Font license)." },
+      { "title": "Software libraries", "text": "React (MIT), Next.js (MIT), Three.js (MIT), React Three Fiber (MIT), drei (MIT), postprocessing (Zlib), GSAP (standard license), Lenis (MIT), Sass (MIT), TypeScript (Apache 2.0), Vitest (MIT)." },
+      { "title": "Inspirations", "text": "Sacred Labs (Joseph Santamaria), Lusion, Immersive Garden, Bruno Simon, Codrops. Fejérváry-Mayer and Borgia codices for cosmology. Miguel León-Portilla's and Alfredo López Austin's studies for the depth of Nahua philosophy." },
+      { "title": "Cultural recognition", "text": "This site is a tribute to the living Nahua culture, not a museum. For Elda, Alondra, Léopoldine, and all who carry this memory." }
+    ]
   },
   "lab": {
     "loadingPhrase": "In xochitl, in cuicatl",

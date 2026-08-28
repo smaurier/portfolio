@@ -26,6 +26,11 @@ const DIRECTION_BY_KEY: Record<PageKey, DirectionKey> = {
   contact: "cendre",
   memoire: "obsidienne",
   codex: "jade",
+  mentionsLegales: "jade",
+  planDuSite: "jade",
+  accessibilite: "jade",
+  confidentialite: "jade",
+  credits: "jade",
 };
 
 export function useCurrentDirection(): DirectionKey {

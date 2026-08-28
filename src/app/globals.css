@@ -26,7 +26,10 @@
      que les deux sont en position:fixed (palier 2 DA Nahual, cf
      project-nahual-da : overlay superposé au canvas plutôt qu'en flux). */
   --header-height: 81px;
-  --footer-height: 65px;
+  /* footer-height 0 (28/08) : footer est passe en position relative
+     apres refonte exhaustive (4 cols + bottom). Plus besoin de
+     reserver l'espace ailleurs. */
+  --footer-height: 0px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -807,18 +810,73 @@ body.nahual-lab-reveal .ctaButton {
   }
 }
 
+/* Footer exhaustif (28/08 retour Sylvain) — 4 colonnes + bottom row.
+   Position relative (plus fixed) : le footer devient un vrai bas de
+   page avec contenu long, revele en fin de scroll apres le sanctuaire
+   100vh du canvas. Overrides --footer-height dans main padding. */
 .siteFooter {
+  position: relative;
+  padding: 48px 6vw 24px;
+  background: rgba(8, 6, 12, 0.92);
+  backdrop-filter: blur(12px);
+  color: #f4ead5;
+  font-size: 0.9rem;
+  border-top: 1px solid rgba(244, 234, 213, 0.08);
+  z-index: 50;
+}
+
+.footerCols {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto 32px;
+}
+
+.footerCol h3 {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #00c078;
+  font-weight: 600;
+  margin: 0 0 14px;
+}
+
+.footerCol ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footerCol li {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.footerBottom {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(244, 234, 213, 0.06);
+  font-size: 0.8rem;
+  opacity: 0.55;
   text-align: center;
-  padding: 20px 0;
-  font-size: 0.85rem;
-  opacity: 0.7;
-  background: transparent;
-  /* Overlay superposé, même raison que .header ci-dessus. */
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
+}
+
+@media (max-width: 767px) {
+  .footerCols {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+}
+@media (max-width: 480px) {
+  .footerCols {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
 }
 /* Focus rings a11y (28/08 task #49). Signature palette cardinale :
    focus visible avec anneau jade sur tous les elements focusables.

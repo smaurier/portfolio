@@ -21,6 +21,20 @@
       "on": "Activer le son",
       "off": "Couper le son"
     },
+    "footer": {
+      "navigation": "Navigation",
+      "resources": "Ressources",
+      "legal": "Informations légales",
+      "contactCol": "Contact",
+      "credits": "Crédits",
+      "mentionsLegales": "Mentions légales",
+      "accessibilite": "Accessibilité",
+      "confidentialite": "Confidentialité",
+      "planDuSite": "Plan du site",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "Email"
+    },
     "direction": {
       "jade": "Accueil · direction Centre",
       "dore": "Services · direction Est",
@@ -199,6 +213,70 @@
       "title": "Ce qui m'a inspiré",
       "text": "Sacred Labs et Joseph Santamaria pour la sobriété WebGL, Lusion et Immersive Garden pour la cinématographie web, Bruno Simon pour l'audace narrative d'un portfolio 3D. Les codex Fejérváry-Mayer et Borgia pour la structure cosmologique. Les études de Miguel León-Portilla et Alfredo López Austin pour la profondeur philosophique nahua. Merci à Elda pour la patience, à Léo pour les micro-siestes qui ont sauvé quelques deadlines."
     }
+  },
+  "mentionsLegales": {
+    "title": "Mentions légales",
+    "intro": "Informations légales du site nahual.fr conformément à la loi LCEN du 21 juin 2004.",
+    "sections": [
+      { "title": "Éditeur", "text": "Nahual · Studio de création. Sylvain Maurier, entrepreneur individuel. SIRET : à compléter. Email : bonjour@nahual.fr. Téléphone : sur demande." },
+      { "title": "Directeur de la publication", "text": "Sylvain Maurier." },
+      { "title": "Hébergement", "text": "Netlify Inc., 44 Montgomery Street, Suite 300, San Francisco, CA 94104, USA. https://www.netlify.com." },
+      { "title": "Propriété intellectuelle", "text": "L'ensemble des contenus (textes, images, structure, code source original) est la propriété de Sylvain Maurier, sauf mention contraire dans la page Crédits. Les modèles 3D et polices utilisés sont sous licence libre (voir Crédits)." },
+      { "title": "Droit applicable", "text": "Le site est soumis au droit français. En cas de litige, les tribunaux français seront seuls compétents." }
+    ]
+  },
+  "planDuSite": {
+    "title": "Plan du site",
+    "intro": "Vue d'ensemble des pages du site (RGAA critère 12.1).",
+    "sections": [
+      { "title": "Pages principales", "links": [
+        { "label": "Accueil", "href": "/fr" },
+        { "label": "Teyolía · Mémoire", "href": "/fr/memoire" },
+        { "label": "Services", "href": "/fr/services" },
+        { "label": "Projets", "href": "/fr/projets" },
+        { "label": "Contact", "href": "/fr/contact" }
+      ] },
+      { "title": "Ressources", "links": [
+        { "label": "Codex (cosmogonie + à propos)", "href": "/fr/codex" },
+        { "label": "Crédits", "href": "/fr/credits" }
+      ] },
+      { "title": "Informations légales", "links": [
+        { "label": "Mentions légales", "href": "/fr/mentions-legales" },
+        { "label": "Déclaration d'accessibilité", "href": "/fr/accessibilite" },
+        { "label": "Politique de confidentialité", "href": "/fr/confidentialite" }
+      ] }
+    ]
+  },
+  "accessibilite": {
+    "title": "Déclaration d'accessibilité",
+    "intro": "Nahual s'engage à rendre son site accessible conformément au Référentiel général d'amélioration de l'accessibilité (RGAA) version 4.1.",
+    "sections": [
+      { "title": "État de conformité", "text": "Ce site est en conformité partielle avec le RGAA 4.1. Un audit complet est prévu après stabilisation de la refonte 2026." },
+      { "title": "Contenus non accessibles", "text": "La scène 3D interactive (canvas WebGL) reste décorative : le contenu textuel principal (titres, textes, liens) est accessible aux technologies d'assistance. Une préférence prefers-reduced-motion est respectée." },
+      { "title": "Établissement de cette déclaration", "text": "Cette déclaration a été établie le 28 août 2026 sur la base d'une auto-évaluation. Un audit externe est planifié après obtention de la certification RGAA (octobre 2026)." },
+      { "title": "Retour et contact", "text": "Pour signaler une difficulté d'accès ou obtenir une version alternative d'un contenu, contactez bonjour@nahual.fr. En cas de non-réponse dans les 60 jours, saisir le Défenseur des droits : https://www.defenseurdesdroits.fr." }
+    ]
+  },
+  "confidentialite": {
+    "title": "Politique de confidentialité",
+    "intro": "Ce site respecte le Règlement général sur la protection des données (RGPD) et la loi Informatique et Libertés.",
+    "sections": [
+      { "title": "Données collectées", "text": "Aucune donnée n'est collectée sans action explicite de votre part. L'envoi d'un message via l'email affiché sur la page Contact constitue le seul point d'entrée : les informations transmises (email, contenu du message) sont utilisées uniquement pour vous répondre." },
+      { "title": "Cookies et traceurs", "text": "Ce site n'utilise pas de cookies de traçage ni d'outils d'analyse tiers (pas de Google Analytics, pas de Meta Pixel). Seul un stockage local (localStorage) est utilisé pour mémoriser votre préférence de son (activé/coupé) et le fait que vous ayez déjà vu certaines animations. Ces données restent dans votre navigateur, ne sont jamais transmises." },
+      { "title": "Durée de conservation", "text": "Les messages reçus par email sont conservés le temps nécessaire au traitement, puis archivés dans la messagerie personnelle du responsable pour référence future. Vous pouvez demander leur suppression à tout moment." },
+      { "title": "Vos droits", "text": "Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement et de portabilité de vos données. Contact : bonjour@nahual.fr." }
+    ]
+  },
+  "credits": {
+    "title": "Crédits et attributions",
+    "intro": "Ce site utilise des ressources créées par d'autres personnes. Reconnaissance et gratitude.",
+    "sections": [
+      { "title": "Modèles 3D", "text": "Le cerf et une partie de la flore proviennent des packs open-source Quaternius (licence CC0). Les modèles complémentaires (ocotillo, lianes, fleurs) sont générés procéduralement." },
+      { "title": "Polices", "text": "Geist Sans et Geist Mono, créées par Vercel (licence SIL Open Font)." },
+      { "title": "Bibliothèques logicielles", "text": "React (MIT), Next.js (MIT), Three.js (MIT), React Three Fiber (MIT), drei (MIT), postprocessing (Zlib), GSAP (standard licence), Lenis (MIT), Sass (MIT), TypeScript (Apache 2.0), Vitest (MIT)." },
+      { "title": "Inspirations", "text": "Sacred Labs (Joseph Santamaria), Lusion, Immersive Garden, Bruno Simon, Codrops. Codex Fejérváry-Mayer et Borgia pour la cosmologie. Études de Miguel León-Portilla et Alfredo López Austin pour la profondeur philosophique nahua." },
+      { "title": "Reconnaissance culturelle", "text": "Ce site est un hommage à la culture nahua vivante, pas un musée. Pour Elda, Alondra, Léopoldine, et toutes celles et ceux qui portent cette mémoire." }
+    ]
   },
   "lab": {
     "loadingPhrase": "In xochitl, in cuicatl",

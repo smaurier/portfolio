@@ -20,6 +20,11 @@ const DIRECTION_BY_PAGE: Record<PageKey, DirectionKey> = {
   contact: "cendre",
   memoire: "obsidienne",
   codex: "jade",
+  mentionsLegales: "jade",
+  planDuSite: "jade",
+  accessibilite: "jade",
+  confidentialite: "jade",
+  credits: "jade",
 };
 
 export function generateStaticParams() {
@@ -250,6 +255,43 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
   );
 }
 
+/**
+ * Legal page generic (28/08 retour Sylvain). Rend title + intro +
+ * sections, chaque section a un titre + texte OU liens (plan du site).
+ * Meme layout que Codex, sobre.
+ */
+type LegalSection =
+  | { title: string; text: string }
+  | { title: string; links: { label: string; href: string }[] };
+
+function LegalPage({
+  dict,
+}: {
+  dict: { title: string; intro: string; sections: LegalSection[] };
+}) {
+  return (
+    <div className="contentPage codexPage">
+      <h1>{dict.title}</h1>
+      <p>{dict.intro}</p>
+      {dict.sections.map((section, i) => (
+        <section key={i} className="codexSection">
+          <h2>{section.title}</h2>
+          {"text" in section && <p>{section.text}</p>}
+          {"links" in section && (
+            <ul className="codexDirections">
+              {section.links.map((l) => (
+                <li key={l.href}>
+                  <a href={l.href}>{l.label}</a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ))}
+    </div>
+  );
+}
+
 function MemoirePage({ dict }: { dict: Dictionary["memoire"] }) {
   return (
     <div className="contentPage">
@@ -303,6 +345,21 @@ export default async function LocalizedPage({
       break;
     case "codex":
       content = <CodexPage dict={fullDict.codex} />;
+      break;
+    case "mentionsLegales":
+      content = <LegalPage dict={fullDict.mentionsLegales} />;
+      break;
+    case "planDuSite":
+      content = <LegalPage dict={fullDict.planDuSite} />;
+      break;
+    case "accessibilite":
+      content = <LegalPage dict={fullDict.accessibilite} />;
+      break;
+    case "confidentialite":
+      content = <LegalPage dict={fullDict.confidentialite} />;
+      break;
+    case "credits":
+      content = <LegalPage dict={fullDict.credits} />;
       break;
   }
 

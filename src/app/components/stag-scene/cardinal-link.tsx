@@ -29,6 +29,11 @@ const DIRECTION_BY_KEY: Record<PageKey, CardinalDirection> = {
   contact: "cendre",
   memoire: "obsidienne",
   codex: "jade",
+  mentionsLegales: "jade",
+  planDuSite: "jade",
+  accessibilite: "jade",
+  confidentialite: "jade",
+  credits: "jade",
 };
 
 /** Extrait la direction cardinale d'une href locale de l'app. */
