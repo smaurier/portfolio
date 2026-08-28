@@ -3,7 +3,6 @@
 import { getChapterOpacity, getIntroOpacity, getNavEmphasis } from "@/lib/reveal-arc";
 import RevealText from "../reveal-text";
 import CardinalLink from "./cardinal-link";
-import FaceAFacePin from "./face-a-face-pin";
 import FadingBlock from "./fading-block";
 import SceneStage from "./scene-stage";
 import overlayStyles from "./scene-text-overlay.module.css";
@@ -62,25 +61,25 @@ export default function StagScene({
               FaceAFacePin (boite outil #6) qui pin le contenu sur
               200vh de scroll extra + scrub PostFX bloom + camera fov
               via pinProgressRef partage. */}
-          {home.chapters.map((chapter, i) => {
-            const block = (
-              <FadingBlock
-                key={i}
-                progressRef={progressRef}
-                reducedMotionRef={reducedMotionRef}
-                getOpacity={(p) => getChapterOpacity(p, i)}
-                initialOpacity={0}
-              >
-                <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
-                <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
-              </FadingBlock>
-            );
-            // Chapter 3 (index 2) = "Face à face" → pin sur 200vh
-            if (i === 2) {
-              return <FaceAFacePin key={i}>{block}</FaceAFacePin>;
-            }
-            return block;
-          })}
+          {/* FaceAFacePin desactive 28/08 (retour Sylvain "molette
+              sur cerf glitche fort") — ScrollTrigger scrub 1 + Lenis
+              smoothWheel + auto-release kill() creaient un feedback
+              loop qui saccadait camera + PostFX. Chapter 3 face-a-face
+              revient a un FadingBlock normal comme les autres.
+              A ré-explorer session dédiée avec approche différente
+              (position: sticky CSS pur? plus de ScrollTrigger?). */}
+          {home.chapters.map((chapter, i) => (
+            <FadingBlock
+              key={i}
+              progressRef={progressRef}
+              reducedMotionRef={reducedMotionRef}
+              getOpacity={(p) => getChapterOpacity(p, i)}
+              initialOpacity={0}
+            >
+              <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
+              <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
+            </FadingBlock>
+          ))}
           <FadingBlock
             progressRef={progressRef}
             reducedMotionRef={reducedMotionRef}
