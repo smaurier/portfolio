@@ -9,7 +9,8 @@
       "services": "Servicios",
       "projects": "Proyectos",
       "contact": "Contacto",
-      "memoire": "Memoria"
+      "memoire": "Memoria",
+      "codex": "Códice"
     },
     "langSwitcherLabel": "Cambiar idioma",
     "showEmail": "Mostrar correo",
@@ -121,6 +122,41 @@
       }
     ],
     "creditNote": "Los motivos cardinales del sitio (sol, flor, pedernal, espiral, quincunce) son evocaciones estilizadas inspiradas en la iconografía mesoamericana, no reproducciones de glifos sagrados. Homenaje familiar a la cultura náhuatl viva, para Elda y nuestras hijas."
+  },
+  "codex": {
+    "title": "Códice",
+    "intro": "Un pequeño manual de este sitio. La cosmogonía que lo estructura, el humano que lo escribe, la familia que lo habita.",
+    "cosmos": {
+      "title": "Las cinco direcciones",
+      "text": "En el pensamiento mesoamericano, el universo no se lee en cuatro puntos cardinales sino en cinco — los cuatro horizontes más el centro. Cada dirección lleva su color, su dios, su animal, su momento del día. Este sitio sigue ese plan.",
+      "directions": [
+        { "name": "Centro · Xiuhtecuhtli · jade", "text": "El eje cósmico, el fuego que arde sin apagarse nunca. Aquí está el hogar, el hub, el regreso posible." },
+        { "name": "Este · Tonatiuh · dorado", "text": "El alba, el sol que sube. Aquí están los servicios, lo que propongo construir contigo." },
+        { "name": "Sur · Huitzilopochtli · turquesa", "text": "El mediodía, el colibrí guerrero. Aquí están los proyectos, lo que ya he llevado a cabo." },
+        { "name": "Oeste · Ehecatl · ceniza", "text": "El crepúsculo, el soplo del viento. Aquí está el contacto, un canal abierto." },
+        { "name": "Norte · Mictlantecuhtli · obsidiana", "text": "La noche, el señor del país de los muertos. Aquí está Teyolía · Memoria, lo que se conservó en vez de borrarse." }
+      ]
+    },
+    "totem": {
+      "title": "El ciervo, Mazātl",
+      "text": "El nahual es esa esencia que se revela en su verdadera forma animal. Elegí el ciervo antes que el águila o el jaguar — evitando deliberadamente el cliché de «imaginería azteca» para quedarme en el registro más discreto de la presencia: mensajero entre los mundos, asociado con la gracia, la vigilancia y la facultad de ocultar su verdadera naturaleza a los demás."
+    },
+    "human": {
+      "title": "Quién escribe",
+      "text": "Sylvain Maurier, desarrollador frontend senior instalado en Lyon. Diez años construyendo interfaces (React, Next.js, Vue, React Native), una especialización en curso en accesibilidad digital (RGAA, examen de certificación 23 de octubre de 2026). Un hilo simple: la accesibilidad se programa, no solo se audita. Los informes PDF no cambian el mundo, el código de corrección sí."
+    },
+    "family": {
+      "title": "La familia que habita este sitio",
+      "text": "Nahual es un proyecto franco-mexicano tanto como un proyecto personal. Elda, mi compañera, es mexicana, hispanohablante nativa, docente. Léopoldine es nuestra hija, nacida en Lyon. Alondra es su hermana mayor, adoptada en México. La cosmogonía náhuatl no es un decorado exótico elegido al azar — es una herencia familiar que sigo aprendiendo, con el respeto que exige."
+    },
+    "respect": {
+      "title": "Sobre la apropiación cultural",
+      "text": "Este sitio rinde homenaje a una cultura viva, no a un museo. Los motivos cardinales (sol, flor, pedernal, espiral, quincunce) son evocaciones estilizadas inspiradas en la iconografía mesoamericana, no reproducciones de glifos sagrados. Los glifos del calendario, del códice Fejérváry-Mayer, de la Piedra del Sol, están deliberadamente ausentes de los elementos decorativos sin contexto. La línea roja es simple: celebrar lo público, dejar lo sagrado a quienes son sus custodios."
+    },
+    "refs": {
+      "title": "Lo que me inspiró",
+      "text": "Sacred Labs y Joseph Santamaria por la sobriedad WebGL, Lusion e Immersive Garden por la cinematografía web, Bruno Simon por la audacia narrativa de un portafolio 3D. Los códices Fejérváry-Mayer y Borgia por la estructura cosmológica. Los estudios de Miguel León-Portilla y Alfredo López Austin por la profundidad de la filosofía náhuatl. Gracias a Elda por la paciencia, a Léo por las siestas cortas que salvaron algunos plazos."
+    }
   },
   "lab": {
     "loadingPhrase": "In xochitl, in cuicatl",

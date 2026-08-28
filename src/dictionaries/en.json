@@ -9,7 +9,8 @@
       "services": "Services",
       "projects": "Projects",
       "contact": "Contact",
-      "memoire": "Memory"
+      "memoire": "Memory",
+      "codex": "Codex"
     },
     "langSwitcherLabel": "Switch language",
     "showEmail": "Show email",
@@ -121,6 +122,41 @@
       }
     ],
     "creditNote": "The cardinal motifs on this site (sun, flower, blade, spiral, quincunx) are stylized evocations inspired by Mesoamerican iconography, not reproductions of sacred glyphs. A family tribute to the living Nahua culture, for Elda and our daughters."
+  },
+  "codex": {
+    "title": "Codex",
+    "intro": "A short manual for this site. The cosmogony that structures it, the human who writes it, the family that inhabits it.",
+    "cosmos": {
+      "title": "The five directions",
+      "text": "In Mesoamerican thought, the universe isn't read in four cardinal points but in five — the four horizons plus the center. Each direction carries its color, its god, its animal, its time of day. This site follows that plan.",
+      "directions": [
+        { "name": "Center · Xiuhtecuhtli · jade", "text": "The cosmic axis, the fire that burns without ever going out. Here is the home, the hub, the possible return." },
+        { "name": "East · Tonatiuh · gold", "text": "Dawn, the rising sun. Here are the services, what I offer to build with you." },
+        { "name": "South · Huitzilopochtli · turquoise", "text": "Noon, the warrior hummingbird. Here are the projects, what I've already carried through." },
+        { "name": "West · Ehecatl · ash", "text": "Dusk, the breath of wind. Here is contact, an open channel." },
+        { "name": "North · Mictlantecuhtli · obsidian", "text": "Night, the lord of the land of the dead. Here is Teyolía · Memory, what was kept rather than erased." }
+      ]
+    },
+    "totem": {
+      "title": "The stag, Mazātl",
+      "text": "The nahual is that essence which reveals itself in its true animal form. I chose the stag over the eagle or the jaguar — deliberately avoiding the \"Aztec imagery\" cliché to stay in the more discreet register of presence: messenger between worlds, associated with grace, vigilance, and the ability to hide one's true nature from others."
+    },
+    "human": {
+      "title": "Who writes",
+      "text": "Sylvain Maurier, senior frontend developer based in Lyon. Ten years shipping interfaces (React, Next.js, Vue, React Native), an ongoing specialization in digital accessibility (RGAA, certification exam October 23, 2026). A simple thread: accessibility is coded, not just audited. PDF reports don't change the world, fix code does."
+    },
+    "family": {
+      "title": "The family that inhabits this site",
+      "text": "Nahual is a French-Mexican project as much as a personal one. Elda, my partner, is Mexican, a native Spanish speaker, a teacher. Léopoldine is our daughter, born in Lyon. Alondra is her older sister, adopted in Mexico. Nahua cosmogony isn't a randomly chosen exotic backdrop — it's a family heritage I'm still learning, with the respect that requires."
+    },
+    "respect": {
+      "title": "On cultural appropriation",
+      "text": "This site pays tribute to a living culture, not a museum. The cardinal motifs (sun, flower, blade, spiral, quincunx) are stylized evocations inspired by Mesoamerican iconography, not reproductions of sacred glyphs. Calendar glyphs, the Fejérváry-Mayer codex, the Piedra del Sol are deliberately absent from decorative elements without context. The red line is simple: celebrate what is public, leave what is sacred to those who hold it."
+    },
+    "refs": {
+      "title": "What inspired me",
+      "text": "Sacred Labs and Joseph Santamaria for WebGL sobriety, Lusion and Immersive Garden for web cinematography, Bruno Simon for the narrative daring of a 3D portfolio. The Fejérváry-Mayer and Borgia codices for the cosmological structure. Miguel León-Portilla's and Alfredo López Austin's studies for the depth of Nahua philosophy. Thanks to Elda for the patience, to Léo for the micro-naps that saved a few deadlines."
+    }
   },
   "lab": {
     "loadingPhrase": "In xochitl, in cuicatl",

@@ -19,6 +19,7 @@ const DIRECTION_BY_PAGE: Record<PageKey, DirectionKey> = {
   projets: "turquoise",
   contact: "cendre",
   memoire: "obsidienne",
+  codex: "jade",
 };
 
 export function generateStaticParams() {
@@ -193,6 +194,62 @@ function toRoman(n: number): string {
   return result;
 }
 
+/**
+ * Codex page (28/08 task #52 audit SOTY). Hub cosmogonique + about
+ * incarne. Fusion en une seule page pour ne pas dedoubler About et
+ * Codex — le cœur nahua etant justement l'unite entre la cosmologie
+ * et la personne qui l'ecrit. Sections : cosmos (5 directions) +
+ * totem (cerf Mazatl) + human (Sylvain) + family (Elda, Léopoldine,
+ * Alondra, cadre franco-mexicain) + respect (garde-fou appropriation)
+ * + refs (inspirations, remerciements).
+ */
+function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
+  return (
+    <div className="contentPage codexPage">
+      <h1>{dict.title}</h1>
+      <p>{dict.intro}</p>
+
+      <section className="codexSection">
+        <h2>{dict.cosmos.title}</h2>
+        <p>{dict.cosmos.text}</p>
+        <ul className="codexDirections">
+          {dict.cosmos.directions.map((d) => (
+            <li key={d.name}>
+              <strong>{d.name}</strong>
+              <span>{d.text}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="codexSection">
+        <h2>{dict.totem.title}</h2>
+        <p>{dict.totem.text}</p>
+      </section>
+
+      <section className="codexSection">
+        <h2>{dict.human.title}</h2>
+        <p>{dict.human.text}</p>
+      </section>
+
+      <section className="codexSection">
+        <h2>{dict.family.title}</h2>
+        <p>{dict.family.text}</p>
+      </section>
+
+      <section className="codexSection">
+        <h2>{dict.respect.title}</h2>
+        <p>{dict.respect.text}</p>
+      </section>
+
+      <section className="codexSection">
+        <h2>{dict.refs.title}</h2>
+        <p>{dict.refs.text}</p>
+      </section>
+    </div>
+  );
+}
+
 function MemoirePage({ dict }: { dict: Dictionary["memoire"] }) {
   return (
     <div className="contentPage">
@@ -243,6 +300,9 @@ export default async function LocalizedPage({
       break;
     case "memoire":
       content = <MemoirePage dict={fullDict.memoire} />;
+      break;
+    case "codex":
+      content = <CodexPage dict={fullDict.codex} />;
       break;
   }
 

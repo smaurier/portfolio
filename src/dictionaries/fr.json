@@ -9,7 +9,8 @@
       "services": "Services",
       "projects": "Projets",
       "contact": "Contact",
-      "memoire": "Mémoire"
+      "memoire": "Mémoire",
+      "codex": "Codex"
     },
     "langSwitcherLabel": "Changer de langue",
     "showEmail": "Afficher l'email",
@@ -121,6 +122,41 @@
       }
     ],
     "creditNote": "Les motifs cardinaux du site (soleil, fleur, silex, spirale, quinconce) sont des évocations stylisées inspirées de l'iconographie mésoaméricaine, pas des reproductions de glyphes sacrés. Hommage familial à la culture nahua vivante, pour Elda et nos filles."
+  },
+  "codex": {
+    "title": "Codex",
+    "intro": "Petit manuel de ce site. La cosmogonie qui le structure, l'humain qui l'écrit, la famille qui l'habite.",
+    "cosmos": {
+      "title": "Les cinq directions",
+      "text": "Dans la pensée mésoaméricaine, l'univers ne se lit pas en quatre points cardinaux mais en cinq — les quatre horizons plus le centre. Chaque direction porte sa couleur, son dieu, son animal, son moment du jour. Ce site suit ce plan.",
+      "directions": [
+        { "name": "Centre · Xiuhtecuhtli · jade", "text": "L'axe cosmique, le feu qui brûle sans jamais s'éteindre. Ici c'est la maison, le hub, le retour possible." },
+        { "name": "Est · Tonatiuh · doré", "text": "L'aube, le soleil qui monte. Ici ce sont les services, ce que je propose de bâtir avec vous." },
+        { "name": "Sud · Huitzilopochtli · turquoise", "text": "Le midi, le colibri guerrier. Ici ce sont les projets, ce que j'ai déjà mené à terme." },
+        { "name": "Ouest · Ehecatl · cendre", "text": "Le crépuscule, le souffle du vent. Ici c'est le contact, un canal ouvert." },
+        { "name": "Nord · Mictlantecuhtli · obsidienne", "text": "La nuit, le seigneur du monde des morts. Ici c'est Teyolía · Mémoire, ce qui a été gardé plutôt qu'effacé." }
+      ]
+    },
+    "totem": {
+      "title": "Le cerf, Mazātl",
+      "text": "Le nahual est cette essence qui se révèle dans sa forme animale véritable. J'ai choisi le cerf plutôt que l'aigle ou le jaguar — évitant volontairement le cliché « imagerie aztèque » pour rester dans le registre plus discret de la présence : messager entre les mondes, associé à la grâce, à la vigilance, et à la faculté de cacher sa vraie nature aux autres."
+    },
+    "human": {
+      "title": "Qui écrit",
+      "text": "Sylvain Maurier, développeur frontend senior installé à Lyon. Dix ans à builder des interfaces (React, Next.js, Vue, React Native), une spécialisation en cours sur l'accessibilité numérique (RGAA, certification examen 23 octobre 2026). Un fil rouge simple : l'accessibilité se code, elle ne s'audite pas seulement. Les rapports PDF ne changent pas le monde, le code de correction si."
+    },
+    "family": {
+      "title": "La famille qui habite ce site",
+      "text": "Nahual est un projet franco-mexicain autant qu'il est un projet perso. Elda, ma compagne, est mexicaine, hispanophone native, enseignante. Léopoldine est notre fille, née à Lyon. Alondra est sa grande sœur adoptée au Mexique. La cosmogonie nahua n'est pas un décor exotique choisi au hasard — c'est un héritage familial que j'apprends encore, avec le respect que ça demande."
+    },
+    "respect": {
+      "title": "Sur l'appropriation culturelle",
+      "text": "Ce site rend hommage à une culture vivante, pas à un musée. Les motifs cardinaux (soleil, fleur, silex, spirale, quinconce) sont des évocations stylisées inspirées de l'iconographie mésoaméricaine, pas des reproductions de glyphes sacrés. Les glyphes du calendrier, du codex Fejérváry-Mayer, de la Piedra del Sol, sont volontairement absents des éléments décoratifs sans contexte. La ligne rouge est simple : célébrer ce qui est public, laisser ce qui est sacré à ceux qui en sont dépositaires."
+    },
+    "refs": {
+      "title": "Ce qui m'a inspiré",
+      "text": "Sacred Labs et Joseph Santamaria pour la sobriété WebGL, Lusion et Immersive Garden pour la cinématographie web, Bruno Simon pour l'audace narrative d'un portfolio 3D. Les codex Fejérváry-Mayer et Borgia pour la structure cosmologique. Les études de Miguel León-Portilla et Alfredo López Austin pour la profondeur philosophique nahua. Merci à Elda pour la patience, à Léo pour les micro-siestes qui ont sauvé quelques deadlines."
+    }
   },
   "lab": {
     "loadingPhrase": "In xochitl, in cuicatl",

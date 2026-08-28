@@ -27,6 +27,7 @@ const DIRECTION_BY_KEY: Record<PageKey, CardinalDirection> = {
   projets: "turquoise",
   contact: "cendre",
   memoire: "obsidienne",
+  codex: "jade",
 };
 
 /** Extrait la direction cardinale d'une href locale de l'app. */

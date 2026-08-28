@@ -25,6 +25,7 @@ const DIRECTION_BY_KEY: Record<PageKey, DirectionKey> = {
   projets: "turquoise",
   contact: "cendre",
   memoire: "obsidienne",
+  codex: "jade",
 };
 
 export function useCurrentDirection(): DirectionKey {

@@ -11,6 +11,7 @@ import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-tr
 import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
+import { getPath } from "../../lib/routes";
 import {
   AUTHOR_EMAIL,
   AUTHOR_GITHUB,
@@ -177,7 +178,11 @@ export default async function LocaleLayout({
           <PersistentScene />
           {children}
           <footer className="siteFooter">
-            © {new Date().getFullYear()} NAHUAL Studio
+            <span>© {new Date().getFullYear()} NAHUAL Studio</span>
+            <span aria-hidden="true"> · </span>
+            <a href={getPath(locale, "codex")} className="footerLink">
+              {dict.common.nav.codex}
+            </a>
           </footer>
           {/* LoadingVeil monté ici (une seule instance par session)
               plutôt que dans SceneStage (une par mount de page) depuis

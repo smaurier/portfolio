@@ -882,3 +882,67 @@ button:focus-visible,
     padding-top: 0;
   }
 }
+
+/* Codex page (28/08 task #52) — sections espaces avec directions list.
+   Structure sobre + espace généreux pour donner poids à la cosmologie. */
+.codexPage {
+  max-width: 780px;
+}
+.codexSection {
+  margin: 3rem 0 1.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(244, 234, 213, 0.15);
+}
+.codexSection:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.codexSection h2 {
+  font-size: 1.2rem;
+  margin: 0 0 1rem;
+  letter-spacing: 0.02em;
+  color: #f4ead5;
+}
+.codexSection p {
+  font-size: 1rem;
+  line-height: 1.65;
+  opacity: 0.88;
+  margin: 0 0 0.8rem;
+}
+.codexDirections {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.codexDirections li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.codexDirections strong {
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #00c078;
+  font-weight: 600;
+}
+.codexDirections span {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  opacity: 0.85;
+}
+
+/* Footer link (28/08 task #52) — accès discret Codex. */
+.footerLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 192, 120, 0.4);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s ease;
+}
+.footerLink:hover {
+  text-decoration-color: #00c078;
+}
