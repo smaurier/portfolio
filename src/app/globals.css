@@ -432,6 +432,116 @@ body.nahual-transitioning[data-transition-direction="jade"] main {
   }
 }
 
+/* View Transitions API (28/08 retour Sylvain "faudrait vraiment que
+   les pages coulissent et soient remplacées, en fonction des points
+   cardinaux"). Chrome/Edge/Safari 18.2+ supportent nativement — le
+   browser capture snapshot old + new au router.push, anime entre les
+   2 via ::view-transition-old(root) et ::view-transition-new(root).
+   Firefox fallback = nav standard sans anim. Attribut data-cardinal-
+   nav posé sur <html> avant startViewTransition, retiré à la fin. */
+
+::view-transition-group(root) {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(root) {
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+}
+
+/* Est (dore) — nouvelle page arrive de droite, ancienne sort à gauche */
+html[data-cardinal-nav="dore"]::view-transition-old(root) {
+  animation-name: nahual-slide-out-left;
+}
+html[data-cardinal-nav="dore"]::view-transition-new(root) {
+  animation-name: nahual-slide-in-right;
+}
+
+/* Sud (turquoise) — nouvelle arrive du bas */
+html[data-cardinal-nav="turquoise"]::view-transition-old(root) {
+  animation-name: nahual-slide-out-up;
+}
+html[data-cardinal-nav="turquoise"]::view-transition-new(root) {
+  animation-name: nahual-slide-in-down;
+}
+
+/* Ouest (cendre) — nouvelle arrive de gauche */
+html[data-cardinal-nav="cendre"]::view-transition-old(root) {
+  animation-name: nahual-slide-out-right;
+}
+html[data-cardinal-nav="cendre"]::view-transition-new(root) {
+  animation-name: nahual-slide-in-left;
+}
+
+/* Nord (obsidienne) — nouvelle arrive du haut */
+html[data-cardinal-nav="obsidienne"]::view-transition-old(root) {
+  animation-name: nahual-slide-out-down;
+}
+html[data-cardinal-nav="obsidienne"]::view-transition-new(root) {
+  animation-name: nahual-slide-in-up;
+}
+
+/* Centre (jade) — cross-fade avec léger zoom (implosion vers centre) */
+html[data-cardinal-nav="jade"]::view-transition-old(root) {
+  animation-name: nahual-zoom-out;
+}
+html[data-cardinal-nav="jade"]::view-transition-new(root) {
+  animation-name: nahual-zoom-in;
+}
+
+@keyframes nahual-slide-out-left {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-100%); opacity: 0.4; }
+}
+@keyframes nahual-slide-in-right {
+  from { transform: translateX(100%); opacity: 0.4; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes nahual-slide-out-right {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0.4; }
+}
+@keyframes nahual-slide-in-left {
+  from { transform: translateX(-100%); opacity: 0.4; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes nahual-slide-out-up {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-100%); opacity: 0.4; }
+}
+@keyframes nahual-slide-in-down {
+  from { transform: translateY(100%); opacity: 0.4; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes nahual-slide-out-down {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(100%); opacity: 0.4; }
+}
+@keyframes nahual-slide-in-up {
+  from { transform: translateY(-100%); opacity: 0.4; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes nahual-zoom-out {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.9); opacity: 0; }
+}
+@keyframes nahual-zoom-in {
+  from { transform: scale(1.08); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
+
 /* Grain film organique (27/08 Codex S2) — SVG turbulence en data-uri
    posé une seule fois via ::before sur main, opacity 3%. Contrairement
    à un filter: url() live, la texture est PRÉ-RENDUE dans le SVG

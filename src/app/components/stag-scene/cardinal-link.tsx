@@ -88,11 +88,33 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
       onClick?.(e);
       return;
     }
-    // Intercepte : burst puis navigate.
+    // Intercepte : burst 3D (cerf/camera/bloom) puis navigation via
+    // View Transitions API si supportée — la page ENTIÈRE glisse
+    // dans la direction cardinale, ancienne sort, nouvelle arrive.
+    // Signature "vraie transition de page" (retour Sylvain 28/08
+    // "faudrait vraiment que les pages coulissent et soient
+    // remplacées"). Fallback nav sec si browser sans support.
     e.preventDefault();
     onClick?.(e);
     transition.startTransition(direction, () => {
-      router.push(href);
+      // Pose l'attribut sur <html> pour que les @keyframes CSS
+      // ::view-transition-old/new sélectionnent la bonne animation
+      // cardinale (défini dans globals.css).
+      document.documentElement.setAttribute("data-cardinal-nav", direction);
+      const doNav = () => router.push(href);
+      // Chrome/Edge/Safari 18.2+ supportent. Firefox pas encore.
+      // Fallback gracieux = nav standard sans view transition.
+      type ViewTransitionDocument = Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
+      const doc = document as ViewTransitionDocument;
+      if (typeof doc.startViewTransition === "function") {
+        const vt = doc.startViewTransition(doNav);
+        vt.finished.finally(() => {
+          document.documentElement.removeAttribute("data-cardinal-nav");
+        });
+      } else {
+        doNav();
+        setTimeout(() => document.documentElement.removeAttribute("data-cardinal-nav"), 500);
+      }
     });
   }
 

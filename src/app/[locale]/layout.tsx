@@ -4,7 +4,6 @@ import "../globals.css";
 import Header from "../components/header";
 import LoadingVeil from "../components/stag-scene/loading-veil";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
-import PageSlicer from "../components/stag-scene/page-slicer";
 import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
@@ -94,12 +93,6 @@ export default async function LocaleLayout({
             translation={dict.lab.loadingTranslation}
             label={dict.lab.loadingLabel}
           />
-          {/* PageSlicer (28/08) — écran découpé en slices qui glissent
-              dans la direction cardinale, révélant progressivement la
-              nouvelle page. Signature Awwwards Immersive Garden
-              adaptée nahua "codex qui s'écarte en pages", pas confetti
-              cheap. Remplace PetalCurtain 2D retiré. */}
-          <PageSlicer />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
       </body>
