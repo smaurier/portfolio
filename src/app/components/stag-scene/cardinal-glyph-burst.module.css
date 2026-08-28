@@ -54,21 +54,31 @@
   filter: drop-shadow(0 0 4px currentColor);
 }
 
-.rings circle {
-  transform-origin: 100px 100px;
-  transform-box: view-box;
-}
+/* Note (28/08 fix Sylvain "cercles viennent d'en haut à gauche") :
+   pas de transform-origin CSS sur les circles. Le transform SVG
+   attribute inline (translate/scale/translate) gère le pivot autour
+   du centre 100,100 correctement — un transform-origin CSS
+   supplémentaire conflictait avec le repère SVG et décalait le pivot
+   vers le coin haut-gauche. */
 
-/* Glyphe central — drop-shadow allégé (retour "subtil"), une seule
-   couche moyenne au lieu de multi-layer criard. */
+/* Glyphe central — monochrome crème avec relief pierre gravée
+   (28/08 retour Sylvain "plus gros, moins colorés, relief").
+   Le glyph lui-même = crème (#f2ece1 posé inline sur glyphSlot),
+   sa lueur externe = teinte cardinale via drop-shadow CSS
+   currentColor du parent .wrap. Ainsi le motif lit "pierre gravée
+   crème halo cardinal" — signature codex plus signifiante que
+   pleine couleur cardinale plaquée sur le stroke. */
 .glyphSlot {
   position: absolute;
   top: 50%;
   left: 50%;
   pointer-events: none;
-  filter: drop-shadow(0 0 12px currentColor);
   will-change: opacity, transform;
 }
+
+/* Note : drop-shadow cardinal appliqué inline dans le composant sur
+   .glyphSlot (couleur direction posée explicitement, pas via
+   currentColor qui hérite du crème du glyphe lui-même). */
 
 @media (prefers-reduced-motion: reduce) {
   .halo,

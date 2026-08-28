@@ -25,6 +25,7 @@ export default function DirectionGlyph({
   className,
   style,
   traceLength,
+  reliefFilterId,
 }: {
   direction: DirectionKey;
   size?: number;
@@ -33,6 +34,10 @@ export default function DirectionGlyph({
   style?: CSSProperties;
   /** 0..1 : proportion du tracé visible. Undefined = tracé complet. */
   traceLength?: number;
+  /** Si fourni, ajoute un filter SVG "pierre gravée" — inner shadow
+   *  + outer glow. Le filter doit être défini dans le même document
+   *  SVG parent (via <defs>) ou dans un module global. */
+  reliefFilterId?: string;
 }) {
   // Longueur approximative du path pour dashoffset — mesurée à l'œil
   // pour chaque glyphe. Peu importe l'exactitude : quand traceLength=1
@@ -63,6 +68,7 @@ export default function DirectionGlyph({
     className,
     style,
     "aria-hidden": true,
+    filter: reliefFilterId ? `url(#${reliefFilterId})` : undefined,
     ...dashProps,
   };
 

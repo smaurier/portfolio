@@ -159,19 +159,53 @@ export default function CardinalGlyphBurst() {
           transform={`translate(100 100) scale(${ring3.scale}) translate(-100 -100)`}
         />
       </svg>
-      {/* Glyphe central */}
+      {/* Filter SVG "pierre gravée" (28/08, retour Sylvain "donner du
+        * relief à la forme"). Inner shadow subtile + outer glow
+        * cardinal — le glyphe lit comme un motif ciselé dans la
+        * pierre plutôt qu'un stroke plat. Défini une fois ici en
+        * defs, appliqué au glyphe central. */}
+      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
+        <defs>
+          <filter id="glyphRelief" x="-40%" y="-40%" width="180%" height="180%">
+            {/* Inner shadow : SourceGraphic est le tracé stroke, on
+                le dilate légèrement, blur, sub → creux embossé. */}
+            <feMorphology in="SourceAlpha" operator="dilate" radius="0.4" result="dilated" />
+            <feOffset in="dilated" dx="0" dy="0.6" result="offset" />
+            <feGaussianBlur in="offset" stdDeviation="0.4" result="blurred" />
+            <feComposite in="blurred" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="inner" />
+            <feFlood floodColor="#0d0c11" floodOpacity="0.45" result="innerColor" />
+            <feComposite in="innerColor" in2="inner" operator="in" result="innerShadow" />
+            {/* Outer glow cardinal */}
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="outerBlur" />
+            <feFlood floodColor="currentColor" result="outerColor" />
+            <feComposite in="outerColor" in2="outerBlur" operator="in" result="outerGlow" />
+            {/* Compose : outer glow < source stroke < inner shadow */}
+            <feMerge>
+              <feMergeNode in="outerGlow" />
+              <feMergeNode in="SourceGraphic" />
+              <feMergeNode in="innerShadow" />
+            </feMerge>
+          </filter>
+        </defs>
+      </svg>
+      {/* Glyphe central — monochrome crème + relief pierre gravée +
+        * halo cardinal externe (via drop-shadow avec couleur explicite,
+        * pas currentColor qui hériterait du crème). */}
       <div
         className={styles.glyphSlot}
         style={{
           opacity: fade,
           transform: `translate(-50%, -50%) scale(${scale})`,
+          color: "#f2ece1",
+          filter: `drop-shadow(0 0 18px ${color}) drop-shadow(0 0 4px ${color})`,
         }}
       >
         <DirectionGlyph
           direction={direction}
-          size={150}
-          strokeWidth={0.85}
+          size={240}
+          strokeWidth={1.4}
           traceLength={traceLength}
+          reliefFilterId="glyphRelief"
         />
       </div>
     </div>
