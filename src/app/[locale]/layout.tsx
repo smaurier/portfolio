@@ -4,8 +4,8 @@ import "../globals.css";
 import Header from "../components/header";
 import LoadingVeil from "../components/stag-scene/loading-veil";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
+import PageSlicer from "../components/stag-scene/page-slicer";
 import PersistentScene from "../components/stag-scene/persistent-scene";
-import PetalCurtain from "../components/stag-scene/petal-curtain";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
 
@@ -94,12 +94,12 @@ export default async function LocaleLayout({
             translation={dict.lab.loadingTranslation}
             label={dict.lab.loadingLabel}
           />
-          {/* Curtain 2D fullscreen — désintégration cempasúchils
-              visible garantie pendant transition cardinale (28/08
-              retour Sylvain "je ne vois pas de désintégration").
-              Overlay screen-space z:110, impossible à rater
-              visuellement, masque la coupure re-mount contenu HTML. */}
-          <PetalCurtain />
+          {/* PageSlicer (28/08) — écran découpé en slices qui glissent
+              dans la direction cardinale, révélant progressivement la
+              nouvelle page. Signature Awwwards Immersive Garden
+              adaptée nahua "codex qui s'écarte en pages", pas confetti
+              cheap. Remplace PetalCurtain 2D retiré. */}
+          <PageSlicer />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
       </body>

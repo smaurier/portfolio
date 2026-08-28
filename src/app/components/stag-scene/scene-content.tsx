@@ -10,7 +10,6 @@ import Ground from "./ground";
 import Milpa from "./milpa";
 import Ocotillo from "./ocotillo";
 import OrbitCamera from "./orbit-camera";
-import PetalStorm from "./petal-storm";
 import RevealLighting from "./reveal-lighting";
 import StagModel from "./stag-model";
 import Vines from "./vines";
@@ -83,13 +82,10 @@ export default function SceneContent({
         </Suspense>
       </CursorRevealScene>
       <OrbitCamera progressRef={progressRef} />
-      {/* PetalStorm (Phase B, 28/08) — désintégration cempasúchils
-        * pendant burst transition cardinale. Émission massive
-        * 600 particles éjectées vers la direction cible, disparaît
-        * après 800ms. Signature "toute la scène se met à cempasúchils
-        * portées par Ehecatl vers la nouvelle direction". Rendu
-        * conditionnel : null hors transition (zéro coût GPU). */}
-      <PetalStorm />
+      {/* PetalStorm retiré 28/08 — la signature dissolve est portée
+        * par PageSlicer (overlay HTML slices cardinal, plus élégant
+        * qu'une pluie de particules 3D éparpillées). PetalStorm
+        * doublonnait sans lisibilité claire. */}
     </>
   );
 }
