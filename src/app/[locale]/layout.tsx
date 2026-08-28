@@ -7,6 +7,14 @@ import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-tr
 import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
+import {
+  AUTHOR_EMAIL,
+  AUTHOR_GITHUB,
+  AUTHOR_LINKEDIN,
+  AUTHOR_NAME,
+  SITE_NAME,
+  SITE_URL,
+} from "../../lib/seo";
 
 const geistSans = localFont({
   src: "../fonts/GeistVF.woff",
@@ -26,12 +34,46 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const dict = getDictionary(locale);
+  const title = dict.metadata.title;
+  const description = dict.metadata.description;
+  const url = `${SITE_URL}/${locale}`;
   return {
-    title: dict.metadata.title,
-    description: dict.metadata.description,
+    metadataBase: new URL(SITE_URL),
+    title,
+    description,
+    applicationName: SITE_NAME,
+    authors: [{ name: AUTHOR_NAME, url: AUTHOR_LINKEDIN }],
+    creator: AUTHOR_NAME,
+    publisher: AUTHOR_NAME,
+    formatDetection: { email: false, address: false, telephone: false },
     alternates: {
+      canonical: url,
       languages: Object.fromEntries(locales.map((l) => [l, `/${l}`])),
     },
+    openGraph: {
+      type: "website",
+      url,
+      siteName: SITE_NAME,
+      title,
+      description,
+      locale: locale === "fr" ? "fr_FR" : locale === "en" ? "en_US" : "es_MX",
+      alternateLocale: locales.filter((l) => l !== locale).map((l) => (l === "fr" ? "fr_FR" : l === "en" ? "en_US" : "es_MX")),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      creator: `@${AUTHOR_NAME.replace(" ", "")}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+    },
+    icons: {
+      icon: [{ url: "/img/logo.svg", type: "image/svg+xml" }],
+    },
+    category: "portfolio",
   };
 }
 
@@ -47,10 +89,55 @@ export default async function LocaleLayout({
   const locale: Locale = rawLocale;
   const dict = getDictionary(locale);
 
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: AUTHOR_NAME,
+      url: SITE_URL,
+      email: `mailto:${AUTHOR_EMAIL}`,
+      jobTitle: "Frontend Developer · Creative Developer · RGAA Auditor",
+      sameAs: [AUTHOR_LINKEDIN, AUTHOR_GITHUB],
+      knowsAbout: ["Accessibility", "RGAA", "WCAG", "React", "Next.js", "React Three Fiber", "TypeScript", "WebGL"],
+      worksFor: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: SITE_NAME,
+      url: SITE_URL,
+      inLanguage: locale,
+      author: { "@type": "Person", name: AUTHOR_NAME },
+      description: dict.metadata.description,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: dict.metadata.description,
+      areaServed: { "@type": "Country", name: "France" },
+      provider: { "@type": "Person", name: AUTHOR_NAME },
+      serviceType: ["Web Development", "Accessibility Audit", "RGAA Audit"],
+    },
+  ];
+
   return (
     <html lang={locale}>
       <head>
         <link rel="icon" href="/img/logo.svg" type="image/svg+xml" />
+        {/* JSON-LD structuré (28/08) — Person + WebSite + ProfessionalService.
+            Injecté dans <head> plutôt que <body> pour être détecté par les
+            crawlers dès le premier byte. Un script par entité (schema.org
+            recommande cette forme plutôt qu'un @graph unique — plus simple à
+            debugger avec Rich Results Test). */}
+        {jsonLd.map((entry, i) => (
+          <script
+            key={i}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(entry) }}
+          />
+        ))}
       </head>
       {/* nahual-lab-reveal posé en dur ici (pas seulement dans le useEffect
           de SceneStage) depuis le 25/08 : toutes les pages du site sont
