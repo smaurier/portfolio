@@ -76,7 +76,13 @@ export default function PostFX() {
     const bell = active ? Math.sin(p * Math.PI) : 0;
 
     if (bloomRef.current) {
-      bloomRef.current.intensity = BLOOM_BASE + bell * BLOOM_BURST_ADD;
+      // Sound-reactive bloom (28/08 boite outil #3) — si audio level
+      // dispo (window.__nahualAudioLevel pose par SoundDesign quand
+      // unmuted), ajoute pulse proportionnel. Silencieux si mute.
+      const audioLevel = typeof window !== "undefined"
+        ? (window as unknown as { __nahualAudioLevel?: { current: number } }).__nahualAudioLevel?.current ?? 0
+        : 0;
+      bloomRef.current.intensity = BLOOM_BASE + bell * BLOOM_BURST_ADD + audioLevel * 0.6;
     }
     if (caRef.current) {
       const offset = CA_BASE + bell * CA_BURST_ADD;

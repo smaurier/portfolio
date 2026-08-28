@@ -61,13 +61,33 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     const WindowAny = window as unknown as {
       AudioContext?: typeof AudioContext;
       webkitAudioContext?: typeof AudioContext;
+      __nahualAudioLevel?: { current: number };
     };
     const Ctor = WindowAny.AudioContext ?? WindowAny.webkitAudioContext;
     if (!Ctor) return null;
     const ctx = new Ctor();
     const master = ctx.createGain();
     master.gain.value = 0.5;
-    master.connect(ctx.destination);
+    // Analyser insert entre master et destination (28/08 boite outil
+    // #3 sound-reactive visuals). getByteFrequencyData chaque frame
+    // via une rAF dediee → poste level normalise 0..1 dans un ref
+    // global window.__nahualAudioLevel lu par PostFX pour pulser
+    // bloom + par autres viewers eventuels.
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+    master.connect(analyser);
+    analyser.connect(ctx.destination);
+    const levelRef = { current: 0 };
+    WindowAny.__nahualAudioLevel = levelRef;
+    const buffer = new Uint8Array(analyser.frequencyBinCount);
+    function tick() {
+      analyser.getByteFrequencyData(buffer);
+      let sum = 0;
+      for (let i = 0; i < buffer.length; i++) sum += buffer[i];
+      levelRef.current = sum / buffer.length / 255; // 0..1
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
     ctxRef.current = ctx;
     masterGainRef.current = master;
     return ctx;

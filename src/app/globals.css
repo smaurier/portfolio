@@ -1179,3 +1179,33 @@ body.nahual-lab-reveal main[data-direction] .contentPage {
     display: none;
   }
 }
+
+/* Mask reveal curseur (28/08 boite outil #4) — hover projectCase/
+   serviceCard : ::after radial-gradient direction color centre
+   position curseur (--mx --my poses par mask-reveal.tsx JS).
+   Signature "regarde derriere le voile" cardinal. */
+.projectCase[data-mask-reveal="true"]::after,
+body.nahual-lab-reveal .serviceCard[data-mask-reveal="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle 220px at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--direction-color, #00c078) 22%, transparent),
+    transparent 65%
+  );
+  opacity: 0;
+  animation: maskRevealIn 0.35s ease-out forwards;
+  z-index: 0;
+}
+
+.projectCase,
+body.nahual-lab-reveal .serviceCard {
+  position: relative;
+}
+
+@keyframes maskRevealIn {
+  to { opacity: 1; }
+}

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import "../globals.css";
 import CardinalCompass from "../components/cardinal-compass";
 import CardinalHoverSync from "../components/cardinal-hover-sync";
+import CursorTrail from "../components/cursor-trail";
+import MaskReveal from "../components/mask-reveal";
 import CustomCursor from "../components/custom-cursor";
 import EasterEgg from "../components/easter-egg";
 import KeyboardNav from "../components/keyboard-nav";
@@ -274,6 +276,14 @@ export default async function LocaleLayout({
               hover projectCase/serviceCard, tilt subtil perspective
               6° selon position souris. Reset au leave. */}
           <TiltCards />
+          {/* Mask reveal curseur (28/08 boite outil #4) — hover
+              projectCase/serviceCard : radial gradient direction
+              suit curseur, signature "regarde derriere le voile". */}
+          <MaskReveal />
+          {/* Cursor path traces (28/08 boite outil #10) — canvas 2D
+              overlay trainee curseur qui s'efface. Signature "traces
+              des ancetres". */}
+          <CursorTrail />
           {/* Cardinal compass (28/08 retour Sylvain) — indicateur bas
               droite croix 5 points, direction courante highlight
               couleur cardinale, cliquable nav rapide. */}
