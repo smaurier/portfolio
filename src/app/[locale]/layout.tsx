@@ -4,6 +4,7 @@ import "../globals.css";
 import CustomCursor from "../components/custom-cursor";
 import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
+import SmoothScroll from "../components/smooth-scroll";
 import LoadingVeil from "../components/stag-scene/loading-veil";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
 import PersistentScene from "../components/stag-scene/persistent-scene";
@@ -157,6 +158,11 @@ export default async function LocaleLayout({
             avant que le burst finisse. */}
         <SceneRefsProvider>
         <CardinalTransitionProvider>
+          {/* Lenis smooth scroll (28/08 task #48) — signature silky
+              scroll. Respect reducedMotion (pas monte du tout).
+              window.scrollY reste synchro, la scene 3D reveal-arc
+              n'est pas cassee. */}
+          <SmoothScroll />
           <Header locale={locale} dict={dict.common} />
           {/* Scène 3D persistante (28/08 Phase A refactor) — Canvas
               vit ici pour survivre à toutes les navigations SPA,

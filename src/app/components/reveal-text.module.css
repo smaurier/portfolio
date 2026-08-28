@@ -1,0 +1,36 @@
+/* RevealText (28/08 task #48). Split par word, chaque word entre
+   dans le viewport en fade+translateY delay decale. Signature
+   Awwwards commune, respect reducedMotion. */
+
+.wrap {
+  display: inline-block;
+}
+
+.word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  margin-right: 0.25em;
+}
+
+.inner {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(1.2em);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.wrap.revealed .inner {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inner {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
