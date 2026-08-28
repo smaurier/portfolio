@@ -124,3 +124,32 @@
 /* Pulse cross-widget defini dans globals.css (sélecteurs cross-
    component avec body[data-cardinal-hover] ne peuvent pas etre en
    CSS module scope local). */
+
+/* Bouton expand overlay (28/08 boite outil C) — dans le compass,
+   pousse un tout petit icon "i" pour ouvrir la modal 5 directions
+   detaillees. */
+.expand {
+  position: absolute;
+  bottom: -1rem;
+  right: -1rem;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 234, 213, 0.25);
+  background: rgba(15, 12, 22, 0.85);
+  color: #f4ead5;
+  font-size: 0.72rem;
+  font-style: italic;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.expand:hover,
+.expand:focus-visible {
+  border-color: rgba(0, 192, 120, 0.6);
+  background: rgba(15, 12, 22, 0.95);
+}

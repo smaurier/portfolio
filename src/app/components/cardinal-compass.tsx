@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { pageKeys, slugs, getPath, type PageKey } from "@/lib/routes";
-import type { Locale } from "@/dictionaries";
+import { getDictionary, type Locale } from "@/dictionaries";
+import CompassOverlay from "./compass-overlay";
 import { useCurrentDirection } from "./stag-scene/use-current-direction";
 import { useCardinalTransition, type CardinalDirection } from "./stag-scene/cardinal-transition-context";
 import type { DirectionKey } from "./stag-scene/direction-colors";
@@ -78,6 +80,8 @@ export default function CardinalCompass({ locale }: { locale: string }) {
   const router = useRouter();
   const current = useCurrentDirection();
   const transition = useCardinalTransition();
+  const [overlayOpen, setOverlayOpen] = useState(false);
+  const dict = getDictionary(locale);
 
   function localeSafe(): Locale {
     return isLocale(locale) ? locale : "fr";
@@ -152,19 +156,39 @@ export default function CardinalCompass({ locale }: { locale: string }) {
   const l = localeSafe();
 
   return (
-    <nav
-      className={styles.compass}
-      aria-label={l === "fr" ? "Boussole cardinale" : l === "en" ? "Cardinal compass" : "Brújula cardinal"}
-    >
-      <span className={styles.slotEmpty} aria-hidden="true" />
-      <Dot slot={SLOTS.N} />
-      <span className={styles.slotEmpty} aria-hidden="true" />
-      <Dot slot={SLOTS.W} />
-      <Dot slot={SLOTS.C} />
-      <Dot slot={SLOTS.E} />
-      <span className={styles.slotEmpty} aria-hidden="true" />
-      <Dot slot={SLOTS.S} />
-      <span className={styles.slotEmpty} aria-hidden="true" />
-    </nav>
+    <>
+      <nav
+        className={styles.compass}
+        aria-label={l === "fr" ? "Boussole cardinale" : l === "en" ? "Cardinal compass" : "Brújula cardinal"}
+      >
+        <span className={styles.slotEmpty} aria-hidden="true" />
+        <Dot slot={SLOTS.N} />
+        <span className={styles.slotEmpty} aria-hidden="true" />
+        <Dot slot={SLOTS.W} />
+        <Dot slot={SLOTS.C} />
+        <Dot slot={SLOTS.E} />
+        <span className={styles.slotEmpty} aria-hidden="true" />
+        <Dot slot={SLOTS.S} />
+        <span className={styles.slotEmpty} aria-hidden="true" />
+        {/* Bouton expand (28/08 boite outil C) — ouvre modal detaille
+            les 5 directions cardinales avec descriptions mytho. */}
+        <button
+          type="button"
+          className={styles.expand}
+          onClick={() => setOverlayOpen(true)}
+          aria-label={dict.common.compass.expand}
+          title={dict.common.compass.expand}
+        >
+          i
+        </button>
+      </nav>
+      {overlayOpen && (
+        <CompassOverlay
+          cosmos={dict.codex.cosmos}
+          closeLabel={dict.common.compass.close}
+          onClose={() => setOverlayOpen(false)}
+        />
+      )}
+    </>
   );
 }

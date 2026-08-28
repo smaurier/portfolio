@@ -21,6 +21,10 @@
       "on": "Activar sonido",
       "off": "Silenciar"
     },
+    "compass": {
+      "expand": "Explorar las 5 direcciones",
+      "close": "Cerrar"
+    },
     "footer": {
       "navigation": "Navegación",
       "resources": "Recursos",
