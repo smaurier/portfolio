@@ -1043,6 +1043,12 @@ body[data-cardinal-hover="obsidienne"] button[data-compass-direction="obsidienne
 body.nahual-lab-reveal main[data-direction] {
   justify-content: flex-start;
   padding-top: 90vh;
+  /* padding-bottom 100vh (28/08 retour Sylvain "sur projet on ne voit
+     jamais le cerf phase finale cache par le dernier projet") — apres
+     le dernier contenu, laisse un viewport plein vide pour que la
+     scene 3D respire en phase climax (cerf entier visible, chemins
+     revelés). Signature "sortie contemplative". */
+  padding-bottom: 100vh;
 }
 body.nahual-lab-reveal main[data-direction] .contentPage {
   max-width: 640px;
