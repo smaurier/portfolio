@@ -197,8 +197,31 @@ export default function StagModel({
   // Scratch pour cible cardinale pendant la transition "cerf mène"
   // (28/08). Évite un new Vector3 par frame.
   const cardinalTargetScratch = useMemo(() => new Vector3(), []);
+  // Regard mouse actif (28/08 boite outil B) — position souris
+  // normalisee -1..1 pour piloter tete + un scratch monde pour la
+  // cible virtuelle "curseur projete devant la scene".
+  const mouseWorldTargetScratch = useMemo(() => new Vector3(), []);
+  const mouseNormalizedRef = useRef({ x: 0, y: 0 });
+  const mouseSmoothRef = useRef({ x: 0, y: 0 });
 
-  useFrame(() => {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    function onMove(e: PointerEvent) {
+      mouseNormalizedRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseNormalizedRef.current.y = (e.clientY / window.innerHeight) * 2 - 1;
+    }
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onMove);
+  }, []);
+
+  useFrame((state) => {
+    // Cerf breath cycle (28/08 boite outil A) — sub-pixel breathing
+    // sur le group entier via scaleY sinus periode 4s amplitude 0.008.
+    // Signature "vivant" quasi-imperceptible, coute rien.
+    if (group.current) {
+      const breath = Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.008;
+      group.current.scale.y = 1 + breath;
+    }
     // Registrée après les useFrame ci-dessus (mixer d'animation via
     // useAnimations, puis rim-light) : dans la boucle de rendu par défaut de
     // R3F, les callbacks de même priorité s'exécutent dans l'ordre
@@ -229,11 +252,23 @@ export default function StagModel({
       }
     }
 
-    // Cas normal : cible = caméra, blend selon getHeadTurnAmount.
+    // Cas normal : cible = caméra + décalage souris (28/08 boite outil
+    // B "cerf regard mouse actif"). Le cerf oriente activement sa
+    // tete vers le curseur — cible = camera worldpos + offset lateral
+    // proportionnel a mouseSmooth. Lissage 0.08 evite tremblements.
+    mouseSmoothRef.current.x += (mouseNormalizedRef.current.x - mouseSmoothRef.current.x) * 0.08;
+    mouseSmoothRef.current.y += (mouseNormalizedRef.current.y - mouseSmoothRef.current.y) * 0.08;
+
     const blend = getHeadTurnAmount(progressRef.current) * MAX_HEAD_TURN_BLEND;
     if (blend <= 0) return;
     camera.getWorldPosition(cameraWorldPos);
-    applyHeadLook(headBone, cameraWorldPos, blend);
+    // Cible virtuelle : depuis camera, decale de mouseSmooth * amplitude
+    // sur les axes lateraux (X) et vertical (Y). Le cerf regarde donc
+    // legerement decale ou est le curseur, pas juste vers la camera fixe.
+    mouseWorldTargetScratch.copy(cameraWorldPos);
+    mouseWorldTargetScratch.x += mouseSmoothRef.current.x * 2.5;
+    mouseWorldTargetScratch.y -= mouseSmoothRef.current.y * 1.5;
+    applyHeadLook(headBone, mouseWorldTargetScratch, blend);
   });
 
   return (

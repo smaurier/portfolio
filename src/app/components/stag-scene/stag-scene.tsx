@@ -1,6 +1,7 @@
 "use client";
 
 import { getChapterOpacity, getIntroOpacity, getNavEmphasis } from "@/lib/reveal-arc";
+import RevealText from "../reveal-text";
 import CardinalLink from "./cardinal-link";
 import FadingBlock from "./fading-block";
 import SceneStage from "./scene-stage";
@@ -47,7 +48,7 @@ export default function StagScene({
             getOpacity={getIntroOpacity}
             initialOpacity={1}
           >
-            <h1>{home.heroTitle}</h1>
+            <RevealText as="h1" text={home.heroTitle} delayPerWord={50} />
             <p>{home.heroText}</p>
             <div className={overlayStyles.links}>
               <CardinalLink href={servicesHref} className={overlayStyles.cta}>
@@ -67,8 +68,8 @@ export default function StagScene({
               getOpacity={(p) => getChapterOpacity(p, i)}
               initialOpacity={0}
             >
-              <p className={overlayStyles.chapterKicker}>{chapter.kicker}</p>
-              <p className={overlayStyles.chapterLine}>{chapter.line}</p>
+              <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
+              <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
             </FadingBlock>
           ))}
           <FadingBlock
@@ -77,7 +78,7 @@ export default function StagScene({
             getOpacity={getNavEmphasis}
             initialOpacity={0}
           >
-            <h2>{home.aboutTitle}</h2>
+            <RevealText as="h2" text={home.aboutTitle} delayPerWord={50} />
             <p>{home.aboutText}</p>
             <div className={overlayStyles.links}>
               <CardinalLink href={contactHref} className={overlayStyles.cta}>
