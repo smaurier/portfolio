@@ -117,6 +117,11 @@ export default function SpiritParticles({
         // transition : cardinal vector × amplitude bell curve, les
         // pétales sont poussées dans la direction cible.
         uCardinalWind: { value: new Vector3(0, 0, 0) },
+        // Force scalaire du vent normalisée 0..1 — permet au vertex
+        // shader d'amplifier la taille des sprites pendant burst
+        // (dispersion visible plus prononcée) et au fragment d'étirer
+        // la forme pétale dans la direction du vent (trail visuel).
+        uWindStrength: { value: 0 },
       },
     };
   }, [climaxRimColor, climaxAccentColor]);
@@ -135,18 +140,29 @@ export default function SpiritParticles({
     uniforms.uTime.value = state.clock.elapsedTime;
 
     // Vent cardinal Ehecatl pendant burst transition — pousse les
-    // pétales dans la direction cible. Bell curve sur le progress
-    // (0→1→0), amplitude ~2.5 unités monde par frame ≈ dérive nette
-    // sur 500ms sans jamais sortir violemment.
+    // pétales dans la direction cible. Courbe rise-and-hold : monte
+    // vite (0→0.3), tient au max (0.3→0.8), retombe (0.8→1). Ampli
+    // 5.5 (28/08 boost signature dispersion, retour Sylvain "on n'a
+    // pas terminé le truc avec les pétales") — dérive franche
+    // clairement visible pendant les 500ms sans jamais éjecter tout
+    // hors scène (les pétales sont ré-injectées à leur position par
+    // le cycle de vie lifespan quand elles expirent).
     if (transition?.transitionDirection && transition.transitionProgressRef.current > 0) {
       const t = transition.transitionProgressRef.current;
-      const bell = Math.sin(t * Math.PI);
-      const amp = bell * 2.5;
+      // Rise fast, hold, fall — plus signature qu'une bell smooth qui
+      // atteint son max au milieu seulement.
+      let curve: number;
+      if (t < 0.3) curve = t / 0.3;
+      else if (t < 0.8) curve = 1;
+      else curve = 1 - (t - 0.8) / 0.2;
+      const amp = curve * 5.5;
       const vec = CARDINAL_VECTORS[transition.transitionDirection];
       windScratch.set(vec[0] * amp, vec[1] * amp, vec[2] * amp);
       uniforms.uCardinalWind.value.copy(windScratch);
-    } else if (uniforms.uCardinalWind.value.lengthSq() > 0.0001) {
+      uniforms.uWindStrength.value = curve;
+    } else if (uniforms.uCardinalWind.value.lengthSq() > 0.0001 || uniforms.uWindStrength.value > 0) {
       uniforms.uCardinalWind.value.set(0, 0, 0);
+      uniforms.uWindStrength.value = 0;
     }
   });
 
@@ -164,9 +180,11 @@ export default function SpiritParticles({
           attribute float aAccent;
           uniform float uTime;
           uniform vec3 uCardinalWind;
+          uniform float uWindStrength;
           varying float vAlpha;
           varying float vRotation;
           varying float vAccent;
+          varying float vWindStretch;
 
           // Curl-ish flow field : trois sinus croisés sur des axes
           // couplés. Pas divergence-free au sens strict d'un vrai
@@ -224,9 +242,14 @@ export default function SpiritParticles({
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_Position = projectionMatrix * mvPosition;
             // Taille en pixels : décroît avec la distance
-            // (perspective réaliste). ×90 ajusté à l'œil pour rester
-            // lisible sans envahir.
-            gl_PointSize = 90.0 / -mvPosition.z;
+            // (perspective réaliste). ×90 base, boost pendant burst
+            // Ehecatl (uWindStrength 0..1) — pétales gonflent quand
+            // le vent souffle, signature dispersion plus visible.
+            gl_PointSize = (90.0 + 55.0 * uWindStrength) / -mvPosition.z;
+            // Transmis au fragment pour étirer la forme pétale dans
+            // le sens du vent (trail visuel simulé, motion blur
+            // naïf sans rendu multi-passes).
+            vWindStretch = uWindStrength;
           }
         `}
         fragmentShader={`
@@ -236,6 +259,7 @@ export default function SpiritParticles({
           varying float vAlpha;
           varying float vRotation;
           varying float vAccent;
+          varying float vWindStretch;
 
           void main() {
             // Rotation du gl_PointCoord autour du centre (0.5, 0.5).
@@ -248,7 +272,11 @@ export default function SpiritParticles({
             // pointue en haut (y positif), plus large en bas. Une
             // décentrage de l'origine en Y donne l'asymétrie
             // caractéristique cempasúchil.
-            uv.y *= 1.8;
+            // Pendant burst wind (vWindStretch 0..1) : étirement Y
+            // supplémentaire × 1→1.8 = pétale plus longue, effet
+            // "trail" naïf sans rendu multi-passes (signature dispersion
+            // visible).
+            uv.y *= 1.8 + vWindStretch * 0.9;
             uv.y -= 0.08;
             float r = length(uv);
             // Bord doux ; rayon max 0.45 (garde une marge dans le
