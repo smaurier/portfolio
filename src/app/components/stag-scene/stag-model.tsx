@@ -215,12 +215,13 @@ export default function StagModel({
   }, []);
 
   useFrame((state) => {
-    // Cerf breath cycle (28/08 boite outil A) — sub-pixel breathing
-    // sur le group entier via scaleY sinus periode 4s amplitude 0.008.
-    // Signature "vivant" quasi-imperceptible, coute rien.
+    // Cerf breath cycle (28/08 boite outil A, fix 28/08 : scale
+    // uniforme via setScalar au lieu de scale.y seul qui deformait
+    // asymetriquement). Sub-pixel breathing periode 4s amplitude
+    // 0.005 sur le group entier. Signature "vivant" quasi-imperceptible.
     if (group.current) {
-      const breath = Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.008;
-      group.current.scale.y = 1 + breath;
+      const breath = 1 + Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.005;
+      group.current.scale.setScalar(breath);
     }
     // Registrée après les useFrame ci-dessus (mixer d'animation via
     // useAnimations, puis rim-light) : dans la boucle de rendu par défaut de
