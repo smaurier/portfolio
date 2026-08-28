@@ -17,6 +17,10 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "skipNav": "Skip to main content",
+    "sound": {
+      "on": "Turn sound on",
+      "off": "Turn sound off"
+    },
     "direction": {
       "jade": "Home · Center direction",
       "dore": "Services · East direction",

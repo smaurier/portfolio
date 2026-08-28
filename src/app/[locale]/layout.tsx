@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import "../globals.css";
 import CustomCursor from "../components/custom-cursor";
 import EasterEgg from "../components/easter-egg";
+import SoundDesign from "../components/sound-design";
 import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
 import SkipNav from "../components/skip-nav";
@@ -214,6 +215,11 @@ export default async function LocaleLayout({
               n'importe ou sur le site (hors input), reveal toast
               discret 5s. Signature "site vivant" cachee. */}
           <EasterEgg locale={locale} />
+          {/* Sound design cardinal (28/08 task #46) — Web Audio API
+              generatif, 0 fichier externe. Toggle mute persist,
+              default mute. Ambient drone + chime cardinal par click
+              + whoosh transition. */}
+          <SoundDesign label={dict.common.sound} />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
       </body>

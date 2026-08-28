@@ -1,0 +1,46 @@
+/* Sound design toggle (28/08 task #46). Bouton mute discret coin
+   bas gauche, opacite basse au repos, plus visible au hover. */
+
+.toggle {
+  position: fixed;
+  bottom: 3rem;
+  left: 2rem;
+  z-index: 9200;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 234, 213, 0.25);
+  background: rgba(15, 12, 22, 0.65);
+  color: #f4ead5;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  opacity: 0.55;
+  transition: opacity 0.25s ease, border-color 0.25s ease,
+              background 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.toggle:hover,
+.toggle:focus-visible {
+  opacity: 1;
+  border-color: rgba(0, 192, 120, 0.6);
+  background: rgba(15, 12, 22, 0.85);
+}
+
+.toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+@media (max-width: 767px) {
+  .toggle {
+    bottom: 4.5rem;
+    left: 1rem;
+    width: 40px;
+    height: 40px;
+  }
+}

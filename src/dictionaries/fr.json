@@ -17,6 +17,10 @@
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
     "skipNav": "Aller au contenu principal",
+    "sound": {
+      "on": "Activer le son",
+      "off": "Couper le son"
+    },
     "direction": {
       "jade": "Accueil · direction Centre",
       "dore": "Services · direction Est",
