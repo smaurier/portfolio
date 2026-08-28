@@ -28,6 +28,32 @@ const PARALLAX_X = 0.35;
 const PARALLAX_Y = 0.25;
 const MOUSE_LERP = 0.08;
 
+/**
+ * Dolly amplitude par direction (28/08 task #44 camera cinéma). Chaque
+ * direction reçoit son intensité de recul caméra pendant le burst,
+ * conforme à sa signature mytho :
+ *  - Est/dore Tonatiuh : dolly ample (+1.7) = ouverture solaire
+ *  - Sud/turquoise Huitzilopochtli : dolly ample (+1.7) = envol vif
+ *  - Ouest/cendre Ehecatl : dolly modéré (+1.3) = souffle latéral
+ *  - Nord/obsidienne Mictlantecuhtli : dolly lent (+1.0) = enfoncement
+ *  - Centre/jade Xiuhtecuhtli : dolly discret (+0.8) = recentrement axial
+ */
+const DOLLY_BY_DIRECTION: Record<string, number> = {
+  dore: 1.7,
+  turquoise: 1.7,
+  cendre: 1.3,
+  obsidienne: 1.0,
+  jade: 0.8,
+};
+
+/**
+ * Whip pan amplitude par direction (28/08 task #44). Pendant le burst,
+ * la target du lookAt dérive dans la direction cardinale — la caméra
+ * "regarde vers" la direction cible avant de revenir. Signature cinéma
+ * (whip pan classique) sans faire tourner tout le monde 3D.
+ */
+const WHIP_PAN_AMPLITUDE = 1.6;
+
 export default function OrbitCamera({
   progressRef,
 }: {
@@ -82,14 +108,30 @@ export default function OrbitCamera({
     let burstX = 0;
     let burstY = 0;
     let burstZ = 0;
+    let whipX = 0;
+    let whipY = 0;
+    let whipZ = 0;
     if (transition?.transitionDirection && transition.transitionProgressRef.current > 0) {
       const t = transition.transitionProgressRef.current;
       const bell = Math.sin(t * Math.PI); // 0→1→0
-      const amp = bell * 1.4;
+      const dollyAmp = DOLLY_BY_DIRECTION[transition.transitionDirection] ?? 1.4;
+      const amp = bell * dollyAmp;
       const vec = CARDINAL_VECTORS[transition.transitionDirection];
       burstX = vec[0] * amp;
       burstY = vec[1] * amp;
       burstZ = vec[2] * amp;
+
+      // Whip pan target (28/08 task #44) — la target du lookAt dérive
+      // dans la direction cardinale pendant le burst. La caméra "regarde
+      // vers" la direction cible avant de revenir. Bell curve légèrement
+      // décalée (Math.pow bell 1.3) : le pan précède le dolly de
+      // quelques ms, sensation "l'oeil se tourne AVANT que le corps
+      // suive". Amplitude 1.6 : franchement lisible sans jamais faire
+      // sortir le cerf du cadre.
+      const panBell = Math.pow(bell, 1.3);
+      whipX = vec[0] * panBell * WHIP_PAN_AMPLITUDE;
+      whipY = vec[1] * panBell * WHIP_PAN_AMPLITUDE;
+      whipZ = vec[2] * panBell * WHIP_PAN_AMPLITUDE;
 
       // FOV shift zoom-out cinema — la caméra "respire" pendant le
       // burst. camera est une PerspectiveCamera (Canvas fov: 45),
@@ -115,7 +157,10 @@ export default function OrbitCamera({
       position.y + parallaxY + burstY,
       position.z + burstZ,
     );
-    camera.lookAt(target.x, target.y, target.z);
+    // Whip pan : décale la target du lookAt dans la direction cardinale.
+    // La caméra pivote pour "regarder vers" la direction, puis revient
+    // sur le cerf en fin de burst.
+    camera.lookAt(target.x + whipX, target.y + whipY, target.z + whipZ);
   });
 
   return null;

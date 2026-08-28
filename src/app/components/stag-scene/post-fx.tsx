@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Bloom, ChromaticAberration, EffectComposer, Vignette } from "@react-three/postprocessing";
+import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { useCardinalTransition } from "./cardinal-transition-context";
 
@@ -40,9 +40,21 @@ const BLOOM_BURST_ADD = 0.8;
 const CA_BASE = 0.0006;
 const CA_BURST_ADD = 0.0012;
 
+/**
+ * Focus rack (28/08 task #44). DOF quasi-inactif au repos (bokehScale 0)
+ * pour économiser le shader pass ; monte à ~3 pendant le peak burst =
+ * shallow DOF, arrière-plan flou tandis que le cerf reste net. Le focus
+ * suit la caméra target (getOrbitCameraTarget = origine cerf).
+ * focusDistance 0.03 correspond à ~5 units world (Z du cerf) avec la
+ * caméra qui orbite radius ~5-6. focalLength 0.06 = bokeh subtile
+ * mais lisible. Signature cinéma directe.
+ */
+const DOF_BURST_BOKEH = 3.0;
+
 export default function PostFX() {
   const bloomRef = useRef<{ intensity: number } | null>(null);
   const caRef = useRef<{ offset: { x: number; y: number } } | null>(null);
+  const dofRef = useRef<{ bokehScale: number } | null>(null);
   const transition = useCardinalTransition();
 
   useFrame(() => {
@@ -59,10 +71,25 @@ export default function PostFX() {
       caRef.current.offset.x = offset;
       caRef.current.offset.y = offset;
     }
+    if (dofRef.current) {
+      // Bokeh 0 au repos = shader DOF quasi-passthrough (perf).
+      // Pendant burst : monte en bell curve, peak 3.0 = arrière-plan
+      // franchement flou, cerf reste net → focus rack cinéma.
+      dofRef.current.bokehScale = bell * DOF_BURST_BOKEH;
+    }
   });
 
   return (
     <EffectComposer multisampling={4}>
+      {/* DOF en premier : les autres effets (bloom, CA) s'appliquent
+          par-dessus le rendu focus-racké. Focus fixe sur ~cerf.
+          bokehScale animé par useFrame ci-dessus. */}
+      <DepthOfField
+        ref={dofRef as never}
+        focusDistance={0.03}
+        focalLength={0.06}
+        bokehScale={0}
+      />
       <Bloom
         ref={bloomRef as never}
         intensity={BLOOM_BASE}
