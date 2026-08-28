@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { deriveFogTint, readDirectionAccentColor, readDirectionColor } from "./direction-colors";
 import PostFX from "./post-fx";
@@ -29,6 +29,20 @@ import styles from "./scene-stage.module.css";
 export default function PersistentScene() {
   const refs = useSceneRefs();
   const direction = useCurrentDirection();
+  // Frameloop demand quand tab hidden (28/08 task #60 perf). Canvas
+  // r3f prop frameloop "always" (defaut) tourne rAF permanent meme
+  // en tab background = drain CPU/GPU + batterie. "demand" gele le
+  // canvas jusqu'a next invalidate. Bascule via visibilitychange.
+  const [frameloop, setFrameloop] = useState<"always" | "demand">("always");
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    function onVisibility() {
+      setFrameloop(document.hidden ? "demand" : "always");
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   const climaxRimColor = useMemo(() => readDirectionColor(direction), [direction]);
   const climaxAccentColor = useMemo(() => readDirectionAccentColor(direction), [direction]);
@@ -38,7 +52,11 @@ export default function PersistentScene() {
 
   return (
     <div className={styles.stage} data-direction={direction}>
-      <Canvas camera={{ fov: 45, near: 0.1, far: 100 }} dpr={[1, refs.perfProfile.dprCap]}>
+      <Canvas
+        camera={{ fov: 45, near: 0.1, far: 100 }}
+        dpr={[1, refs.perfProfile.dprCap]}
+        frameloop={frameloop}
+      >
         <SceneContent
           progressRef={refs.progressRef}
           noticedRef={refs.noticedRef}
