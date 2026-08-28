@@ -23,31 +23,35 @@
   /* color hérité inline par direction (currentColor sur SVG stroke) */
 }
 
-/* Halo bloom — radial gradient plein pot */
+/* Halo bloom — radial gradient plein pot (28/08 : refonte
+   "implosion vers centre subtile", retour Sylvain "pas fin, plus
+   subtil"). Tailles et blur réduits pour ne pas dominer l'écran. */
 .halo {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 380px;
-  height: 380px;
+  width: 260px;
+  height: 260px;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(24px);
+  filter: blur(20px);
   will-change: opacity, transform;
   transform-origin: center center;
 }
 
-/* Radial rings SVG conteneur */
+/* Radial rings SVG conteneur — commence grand puis contract vers
+   centre (implosion). Taille réduite 460 → 320 pour cadrage
+   subtile. */
 .rings {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 460px;
-  height: 460px;
+  width: 320px;
+  height: 320px;
   transform: translate(-50%, -50%);
   pointer-events: none;
   overflow: visible;
-  filter: drop-shadow(0 0 8px currentColor);
+  filter: drop-shadow(0 0 4px currentColor);
 }
 
 .rings circle {
@@ -55,17 +59,14 @@
   transform-box: view-box;
 }
 
-/* Glyphe central */
+/* Glyphe central — drop-shadow allégé (retour "subtil"), une seule
+   couche moyenne au lieu de multi-layer criard. */
 .glyphSlot {
   position: absolute;
   top: 50%;
   left: 50%;
   pointer-events: none;
-  /* Drop-shadow multi-layer pour bloom marqué (retour Sylvain :
-     "plus exploser") : couche proche + couche lointaine énorme. */
-  filter:
-    drop-shadow(0 0 12px currentColor)
-    drop-shadow(0 0 34px currentColor);
+  filter: drop-shadow(0 0 12px currentColor);
   will-change: opacity, transform;
 }
 

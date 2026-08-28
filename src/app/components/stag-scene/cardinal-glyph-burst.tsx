@@ -46,50 +46,71 @@ export default function CardinalGlyphBurst() {
   if (!transition?.transitionDirection || progress <= 0) return null;
 
   const direction: CardinalDirection = transition.transitionDirection;
-  // Trace du glyphe : 0→1 sur les 40 premiers % du burst, tenu ensuite.
-  const traceLength = Math.min(1, progress / 0.4);
-  // Fade : monte vite (0→0.1), reste à 1, redescend en fin (0.85→1).
-  const fade =
-    progress < 0.1
-      ? progress / 0.1
-      : progress > 0.85
-        ? Math.max(0, 1 - (progress - 0.85) / 0.15)
-        : 1;
-  // Scale burst spring bounce (28/08 amélioration retour Sylvain
-  // "devrait plus exploser"). Courbe : 0.6 → 1.28 (overshoot) → 1
-  // sur les 60 premiers %, hold, puis inspiration sortante 1→0.9.
-  // Simule un back easing / spring physics sans lib.
-  let scale = 1;
-  if (progress < 0.2) {
-    // Rise rapide overshoot : 0.6 → 1.28
-    const t = progress / 0.2;
-    scale = 0.6 + 0.68 * t;
-  } else if (progress < 0.4) {
-    // Settle : 1.28 → 1
-    const t = (progress - 0.2) / 0.2;
-    scale = 1.28 - 0.28 * (t * t * (3 - 2 * t));
-  } else if (progress > 0.85) {
-    // Sortie : 1 → 0.9
-    scale = 1 - 0.1 * ((progress - 0.85) / 0.15);
+
+  // Refonte 28/08 (retour Sylvain "pas fin, devrait exploser vers le
+  // centre, subtil et adroit"). Signature "implosion vers centre" —
+  // le glyphe se MATÉRIALISE (converge depuis dispersion) plutôt que
+  // d'exploser. Refs Rauno.me / Immersive Garden B&O / Studio 121
+  // (convergence subtile).
+  //
+  // Courbes ease-out-quart cubic-bezier(0.22, 1, 0.36, 1) partout,
+  // pas de spring bounce.
+
+  // easeOutQuart (approx)
+  function eoq(t: number) {
+    const tt = Math.min(1, Math.max(0, t));
+    return 1 - Math.pow(1 - tt, 4);
   }
 
-  // Halo bloom expansion (canal B) — scale du wrapper halo indépendant :
-  // 0.4 → 3.5 sur toute la durée, opacity descend en parallèle.
-  const haloScale = 0.4 + progress * 3.1;
-  const haloOpacity = Math.max(0, 1 - progress * 1.05);
+  // Trace du glyphe : monte 100→300ms (progress 0.2→0.6).
+  const traceLength = eoq((progress - 0.2) / 0.4);
 
-  // Radial rings (canal C) — 3 anneaux avec offset progress staggeré.
-  // Chaque ring individual progress p_i = clamp((progress - delay) / span, 0, 1).
+  // Fade glyphe : in 0.2→0.35, hold, out 0.85→1.
+  const fade =
+    progress < 0.2
+      ? 0
+      : progress < 0.35
+        ? eoq((progress - 0.2) / 0.15)
+        : progress > 0.85
+          ? Math.max(0, 1 - eoq((progress - 0.85) / 0.15))
+          : 1;
+
+  // Glyphe scale gentle : 1.4 → 1 → 0.95 sur l'arc. Overshoot INVERSE
+  // (converge depuis trop grand vers taille de repos), pas de bounce.
+  let scale = 1;
+  if (progress < 0.4) {
+    // 1.4 → 1
+    scale = 1.4 - 0.4 * eoq(progress / 0.4);
+  } else if (progress > 0.85) {
+    // 1 → 0.95
+    scale = 1 - 0.05 * eoq((progress - 0.85) / 0.15);
+  }
+
+  // Halo bloom INVERSE (canal B) — scale 2.5 → 1 shrink, fade in doux
+  // puis out. Plus discret que l'explosion précédente.
+  const haloScale = 2.5 - 1.5 * eoq(progress / 0.6);
+  const haloOpacity =
+    progress < 0.3
+      ? eoq(progress / 0.3) * 0.55
+      : progress > 0.75
+        ? Math.max(0, 0.55 * (1 - eoq((progress - 0.75) / 0.25)))
+        : 0.55;
+
+  // Radial rings INVERSE (canal C) — 3 anneaux commencent GRANDS
+  // (scale 3.5), contract lentement vers 1 (taille du glyphe),
+  // fade in doux. Signature "ondes du monde qui reviennent au centre
+  // pour former le signe".
   function ringState(delay: number) {
-    const p = Math.max(0, Math.min(1, (progress - delay) / 0.6));
+    const p = Math.max(0, Math.min(1, (progress - delay) / 0.55));
+    const eased = eoq(p);
     return {
-      scale: 0.3 + p * 3.2,
-      opacity: p < 0.05 ? p / 0.05 : Math.max(0, 1 - (p - 0.05) / 0.95) * 0.7,
+      scale: 3.5 - 2.5 * eased,
+      opacity: p < 0.12 ? (p / 0.12) * 0.55 : Math.max(0, 0.55 * (1 - eased * 1.05)),
     };
   }
   const ring1 = ringState(0);
-  const ring2 = ringState(0.1);
-  const ring3 = ringState(0.22);
+  const ring2 = ringState(0.08);
+  const ring3 = ringState(0.16);
 
   const color = DIRECTION_COLOR_VIVID[direction];
 
@@ -148,8 +169,8 @@ export default function CardinalGlyphBurst() {
       >
         <DirectionGlyph
           direction={direction}
-          size={220}
-          strokeWidth={1.3}
+          size={150}
+          strokeWidth={0.85}
           traceLength={traceLength}
         />
       </div>
