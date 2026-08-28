@@ -813,10 +813,15 @@ body.nahual-lab-reveal .ctaButton {
 /* Footer exhaustif (28/08 retour Sylvain) — 4 colonnes + bottom row.
    Position relative (plus fixed) : le footer devient un vrai bas de
    page avec contenu long, revele en fin de scroll apres le sanctuaire
-   100vh du canvas. Overrides --footer-height dans main padding. */
+   100vh du canvas. Overrides --footer-height dans main padding.
+   margin-top 80vh (28/08 retour Sylvain "rajoute un peu de scroll
+   bas de page pour faire apparaitre le footer") — meme sur home
+   (main sans data-direction), un espace transparent laisse le
+   cerf visible en phase climax avant que le footer arrive. */
 .siteFooter {
   position: relative;
   padding: 48px 6vw 24px;
+  margin-top: 80vh;
   background: rgba(8, 6, 12, 0.92);
   backdrop-filter: blur(12px);
   color: #f4ead5;
