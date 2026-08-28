@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import type { PerspectiveCamera } from "three";
 import { getOrbitCameraPosition, getOrbitCameraTarget } from "@/lib/camera-path";
 import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
+import { useSceneRefs } from "./scene-refs-context";
 
 /**
  * Applique à chaque frame la trajectoire pure de src/lib/camera-path.ts.
@@ -82,6 +83,7 @@ export default function OrbitCamera({
   const touchOffsetRef = useRef({ x: 0, y: 0 });
   const touchLastRef = useRef<{ x: number; y: number } | null>(null);
   const transition = useCardinalTransition();
+  const sceneRefs = useSceneRefs();
 
   useEffect(() => {
     reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -211,14 +213,26 @@ export default function OrbitCamera({
       }
     }
 
-    // Pin face-a-face (28/08 boite outil #6, fix 28/08 apres retour
-    // Sylvain "cerf deforme") — RETIRE dolly + fov shift qui
-    // deformaient perspective. Pin garde juste bloom boost (PostFX)
-    // + palette scrub. Camera reste path normal, cerf normal.
+    // Pin face-a-face dolly + fov (28/08 boite outil #6, re-add
+    // apres retour Sylvain "j'aimais bien"). Valeurs plus douces
+    // pour eviter distortion perspective : dolly factor 0.90 (au
+    // lieu de 0.75 initial), fov -2° (au lieu de -6°). Zoom in
+    // subtile "focus intense" sans deformer cerf.
+    const pinLevel = sceneRefs?.pinProgressRef.current ?? 0;
+    const pinDollyFactor = 1 - pinLevel * 0.10;
+    if (pinLevel > 0.01) {
+      const perspCam2 = camera as PerspectiveCamera;
+      if (perspCam2.isPerspectiveCamera) {
+        const baseFov = typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45;
+        perspCam2.fov = baseFov - pinLevel * 2;
+        perspCam2.updateProjectionMatrix();
+      }
+    }
+
     camera.position.set(
-      position.x + parallaxX + touchX + burstX,
+      (position.x + parallaxX + touchX + burstX) * pinDollyFactor,
       position.y + parallaxY + touchY + burstY,
-      position.z + burstZ,
+      (position.z + burstZ) * pinDollyFactor,
     );
     // Whip pan : décale la target du lookAt dans la direction cardinale.
     // La caméra pivote pour "regarder vers" la direction, puis revient

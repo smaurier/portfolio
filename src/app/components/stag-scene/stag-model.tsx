@@ -214,11 +214,15 @@ export default function StagModel({
     return () => window.removeEventListener("pointermove", onMove);
   }, []);
 
-  useFrame(() => {
-    // Cerf breath cycle retire 28/08 (retour Sylvain "cerf toujours
-    // deforme"). Meme setScalar uniforme causait perception vibratoire
-    // combinee au rim light + PostFX. Le cerf reste fige, sa vie
-    // passe par head-look camera + rim pulse breath uniforme.
+  useFrame((state) => {
+    // Cerf breath cycle (28/08 boite outil A, re-add subtile apres
+    // retour Sylvain "ce serait bien d'essayer de le remettre").
+    // Amplitude 0.005 → 0.003, uniforme via setScalar. Sub-pixel
+    // quasi-invisible, ne deforme pas.
+    if (group.current) {
+      const breath = 1 + Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.003;
+      group.current.scale.setScalar(breath);
+    }
     // Registrée après les useFrame ci-dessus (mixer d'animation via
     // useAnimations, puis rim-light) : dans la boucle de rendu par défaut de
     // R3F, les callbacks de même priorité s'exécutent dans l'ordre
@@ -263,12 +267,11 @@ export default function StagModel({
     // sur les axes lateraux (X) et vertical (Y). Le cerf regarde donc
     // legerement decale ou est le curseur, pas juste vers la camera fixe.
     mouseWorldTargetScratch.copy(cameraWorldPos);
-    // Fix 28/08 (retour Sylvain "cerf déformé") : amplitude mouse
-    // offset 2.5/1.5 → 0.8/0.5. L'ancien trop grand poussait head-
-    // look cou en extension excessive, cerf paraissait tordu au
-    // hover extreme souris.
-    mouseWorldTargetScratch.x += mouseSmoothRef.current.x * 0.8;
-    mouseWorldTargetScratch.y -= mouseSmoothRef.current.y * 0.5;
+    // Amplitude mouse offset X 1.6, Y 0.8 (retour Sylvain 28/08
+    // "cerf ne suit pas trop le curseur"). Milieu entre 2.5/1.5
+    // (trop, cou extension excessive) et 0.8/0.5 (trop peu, invisible).
+    mouseWorldTargetScratch.x += mouseSmoothRef.current.x * 1.6;
+    mouseWorldTargetScratch.y -= mouseSmoothRef.current.y * 0.8;
     applyHeadLook(headBone, mouseWorldTargetScratch, blend);
   });
 
