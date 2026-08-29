@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Dictionary } from "@/dictionaries";
+import { renderWithNahuatl } from "@/lib/nahuatl";
 import { useCurrentDirection } from "./stag-scene/use-current-direction";
 import type { DirectionKey } from "./stag-scene/direction-colors";
 
@@ -56,7 +57,7 @@ export default function CardinalAnnouncer({
 
   return (
     <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
-      {message}
+      {message ? renderWithNahuatl(message) : ""}
     </div>
   );
 }

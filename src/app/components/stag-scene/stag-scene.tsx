@@ -1,6 +1,7 @@
 "use client";
 
 import { getChapterOpacity, getIntroOpacity } from "@/lib/reveal-arc";
+import { renderWithNahuatl } from "@/lib/nahuatl";
 import RevealText from "../reveal-text";
 import CardinalLink from "./cardinal-link";
 import FadingBlock from "./fading-block";
@@ -59,14 +60,14 @@ export default function StagScene({
               CTA reste dans le bloc visuel pour ne pas doubler le
               focus clavier. */}
           <div className="sr-only">
-            <p>{sceneDescription}</p>
-            <h1>{home.heroTitle}</h1>
-            <p>{home.heroText}</p>
+            <p>{renderWithNahuatl(sceneDescription)}</p>
+            <h1>{renderWithNahuatl(home.heroTitle)}</h1>
+            <p>{renderWithNahuatl(home.heroText)}</p>
             <section aria-label="Recit du cerf, quatre chapitres">
               <ol>
                 {home.chapters.map((chapter, i) => (
                   <li key={i}>
-                    <strong>{chapter.kicker}</strong> — {chapter.line}
+                    <strong>{chapter.kicker}</strong> — {renderWithNahuatl(chapter.line)}
                   </li>
                 ))}
               </ol>

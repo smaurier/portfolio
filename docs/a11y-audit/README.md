@@ -304,11 +304,54 @@ narrative après. Immersion parallèle à l'expérience visuelle
 
 ### Restant
 
-- `lang="nah"` sur termes nahuatl inline (Tonatiuh, Xiuhtecuhtli,
-  Mazātl, etc.) — refactor rendu dicts
+- ~~`lang="nah"` sur termes nahuatl inline~~ ✅ fait passe 4
 - Test réel NVDA + Firefox + JAWS + VoiceOver iOS
-- Prononciation phonétique optionnelle
+- Prononciation phonétique optionnelle (dictionnaire IPA à côté du
+  span lang="nah" ? attribut aria-describedby ?)
 - Mode « récit accessible » opt-in (bouton header) — bonus futur
+
+---
+
+## Passe 4 — lang="nah" termes nahuatl inline (2026-08-29)
+
+Helper `src/lib/nahuatl.tsx` : `renderWithNahuatl(text)` retourne un
+tableau de ReactNode (strings + `<span lang="nah">`). Regex avec
+lookahead/behind Unicode (`\p{L}\p{N}`) pour supporter les
+diacritiques (Mazātl, Mictlán, Teyolía).
+
+Liste centralisée de 28 termes canoniques + doublets ASCII :
+- Divinités : Tonatiuh, Xiuhtecuhtli, Xiuhcoatl, Huitzilopochtli,
+  Mictlantecuhtli, Cihuateteo, Ehecatl
+- Régions cardinales : Tlahuizcalpan, Huitztlampa, Cihuatlampa,
+  Mictlampa, Tlalxicco
+- Concepts : Mazātl/Mazatl, Teyolía/Teyolia, Xochitl, Ollin, Iztli/
+  Itztli, Mictlán, tlamatinimeh, Nahua/nahua/Nahuas/nahuas, nahual/
+  Nahual
+
+Sortie triée par longueur décroissante avant compilation : garantit
+que "Mictlantecuhtli" est testé avant "Mictl" et "Mazātl" avant
+"Mazatl".
+
+Wrap dans :
+- `stag-scene.tsx` : heroTitle, heroText, sceneDescription, chapters
+- `echo-scene-page.tsx` : sceneDescription
+- `cardinal-announcer.tsx` : message aria-live
+- `route-announcer.tsx` : message aria-live (titre h1)
+- `[slug]/page.tsx` : MemoirePage + CodexPage (title, intro, chaque
+  section h2/p, directions cosmos)
+
+Vérification Playwright `document.querySelectorAll('[lang="nah"]')`
+sur `/fr/memoire` : **15 termes wrappés** (Teyolía × 3, Mictlampa,
+Mictlantecuhtli, Mictlán, Xiuhcoatl, Ollin × 2, Tonatiuh × 2,
+Xochitl, Iztli, Xiuhtecuhtli, nahua).
+
+Impact SR :
+- NVDA / JAWS basculent sur prononciation espagnole (~ correcte
+  pour nahuatl) au lieu du français par défaut qui écorche
+- Utilisateur SR entend « Tonatiouh » (proche de /to.na.'tiuw/)
+  au lieu de « ton-a-touille » (français par défaut)
+
+Coût : ~2-3% de rendu HTML additionnel (spans) — négligeable.
 
 
 ## Validation manuelle attendue

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { renderWithNahuatl } from "@/lib/nahuatl";
 
 /**
  * Annonce SR des changements de page (SPA) — WCAG 4.1.3 status
@@ -51,7 +52,7 @@ export default function RouteAnnouncer() {
 
   return (
     <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
-      {message}
+      {message ? renderWithNahuatl(message) : ""}
     </div>
   );
 }

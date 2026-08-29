@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { Locale } from "../../../dictionaries";
+import { renderWithNahuatl } from "@/lib/nahuatl";
 import type { DirectionKey } from "./direction-colors";
 import PageClosure from "./page-closure";
 import SceneStage from "./scene-stage";
@@ -50,7 +51,7 @@ export default function EchoScenePage({
       )}
     >
       <main id="main" data-direction={directionKey}>
-        <p className="sr-only">{sceneDescription}</p>
+        <p className="sr-only">{renderWithNahuatl(sceneDescription)}</p>
         {children}
       </main>
     </SceneStage>

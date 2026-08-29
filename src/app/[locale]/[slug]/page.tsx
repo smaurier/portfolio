@@ -5,6 +5,7 @@ import EchoScenePage from "../../components/stag-scene/echo-scene-page";
 import type { DirectionKey } from "../../components/stag-scene/direction-colors";
 import { getDictionary, isLocale, locales, type Locale, type Dictionary } from "../../../dictionaries";
 import { pageKeys, slugs, getPageKeyFromSlug, type PageKey, getPath } from "../../../lib/routes";
+import { renderWithNahuatl } from "../../../lib/nahuatl";
 import { SITE_URL, SITE_NAME } from "../../../lib/seo";
 
 // Depuis le 25/08 (cf memory project-nahual-da) : plus de fenêtre écho
@@ -230,45 +231,45 @@ function toRoman(n: number): string {
 function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
   return (
     <div className="contentPage codexPage">
-      <h1>{dict.title}</h1>
-      <p>{dict.intro}</p>
+      <h1>{renderWithNahuatl(dict.title)}</h1>
+      <p>{renderWithNahuatl(dict.intro)}</p>
 
       <section className="codexSection">
-        <h2>{dict.cosmos.title}</h2>
-        <p>{dict.cosmos.text}</p>
+        <h2>{renderWithNahuatl(dict.cosmos.title)}</h2>
+        <p>{renderWithNahuatl(dict.cosmos.text)}</p>
         <ul className="codexDirections">
           {dict.cosmos.directions.map((d) => (
             <li key={d.name}>
-              <strong>{d.name}</strong>
-              <span>{d.text}</span>
+              <strong>{renderWithNahuatl(d.name)}</strong>
+              <span>{renderWithNahuatl(d.text)}</span>
             </li>
           ))}
         </ul>
       </section>
 
       <section className="codexSection">
-        <h2>{dict.totem.title}</h2>
-        <p>{dict.totem.text}</p>
+        <h2>{renderWithNahuatl(dict.totem.title)}</h2>
+        <p>{renderWithNahuatl(dict.totem.text)}</p>
       </section>
 
       <section className="codexSection">
-        <h2>{dict.human.title}</h2>
-        <p>{dict.human.text}</p>
+        <h2>{renderWithNahuatl(dict.human.title)}</h2>
+        <p>{renderWithNahuatl(dict.human.text)}</p>
       </section>
 
       <section className="codexSection">
-        <h2>{dict.family.title}</h2>
-        <p>{dict.family.text}</p>
+        <h2>{renderWithNahuatl(dict.family.title)}</h2>
+        <p>{renderWithNahuatl(dict.family.text)}</p>
       </section>
 
       <section className="codexSection">
-        <h2>{dict.respect.title}</h2>
-        <p>{dict.respect.text}</p>
+        <h2>{renderWithNahuatl(dict.respect.title)}</h2>
+        <p>{renderWithNahuatl(dict.respect.text)}</p>
       </section>
 
       <section className="codexSection">
-        <h2>{dict.refs.title}</h2>
-        <p>{dict.refs.text}</p>
+        <h2>{renderWithNahuatl(dict.refs.title)}</h2>
+        <p>{renderWithNahuatl(dict.refs.text)}</p>
       </section>
     </div>
   );
@@ -314,14 +315,14 @@ function LegalPage({
 function MemoirePage({ dict }: { dict: Dictionary["memoire"] }) {
   return (
     <div className="contentPage">
-      <h1>{dict.title}</h1>
-      <p>{dict.intro}</p>
+      <h1>{renderWithNahuatl(dict.title)}</h1>
+      <p>{renderWithNahuatl(dict.intro)}</p>
 
       {dict.entries.map((entry, i) => (
         <div className="serviceCard" key={entry.title}>
           <span className="cardIndex" aria-hidden>{toRoman(i + 1)}</span>
-          <h2>{entry.title}</h2>
-          <p>{entry.text}</p>
+          <h2>{renderWithNahuatl(entry.title)}</h2>
+          <p>{renderWithNahuatl(entry.text)}</p>
         </div>
       ))}
 
