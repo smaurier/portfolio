@@ -76,7 +76,7 @@ const Z_DEPTH = -2;
 const Y_LEVEL = 0;
 // Peak opacity 0.55 (au lieu de 0.4) : plus visible malgre le fog +
 // DOF residuels. Reste semi-transparent, signature fantomatique OK.
-const PEAK_OPACITY = 0.55;
+const PEAK_OPACITY = 0.7;
 
 const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
 
@@ -110,8 +110,19 @@ export default function XolotlCompanion() {
 
   // Override matériaux originaux Wolf → MeshBasicMaterial obsidienne
   // semi-transparent. Une fois au mount, réappliqué à chaque scene
-  // reload defensive. depthWrite:false : evite conflits transparence
-  // avec autres meshes de la scene 3D.
+  // reload defensive.
+  //
+  // depthWrite:false : evite conflits transparence avec autres meshes
+  //   de la scene 3D.
+  // depthTest:false + renderOrder=999 : Xolotl rend TOUJOURS par-
+  //   dessus n'importe quel autre mesh, meme s'il est occlude
+  //   géometriquement. Signature "il traverse les voiles" —
+  //   coherent mytho (Xolotl passe entre les mondes).
+  //   Fix retour user 29/08 : en bout scroll fond scene teinte
+  //   violet climax = Xolotl obsidienne se noyait par cross-blend +
+  //   occlusion possibles autres meshes boostes.
+  // fog:false : immune au brouillard eventuel — le chien du
+  //   crepuscule n'appartient pas a l'atmosphere de la scene.
   useEffect(() => {
     scene.traverse((child) => {
       const mesh = child as Mesh;
@@ -121,7 +132,10 @@ export default function XolotlCompanion() {
           transparent: true,
           opacity: 0,
           depthWrite: false,
+          depthTest: false,
+          fog: false,
         });
+        mesh.renderOrder = 999;
       }
     });
   }, [scene]);
