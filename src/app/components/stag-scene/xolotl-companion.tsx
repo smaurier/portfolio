@@ -55,9 +55,12 @@ const DIRECTION_SPAWN_PROBABILITY: Record<DirectionKey, number> = {
 
 const APPEAR_DELAY_FIRST_MS = 10_000;
 const APPEAR_DELAY_REPEAT_MS = 15_000;
-const FADE_MS = 2_500;
-const TRAVERSE_MS = 9_000;
-const TOTAL_MS = FADE_MS * 2 + TRAVERSE_MS; // 14 s
+const FADE_MS = 3_000;
+// TRAVERSE ralenti (retour user 29/08 \"il glisse malgre l'idle\") :
+// 9s → 14s. Vitesse deplacement ~1.3 u/s (au lieu de 2 u/s), plus
+// coherent avec la vitesse de foulee du walk cycle Wolf.glb natif.
+const TRAVERSE_MS = 14_000;
+const TOTAL_MS = FADE_MS * 2 + TRAVERSE_MS; // 20 s
 
 // Amplitude X (29/08 iter 5 fix invisible). Trajet arc simplifie.
 const START_X = -9;
@@ -97,6 +100,12 @@ const TERRAIN_HIDE_THRESHOLD = 2.5;
 // Nom de l'animation Walk dans le Wolf.glb Quaternius. Convention
 // pack Animals : "AnimalArmature|<AnimName>".
 const WALK_ANIM = "AnimalArmature|Walk";
+
+// TimeScale walk anim (retour user 29/08 \"il glisse malgre l'idle\").
+// Walk cycle Wolf natif calibre pour vitesse deplacement inconnue.
+// Boost 1.3 = 30% plus rapide → 2.6 cycles/sec au lieu de 2, meilleure
+// impression de foulee vs vitesse traverse.
+const WALK_TIME_SCALE = 1.3;
 
 // Preload GLB (drei helper) — chargement au premier render du site,
 // évite délai lag au premier spawn.
@@ -184,6 +193,7 @@ export default function XolotlCompanion() {
       setStartedAt(performance.now());
       const walk = actions[WALK_ANIM];
       if (walk) {
+        walk.timeScale = WALK_TIME_SCALE;
         walk.reset().play();
       }
       // Signale "xolotl visible" via event pour WitnessMessage
