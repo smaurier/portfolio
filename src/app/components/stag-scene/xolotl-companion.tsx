@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { Color, MeshBasicMaterial, type Group, type Mesh } from "three";
 import { isBot } from "@/lib/is-bot";
+import { getTerrainHeight } from "@/lib/terrain-height";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import type { DirectionKey } from "./direction-colors";
 import { useCurrentDirection } from "./use-current-direction";
@@ -76,9 +77,13 @@ const Z_DEPTH = -10;
 // d'ensemble (fade in/out uniquement).
 const PEAK_OPACITY = 1.0;
 
-// Y fixe : le chien marche sur le sol plat imaginaire, pas de
-// terrain follow (retour user 29/08 "pas partir derriere colline").
-const Y_LEVEL = 0;
+// Terrain follow (29/08 iter 9 retour user "il doit suivre le sol
+// et ne pas s'enfoncer dedans"). A Z=-10 le sol sculpte via
+// getTerrainHeight peut monter/descendre (dunes + montagnes). On
+// echantillonne Y a chaque frame pour poser les pattes dessus.
+// Wolf.glb origin ~pieds → Y_FOOT_OFFSET faible corrige eventuelle
+// derive d'ancrage.
+const Y_FOOT_OFFSET = 0;
 
 const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
 
@@ -279,7 +284,8 @@ export default function XolotlCompanion() {
     // droit et disparaitre naturellement").
     const t = elapsed / TOTAL_MS;
     const x = START_X + (END_X - START_X) * t;
-    g.position.set(x, Y_LEVEL, Z_DEPTH);
+    const y = getTerrainHeight(x, Z_DEPTH) + Y_FOOT_OFFSET;
+    g.position.set(x, y, Z_DEPTH);
 
     // Enveloppe fade in/out
     let opacity = PEAK_OPACITY;
