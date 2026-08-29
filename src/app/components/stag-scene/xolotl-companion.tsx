@@ -6,6 +6,7 @@ import { useAnimations, useGLTF } from "@react-three/drei";
 import { MeshBasicMaterial, type Group, type Mesh } from "three";
 import { isBot } from "@/lib/is-bot";
 import { useReadingMode } from "@/lib/reading-mode-context";
+import { getTerrainHeight } from "@/lib/terrain-height";
 import type { DirectionKey } from "./direction-colors";
 import { useCurrentDirection } from "./use-current-direction";
 
@@ -58,32 +59,35 @@ const FADE_MS = 2_500;
 const TRAVERSE_MS = 9_000;
 const TOTAL_MS = FADE_MS * 2 + TRAVERSE_MS; // 14 s
 
-// Amplitude X (29/08 iter 2 recul Z=-10). A cette distance depuis
-// camera radius ~5-7, FOV 45° rend ~±12 units visibles. On pousse
-// a [-8, 8] pour plus longue traverse laterale, cohérent perspective
-// eloignee (le chien parcourt un plus grand chemin apparent car il
-// est loin).
-const START_X = -8;
-const END_X = 8;
-// Z=-10 (retour user 29/08 "encore plus loin"). Silhouette perçue
-// ~25% taille cerf → guide silencieux vraiment lointain.
-// Attention : fog scene near=10 far=34 (voir reveal-lighting.tsx).
-// Le chien peut passer legerement au-dela du fog near. material.fog
-// est neanmoins false sur Xolotl → immune. renderOrder 999 = rendu
-// par-dessus fog visuellement. Verifie safe.
-const Z_DEPTH = -10;
-// Y=0 : niveau sol du cerf.
-const Y_LEVEL = 0;
-// Peak opacity 0.7 : visible malgre distance et fond climax teinte.
-const PEAK_OPACITY = 0.7;
+// Amplitude X (29/08 iter 3). A Z=-11, camera radius ~5-7 FOV 45° =
+// frustum tres large a cette distance (~±13 units). On pousse a
+// [-10, 10] pour vraie traverse laterale complete de la colline
+// arriere → chien apparait de derriere une bosse gauche, disparait
+// derriere colline droite (occlusion terrain naturel + fade).
+const START_X = -10;
+const END_X = 10;
+// Z=-11 (retour user 29/08 "encore plus loin" + suit contour colline).
+// A cette distance le chien est vraiment lointain. Terrain fonction
+// getTerrainHeight fait epouser le relief (dunes + montagnes) →
+// disparait derriere colline en descendant naturellement.
+const Z_DEPTH = -11;
+// Peak opacity 0.75 : visible malgre distance + fond climax teinte.
+// Boost car chien plus petit et plus loin = besoin plus de contraste
+// pour discernabilite.
+const PEAK_OPACITY = 0.75;
 
 const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
 
-// Scale du Wolf.glb (~2 units natif) → 1.4 = ~2.8 unit world. Aux
-// yeux depuis camera radius 5+ regardant Z=-10, la silhouette
-// apparait ~25% taille cerf (perspective naturelle). Boost scale
-// legere compense la distance sans ecraser la perception "lointain".
-const XOLOTL_SCALE = 1.4;
+// Taille reelle (retour user 29/08 "chien ne devrait arriver qu'a la
+// fin des pattes du cerf" — anatomiquement correct Xolo vs cerf =
+// ratio ~0.35). Mesh Wolf.glb ~2 units natif → scale 0.35 = ~0.7
+// unit world = tiers taille cerf central (~1.5 unit). Coherent
+// perception anatomique.
+const XOLOTL_SCALE = 0.35;
+
+// Offset Y au-dessus du terrain — Wolf.glb centre pivot pas exactement
+// aux pattes, petit offset pour ne pas s'enfoncer.
+const Y_OFFSET_ABOVE_TERRAIN = 0.0;
 
 // Nom de l'animation Walk dans le Wolf.glb Quaternius. Convention
 // pack Animals : "AnimalArmature|<AnimName>".
@@ -113,15 +117,16 @@ export default function XolotlCompanion() {
   //
   // depthWrite:false : evite conflits transparence avec autres meshes
   //   de la scene 3D (Xolotl ne "cache" pas ce qui est derriere).
-  // depthTest:true (defaut) : RESPECTE l'occlusion Z — Xolotl a Z=-2
-  //   passe DERRIERE le cerf (Z~0). Correct visuellement.
-  //   (Retire depthTest:false du fix precedent qui faisait passer
-  //   Xolotl devant le cerf malgre sa position arriere — retour user
-  //   29/08 "il passe par dessus lui, c'est tres etrange".)
-  // renderOrder=999 : rendu APRES les meshes opaques -> transparency
-  //   sort correcte, evite artefacts alpha meme si occlusion Z active.
+  // depthTest:true (defaut) : RESPECTE l'occlusion Z — Xolotl passe
+  //   DERRIERE cerf + cactus + colline naturellement.
   // fog:false : immune au brouillard eventuel — le chien du
   //   crepuscule n'appartient pas a l'atmosphere de la scene.
+  //
+  // Retire renderOrder=999 (29/08 iter 3, retour user "passe derriere
+  // les cactus") : renderOrder eleve rendait Xolotl par-dessus les
+  // opaques meme si depthTest bloque. Retour a l'ordre natif +
+  // transparency automatique = occlusion cerf, cactus, montagnes
+  // fonctionne comme attendu.
   useEffect(() => {
     scene.traverse((child) => {
       const mesh = child as Mesh;
@@ -133,7 +138,6 @@ export default function XolotlCompanion() {
           depthWrite: false,
           fog: false,
         });
-        mesh.renderOrder = 999;
       }
     });
   }, [scene]);
@@ -202,10 +206,14 @@ export default function XolotlCompanion() {
       setStartedAt(null);
       return;
     }
-    // Position lerp gauche → droite
+    // Position lerp gauche → droite, Y suit le terrain via
+    // getTerrainHeight(x, z) → chien epouse le relief (dunes +
+    // montagnes) naturellement. Descend derriere colline en fin
+    // parcours = disparition organique.
     const t = elapsed / TOTAL_MS;
     const x = START_X + (END_X - START_X) * t;
-    g.position.set(x, Y_LEVEL, Z_DEPTH);
+    const y = getTerrainHeight(x, Z_DEPTH) + Y_OFFSET_ABOVE_TERRAIN;
+    g.position.set(x, y, Z_DEPTH);
     // Enveloppe fade in/out
     let opacity = PEAK_OPACITY;
     if (elapsed < FADE_MS) {
