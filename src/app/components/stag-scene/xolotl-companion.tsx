@@ -126,12 +126,14 @@ export default function XolotlCompanion() {
   //   DERRIERE cerf + cactus + colline naturellement.
   // fog:false : immune au brouillard eventuel — le chien du
   //   crepuscule n'appartient pas a l'atmosphere de la scene.
-  //
-  // Retire renderOrder=999 (29/08 iter 3, retour user "passe derriere
-  // les cactus") : renderOrder eleve rendait Xolotl par-dessus les
-  // opaques meme si depthTest bloque. Retour a l'ordre natif +
-  // transparency automatique = occlusion cerf, cactus, montagnes
-  // fonctionne comme attendu.
+  // renderOrder:999 : rendu APRES les autres transparents/climax pour
+  //   sort transparency correct. Combine avec depthTest:true =
+  //   \"rendu en dernier MAIS bloque par opaques Z\" - occlusion cerf/
+  //   cactus/montagnes OK, ET visible malgre fond climax teinte
+  //   (fix user 29/08 iter 5 \"pas visible bout scroll\").
+  //   ATTENTION : ne PAS combiner avec depthTest:false (ferait
+  //   passer par-dessus opaques = bug precedent \"passe par dessus
+  //   cactus\").
   useEffect(() => {
     scene.traverse((child) => {
       const mesh = child as Mesh;
@@ -143,6 +145,7 @@ export default function XolotlCompanion() {
           depthWrite: false,
           fog: false,
         });
+        mesh.renderOrder = 999;
       }
     });
   }, [scene]);
