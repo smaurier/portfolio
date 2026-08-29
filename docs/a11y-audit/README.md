@@ -312,6 +312,50 @@ narrative après. Immersion parallèle à l'expérience visuelle
 
 ---
 
+## Passe 6 — Prononciation IPA + doc audit contraste manuel (2026-08-29)
+
+### ✅ Prononciation phonétique dans `<span title>`
+
+`renderWithNahuatl` enrichi : chaque span nahuatl reçoit un `title`
+avec approximation phonétique française. Signature « décoder les
+mots sans quitter le texte ».
+
+Dictionnaire `PRONUNCIATION` centralisé (28 termes) :
+- Tonatiuh → « to-na-tioutl »
+- Xiuhtecuhtli → « chiou-te-kout-li »
+- Mazātl → « ma-satl »
+- Teyolía → « te-yo-li-a »
+- Mictlantecuhtli → « mik-tlan-te-kout-li »
+- ...
+
+Approximation FR plutôt qu'IPA pur (« /to.na.ˈtiwtɬ/ ») : les SR
+n'ont pas de moteur IPA fiable, l'utilisateur voyant décode plus
+vite « to-na-tioutl ». Convention : syllabes tiretées, « tl » = son
+[tɬ] nahuatl caractéristique.
+
+Rendu SR : NVDA/JAWS lisent le `title` comme description
+complémentaire (« Tonatiuh, prononciation to-na-tioutl »). Rendu
+souris : tooltip natif au hover, pédagogique.
+
+Vérification Playwright sur `/fr/memoire` : chaque span
+`[lang="nah"]` a bien un attribut `title` avec la prononciation.
+
+### ✅ Doc audit contraste manuel Stark
+
+`docs/a11y-audit/contrast-manual-audit.md` créé. 9 zones sensibles
+listées (hero, chapitres, cards pages écho, notes italiques,
+footer, header, cardIndex décoratif) avec :
+- Sélecteur CSS + texte cible + couleur théorique
+- Worst-case théorique par direction climax
+- Grille de résultats à remplir manuellement avec Stark
+- Correctifs proposés selon ratio mesuré
+- Alternatives si Stark ne suffit pas (DevTools Chrome, WebAIM,
+  pipette GIMP)
+
+À réaliser par Sylvain avant certification RGAA (23/10/2026).
+
+---
+
 ## Passe 5 — Mode récit accessible opt-in + Axe audit (2026-08-29)
 
 ### ✅ Audit Axe automatique

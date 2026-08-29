@@ -16,36 +16,50 @@ import type { ReactNode } from "react";
  * francais/anglais, mais SR les prononce mieux en espagnol
  * (compromis pragmatique).
  */
-const NAHUATL_TERMS = [
-  "Mazātl",
-  "Mazatl",
-  "Tonatiuh",
-  "Xiuhtecuhtli",
-  "Xiuhcoatl",
-  "Huitzilopochtli",
-  "Huitztlampa",
-  "Mictlantecuhtli",
-  "Mictlampa",
-  "Mictlán",
-  "Cihuateteo",
-  "Cihuatlampa",
-  "Tlahuizcalpan",
-  "Tlalxicco",
-  "Xochitl",
-  "Teyolía",
-  "Teyolia",
-  "Ollin",
-  "Iztli",
-  "Itztli",
-  "tlamatinimeh",
-  "Ehecatl",
-  "Nahua",
-  "nahua",
-  "Nahuas",
-  "nahuas",
-  "nahual",
-  "Nahual",
-];
+/**
+ * Approximation phonetique francaise lisible pour chaque terme.
+ * Servie via title (tooltip hover pour utilisateurs voyants,
+ * lecture par NVDA/JAWS/VoiceOver comme description
+ * complementaire). Approximation FR plutot qu'IPA pur car les SR
+ * n'ont pas de moteur IPA fiable et un utilisateur voyant
+ * decouvre plus vite "to-na-tioutl" que /to.na.ˈtiwtɬ/.
+ *
+ * Convention : syllabes tiretees, "tl" = son [tɬ] specifique
+ * nahuatl (imite proche d'un "tl" francais suivi d'un souffle),
+ * "hw" = h aspire suivi de w ("houa"), "ts" = affricate.
+ */
+const PRONUNCIATION: Record<string, string> = {
+  "Mazātl": "ma-satl",
+  "Mazatl": "ma-satl",
+  "Tonatiuh": "to-na-tioutl",
+  "Xiuhtecuhtli": "chiou-te-kout-li",
+  "Xiuhcoatl": "chiou-ko-atl",
+  "Huitzilopochtli": "hwit-si-lo-potch-tli",
+  "Huitztlampa": "hwits-tlam-pa",
+  "Mictlantecuhtli": "mik-tlan-te-kout-li",
+  "Mictlampa": "mik-tlam-pa",
+  "Mictlán": "mik-tlan",
+  "Cihuateteo": "si-oua-te-te-o",
+  "Cihuatlampa": "si-oua-tlam-pa",
+  "Tlahuizcalpan": "tla-ouiz-kal-pan",
+  "Tlalxicco": "tlal-chik-ko",
+  "Xochitl": "cho-chi-tl",
+  "Teyolía": "te-yo-li-a",
+  "Teyolia": "te-yo-li-a",
+  "Ollin": "ol-lin",
+  "Iztli": "its-tli",
+  "Itztli": "its-tli",
+  "tlamatinimeh": "tla-ma-ti-ni-meh",
+  "Ehecatl": "e-he-katl",
+  "Nahua": "na-oua",
+  "nahua": "na-oua",
+  "Nahuas": "na-ouas",
+  "nahuas": "na-ouas",
+  "nahual": "na-oualtl",
+  "Nahual": "na-oualtl",
+};
+
+const NAHUATL_TERMS = Object.keys(PRONUNCIATION);
 
 const ESCAPED = NAHUATL_TERMS.map((t) =>
   t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
@@ -77,8 +91,13 @@ export function renderWithNahuatl(text: string): ReactNode {
     if (match.index > lastIdx) {
       parts.push(text.slice(lastIdx, match.index));
     }
+    const pronunciation = PRONUNCIATION[match[0]];
     parts.push(
-      <span key={`${match.index}-${match[0]}`} lang="nah">
+      <span
+        key={`${match.index}-${match[0]}`}
+        lang="nah"
+        title={pronunciation ? `Prononciation : ${pronunciation}` : undefined}
+      >
         {match[0]}
       </span>
     );
