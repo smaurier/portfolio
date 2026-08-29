@@ -54,23 +54,37 @@ const DIRECTION_SPAWN_PROBABILITY: Record<DirectionKey, number> = {
 
 const APPEAR_DELAY_FIRST_MS = 10_000;
 const APPEAR_DELAY_REPEAT_MS = 15_000;
-const FADE_MS = 3_000;
-const TRAVERSE_MS = 12_000;
-const TOTAL_MS = FADE_MS * 2 + TRAVERSE_MS; // 18 s
+const FADE_MS = 2_500;
+const TRAVERSE_MS = 9_000;
+const TOTAL_MS = FADE_MS * 2 + TRAVERSE_MS; // 14 s
 
-const START_X = -8;
-const END_X = 8;
-const Z_DEPTH = -4;
-const Y_LEVEL = -0.5;
-const PEAK_OPACITY = 0.4;
+// Amplitude X reduite (29/08 fix visibilite) : le frustum camera FOV
+// 45° à radius ~5 depuis Z=-2 rend seulement ~±3.5 unites visibles.
+// Extremities [-8,8] initiales sortaient du cadre 2/3 du temps → user
+// ne voyait le chien qu'a mi-parcours. Reduit a [-5,5] pour garder
+// dans le frustum toute la traverse.
+const START_X = -5;
+const END_X = 5;
+// Z=-2 (au lieu de -4) : PostFX DOF focus sur cerf (Z~0) avec
+// focalLength 0.06 tres shallow — a Z=-4 le chien etait tellement
+// defocalise que seule sa teinte diffuse passait ("on voyait juste
+// sa couleur"). Z=-2 reste derriere le cerf (Z~0) mais dans la zone
+// de focus semi-net. Aussi limite l'accumulation fog en fin d'arc.
+const Z_DEPTH = -2;
+// Y=0 (au lieu de -0.5) : releve au niveau sol du cerf pour eviter
+// masquage par plane ground eventuel + meilleure lisibilite.
+const Y_LEVEL = 0;
+// Peak opacity 0.55 (au lieu de 0.4) : plus visible malgre le fog +
+// DOF residuels. Reste semi-transparent, signature fantomatique OK.
+const PEAK_OPACITY = 0.55;
 
 const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
 
 // Scale du Wolf.glb pour proportion cohérente au cerf central (stag
-// est ~1.5 units world). Wolf natif Quaternius ~2 units → scale 0.55
-// = ~1.1 unit, moitié taille cerf → cohérent silhouette secondaire
-// à distance Z=-4.
-const XOLOTL_SCALE = 0.55;
+// est ~1.5 units world). Wolf natif Quaternius ~2 units → scale 0.7
+// = ~1.4 unit, taille proche cerf → silhouette secondaire visible
+// mais pas dominante à distance Z=-2.
+const XOLOTL_SCALE = 0.7;
 
 // Nom de l'animation Walk dans le Wolf.glb Quaternius. Convention
 // pack Animals : "AnimalArmature|<AnimName>".
