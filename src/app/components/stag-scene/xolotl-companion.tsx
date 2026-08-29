@@ -58,33 +58,30 @@ const FADE_MS = 2_500;
 const TRAVERSE_MS = 9_000;
 const TOTAL_MS = FADE_MS * 2 + TRAVERSE_MS; // 14 s
 
-// Amplitude X reduite (29/08 fix visibilite) : le frustum camera FOV
-// 45° à radius ~5 depuis Z=-2 rend seulement ~±3.5 unites visibles.
-// Extremities [-8,8] initiales sortaient du cadre 2/3 du temps → user
-// ne voyait le chien qu'a mi-parcours. Reduit a [-5,5] pour garder
-// dans le frustum toute la traverse.
-const START_X = -5;
-const END_X = 5;
-// Z=-2 (au lieu de -4) : PostFX DOF focus sur cerf (Z~0) avec
-// focalLength 0.06 tres shallow — a Z=-4 le chien etait tellement
-// defocalise que seule sa teinte diffuse passait ("on voyait juste
-// sa couleur"). Z=-2 reste derriere le cerf (Z~0) mais dans la zone
-// de focus semi-net. Aussi limite l'accumulation fog en fin d'arc.
-const Z_DEPTH = -2;
-// Y=0 (au lieu de -0.5) : releve au niveau sol du cerf pour eviter
-// masquage par plane ground eventuel + meilleure lisibilite.
+// Amplitude X (29/08 fix visibilite). A Z=-5 depuis camera radius ~5,
+// FOV 45° rend ~±8 units visibles. On garde [-6,6] pour margin sur
+// fade in/out (chien entre en bord, sort en bord opposé).
+const START_X = -6;
+const END_X = 6;
+// Z=-5 (retour user 29/08 "il est aussi gros que le cerf, plus au
+// loin"). Cerf central a Z~0, taille ~1.5 unit. A Z=-5 le chien
+// apparait ~2x plus petit perceptuellement → silhouette secondaire
+// lointaine, coherent narratif "guide silencieux au loin".
+// Fog immune (material.fog=false) + renderOrder 999 = pas de risque
+// de disparition qu'on avait a Z=-4 initial.
+const Z_DEPTH = -5;
+// Y=0 : niveau sol du cerf.
 const Y_LEVEL = 0;
-// Peak opacity 0.55 (au lieu de 0.4) : plus visible malgre le fog +
-// DOF residuels. Reste semi-transparent, signature fantomatique OK.
+// Peak opacity 0.7 : visible malgre distance et fond climax teinte.
 const PEAK_OPACITY = 0.7;
 
 const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
 
-// Scale du Wolf.glb pour proportion cohérente au cerf central (stag
-// est ~1.5 units world). Wolf natif Quaternius ~2 units → scale 0.7
-// = ~1.4 unit, taille proche cerf → silhouette secondaire visible
-// mais pas dominante à distance Z=-2.
-const XOLOTL_SCALE = 0.7;
+// Scale du Wolf.glb (~2 units natif) → 0.9 = ~1.8 unit world. Aux
+// yeux depuis camera radius 5+ regardant Z=-5, la silhouette apparait
+// ~40% taille cerf (cerf a Z=0 plus proche + scale 1.5). Coherent
+// "compagnon secondaire lointain".
+const XOLOTL_SCALE = 0.9;
 
 // Nom de l'animation Walk dans le Wolf.glb Quaternius. Convention
 // pack Animals : "AnimalArmature|<AnimName>".
