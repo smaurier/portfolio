@@ -1209,3 +1209,58 @@ body.nahual-lab-reveal .serviceCard {
 @keyframes maskRevealIn {
   to { opacity: 1; }
 }
+
+/* Projet detail page (29/08 task #73) — case study long form
+   narrative. Structure sobre : hero baseline, sections empilees. */
+.projetDetailPage {
+  max-width: 720px;
+}
+.projetDetailBack {
+  margin: 0 0 1.5rem;
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+.projetDetailHero {
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  color: #00c078;
+  font-style: italic;
+  margin: 0 0 2rem;
+  line-height: 1.4;
+}
+.projetDetailSection {
+  margin: 2.5rem 0;
+  padding-top: 1.8rem;
+  border-top: 1px solid rgba(244, 234, 213, 0.12);
+}
+.projetDetailSection:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.projetDetailSection h2 {
+  font-size: 1.15rem;
+  color: #f4ead5;
+  margin: 0 0 1rem;
+  letter-spacing: 0.01em;
+}
+.projetDetailSection p {
+  font-size: 1rem;
+  line-height: 1.7;
+  opacity: 0.9;
+}
+.projetDetailCta {
+  margin: 3rem 0 0;
+}
+
+/* Cards project double CTA (detail + external) */
+.projectCaseCtas {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.ctaButtonPrimary {
+  background: rgba(0, 192, 120, 0.15);
+  border-color: rgba(0, 192, 120, 0.6);
+}

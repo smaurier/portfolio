@@ -64,6 +64,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       canonical: url,
       languages: Object.fromEntries(locales.map((l) => [l, `/${l}`])),
     },
+    // openGraph.images pointe explicitement vers /[locale]/opengraph-image.png
+    // (genere par Next depuis opengraph-image.tsx). Explicite plutot que
+    // scan implicite pour LinkedIn/Discord/Twitter qui parsent parfois mal.
     openGraph: {
       type: "website",
       url,
@@ -72,12 +75,21 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       description,
       locale: locale === "fr" ? "fr_FR" : locale === "en" ? "en_US" : "es_MX",
       alternateLocale: locales.filter((l) => l !== locale).map((l) => (l === "fr" ? "fr_FR" : l === "en" ? "en_US" : "es_MX")),
+      images: [
+        {
+          url: `/${locale}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: `${SITE_NAME} — ${title}`,
+          type: "image/png",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      creator: `@${AUTHOR_NAME.replace(" ", "")}`,
+      images: [`/${locale}/opengraph-image`],
     },
     robots: {
       index: true,
@@ -86,6 +98,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     },
     icons: {
       icon: [{ url: "/img/mini-logo.svg", type: "image/svg+xml" }],
+    },
+    manifest: "/manifest.webmanifest",
+    // theme-color obsidienne aligne l'UI chrome mobile (barre URL) sur la
+    // palette du site — signal marque, evite le blanc par defaut qui casse
+    // l'immersion premiere seconde apres load.
+    other: {
+      "theme-color": "#0a0710",
+      "color-scheme": "dark",
     },
     category: "portfolio",
   };

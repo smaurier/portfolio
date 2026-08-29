@@ -5,6 +5,7 @@ import EchoScenePage from "../../components/stag-scene/echo-scene-page";
 import type { DirectionKey } from "../../components/stag-scene/direction-colors";
 import { getDictionary, isLocale, locales, type Locale, type Dictionary } from "../../../dictionaries";
 import { pageKeys, slugs, getPageKeyFromSlug, type PageKey, getPath } from "../../../lib/routes";
+import { SITE_URL, SITE_NAME } from "../../../lib/seo";
 
 // Depuis le 25/08 (cf memory project-nahual-da) : plus de fenêtre écho
 // 320×320 par page — la scène 3D plein écran de la home est généralisée
@@ -55,7 +56,8 @@ function ServicesPage({ locale, dict }: { locale: Locale; dict: Dictionary["serv
   );
 }
 
-function ProjetsPage({ dict }: { dict: Dictionary["projets"] }) {
+function ProjetsPage({ dict, locale }: { dict: Dictionary["projets"]; locale: Locale }) {
+  const projetsSlug = slugs.projets[locale];
   return (
     <div className="contentPage">
       <h1>{dict.title}</h1>
@@ -72,6 +74,8 @@ function ProjetsPage({ dict }: { dict: Dictionary["projets"] }) {
         labels={dict.labels}
         href="https://nuada-audit.netlify.app"
         cta={dict.nuada.cta}
+        detailHref={`/${locale}/${projetsSlug}/nuada`}
+        detailCta={dict.nuada.detail.readMoreCta}
       />
 
       <ProjectCase
@@ -85,6 +89,8 @@ function ProjetsPage({ dict }: { dict: Dictionary["projets"] }) {
         labels={dict.labels}
         href="https://kleyfrance.fr/"
         cta={dict.kleyfrance.cta}
+        detailHref={`/${locale}/${projetsSlug}/kleyfrance`}
+        detailCta={dict.kleyfrance.detail.readMoreCta}
       />
 
       <ProjectCase
@@ -98,6 +104,8 @@ function ProjetsPage({ dict }: { dict: Dictionary["projets"] }) {
         labels={dict.labels}
         href="https://github.com/smaurier/claude-synapse"
         cta={dict.synapse.cta}
+        detailHref={`/${locale}/${projetsSlug}/synapse`}
+        detailCta={dict.synapse.detail.readMoreCta}
       />
 
       <p>
@@ -127,6 +135,8 @@ function ProjectCase({
   labels,
   href,
   cta,
+  detailHref,
+  detailCta,
 }: {
   title: string;
   text: string;
@@ -138,6 +148,8 @@ function ProjectCase({
   labels: { context: string; role: string; stack: string; highlights: string; outcome: string };
   href: string;
   cta: string;
+  detailHref?: string;
+  detailCta?: string;
 }) {
   return (
     <article className="projectCase">
@@ -155,9 +167,16 @@ function ProjectCase({
         <dt>{labels.outcome}</dt>
         <dd>{outcome}</dd>
       </dl>
-      <a href={href} target="_blank" rel="noopener noreferrer" className="ctaButton">
-        {cta}
-      </a>
+      <div className="projectCaseCtas">
+        {detailHref && detailCta && (
+          <a href={detailHref} className="ctaButton ctaButtonPrimary">
+            {detailCta}
+          </a>
+        )}
+        <a href={href} target="_blank" rel="noopener noreferrer" className="ctaButton">
+          {cta}
+        </a>
+      </div>
     </article>
   );
 }
@@ -335,7 +354,7 @@ export default async function LocalizedPage({
       content = <ServicesPage locale={locale} dict={fullDict.services} />;
       break;
     case "projets":
-      content = <ProjetsPage dict={fullDict.projets} />;
+      content = <ProjetsPage dict={fullDict.projets} locale={locale} />;
       break;
     case "contact":
       content = <ContactPage dict={fullDict.contact} showEmailLabel={fullDict.common.showEmail} />;
@@ -363,8 +382,32 @@ export default async function LocalizedPage({
       break;
   }
 
+  // BreadcrumbList JSON-LD (29/08 SEO pass v2) — aide Google a afficher
+  // le fil d'Ariane dans les SERP, meme sur les pages sub.
+  const pageUrl = `${SITE_URL}/${locale}/${slug}`;
+  const homeUrl = `${SITE_URL}/${locale}`;
+  const navLabel =
+    key === "services" ? fullDict.common.nav.services :
+    key === "projets" ? fullDict.common.nav.projects :
+    key === "contact" ? fullDict.common.nav.contact :
+    key === "memoire" ? fullDict.common.nav.memoire :
+    key === "codex" ? fullDict.common.nav.codex :
+    fullDict[key].title;
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: SITE_NAME, item: homeUrl },
+      { "@type": "ListItem", position: 2, name: navLabel, item: pageUrl },
+    ],
+  };
+
   return (
     <EchoScenePage directionKey={DIRECTION_BY_PAGE[key]} locale={locale}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       {content}
     </EchoScenePage>
   );

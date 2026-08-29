@@ -87,6 +87,7 @@
       "outcome": "Outcome"
     },
     "nuada": {
+      "slug": "nuada",
       "title": "Nuada · RGAA accessibility audit",
       "text": "Showcase site and RGAA audit engine. WCAG 2.2 compliance, multilingual SEO, positioned as \"the auditor who codes the fix.\"",
       "context": "The French RGAA audit market is saturated with PDF reports no one knows how to implement. Nuada was built around a simple idea: deliver the fix code, not just the diagnosis.",
@@ -94,9 +95,22 @@
       "stack": "Astro, TypeScript, MDX, native i18n fr/en/es, Netlify hosting.",
       "highlights": "Rare positioning against classic firms (\"the auditor who codes\"). Public transparent pricing grid. Quick online audit demo on submitted URL.",
       "outcome": "Live since August 2026. First conversations with 3 prospects between September and October.",
-      "cta": "Visit the site →"
+      "cta": "Visit the site →",
+      "detail": {
+        "readMoreCta": "Read the full case study →",
+        "backCta": "← Back to projects",
+        "hero": "The auditor who codes the fix.",
+        "narrative": [
+          { "title": "The market reality", "text": "The French RGAA accessibility audit market is mature but paradoxical. Large firms deliver 80-page PDF reports, structured against the 106 criteria of the standard, listing each non-compliance with a screenshot and a generic recommendation. The engineering teams receiving those reports are often left helpless: how do you translate \"improve link focus contrast\" into a concrete pull request? Nuada starts from that observation to propose something else." },
+          { "title": "The technical stance", "text": "Each non-compliance identified by Nuada is delivered with directly implementable fix code, tested on a client project fork when possible. No vague \"recommendation,\" no \"to investigate on the team side\": a Git diff, an explanation of why, a non-regression test. The auditor becomes a temporary contributor, not a consultant leaving behind a knot of problems." },
+          { "title": "Site architecture", "text": "Astro for static generation, native i18n for fr/en/es with no overhead, MDX for long-form articles, Netlify hosting with preview branches for each new piece of content. The site itself is RGAA 4.1 compliant by construction — no post-audit patching, every component is designed accessible from the start. A test-driven a11y approach that serves as its own example." },
+          { "title": "What Nuada teaches me", "text": "Building Nuada forced me to formalize what was implicit: what I did intuitively on client missions (deliver code rather than text) becomes a reproducible method. The real deliverable of an accessibility audit isn't a document, it's a codebase more accessible than before." },
+          { "title": "Next steps", "text": "Once the RGAA certification is validated (access42 exam October 23, 2026), Nuada can move from showcase site to real tool: partial audit automation via axe-core in CI, before/after comparator on pull request, public library of reusable accessible patterns." }
+        ]
+      }
     },
     "kleyfrance": {
+      "slug": "kleyfrance",
       "title": "KleyFrance",
       "text": "Full WordPress site rebuild + logo creation for a manufacturer of custom lifting solutions (oil, offshore, military).",
       "context": "Aging site, not responsive, no visual charter. International B2B target with demanding, very technical vocabulary (slinging, marine winches, LOLER).",
@@ -104,9 +118,22 @@
       "stack": "WordPress, ACF Pro, responsive custom theme, subtle GSAP animations.",
       "highlights": "Industrial visual charter without falling into \"heavy metal\" cliché. Product photothèque organized by sector (naval / offshore / defense). B2B multilingual SEO.",
       "outcome": "Site live, loading time cut by 3, mobile-friendly, unified quote forms.",
-      "cta": "Visit the site →"
+      "cta": "Visit the site →",
+      "detail": {
+        "readMoreCta": "Read the full case study →",
+        "backCta": "← Back to projects",
+        "hero": "Making a niche industrial site breathe.",
+        "narrative": [
+          { "title": "Client context", "text": "KleyFrance is a French manufacturer of custom lifting solutions — slings, winches, specialized spreader beams — for very specialized sectors: oil, offshore oceanography, military industry. A legacy WordPress site, not responsive, whose graphic charter came down to an aging logo and a gray-blue palette without identity. The brief: rebuild while keeping industrial credibility, without falling into the \"heavy metal\" cliché that plagues this market." },
+          { "title": "Art direction approach", "text": "Rather than a flashy site, a design that breathes technical seriousness. Product photos on a clean background, sober but modern industrial typography (not thick futura, rather a balanced neo-grotesque), tight palette deep blue + functional orange like a safety marking ribbon. The redesigned logo keeps the founder's \"K\" spirit but with golden ratio proportions, legible at 16px as at 2m on a trade show." },
+          { "title": "The editorial challenge", "text": "The vocabulary is ultra-specialized. \"Balancing spreader beam,\" \"30t hydraulic underwater winch,\" \"DNV/LOLER compliance.\" The site had to remain accessible to technical buyers (who know) without scaring off more generalist buyers (military, industrialists). Solution: a systematic dual reading — an explicit title in plain French, a precise technical subtitle with the industry vocabulary." },
+          { "title": "Concrete impact", "text": "Loading time divided by 3 (optimized WordPress, WebP images, Cloudflare cache). Mobile-first responsive. Unified quote forms with pre-filled conditions by target sector. Client feedback: incoming first contacts become more qualified — prospects arrive having understood the specialization before contacting." },
+          { "title": "What I take from it", "text": "In a B2B niche market, art direction matters more than one might think. Technical credibility comes through graphic choices consistent with the trade — no unnecessary creative dev effects, but each element must signal \"we know what we're talking about.\"" }
+        ]
+      }
     },
     "synapse": {
+      "slug": "synapse",
       "title": "Synapse",
       "text": "Open-source plugin for Claude Code: syncs an AI assistant's memory across machines and projects instead of duplicating it.",
       "context": "Using Claude Code on 3 machines (personal, LR mission, laptop), I kept losing continuity: each machine had its own memory, none knew the others' context. Time-consuming and fragile manual duplication.",
@@ -114,7 +141,19 @@
       "stack": "Node.js, TypeScript, Claude Code hooks, background git sync, smart local cache.",
       "highlights": "Sync collision detection (two machines writing at the same time). Named memory structure (feedback/project/user/reference). 283 tests, green CI from day 1. Published open-source from day 1.",
       "outcome": "Published on github.com/smaurier/claude-synapse. Plugin adopted daily on my 3 machines. Solid base for a future community.",
-      "cta": "View the code →"
+      "cta": "View the code →",
+      "detail": {
+        "readMoreCta": "Read the full case study →",
+        "backCta": "← Back to projects",
+        "hero": "A continuous AI memory across three machines.",
+        "narrative": [
+          { "title": "The lived problem", "text": "In 2026, I use Claude Code daily on three machines: my personal setup at home, the one on mission at LR Technologies, a backup laptop. Each machine manages its own memory (user preferences, project context, validated feedback). Result: I repeat the same explanations to Claude on each machine, or worse, I manually copy memory files between machines with conflict risks. The \"multiple assistants that don't know each other\" pattern quickly becomes counterproductive." },
+          { "title": "Architecture chosen", "text": "Synapse is a plugin that bootstraps a Git-versioned memory structure, with automatic background sync on every significant change. Memory is typed: feedback (learned work rules), project (active project context), user (user profile), reference (pointers to external sources). Each entry has explicit YAML frontmatter, a short description, a type. A `[[name]]` linking system weaves entries together like a mini knowledge graph." },
+          { "title": "Technical choices", "text": "Node.js + TypeScript for cross-platform. Native Claude Code hooks (SessionStart, SessionEnd, UserPromptSubmit) to intercept key moments without monkey-patching. Background Git sync via non-blocking `child_process`. Smart local cache to avoid unnecessary network round-trips. Sync collision detection: two machines write at the same time, Synapse attempts automatic per-entry merge, alerts the user on conflict." },
+          { "title": "Quality as obligation", "text": "283 tests from the first public release, green CI, coverage > 80%. Why this rigor for a personal plugin? Because memory is precious — a bug that silently overwrites an entry is context lost that I won't recover. TDD here isn't dogma but a guarantee that memory doesn't corrupt itself." },
+          { "title": "Community opening", "text": "Published open-source from the first commit on github.com/smaurier/claude-synapse. Careful documentation, concrete examples, ADR (Architecture Decision Records) to trace choices. Ambition: that other multi-machine Claude Code users can bootstrap their own system. No business model, no premium — a tool solving a real problem for those who have it." }
+        ]
+      }
     },
     "moreBefore": "More projects on",
     "moreLinkText": "my GitHub",

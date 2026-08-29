@@ -1,14 +1,20 @@
 import type { MetadataRoute } from "next";
 import { locales } from "@/dictionaries";
-import { pageKeys, getPath } from "@/lib/routes";
+import { pageKeys, slugs, getPath } from "@/lib/routes";
 import { SITE_URL } from "@/lib/seo";
 
 /**
- * Sitemap App Router (28/08). Une entrée par (locale, page) avec
- * hreflang alternates pour signaler l'équivalence multilingue à
- * Google. Priorité 1 pour la home, 0.8 pour les sous-pages.
- * changeFrequency monthly = portfolio, pas un site d'actu.
+ * Sitemap App Router (28/08, enrichi 29/08 task #73 SEO).
+ * - Home (priorité 1)
+ * - Pages écho (0.8)
+ * - Case studies détail projets (0.7)
+ *
+ * Chaque URL a ses hreflang alternates pour signaler l'équivalence
+ * multilingue à Google.
  */
+
+const PROJET_SLUGS = ["nuada", "kleyfrance", "synapse"] as const;
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const routes: MetadataRoute.Sitemap = [];
@@ -33,6 +39,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
         changeFrequency: "monthly",
         priority: 0.8,
         alternates: { languages: pageAlts },
+      });
+    }
+  }
+
+  // Case studies détail (29/08 task #73)
+  for (const projetSlug of PROJET_SLUGS) {
+    const alts = Object.fromEntries(
+      locales.map((l) => [l, `${SITE_URL}/${l}/${slugs.projets[l]}/${projetSlug}`]),
+    );
+    for (const l of locales) {
+      routes.push({
+        url: `${SITE_URL}/${l}/${slugs.projets[l]}/${projetSlug}`,
+        lastModified: now,
+        changeFrequency: "monthly",
+        priority: 0.7,
+        alternates: { languages: alts },
       });
     }
   }

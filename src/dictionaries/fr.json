@@ -87,6 +87,7 @@
       "outcome": "Résultat"
     },
     "nuada": {
+      "slug": "nuada",
       "title": "Nuada · audit accessibilité RGAA",
       "text": "Site vitrine et moteur d'audit RGAA. Conformité WCAG 2.2, SEO multilingue, positionnement « l'auditeur qui code la solution ».",
       "context": "Le marché de l'audit RGAA en France est saturé de rapports PDF que personne ne sait implémenter. Nuada s'est monté autour d'une idée simple : livrer le code de correction, pas seulement le diagnostic.",
@@ -94,9 +95,22 @@
       "stack": "Astro, TypeScript, MDX, i18n natif fr/en/es, hébergement Netlify.",
       "highlights": "Positionnement rare face aux cabinets classiques (« l'auditeur qui code »). Grille tarifaire publique transparente. Démo audit rapide en ligne sur URL soumise.",
       "outcome": "En ligne depuis août 2026. Premiers échanges avec 3 prospects entre septembre et octobre.",
-      "cta": "Voir le site →"
+      "cta": "Voir le site →",
+      "detail": {
+        "readMoreCta": "Lire l'étude complète →",
+        "backCta": "← Retour aux projets",
+        "hero": "L'auditeur qui code la solution.",
+        "narrative": [
+          { "title": "Le constat du marché", "text": "L'audit d'accessibilité RGAA en France est un marché mûr mais paradoxal. Les grands cabinets livrent des rapports PDF de 80 pages, structurés selon les 106 critères du référentiel, listant chaque non-conformité avec une capture d'écran et une recommandation générique. Les équipes techniques qui reçoivent ces rapports se retrouvent souvent démunies : comment traduire « améliorer le contraste des liens focus » en une pull request concrète ? Nuada part de ce constat pour proposer autre chose." },
+          { "title": "Le parti pris technique", "text": "Chaque non-conformité identifiée par Nuada est livrée avec le code de correction directement implémentable, testé sur un fork du projet client si possible. Pas de « recommandation » vague, pas de « à investiguer côté équipe » : un diff Git, une explication du pourquoi, un test de non-régression. L'auditeur devient un contributeur temporaire, pas un consultant qui laisse le sac de nœuds." },
+          { "title": "L'architecture du site", "text": "Astro pour la génération statique, i18n natif pour fr/en/es sans surcoût, MDX pour les articles de fond, hébergement Netlify avec preview branches pour chaque nouveau contenu. Le site est lui-même conforme RGAA 4.1 par construction — pas de bricolage post-audit, chaque composant est pensé accessible depuis son écriture initiale. Un tests-driven approach a11y qui sert d'exemple." },
+          { "title": "Ce que Nuada m'apprend", "text": "Bâtir Nuada m'a forcé à formaliser l'implicite : ce que je faisais intuitivement sur les missions clients (livrer du code plutôt que du texte) devient une méthode reproductible. Le vrai livrable d'un audit d'accessibilité n'est pas un document, c'est une base de code plus accessible qu'avant." },
+          { "title": "Les prochaines étapes", "text": "Une fois la certification RGAA validée (examen access42 le 23 octobre 2026), Nuada peut passer d'un site vitrine à un vrai outil : automatisation partielle des audits via axe-core dans le CI, comparateur avant/après sur pull request, base publique de patterns accessibles réutilisables." }
+        ]
+      }
     },
     "kleyfrance": {
+      "slug": "kleyfrance",
       "title": "KleyFrance",
       "text": "Refonte complète du site WordPress + création du logo pour un fabricant de solutions de levage sur-mesure (pétrolier, océanographique, militaire).",
       "context": "Site vieillissant, pas responsive, charte graphique inexistante. Cible B2B internationale exigeante, vocabulaire technique très pointu (élinguage, treuils marins, LOLER).",
@@ -104,9 +118,22 @@
       "stack": "WordPress, ACF Pro, thème custom responsive, animations GSAP subtiles.",
       "highlights": "Charte visuelle industrielle sans céder au cliché « heavy metal ». Photothèque produits organisée par secteur (naval / offshore / défense). SEO multilingue B2B.",
       "outcome": "Site en ligne, temps de chargement divisé par 3, mobile-friendly, formulaires devis unifiés.",
-      "cta": "Voir le site →"
+      "cta": "Voir le site →",
+      "detail": {
+        "readMoreCta": "Lire l'étude complète →",
+        "backCta": "← Retour aux projets",
+        "hero": "Faire respirer un site industriel niche.",
+        "narrative": [
+          { "title": "Le contexte client", "text": "KleyFrance est un fabricant français de solutions de levage sur-mesure — élingues, treuils, palonniers spécialisés — pour des secteurs très pointus : pétrole, offshore océanographique, industrie militaire. Un site WordPress hérité, non responsive, dont la charte graphique se résumait à un logo vieilli et à une palette gris-bleu sans identité. Le brief : refondre en gardant la crédibilité industrielle, sans céder au cliché « heavy metal » qui parasite ce marché." },
+          { "title": "L'approche direction artistique", "text": "Plutôt qu'un site tape-à-l'œil, un design qui respire le sérieux technique. Photos produits en fond épuré, typographie industrielle sobre mais moderne (pas de futura épais, plutôt une neo-grotesque équilibrée), palette resserrée bleu profond + orange fonctionnel comme un ruban de signalisation. Le logo redessiné garde l'esprit « K » du fondateur mais avec des proportions golden ratio, lisible en 16px comme en 2m sur un salon." },
+          { "title": "Le défi éditorial", "text": "Le vocabulaire est ultra-spécialisé. « Palonnier à équilibrage », « treuil hydraulique subaquatique 30t », « conformité DNV/LOLER ». Le site devait rester accessible aux acheteurs techniques (qui connaissent) sans effrayer les acheteurs plus généralistes (armée, industriels). Solution : une double lecture systématique — un titre explicite en français courant, un sous-titre technique précis avec le vocabulaire métier." },
+          { "title": "L'impact concret", "text": "Temps de chargement divisé par 3 (WordPress optimisé, images WebP, cache Cloudflare). Mobile-first responsive. Formulaires devis unifiés avec conditions préremplies selon secteur cible. Retours du client : les premiers contacts entrants deviennent plus qualifiés — les prospects arrivent en ayant compris la spécialisation avant de contacter." },
+          { "title": "Ce que j'en retiens", "text": "Sur un marché B2B niche, la direction artistique compte plus qu'on ne le pense. La crédibilité technique passe par des choix graphiques cohérents avec le métier — pas d'effets creative dev inutiles, mais chaque élément doit signaler « on sait de quoi on parle »." }
+        ]
+      }
     },
     "synapse": {
+      "slug": "synapse",
       "title": "Synapse",
       "text": "Plugin open-source pour Claude Code : synchronise la mémoire d'un assistant IA entre plusieurs machines et projets au lieu de la dupliquer.",
       "context": "En utilisant Claude Code sur 3 postes (perso, mission LR, laptop), je perdais la continuité : chaque machine avait sa propre mémoire, aucune ne connaissait le contexte des autres. Duplication manuelle chronophage et fragile.",
@@ -114,7 +141,19 @@
       "stack": "Node.js, TypeScript, hooks Claude Code, sync git en arrière-plan, cache local intelligent.",
       "highlights": "Détection de collisions de sync (deux machines qui écrivent en même temps). Structure de mémoire nommée (feedback/project/user/reference). 283 tests, CI verte dès la première PR. Publié en open-source dès le jour 1.",
       "outcome": "Publié sur github.com/smaurier/claude-synapse. Plugin adopté quotidiennement sur mes 3 postes. Base solide pour une communauté future.",
-      "cta": "Voir le code →"
+      "cta": "Voir le code →",
+      "detail": {
+        "readMoreCta": "Lire l'étude complète →",
+        "backCta": "← Retour aux projets",
+        "hero": "Une mémoire IA continue entre trois machines.",
+        "narrative": [
+          { "title": "Le problème vécu", "text": "En 2026, j'utilise Claude Code quotidiennement sur trois postes : mon poste perso à la maison, celui en mission chez LR Technologies, un laptop de secours. Chaque machine gère sa propre mémoire (préférences utilisateur, contexte projet, feedback validé). Résultat : je répète les mêmes explications à Claude sur chaque machine, ou pire, je copie-colle manuellement des fichiers memory entre machines avec des risques de conflits. Le pattern « plusieurs assistants qui ne se connaissent pas » devient rapidement contre-productif." },
+          { "title": "L'architecture retenue", "text": "Synapse est un plugin qui bootstrap une structure de mémoire versionnée via Git, avec sync automatique en arrière-plan à chaque changement significatif. La mémoire est typée : feedback (règles de travail apprises), project (contexte projet actif), user (profil utilisateur), reference (pointeurs vers sources externes). Chaque entrée a un frontmatter YAML explicite, une description courte, un type. Un système de linking `[[nom]]` permet de tisser les entrées entre elles comme un mini-graphe de connaissance." },
+          { "title": "Les choix techniques", "text": "Node.js + TypeScript pour cross-plateforme. Hooks Claude Code natifs (SessionStart, SessionEnd, UserPromptSubmit) pour intercepter les moments clés sans monkey-patcher. Sync Git en background via `child_process` non-bloquant. Cache local intelligent pour éviter les allers-retours réseau inutiles. Détection de collision de sync : deux machines écrivent en même temps, Synapse tente un merge automatique par entrée, alerte l'utilisateur si conflit." },
+          { "title": "La qualité comme obligation", "text": "283 tests dès la première release publique, CI verte, coverage > 80%. Pourquoi cette rigueur pour un plugin perso ? Parce que la mémoire est un bien précieux — un bug qui écrase silencieusement une entrée, c'est du contexte perdu que je ne retrouverai pas. Le TDD n'est pas ici un dogme mais une garantie que la mémoire ne se corrompt pas." },
+          { "title": "L'ouverture communauté", "text": "Publié en open-source dès le premier commit sur github.com/smaurier/claude-synapse. Documentation soignée, exemples concrets, ADR (Architecture Decision Records) pour tracer les choix. Ambition : que d'autres utilisateurs Claude Code multi-machines puissent bootstrap leur propre système. Pas de business model, pas de premium — un outil qui règle un vrai problème pour ceux qui l'ont." }
+        ]
+      }
     },
     "moreBefore": "D'autres projets sur",
     "moreLinkText": "mon GitHub",

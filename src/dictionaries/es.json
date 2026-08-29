@@ -87,6 +87,7 @@
       "outcome": "Resultado"
     },
     "nuada": {
+      "slug": "nuada",
       "title": "Nuada · auditoría de accesibilidad RGAA",
       "text": "Sitio vitrina y motor de auditoría RGAA. Conformidad WCAG 2.2, SEO multilingüe, posicionamiento como «el auditor que programa la solución».",
       "context": "El mercado francés de auditorías RGAA está saturado de informes PDF que nadie sabe implementar. Nuada nació con una idea simple: entregar el código de corrección, no solo el diagnóstico.",
@@ -94,9 +95,19 @@
       "stack": "Astro, TypeScript, MDX, i18n nativo fr/en/es, alojamiento Netlify.",
       "highlights": "Posicionamiento raro frente a firmas clásicas («el auditor que programa»). Tarifas públicas transparentes. Demo de auditoría rápida en línea sobre URL enviada.",
       "outcome": "En línea desde agosto 2026. Primeras conversaciones con 3 prospectos entre septiembre y octubre.",
-      "cta": "Ver el sitio →"
+      "cta": "Ver el sitio →",
+      "detail": {
+        "readMoreCta": "Leer el estudio completo →",
+        "backCta": "← Volver a los proyectos",
+        "hero": "El auditor que programa la solución.",
+        "narrative": [
+          { "title": "La realidad del mercado", "text": "El mercado francés de auditoría de accesibilidad RGAA es maduro pero paradójico. Las grandes firmas entregan informes PDF de 80 páginas, estructurados según los 106 criterios del estándar, listando cada no-conformidad con una captura y una recomendación genérica. Los equipos técnicos que reciben esos informes suelen quedar desamparados: ¿cómo traducir «mejorar el contraste de los enlaces focus» en una pull request concreta? Nuada parte de esta observación para proponer otra cosa." },
+          { "title": "La postura técnica", "text": "Cada no-conformidad identificada por Nuada se entrega con el código de corrección directamente implementable, probado sobre un fork del proyecto cliente cuando es posible. No hay «recomendación» vaga, no hay «investigar del lado del equipo»: un diff Git, una explicación del porqué, un test de no-regresión. El auditor se convierte en contribuidor temporal, no en consultor que deja atrás un nudo de problemas." }
+        ]
+      }
     },
     "kleyfrance": {
+      "slug": "kleyfrance",
       "title": "KleyFrance",
       "text": "Rediseño completo del sitio WordPress + creación del logo para un fabricante de soluciones de elevación a medida (petrolero, oceanográfico, militar).",
       "context": "Sitio envejecido, no responsivo, sin carta gráfica. Objetivo B2B internacional exigente, vocabulario técnico muy específico (eslingado, cabrestantes marinos, LOLER).",
@@ -104,9 +115,19 @@
       "stack": "WordPress, ACF Pro, tema responsivo a medida, animaciones GSAP sutiles.",
       "highlights": "Carta visual industrial sin caer en el cliché «heavy metal». Fototeca de productos organizada por sector (naval / offshore / defensa). SEO B2B multilingüe.",
       "outcome": "Sitio en línea, tiempo de carga dividido por 3, mobile-friendly, formularios de presupuesto unificados.",
-      "cta": "Ver el sitio →"
+      "cta": "Ver el sitio →",
+      "detail": {
+        "readMoreCta": "Leer el estudio completo →",
+        "backCta": "← Volver a los proyectos",
+        "hero": "Hacer respirar un sitio industrial de nicho.",
+        "narrative": [
+          { "title": "Contexto cliente", "text": "KleyFrance es un fabricante francés de soluciones de elevación a medida — eslingas, cabrestantes, balancines especializados — para sectores muy específicos: petrolero, offshore oceanográfico, industria militar. Un sitio WordPress heredado, no responsivo, cuya carta gráfica se resumía a un logo envejecido y una paleta gris-azul sin identidad. El brief: rediseñar manteniendo la credibilidad industrial, sin caer en el cliché «heavy metal» que parasita este mercado." },
+          { "title": "Enfoque de dirección artística", "text": "En lugar de un sitio llamativo, un diseño que respira seriedad técnica. Fotos de productos sobre fondo despejado, tipografía industrial sobria pero moderna, paleta ajustada azul profundo + naranja funcional como cinta de señalización. El logo rediseñado conserva el espíritu «K» del fundador pero con proporciones áureas, legible a 16px como a 2m en una feria." }
+        ]
+      }
     },
     "synapse": {
+      "slug": "synapse",
       "title": "Synapse",
       "text": "Plugin de código abierto para Claude Code: sincroniza la memoria de un asistente de IA entre varias máquinas y proyectos en lugar de duplicarla.",
       "context": "Usando Claude Code en 3 máquinas (personal, misión LR, laptop), perdía la continuidad: cada máquina tenía su propia memoria, ninguna conocía el contexto de las demás. Duplicación manual lenta y frágil.",
@@ -114,7 +135,16 @@
       "stack": "Node.js, TypeScript, hooks de Claude Code, sincronización git en segundo plano, caché local inteligente.",
       "highlights": "Detección de colisiones de sync (dos máquinas escribiendo al mismo tiempo). Estructura de memoria nombrada (feedback/project/user/reference). 283 tests, CI en verde desde el primer día. Publicado en código abierto desde el día 1.",
       "outcome": "Publicado en github.com/smaurier/claude-synapse. Plugin adoptado diariamente en mis 3 máquinas. Base sólida para una comunidad futura.",
-      "cta": "Ver el código →"
+      "cta": "Ver el código →",
+      "detail": {
+        "readMoreCta": "Leer el estudio completo →",
+        "backCta": "← Volver a los proyectos",
+        "hero": "Una memoria de IA continua entre tres máquinas.",
+        "narrative": [
+          { "title": "El problema vivido", "text": "En 2026, uso Claude Code diariamente en tres máquinas: mi setup personal en casa, la de misión en LR Technologies, un laptop de respaldo. Cada máquina gestiona su propia memoria. Resultado: repito las mismas explicaciones a Claude en cada máquina, o peor, copio manualmente archivos de memoria entre máquinas con riesgos de conflictos." },
+          { "title": "Arquitectura elegida", "text": "Synapse es un plugin que bootstrap una estructura de memoria versionada vía Git, con sincronización automática en segundo plano en cada cambio significativo. La memoria es tipada: feedback, project, user, reference. Cada entrada tiene un frontmatter YAML explícito, una descripción corta, un tipo. Un sistema de linking `[[nombre]]` teje las entradas entre sí como un mini grafo de conocimiento." }
+        ]
+      }
     },
     "moreBefore": "Más proyectos en",
     "moreLinkText": "mi GitHub",
