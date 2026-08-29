@@ -323,8 +323,7 @@ export default async function LocaleLayout({
               premier fondu (setMounted(false)) et ne remonte plus
               jamais tant que l'utilisateur ne reload pas. */}
           <LoadingVeil
-            phrase={dict.lab.loadingPhrase}
-            translation={dict.lab.loadingTranslation}
+            phrases={dict.lab.loadingPhrases}
             label={dict.lab.loadingLabel}
           />
           {/* Intro cinématique retiree 28/08 (retour Sylvain "gros

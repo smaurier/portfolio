@@ -283,8 +283,34 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
       </section>
 
       <section className="codexSection">
+        <h2>{renderWithNahuatl(dict.suns.title)}</h2>
+        <p>{renderWithNahuatl(dict.suns.text)}</p>
+        <ul className="codexDirections">
+          {dict.suns.list.map((s) => (
+            <li key={s.name}>
+              <strong>{renderWithNahuatl(s.name)}</strong>
+              <span>{renderWithNahuatl(s.text)}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="codexSection">
         <h2>{renderWithNahuatl(dict.ollin.title)}</h2>
         <p>{renderWithNahuatl(dict.ollin.text)}</p>
+      </section>
+
+      <section className="codexSection">
+        <h2>{renderWithNahuatl(dict.entities.title)}</h2>
+        <p>{renderWithNahuatl(dict.entities.text)}</p>
+        <ul className="codexDirections">
+          {dict.entities.list.map((e) => (
+            <li key={e.name}>
+              <strong>{renderWithNahuatl(e.name)}</strong>
+              <span>{renderWithNahuatl(e.text)}</span>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="codexSection">

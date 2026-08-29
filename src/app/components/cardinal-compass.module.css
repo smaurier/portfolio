@@ -56,6 +56,7 @@
   align-items: center;
   justify-content: center;
   color: inherit;
+  position: relative;
 }
 
 .dot::before {
@@ -86,6 +87,53 @@
   outline: 2px solid #00c078;
   outline-offset: 3px;
   border-radius: 6px;
+}
+
+/* Tooltip nahuatl (29/08). Au hover/focus d'un dot, revele nom
+   cardinal + region nahuatl + gardien. Position au-dessus du dot
+   (compass fixed bottom-right -> tooltip vers le haut reste dans
+   viewport). Delay 300ms evite trigger accidentel au pass-through.
+   Pointeur-events none : tooltip ne bloque pas les autres dots.
+   aria-hidden cote React : evite doublon avec aria-label du bouton. */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 8, 14, 0.94);
+  border: 1px solid rgba(244, 234, 213, 0.2);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: #f4ead5;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease 0.3s;
+  z-index: 10;
+  backdrop-filter: blur(6px);
+}
+
+.dot:hover .tooltip,
+.dot:focus-visible .tooltip {
+  opacity: 1;
+}
+
+.tooltipDivider {
+  color: rgba(244, 234, 213, 0.4);
+  margin: 0 4px;
+}
+
+.tooltipGuardian {
+  color: var(--compass-color, #00c078);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip {
+    transition: none;
+  }
 }
 
 /* Grille croix : ligne 1 = _, N, _ | ligne 2 = W, C, E | ligne 3 = _, S, _ */

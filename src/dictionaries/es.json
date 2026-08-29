@@ -249,9 +249,28 @@
         { "name": "Norte · Mictlantecuhtli · obsidiana", "text": "La noche, el señor del país de los muertos. Aquí está Teyolía · Memoria, lo que se conservó en vez de borrarse." }
       ]
     },
+    "suns": {
+      "title": "Los cuatro soles anteriores",
+      "text": "Antes de Nahui Ollin, cuatro mundos vivieron y perecieron. Cada uno dejó una lección sobre cómo morir — y por tanto cómo vivir. La cosmología nahua no piensa la creación como lineal sino como ciclos que se engendran al derrumbarse. Nuestro sol actual es el quinto. Es mortal como los anteriores.",
+      "list": [
+        { "name": "Nahui Ocelotl · 4 Jaguar", "text": "El primer sol. Los habitantes eran gigantes que se alimentaban de bellotas. El mundo se derrumbó bajo los jaguares que devoraron a la raza. Caída por exceso de fuerza." },
+        { "name": "Nahui Ehecatl · 4 Viento", "text": "El segundo sol, gobernado por Quetzalcoatl. Un viento inmenso sopló el mundo, los humanos transformados en monos que aún se aferran a las ramas. Caída por falta de anclaje." },
+        { "name": "Nahui Quiahuitl · 4 Lluvia de fuego", "text": "El tercer sol, gobernado por Tlaloc. Una lluvia de fuego quemó el mundo, los habitantes transformados en pavos que conservan su cresta roja. Caída por cólera celeste." },
+        { "name": "Nahui Atl · 4 Agua", "text": "El cuarto sol, gobernado por Chalchiuhtlicue, Falda de Jade. Un diluvio ahogó el mundo, los humanos transformados en peces. Caída por lágrimas contenidas demasiado tiempo." }
+      ]
+    },
     "ollin": {
       "title": "Ollin, el temblor del 5º sol",
       "text": "Vivimos bajo Nahui Ollin, el sol de los cuatro movimientos. La profecía nahua dice que nuestro mundo perdura mientras tiembla: cuando Ollin cesa, la tierra se detiene una última vez, Tonatiuh muere, los Tzitzimime descienden. Cada respiración, cada latido, cada toque es prueba viva de Ollin. En este sitio, cuando presiona el ratón o toca la pantalla, una onda radial atraviesa la escena: es Ollin manifestándose. El ciervo Mazātl, mensajero entre mundos, siente la vibración antes que sus ojos. Los cuatro guardianes despiertan, el fuego central redistribuye. Está realizando un ritual cuyo nombre desconocía. El glifo histórico de Ollin es un círculo central bordeado por cuatro rayos cardinales — la misma cruz de cinco puntos que la brújula en la esquina inferior derecha. El gesto y la estructura se responden."
+    },
+    "entities": {
+      "title": "Las tres entidades del ser nahua",
+      "text": "En el pensamiento nahua, una persona no es un alma única sino tres entidades que cohabitan, cada una alojada en una parte del cuerpo. Se separan en la muerte y toman caminos distintos. Comprender este tríptico es comprender por qué Teyolía da nombre a la página Memoria de este sitio.",
+      "list": [
+        { "name": "Teyolía · corazón", "text": "La sede de la memoria, la personalidad, el saber íntimo. Reside en el corazón y, en la muerte, viaja hacia Mictlán tras un periplo de cuatro años. Es ella quien lleva lo que has sido." },
+        { "name": "Tonalli · cabeza", "text": "La fuerza vital ligada al día de nacimiento en el calendario tonalpohualli. Reside en la cabeza e irradia como un calor. Puede escapar durante un susto intenso — de ahí los rituales para llamar de vuelta al tonalli tras un choque." },
+        { "name": "Ihíyotl · hígado", "text": "El aliento, las pasiones, los deseos. Reside en el hígado y en el vientre. Si no se domina, puede escapar y afectar a los demás — las enfermedades morales vienen de ahí." }
+      ]
     },
     "totem": {
       "title": "El ciervo, Mazātl",
@@ -339,8 +358,13 @@
     ]
   },
   "lab": {
-    "loadingPhrase": "In xochitl, in cuicatl",
-    "loadingTranslation": "«Flor y canto», la única verdad, según los sabios nahuas",
+    "loadingPhrases": [
+      { "phrase": "In xochitl, in cuicatl", "translation": "«Flor y canto» — la única verdad según los tlamatinimeh" },
+      { "phrase": "Nahui Ollin", "translation": "«Cuatro movimientos» — el nombre del quinto sol, nuestro mundo" },
+      { "phrase": "In tlilli, in tlapalli", "translation": "«La tinta negra, la tinta roja» — el saber escrito en los códices" },
+      { "phrase": "Ipalnemohuani", "translation": "«Aquel por quien vivimos» — nombre del principio supremo, dualidad más allá de los dioses" },
+      { "phrase": "Cempoalxochitl", "translation": "«Veinte flores» — el cempasúchil, puente entre los vivos y Mictlán" }
+    ],
     "loadingLabel": "Cargando la escena"
   }
 }

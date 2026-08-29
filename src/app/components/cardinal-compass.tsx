@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { pageKeys, slugs, getPath, type PageKey } from "@/lib/routes";
 import { getDictionary, type Locale } from "@/dictionaries";
+import { renderWithNahuatl } from "@/lib/nahuatl";
 import CompassOverlay from "./compass-overlay";
 import { useCurrentDirection } from "./stag-scene/use-current-direction";
 import { useCardinalTransition, type CardinalDirection } from "./stag-scene/cardinal-transition-context";
@@ -42,6 +43,10 @@ type Slot = {
   direction: DirectionKey;
   page: PageKey | "home";
   label: Record<Locale, string>;
+  /** Nom nahuatl de la region cardinale (Codex Nahual section 03). */
+  region: string;
+  /** Gardien nahua de la direction. */
+  guardian: string;
 };
 
 const SLOTS: Record<"N" | "E" | "S" | "W" | "C", Slot> = {
@@ -49,26 +54,36 @@ const SLOTS: Record<"N" | "E" | "S" | "W" | "C", Slot> = {
     direction: "obsidienne",
     page: "memoire",
     label: { fr: "Nord · Mémoire", en: "North · Memory", es: "Norte · Memoria" },
+    region: "Mictlampa",
+    guardian: "Mictlantecuhtli",
   },
   E: {
     direction: "dore",
     page: "services",
     label: { fr: "Est · Services", en: "East · Services", es: "Este · Servicios" },
+    region: "Tlahuizcalpan",
+    guardian: "Tonatiuh",
   },
   S: {
     direction: "turquoise",
     page: "projets",
     label: { fr: "Sud · Projets", en: "South · Projects", es: "Sur · Proyectos" },
+    region: "Huitztlampa",
+    guardian: "Huitzilopochtli",
   },
   W: {
     direction: "cendre",
     page: "contact",
     label: { fr: "Ouest · Contact", en: "West · Contact", es: "Oeste · Contacto" },
+    region: "Cihuatlampa",
+    guardian: "Cihuateteo",
   },
   C: {
     direction: "jade",
     page: "home",
     label: { fr: "Centre · Accueil", en: "Center · Home", es: "Centro · Inicio" },
+    region: "Tlalxicco",
+    guardian: "Xiuhtecuhtli",
   },
 };
 
@@ -149,7 +164,18 @@ export default function CardinalCompass({ locale }: { locale: string }) {
         onClick={(e) => navigate(slot, e)}
         aria-label={slot.label[l]}
         aria-current={active ? "page" : undefined}
-      />
+      >
+        {/* Tooltip nahuatl (29/08). Revele au hover/focus le nom
+            nahuatl de la region + le gardien. aria-hidden pour ne
+            pas doubler l'aria-label du bouton. */}
+        <span className={styles.tooltip} aria-hidden="true">
+          {slot.label[l]}
+          <span className={styles.tooltipDivider}> · </span>
+          {renderWithNahuatl(slot.region)}
+          <span className={styles.tooltipDivider}> · </span>
+          <span className={styles.tooltipGuardian}>{renderWithNahuatl(slot.guardian)}</span>
+        </span>
+      </button>
     );
   }
 

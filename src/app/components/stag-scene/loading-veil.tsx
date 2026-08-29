@@ -30,12 +30,15 @@ const SNAP_THRESHOLD = 0.05;
  * scroll/aux interactions pendant la transition (cf .hidden en CSS).
  */
 export default function LoadingVeil({
-  phrase,
-  translation,
+  phrases,
   label,
 }: {
-  phrase: string;
-  translation: string;
+  /** Array de phrases nahuatl + traductions (29/08 refactor cycle
+   * rotatif). Une phrase random est selectionnee au mount. Chaque
+   * chargement de session offre une porte d'entree differente sur
+   * la philosophie nahua — cinq piliers rotatifs plutot qu'un mantra
+   * fige. Signature "cycle est fondamental" retour Sylvain 29/08. */
+  phrases: { phrase: string; translation: string }[];
   label: string;
 }) {
   const { progress } = useProgress();
@@ -44,6 +47,11 @@ export default function LoadingVeil({
   const [displayedProgress, setDisplayedProgress] = useState(0);
   const displayedRef = useRef(0);
   const reducedMotionRef = useRef(false);
+  // Selection random au mount (useState initializer garantit UN pick
+  // pour toute la duree du LoadingVeil, jamais re-shuffle en cours).
+  const [selected] = useState(() => phrases[Math.floor(Math.random() * phrases.length)]);
+  const phrase = selected.phrase;
+  const translation = selected.translation;
 
   useEffect(() => {
     const timer = setTimeout(() => setMinDurationElapsed(true), MIN_VEIL_DURATION_MS);
