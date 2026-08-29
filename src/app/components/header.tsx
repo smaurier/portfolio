@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ObfuscatedEmail from "./obfuscated-email";
 import CardinalLink from "./stag-scene/cardinal-link";
 import type { Dictionary, Locale } from "../../dictionaries";
 import { getPageKeyFromSlug, getPath } from "../../lib/routes";
+import { useFocusTrap } from "../../lib/use-focus-trap";
 
 const locales: Locale[] = ["fr", "en", "es"];
 const langNames: Record<Locale, string> = {
@@ -42,6 +43,11 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
 
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+  const mobilePanelRef = useRef<HTMLDivElement>(null);
+  // Focus trap RGAA 7.3 : quand le panel mobile est ouvert, Tab
+  // reste confine dedans + focus initial sur premier lien + return
+  // focus au bouton burger a la fermeture.
+  useFocusTrap(mobilePanelRef, open);
 
   useEffect(() => {
     if (!open) return;
@@ -143,7 +149,7 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
           permanent pour éviter que les liens soient dans l'ordre de
           tabulation quand le panel est fermé sur mobile. */}
       {open && (
-        <div id="mobile-menu-panel" className="mobilePanel" role="dialog" aria-modal="true" aria-label={dict.navMobileLabel}>
+        <div ref={mobilePanelRef} id="mobile-menu-panel" className="mobilePanel" role="dialog" aria-modal="true" aria-label={dict.navMobileLabel}>
           <nav className="mobileNav" aria-label={dict.navMainLabel}>
             <ul>
               <li>

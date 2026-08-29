@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { Dictionary } from "@/dictionaries";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 import styles from "./compass-overlay.module.css";
 
 /**
@@ -33,11 +34,14 @@ export default function CompassOverlay({
   closeLabel: string;
   onClose: () => void;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  // Focus trap complet RGAA 7.3 : focus initial + confine Tab
+  // + return focus au trigger a la fermeture (previousFocus save
+  // dans le hook). Escape reste gere localement ci-dessous car
+  // hors du scope focus trap (listener document, pas root).
+  useFocusTrap(rootRef, true);
+
   useEffect(() => {
-    // Return focus au trigger (bouton expand compass) a la fermeture
-    // (RGAA 7.3 modal focus trap fix). Save activeElement AVANT
-    // mount, refocus AU cleanup.
-    const previousFocus = document.activeElement as HTMLElement | null;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
@@ -46,15 +50,12 @@ export default function CompassOverlay({
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
-      // Return focus au trigger si toujours dans le DOM
-      if (previousFocus && document.contains(previousFocus)) {
-        previousFocus.focus();
-      }
     };
   }, [onClose]);
 
   return (
     <div
+      ref={rootRef}
       className={styles.backdrop}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();

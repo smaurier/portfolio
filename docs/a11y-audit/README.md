@@ -162,6 +162,81 @@ juste le label.
 - Puis chantier opportunités A-H (narration SR enrichie, prononciation
   nahuatl, mode « récit accessible » opt-in, etc.)
 
+---
+
+## Passe 2 — 2026-08-29 (focus trap + SPA announce + reduced-motion)
+
+### ✅ Focus trap : compass overlay + panel mobile burger
+
+Hook partagé `src/lib/use-focus-trap.ts` (RGAA 7.3, WCAG 2.4.3) :
+- focus initial sur le premier focusable du container à l'activation
+- Tab depuis dernier revient au premier, Shift+Tab depuis premier va
+  au dernier
+- Return focus au trigger à la désactivation (save
+  `document.activeElement` avant, refocus au cleanup)
+- Fallback : si aucun focusable, container reçoit tabindex=-1
+  temporaire pour permettre l'annonce SR
+
+`compass-overlay.tsx` : remplace le focus-return-only manuel par le
+hook. Escape reste géré localement (listener document, pas root).
+
+`header.tsx` : ref `mobilePanelRef` + `useFocusTrap(ref, open)`. Tab
+piégé dans le panel tant qu'il est ouvert.
+
+### ✅ SPA nav announce : `route-announcer.tsx`
+
+Nouveau composant monté dans layout. Observe `usePathname()`, attend
+250ms le peint du nouveau `<main>`, récupère `main h1` textContent,
+pousse dans une `<div role="status" aria-live="polite" class="sr-only">`.
+Skip le premier mount (titre déjà dans le document).
+
+Pattern « reset puis set » (setState "" puis setState title 50ms plus
+tard) : garantit que la région ré-annonce même si le titre est
+identique (nav back).
+
+Ne déplace pas le focus : moins invasif, laisse l'utilisateur clavier
+maître de sa position.
+
+### ✅ `prefers-reduced-motion` — audit corrigé
+
+Mon audit initial pointait 4 composants (custom-cursor, cursor-trail,
+mask-reveal, tilt-cards). Après lecture, 3/4 respectaient déjà (ligne
+22 identique dans chacun). Seul `custom-cursor.tsx` manquait le
+check : ajouté, skip complet du curseur custom si media query match,
+curseur natif reste visible.
+
+`easter-egg.tsx` : anim konami-flash déjà couverte par media query
+CSS dans `globals.css`. OK.
+
+`smooth-scroll.tsx` : déjà couvert (ligne 25-26).
+
+### ✅ `alert` / `status` orphelins — investigation
+
+Playwright evaluate `document.querySelectorAll('[role="alert"]')` :
+retourne `[]` sur `/fr`. Le "alert" dans le tree = Next.js dev tools
+(bouton "Open Next.js Dev Tools" visible, dev only). Non-issue prod.
+
+`role="status"` : 3 sources légitimes :
+1. `RouteAnnouncer` (nouveau, chantier a11y) — contient le titre de
+   la page courante
+2. `LoadingVeil` — présent au mount, disparaît après load
+3. `easter-egg` toast — reste en DOM vide pour recevoir les révélations
+
+Aucun n'est un bug. Aria-live regions doivent rester montées pour
+recevoir les updates.
+
+### Différé au chantier « SR enrichi » (opportunités A-H)
+
+- Termes nahuatl inline `lang="nah"` : refactor rendu dicts requis
+  (dangerouslySetInnerHTML ou parser cote render). Trop invasif pour
+  la passe fondations.
+- Descriptions poétiques SR-only des scènes 3D
+- Live region cardinale narrative (changement de direction annoncé
+  avec nom nahuatl + rôle mytho)
+- Prononciation nahuatl audio ou phonétique
+- Mode « récit accessible » opt-in
+
+
 ## Validation manuelle attendue
 
 Une fois la passe 2 finie, tester avec NVDA + Firefox sur les 3 pages

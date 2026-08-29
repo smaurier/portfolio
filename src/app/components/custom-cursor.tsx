@@ -54,6 +54,11 @@ export default function CustomCursor() {
     // curseur ET on ne masque pas le natif.
     const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
     if (!mq.matches) return;
+    // Respect prefers-reduced-motion (29/08 a11y) : le lerp du dot
+    // et du ring cree un mouvement continu qui peut declencher
+    // troubles vestibulaires. Skip completement le curseur custom,
+    // le natif reste visible.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     document.body.classList.add("nahual-custom-cursor");
     activeRef.current = true;

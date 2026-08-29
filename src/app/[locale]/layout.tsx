@@ -8,6 +8,7 @@ import MaskReveal from "../components/mask-reveal";
 import CustomCursor from "../components/custom-cursor";
 import EasterEgg from "../components/easter-egg";
 import KeyboardNav from "../components/keyboard-nav";
+import RouteAnnouncer from "../components/route-announcer";
 import SoundDesign from "../components/sound-design";
 import TiltCards from "../components/tilt-cards";
 import Header from "../components/header";
@@ -214,6 +215,11 @@ export default async function LocaleLayout({
               premier tab depuis top = "aller au contenu principal".
               Sr-only par defaut, visible au focus. */}
           <SkipNav label={dict.common.skipNav} />
+          {/* Route announcer SPA (29/08 chantier a11y) — annonce le
+              titre de chaque nouvelle page dans une region aria-live
+              sr-only. NVDA/JAWS/VoiceOver le lisent au router.push
+              sans que l'utilisateur SR ait a reparcourir la page. */}
+          <RouteAnnouncer />
           {/* Lenis smooth scroll (28/08 task #48) — signature silky
               scroll. Respect reducedMotion (pas monte du tout).
               window.scrollY reste synchro, la scene 3D reveal-arc
