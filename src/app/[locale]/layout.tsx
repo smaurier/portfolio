@@ -100,6 +100,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       icon: [{ url: "/img/mini-logo.svg", type: "image/svg+xml" }],
     },
     manifest: "/manifest.webmanifest",
+    // Site verification (29/08 SEO pass v2). Tokens fournis via env
+    // Netlify — inutile de commiter. GSC/Bing acceptent aussi la
+    // methode DNS TXT, ces meta sont un fallback simple.
+    verification: {
+      google: process.env.NEXT_PUBLIC_GSC_VERIFICATION,
+      other: {
+        "msvalidate.01": process.env.NEXT_PUBLIC_BING_VERIFICATION ?? "",
+        "yandex-verification": process.env.NEXT_PUBLIC_YANDEX_VERIFICATION ?? "",
+      },
+    },
     // theme-color obsidienne aligne l'UI chrome mobile (barre URL) sur la
     // palette du site — signal marque, evite le blanc par defaut qui casse
     // l'immersion premiere seconde apres load.
@@ -127,13 +137,17 @@ export default async function LocaleLayout({
     {
       "@context": "https://schema.org",
       "@type": "Person",
+      "@id": `${SITE_URL}/#person`,
       name: AUTHOR_NAME,
       url: SITE_URL,
+      mainEntityOfPage: `${SITE_URL}/${locale}`,
       email: `mailto:${AUTHOR_EMAIL}`,
       jobTitle: "Frontend Developer · Creative Developer · RGAA Auditor",
       sameAs: [AUTHOR_LINKEDIN, AUTHOR_GITHUB, AUTHOR_SITE],
       knowsAbout: ["Accessibility", "RGAA", "WCAG", "React", "Next.js", "React Three Fiber", "TypeScript", "WebGL"],
       worksFor: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+      nationality: { "@type": "Country", name: "France" },
+      workLocation: { "@type": "Place", name: "Lyon, France" },
     },
     {
       "@context": "https://schema.org",
