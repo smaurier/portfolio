@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import type { Group, Mesh, MeshBasicMaterial } from "three";
+import { useAnimations, useGLTF } from "@react-three/drei";
+import { MeshBasicMaterial, type Group, type Mesh } from "three";
 import { isBot } from "@/lib/is-bot";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import type { DirectionKey } from "./direction-colors";
@@ -33,11 +34,14 @@ import { useCurrentDirection } from "./use-current-direction";
  *  - mode récit accessible actif (canvas démonté)
  *  - prefers-reduced-motion (troubles vestibulaires)
  *
- * Silhouette : mesh procédural minimaliste (5 primitives Three.js).
- * Cohérent avec le principe « évocation stylisée, pas reproduction »
- * du site (voir codex.respect). Couleur obsidienne semi-transparente,
- * matériau BasicMaterial (aucun coût lumière). Upgrade GLB Hunyuan
- * possible plus tard.
+ * Mesh : Wolf.glb Quaternius (CC0, 1962 tris, rigged + 12 animations
+ * dont Walk). Source :
+ * https://raw.githubusercontent.com/trebeljahr/quaternius-showcase/main/public/glb/animals_pack/Wolf.glb
+ * Silhouette maigre quadrupède + oreilles pointues erectes ~= Xolo
+ * à distance semi-transparente. Matériaux originaux overrides par
+ * MeshBasicMaterial obsidienne semi-transparent (aucun coût lumière,
+ * signature ombre-fantomatique cohérente ambiance nocturne).
+ * Attribution CC0 dans le footer credits (page /credits).
  */
 
 const DIRECTION_SPAWN_PROBABILITY: Record<DirectionKey, number> = {
@@ -58,9 +62,23 @@ const START_X = -8;
 const END_X = 8;
 const Z_DEPTH = -4;
 const Y_LEVEL = -0.5;
-const PEAK_OPACITY = 0.35;
+const PEAK_OPACITY = 0.4;
 
 const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
+
+// Scale du Wolf.glb pour proportion cohérente au cerf central (stag
+// est ~1.5 units world). Wolf natif Quaternius ~2 units → scale 0.55
+// = ~1.1 unit, moitié taille cerf → cohérent silhouette secondaire
+// à distance Z=-4.
+const XOLOTL_SCALE = 0.55;
+
+// Nom de l'animation Walk dans le Wolf.glb Quaternius. Convention
+// pack Animals : "AnimalArmature|<AnimName>".
+const WALK_ANIM = "AnimalArmature|Walk";
+
+// Preload GLB (drei helper) — chargement au premier render du site,
+// évite délai lag au premier spawn.
+useGLTF.preload("/models/xolotl.glb");
 
 export default function XolotlCompanion() {
   const direction = useCurrentDirection();
@@ -72,6 +90,27 @@ export default function XolotlCompanion() {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("nahual-xolotl-witnessed") === "1";
   }, []);
+
+  const { scene, animations } = useGLTF("/models/xolotl.glb");
+  const { actions } = useAnimations(animations, groupRef);
+
+  // Override matériaux originaux Wolf → MeshBasicMaterial obsidienne
+  // semi-transparent. Une fois au mount, réappliqué à chaque scene
+  // reload defensive. depthWrite:false : evite conflits transparence
+  // avec autres meshes de la scene 3D.
+  useEffect(() => {
+    scene.traverse((child) => {
+      const mesh = child as Mesh;
+      if (mesh.isMesh) {
+        mesh.material = new MeshBasicMaterial({
+          color: XOLOTL_COLOR,
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+        });
+      }
+    });
+  }, [scene]);
 
   // Décide spawn une fois par session/direction. sessionStorage évite
   // re-random au re-mount SPA (nav retour sur même page).
@@ -99,15 +138,19 @@ export default function XolotlCompanion() {
     setStartedAt(null);
   }, [direction, readingMode.active]);
 
-  // Déclenche appear après delay
+  // Déclenche appear après delay + start walk animation loop
   useEffect(() => {
     if (!spawn) return;
     const delay = alreadyWitnessed ? APPEAR_DELAY_REPEAT_MS : APPEAR_DELAY_FIRST_MS;
     const timer = window.setTimeout(() => {
       setStartedAt(performance.now());
+      const walk = actions[WALK_ANIM];
+      if (walk) {
+        walk.reset().play();
+      }
     }, delay);
     return () => window.clearTimeout(timer);
-  }, [spawn, alreadyWitnessed]);
+  }, [spawn, alreadyWitnessed, actions]);
 
   useFrame(() => {
     const g = groupRef.current;
@@ -128,6 +171,8 @@ export default function XolotlCompanion() {
         } catch {}
       }
       g.visible = false;
+      const walk = actions[WALK_ANIM];
+      if (walk) walk.stop();
       setStartedAt(null);
       return;
     }
@@ -143,7 +188,8 @@ export default function XolotlCompanion() {
       const fadeOutT = (elapsed - FADE_MS - TRAVERSE_MS) / FADE_MS;
       opacity *= 1 - fadeOutT;
     }
-    // Applique opacité à tous les mesh matérialistes du group
+    // Applique opacité à tous les mesh du group (materials override
+    // ont déjà transparent:true)
     g.traverse((child) => {
       const mesh = child as Mesh;
       if (mesh.isMesh) {
@@ -164,34 +210,8 @@ export default function XolotlCompanion() {
   if (!spawn) return null;
 
   return (
-    <group ref={groupRef} rotation={[0, Math.PI / 2, 0]} visible={false}>
-      {/* Corps — capsule allongée */}
-      <mesh position={[0, 0.45, 0]}>
-        <capsuleGeometry args={[0.18, 0.6, 4, 8]} />
-        <meshBasicMaterial color={XOLOTL_COLOR} transparent opacity={0} depthWrite={false} />
-      </mesh>
-      {/* Tête — sphere avant corps */}
-      <mesh position={[0, 0.6, 0.45]}>
-        <sphereGeometry args={[0.14, 8, 8]} />
-        <meshBasicMaterial color={XOLOTL_COLOR} transparent opacity={0} depthWrite={false} />
-      </mesh>
-      {/* 4 pattes — cylindres */}
-      {([[-0.13, 0.15, 0.25], [0.13, 0.15, 0.25], [-0.13, 0.15, -0.25], [0.13, 0.15, -0.25]] as const).map((pos, i) => (
-        <mesh key={i} position={pos}>
-          <cylinderGeometry args={[0.035, 0.035, 0.3, 6]} />
-          <meshBasicMaterial color={XOLOTL_COLOR} transparent opacity={0} depthWrite={false} />
-        </mesh>
-      ))}
-      {/* Queue — petit cylindre incliné */}
-      <mesh position={[0, 0.5, -0.45]} rotation={[0, 0, Math.PI / 5]}>
-        <cylinderGeometry args={[0.025, 0.025, 0.25, 6]} />
-        <meshBasicMaterial color={XOLOTL_COLOR} transparent opacity={0} depthWrite={false} />
-      </mesh>
-      {/* Museau — petit cône devant tête */}
-      <mesh position={[0, 0.58, 0.55]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.08, 0.15, 6]} />
-        <meshBasicMaterial color={XOLOTL_COLOR} transparent opacity={0} depthWrite={false} />
-      </mesh>
+    <group ref={groupRef} scale={XOLOTL_SCALE} rotation={[0, Math.PI / 2, 0]} visible={false}>
+      <primitive object={scene} />
     </group>
   );
 }

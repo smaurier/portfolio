@@ -365,7 +365,7 @@
     "title": "Crédits et attributions",
     "intro": "Ce site utilise des ressources créées par d'autres personnes. Reconnaissance et gratitude.",
     "sections": [
-      { "title": "Modèles 3D", "text": "Le cerf et une partie de la flore proviennent des packs open-source Quaternius (licence CC0). Les modèles complémentaires (ocotillo, lianes, fleurs) sont générés procéduralement." },
+      { "title": "Modèles 3D", "text": "Le cerf et une partie de la flore proviennent des packs open-source Quaternius (licence CC0). Xolotl (le chien-frère de Quetzalcoatl qui traverse parfois la scène) réutilise le mesh Wolf du pack Quaternius Ultimate Animated Animals, teinté en obsidienne. Les modèles complémentaires (ocotillo, lianes, fleurs) sont générés procéduralement." },
       { "title": "Polices", "text": "Geist Sans et Geist Mono, créées par Vercel (licence SIL Open Font)." },
       { "title": "Bibliothèques logicielles", "text": "React (MIT), Next.js (MIT), Three.js (MIT), React Three Fiber (MIT), drei (MIT), postprocessing (Zlib), GSAP (standard licence), Lenis (MIT), Sass (MIT), TypeScript (Apache 2.0), Vitest (MIT)." },
       { "title": "Inspirations", "text": "Sacred Labs (Joseph Santamaria), Lusion, Immersive Garden, Bruno Simon, Codrops. Codex Fejérváry-Mayer et Borgia pour la cosmologie. Études de Miguel León-Portilla et Alfredo López Austin pour la profondeur philosophique nahua." },
