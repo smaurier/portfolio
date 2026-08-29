@@ -113,14 +113,14 @@ export default function XolotlCompanion() {
   // reload defensive.
   //
   // depthWrite:false : evite conflits transparence avec autres meshes
-  //   de la scene 3D.
-  // depthTest:false + renderOrder=999 : Xolotl rend TOUJOURS par-
-  //   dessus n'importe quel autre mesh, meme s'il est occlude
-  //   géometriquement. Signature "il traverse les voiles" —
-  //   coherent mytho (Xolotl passe entre les mondes).
-  //   Fix retour user 29/08 : en bout scroll fond scene teinte
-  //   violet climax = Xolotl obsidienne se noyait par cross-blend +
-  //   occlusion possibles autres meshes boostes.
+  //   de la scene 3D (Xolotl ne "cache" pas ce qui est derriere).
+  // depthTest:true (defaut) : RESPECTE l'occlusion Z — Xolotl a Z=-2
+  //   passe DERRIERE le cerf (Z~0). Correct visuellement.
+  //   (Retire depthTest:false du fix precedent qui faisait passer
+  //   Xolotl devant le cerf malgre sa position arriere — retour user
+  //   29/08 "il passe par dessus lui, c'est tres etrange".)
+  // renderOrder=999 : rendu APRES les meshes opaques -> transparency
+  //   sort correcte, evite artefacts alpha meme si occlusion Z active.
   // fog:false : immune au brouillard eventuel — le chien du
   //   crepuscule n'appartient pas a l'atmosphere de la scene.
   useEffect(() => {
@@ -132,7 +132,6 @@ export default function XolotlCompanion() {
           transparent: true,
           opacity: 0,
           depthWrite: false,
-          depthTest: false,
           fog: false,
         });
         mesh.renderOrder = 999;
