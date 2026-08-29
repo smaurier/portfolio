@@ -64,7 +64,7 @@ export function generateStaticParams() {
   return params;
 }
 
-function ProjetDetailContent({ projet }: { projet: Dictionary["projets"]["nuada"] }) {
+function ProjetDetailContent({ projet, newWindowLabel }: { projet: Dictionary["projets"]["nuada"]; newWindowLabel: string }) {
   return (
     <div className="contentPage projetDetailPage">
       <p className="projetDetailBack">
@@ -85,6 +85,7 @@ function ProjetDetailContent({ projet }: { projet: Dictionary["projets"]["nuada"
           "https://github.com/smaurier/claude-synapse"
         } target="_blank" rel="noopener noreferrer" className="ctaButton">
           {projet.cta}
+          <span className="sr-only"> ({newWindowLabel})</span>
         </a>
       </p>
     </div>
@@ -156,7 +157,7 @@ export default async function LocalizedProjetDetail({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(entry) }}
         />
       ))}
-      <ProjetDetailContent projet={projet} />
+      <ProjetDetailContent projet={projet} newWindowLabel={fullDict.common.newWindow} />
     </EchoScenePage>
   );
 }

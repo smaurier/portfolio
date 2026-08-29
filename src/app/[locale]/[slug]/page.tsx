@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ObfuscatedEmail from "../../components/obfuscated-email";
@@ -35,6 +36,32 @@ export function generateStaticParams() {
   );
 }
 
+/**
+ * generateMetadata (29/08 fix RGAA 8.6) — chaque page sous-slug avait
+ * le title global "Nahual . studio de création" (dict.metadata.title
+ * du layout parent), identique a la home. Non-conformite bloquante :
+ * un utilisateur SR ou un lecteur d'onglets ne pouvait pas distinguer
+ * les pages entre elles. Fix : injecter titre specifique par page,
+ * format "${dict[key].title} · Nahual" (SITE_NAME = "Nahual").
+ * Description reutilise dict.metadata.description pour cohesion SEO.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}): Promise<Metadata> {
+  const { locale: rawLocale, slug } = await params;
+  if (!isLocale(rawLocale)) return {};
+  const locale: Locale = rawLocale;
+  const key = getPageKeyFromSlug(locale, slug);
+  if (!key) return {};
+  const dict = getDictionary(locale);
+  const pageTitle = dict[key].title;
+  return {
+    title: `${pageTitle} · ${SITE_NAME}`,
+  };
+}
+
 function ServicesPage({ locale, dict }: { locale: Locale; dict: Dictionary["services"] }) {
   return (
     <div className="contentPage">
@@ -57,7 +84,7 @@ function ServicesPage({ locale, dict }: { locale: Locale; dict: Dictionary["serv
   );
 }
 
-function ProjetsPage({ dict, locale }: { dict: Dictionary["projets"]; locale: Locale }) {
+function ProjetsPage({ dict, locale, newWindowLabel }: { dict: Dictionary["projets"]; locale: Locale; newWindowLabel: string }) {
   const projetsSlug = slugs.projets[locale];
   return (
     <div className="contentPage">
@@ -77,6 +104,7 @@ function ProjetsPage({ dict, locale }: { dict: Dictionary["projets"]; locale: Lo
         cta={dict.nuada.cta}
         detailHref={`/${locale}/${projetsSlug}/nuada`}
         detailCta={dict.nuada.detail.readMoreCta}
+        newWindowLabel={newWindowLabel}
       />
 
       <ProjectCase
@@ -92,6 +120,7 @@ function ProjetsPage({ dict, locale }: { dict: Dictionary["projets"]; locale: Lo
         cta={dict.kleyfrance.cta}
         detailHref={`/${locale}/${projetsSlug}/kleyfrance`}
         detailCta={dict.kleyfrance.detail.readMoreCta}
+        newWindowLabel={newWindowLabel}
       />
 
       <ProjectCase
@@ -107,12 +136,14 @@ function ProjetsPage({ dict, locale }: { dict: Dictionary["projets"]; locale: Lo
         cta={dict.synapse.cta}
         detailHref={`/${locale}/${projetsSlug}/synapse`}
         detailCta={dict.synapse.detail.readMoreCta}
+        newWindowLabel={newWindowLabel}
       />
 
       <p>
         {dict.moreBefore}{" "}
         <a href="https://github.com/smaurier" target="_blank" rel="noopener noreferrer">
           {dict.moreLinkText}
+          <span className="sr-only"> ({newWindowLabel})</span>
         </a>
         {dict.moreAfter}
       </p>
@@ -138,6 +169,7 @@ function ProjectCase({
   cta,
   detailHref,
   detailCta,
+  newWindowLabel,
 }: {
   title: string;
   text: string;
@@ -151,6 +183,7 @@ function ProjectCase({
   cta: string;
   detailHref?: string;
   detailCta?: string;
+  newWindowLabel: string;
 }) {
   return (
     <article className="projectCase">
@@ -176,13 +209,14 @@ function ProjectCase({
         )}
         <a href={href} target="_blank" rel="noopener noreferrer" className="ctaButton">
           {cta}
+          <span className="sr-only"> ({newWindowLabel})</span>
         </a>
       </div>
     </article>
   );
 }
 
-function ContactPage({ dict, showEmailLabel }: { dict: Dictionary["contact"]; showEmailLabel: string }) {
+function ContactPage({ dict, showEmailLabel, newWindowLabel }: { dict: Dictionary["contact"]; showEmailLabel: string; newWindowLabel: string }) {
   return (
     <div className="contentPage">
       <h1>{dict.title}</h1>
@@ -194,6 +228,7 @@ function ContactPage({ dict, showEmailLabel }: { dict: Dictionary["contact"]; sh
         {dict.linkedinBefore}{" "}
         <a href="https://www.linkedin.com/in/smaurier/" target="_blank" rel="noopener noreferrer">
           {dict.linkedinLinkText}
+          <span className="sr-only"> ({newWindowLabel})</span>
         </a>
         {dict.linkedinAfter}
       </p>
@@ -355,10 +390,10 @@ export default async function LocalizedPage({
       content = <ServicesPage locale={locale} dict={fullDict.services} />;
       break;
     case "projets":
-      content = <ProjetsPage dict={fullDict.projets} locale={locale} />;
+      content = <ProjetsPage dict={fullDict.projets} locale={locale} newWindowLabel={fullDict.common.newWindow} />;
       break;
     case "contact":
-      content = <ContactPage dict={fullDict.contact} showEmailLabel={fullDict.common.showEmail} />;
+      content = <ContactPage dict={fullDict.contact} showEmailLabel={fullDict.common.showEmail} newWindowLabel={fullDict.common.newWindow} />;
       break;
     case "memoire":
       content = <MemoirePage dict={fullDict.memoire} />;
