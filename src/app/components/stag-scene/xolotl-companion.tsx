@@ -131,9 +131,15 @@ export default function XolotlCompanion() {
   // uBoost 2.8 : edges brillent au-dela de 1.0 en linear space →
   // PostFX Bloom capte cette luminescence et cree halo naturel.
   //
-  // Uniforms ref conservee dans useRef pour update par frame de
-  // uOpacity (une seule instance partagee pour tous les meshes).
-  const shaderUniformsRef = useRef<{ uOpacity: { value: number } } | null>(null);
+  // Uniforms partages par reference : crees au mount, injectes dans
+  // shader.uniforms via onBeforeCompile. Modif shaderUniforms.uOpacity
+  // impacte le shader compile immediatement, evite race condition
+  // "onBeforeCompile pas encore appele au 1er frame".
+  const shaderUniforms = useRef({
+    uPower: { value: 2.2 },
+    uBoost: { value: 2.8 },
+    uOpacity: { value: 0 },
+  }).current;
   const fresnelMaterial = useMemo(() => {
     const mat = new MeshBasicMaterial({
       color: new Color(XOLOTL_COLOR),
@@ -142,12 +148,9 @@ export default function XolotlCompanion() {
       fog: false,
     });
     mat.onBeforeCompile = (shader) => {
-      shader.uniforms.uPower = { value: 2.2 };
-      shader.uniforms.uBoost = { value: 2.8 };
-      shader.uniforms.uOpacity = { value: 0 };
-      shaderUniformsRef.current = shader.uniforms as unknown as {
-        uOpacity: { value: number };
-      };
+      shader.uniforms.uPower = shaderUniforms.uPower;
+      shader.uniforms.uBoost = shaderUniforms.uBoost;
+      shader.uniforms.uOpacity = shaderUniforms.uOpacity;
       // Vertex : MeshBasicMaterial ne calcule normal que si USE_ENVMAP.
       // On force le pipeline normal (beginnormal + skinnormal +
       // defaultnormal) juste avant begin_vertex pour que objectNormal
@@ -294,13 +297,9 @@ export default function XolotlCompanion() {
       const fadeOutT = (elapsed - FADE_MS - TRAVERSE_MS) / FADE_MS;
       opacity *= 1 - fadeOutT;
     }
-    // Update uniform opacity fresnel (une seule instance partagee =
-    // un seul set par frame quel que soit le nombre de meshes du Wolf).
-    // onBeforeCompile n'expose les uniforms qu'apres 1ere compilation
-    // → ref peut etre null au 1er frame, no-op silencieux.
-    if (shaderUniformsRef.current) {
-      shaderUniformsRef.current.uOpacity.value = opacity;
-    }
+    // Update uniform opacity fresnel — ref partagee entre React et
+    // shader via onBeforeCompile, pas de race condition.
+    shaderUniforms.uOpacity.value = opacity;
   });
 
   // Applique body.xolotl-witnessed dès le mount si déjà vu (survit
