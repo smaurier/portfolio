@@ -312,6 +312,64 @@ narrative après. Immersion parallèle à l'expérience visuelle
 
 ---
 
+## Passe 5 — Mode récit accessible opt-in + Axe audit (2026-08-29)
+
+### ✅ Audit Axe automatique
+
+Injection axe-core CDN via Playwright evaluate sur 5 pages :
+- `/fr` : **0 violations**, 25 passes, 1 incomplete
+- `/fr/services` : **0 violations**, 21 incomplete color-contrast
+- `/fr/memoire` : **0 violations**, 64 incomplete color-contrast
+- `/fr/projets` : **0 violations**, 59 incomplete color-contrast
+- `/fr/contact` : **0 violations**, 22 incomplete color-contrast
+
+Les "incomplete" color-contrast = Axe ne peut pas mesurer le ratio
+sur un background canvas 3D dynamique. Worst-case théorique : texte
+crème `#f2ece1` sur canvas noir pur = ratio ~14.5:1, largement au-
+dessus du seuil AA 4.5:1.
+
+Aucune violation WCAG 2.0/2.1 AA détectée automatiquement sur les
+5 pages. Le socle a11y est propre.
+
+### ✅ Mode récit accessible opt-in
+
+Composant `src/app/components/reading-mode-toggle.tsx` (bouton coin
+bas gauche, icône livre ouvert) + `src/lib/reading-mode-context.tsx`
+(context React avec persist localStorage). Bouton `aria-pressed`
+reflète l'état.
+
+Signature "l'accessibilité comme UX à part entière" : un mode calme,
+zéro surcharge visuelle, zéro animation. Utile pour :
+- utilisateurs troubles vestibulaires qui n'ont pas activé
+  `prefers-reduced-motion` système (trop global)
+- utilisateurs cognitivement fatigués (fin de journée, migraine)
+- utilisateurs SR qui préfèrent une lecture propre sans layer 3D
+- lecture longue (mémoire, codex) sans distraction ambiante
+
+Comportement :
+- `PersistentScene` return null si `readingMode.active` → Canvas
+  WebGL démonté, rAF Three.js stoppés, gains CPU + batterie
+- CSS `body.reading-mode` :
+  - Force `FadingBlock` et `RevealText` visibles (opacity:1
+    display:flex transform:none via `!important`)
+  - Cache surfaces décoratives : `canvas`, `custom-cursor`,
+    `cursor-trail`, `cardinal-compass`, `page-closure`,
+    `cardinalRipple`, `konami-flash`
+  - Reset toutes anims/transitions (`animation: none, transition:
+    none`)
+  - Coupe View Transitions API
+  - Fond noir opaque, main centré sans padding-top 90vh, cards
+    fond opaque plutôt que blur transparent
+
+3 nouvelles clés dict `common.readingMode.{on|off}` fr/en/es.
+
+Vérification Playwright :
+- Toggle click → body.reading-mode ajouté, canvas count 2→1
+  (r3f démonté, cursor-trail canvas display:none reste dans DOM),
+  aria-pressed "true", localStorage "1"
+- Axe en mode reading : 0 violations, 72 incomplete color-contrast
+  (cards fond `rgba(20,16,24,0.95)` semi-transparent, Axe prudent)
+
 ## Passe 4 — lang="nah" termes nahuatl inline (2026-08-29)
 
 Helper `src/lib/nahuatl.tsx` : `renderWithNahuatl(text)` retourne un

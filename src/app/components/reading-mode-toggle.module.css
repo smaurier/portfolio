@@ -1,0 +1,48 @@
+/* Bouton mode recit accessible (29/08 chantier a11y). Coin bas
+   gauche, symetrique du bouton son (bas droite). Signature discrete
+   book icon, active = teinte cardinale jade. */
+
+.toggle {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 9000;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(244, 234, 213, 0.3);
+  border-radius: 50%;
+  background: rgba(10, 8, 14, 0.72);
+  backdrop-filter: blur(8px);
+  color: #f4ead5;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.toggle:hover {
+  background: rgba(10, 8, 14, 0.9);
+  border-color: rgba(0, 192, 120, 0.6);
+  transform: translateY(-1px);
+}
+
+.toggle[aria-pressed="true"] {
+  background: rgba(0, 192, 120, 0.15);
+  border-color: #00c078;
+  color: #00c078;
+}
+
+.toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 767px) {
+  .toggle {
+    bottom: 12px;
+    left: 12px;
+    width: 40px;
+    height: 40px;
+  }
+}

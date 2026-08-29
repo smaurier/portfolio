@@ -928,6 +928,84 @@ button:focus-visible,
   border-radius: 2px;
 }
 
+/* Mode recit accessible opt-in (29/08 chantier a11y). Active via
+   ReadingModeToggle bouton bas gauche. Objectif : experience de
+   lecture calme, zero surcharge visuelle, zero animation. Utile
+   pour troubles vestibulaires, fatigue cognitive, lecture longue,
+   utilisateurs SR qui preferent une structure statique.
+
+   Cascade : PersistentScene demonte le Canvas WebGL cote React
+   (voir persistent-scene.tsx). Ce CSS gere le reste : force les
+   blocs revele scroll-driven a visible, cache les surfaces
+   decoratives (curseurs, trails, ripples, boussole), fond noir
+   opaque. */
+
+body.reading-mode {
+  background: #0a0710;
+}
+
+/* Force FadingBlock et RevealText a etre visibles sans anim. Le rAF
+   continue en interne (waste CPU mineur) mais l'inline style opacity
+   est ecrase par !important. */
+body.reading-mode [class*="block"] {
+  opacity: 1 !important;
+  display: flex !important;
+  pointer-events: auto !important;
+  transform: none !important;
+}
+
+body.reading-mode [class*="reveal-text-module"] [class*="inner"] {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Cache les surfaces purement decoratives : curseur custom, trail,
+   ripples, boussole cardinale (nav header + skip nav suffisent),
+   PageClosure (bloc narratif deja aria-hidden). */
+body.reading-mode canvas,
+body.reading-mode [class*="custom-cursor"],
+body.reading-mode [class*="cursor-trail"],
+body.reading-mode [class*="cardinal-compass"],
+body.reading-mode [class*="page-closure"],
+body.reading-mode .cardinalRipple,
+body.reading-mode .konami-flash::after {
+  display: none !important;
+}
+
+/* Reset toutes anims / transitions HTML/CSS non essentielles. */
+body.reading-mode *,
+body.reading-mode *::before,
+body.reading-mode *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* View Transitions API : coupe le slide cardinal, nav sec. */
+body.reading-mode ::view-transition-group(root),
+body.reading-mode ::view-transition-old(root),
+body.reading-mode ::view-transition-new(root) {
+  animation: none !important;
+}
+
+/* Contenu centre lisible, plus de padding-top 90vh qui reserve
+   l'espace pour le cerf 3D absent. */
+body.reading-mode.nahual-lab-reveal main[data-direction],
+body.reading-mode main {
+  padding-top: calc(20px + var(--header-height)) !important;
+  padding-bottom: 40px !important;
+  justify-content: flex-start !important;
+}
+
+/* Serve cards en fond opaque plutot que blur transparent —
+   scene 3D absente, blur nu ne donnerait rien. */
+body.reading-mode .serviceCard,
+body.reading-mode .projectCase {
+  background: rgba(20, 16, 24, 0.95) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 /* Utilitaire sr-only (29/08 chantier a11y). Pattern WCAG standard :
    contenu invisible visuellement, lu par les lecteurs d'ecran (NVDA,
    JAWS, VoiceOver). Utilise pour :

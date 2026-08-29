@@ -8,6 +8,7 @@ import SceneContent from "./scene-content";
 import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { isBot } from "@/lib/is-bot";
+import { useReadingMode } from "@/lib/reading-mode-context";
 import styles from "./scene-stage.module.css";
 
 /**
@@ -30,6 +31,7 @@ import styles from "./scene-stage.module.css";
 export default function PersistentScene() {
   const refs = useSceneRefs();
   const direction = useCurrentDirection();
+  const readingMode = useReadingMode();
   // Frameloop demand quand tab hidden (28/08 task #60 perf). Canvas
   // r3f prop frameloop "always" (defaut) tourne rAF permanent meme
   // en tab background = drain CPU/GPU + batterie. "demand" gele le
@@ -59,6 +61,10 @@ export default function PersistentScene() {
 
   if (!refs) return null;
   if (bot) return null;
+  // Mode recit accessible : demonte le Canvas WebGL pour une lecture
+  // calme sans layer 3D. Les rAF Three.js s'arretent, gains CPU et
+  // batterie. Le contenu HTML reste visible sur fond noir opaque.
+  if (readingMode.active) return null;
 
   return (
     <div className={styles.stage} data-direction={direction}>

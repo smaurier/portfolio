@@ -24,6 +24,10 @@
       "on": "Activar sonido",
       "off": "Silenciar"
     },
+    "readingMode": {
+      "on": "Activar el modo lectura accesible",
+      "off": "Desactivar el modo lectura accesible"
+    },
     "compass": {
       "expand": "Explorar las 5 direcciones",
       "close": "Cerrar"

@@ -9,6 +9,7 @@ import MaskReveal from "../components/mask-reveal";
 import CustomCursor from "../components/custom-cursor";
 import EasterEgg from "../components/easter-egg";
 import KeyboardNav from "../components/keyboard-nav";
+import ReadingModeToggle from "../components/reading-mode-toggle";
 import RouteAnnouncer from "../components/route-announcer";
 import SoundDesign from "../components/sound-design";
 import TiltCards from "../components/tilt-cards";
@@ -16,6 +17,7 @@ import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
 import SkipNav from "../components/skip-nav";
 import SmoothScroll from "../components/smooth-scroll";
+import { ReadingModeProvider } from "../../lib/reading-mode-context";
 import LoadingVeil from "../components/stag-scene/loading-veil";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
 import PersistentScene from "../components/stag-scene/persistent-scene";
@@ -210,6 +212,7 @@ export default async function LocaleLayout({
             au niveau layout (survit aux navigations SPA), sinon la
             transition serait cassée par le mount de la nouvelle page
             avant que le burst finisse. */}
+        <ReadingModeProvider>
         <SceneRefsProvider>
         <CardinalTransitionProvider>
           {/* Skip nav a11y (28/08 task #49) — premier element focusable,
@@ -343,6 +346,12 @@ export default async function LocaleLayout({
               default mute. Ambient drone + chime cardinal par click
               + whoosh transition. */}
           <SoundDesign label={dict.common.sound} />
+          {/* Mode recit accessible opt-in (29/08 chantier a11y) —
+              bouton bas gauche, symetrique du bouton son. Toggle
+              persist localStorage via ReadingModeProvider. Cache le
+              canvas 3D + retire les anims + centre le contenu pour
+              une lecture calme. */}
+          <ReadingModeToggle label={dict.common.readingMode} />
           {/* Nav clavier flèches (28/08 task #58) — ArrowLeft/Right
               naviguent entre pages dans l'ordre menu (Accueil premier,
               rotation cardinale). Trigger transitions VT comme click. */}
@@ -369,6 +378,7 @@ export default async function LocaleLayout({
           <CardinalHoverSync />
         </CardinalTransitionProvider>
         </SceneRefsProvider>
+        </ReadingModeProvider>
       </body>
     </html>
   );
