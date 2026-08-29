@@ -59,24 +59,16 @@ const FADE_MS = 2_500;
 const TRAVERSE_MS = 9_000;
 const TOTAL_MS = FADE_MS * 2 + TRAVERSE_MS; // 14 s
 
-// Amplitude X (29/08 iter 4). Trajet arc — chien apparait bord
-// gauche lointain, passe plus proche au milieu, disparait bord droit
-// lointain. Perspective naturelle fait varier la taille perçue :
-// petit aux extremes, plus grand au milieu.
-const START_X = -10;
-const END_X = 10;
+// Amplitude X (29/08 iter 5 fix invisible). Trajet arc simplifie.
+const START_X = -9;
+const END_X = 9;
 
-// Arc en Z (29/08 retour user "taille varie au fur et a mesure + evite
-// montagnes"). Z varie en arc concave : loin aux bords (Z_FAR), plus
-// proche au milieu (Z_NEAR). Formule Z(t) = Z_FAR + (Z_NEAR-Z_FAR) *
-// sin(π*t) → arc lisse depart et fin identique.
-//
-// Z_FAR=-14 : bords tres loin, hors zone montagnes generic (radius
-// 18-30) et Popo/Izta (radius 16). Chien passe entre.
-// Z_NEAR=-6 : milieu plus proche, chien devient plus grand
-// perceptuellement (perspective) → coherent "approche" narratif.
-const Z_FAR = -14;
-const Z_NEAR = -6;
+// Arc en Z reduit amplitude (fix invisible retour user). Chien
+// commence loin (-12), passe milieu plus proche (-8), redevient loin
+// (-12). Amplitude arc reduite pour eviter passage trop proche cerf
+// central qui creait masquage visuel.
+const Z_FAR = -12;
+const Z_NEAR = -8;
 
 // Peak opacity 0.75 : visible malgre distance + fond climax teinte.
 const PEAK_OPACITY = 0.75;
@@ -91,8 +83,10 @@ const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
 const XOLOTL_SCALE = 0.35;
 
 // Offset Y au-dessus du terrain — Wolf.glb centre pivot pas exactement
-// aux pattes, petit offset pour ne pas s'enfoncer.
-const Y_OFFSET_ABOVE_TERRAIN = 0.0;
+// aux pattes. Boost positif (fix invisible 29/08) : le chien flottait
+// peut-etre dans le terrain a Y=0. +0.2 le releve au-dessus des
+// dunes de bruit.
+const Y_OFFSET_ABOVE_TERRAIN = 0.2;
 
 // Terrain height threshold : au-dela le chien est considere derriere
 // une colline/montagne trop haute → fade out opacite pour signaler
@@ -189,6 +183,10 @@ export default function XolotlCompanion() {
       if (walk) {
         walk.reset().play();
       }
+      // Signale "xolotl visible" via event pour WitnessMessage
+      // ephemere (retour user 29/08 : message doit apparaitre
+      // seulement quand chien apparait, pas persistant).
+      window.dispatchEvent(new CustomEvent("nahual-xolotl-appearing", { detail: { visible: true } }));
     }, delay);
     return () => window.clearTimeout(timer);
   }, [spawn, alreadyWitnessed, actions]);
@@ -215,6 +213,9 @@ export default function XolotlCompanion() {
       const walk = actions[WALK_ANIM];
       if (walk) walk.stop();
       setStartedAt(null);
+      // Signale "xolotl hidden" — WitnessMessage restera visible
+      // ~30s post-fin via timer interne cote message, puis disparait.
+      window.dispatchEvent(new CustomEvent("nahual-xolotl-appearing", { detail: { visible: false } }));
       return;
     }
     // Position — trajet arc : X lerp lineaire, Z varie en arc concave
