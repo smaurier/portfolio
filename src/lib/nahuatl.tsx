@@ -31,7 +31,7 @@ import type { ReactNode } from "react";
 const PRONUNCIATION: Record<string, string> = {
   "Mazātl": "ma-satl",
   "Mazatl": "ma-satl",
-  "Tonatiuh": "to-na-tioutl",
+  "Tonatiuh": "to-na-tiou",
   "Xiuhtecuhtli": "chiou-te-kout-li",
   "Xiuhcoatl": "chiou-ko-atl",
   "Huitzilopochtli": "hwit-si-lo-potch-tli",
@@ -55,8 +55,8 @@ const PRONUNCIATION: Record<string, string> = {
   "nahua": "na-oua",
   "Nahuas": "na-ouas",
   "nahuas": "na-ouas",
-  "nahual": "na-oualtl",
-  "Nahual": "na-oualtl",
+  "nahual": "na-oual",
+  "Nahual": "na-oual",
 };
 
 const NAHUATL_TERMS = Object.keys(PRONUNCIATION);
