@@ -20,6 +20,7 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "newWindow": "new window",
+    "xolotlSeen": "Did you see him pass? Visit the Codex.",
     "skipNav": "Skip to main content",
     "sound": {
       "on": "Turn sound on",
@@ -81,7 +82,8 @@
       { "kicker": "I · The approach", "line": "He grazes in the half-light, indifferent to the path leading toward him." },
       { "kicker": "II · The gaze", "line": "The stag has noticed you. He doesn't flee — he waits." },
       { "kicker": "III · Face to face", "line": "A silence. Three entities: your body, his body, what passes between them." },
-      { "kicker": "IV · The paths", "line": "Four directions around you, a fifth at the center. Yours to choose." }
+      { "kicker": "IV · The paths", "line": "Four directions around you, a fifth at the center. Yours to choose." },
+      { "kicker": "V · The Ollin", "line": "You move. The world trembles. The journey begins." }
     ]
   },
   "services": {
@@ -280,6 +282,10 @@
         { "name": "Tonalli · head", "text": "The vital force tied to the day of birth in the tonalpohualli calendar. It resides in the head and radiates like a heat. It can escape during intense fright — hence the rituals to recall the tonalli after a shock." },
         { "name": "Ihíyotl · liver", "text": "The breath, the passions, the desires. It resides in the liver and belly. If unmastered, it can escape and affect others — moral illnesses come from there." }
       ]
+    },
+    "xolotl": {
+      "title": "Xolotl, the dog of dusk",
+      "text": "Twin brother of Quetzalcoatl, Xolotl is the dog who guides souls to Mictlán after death. Skeletal, silent, he crosses worlds without ever stopping — except for those who know how to watch. On this site, he appears rarely: more often to the North (the Memory page, natural path to Mictlán), more discreet elsewhere. Never on the home page. If you have seen him pass, the scene has judged you worthy of his attention. He may not return anytime soon."
     },
     "totem": {
       "title": "The stag, Mazātl",

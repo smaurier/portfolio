@@ -209,7 +209,7 @@ export function getIntroOpacity(progress: number): number {
 }
 
 /**
- * Scroll-driven storytelling multi-chapitres (28/08 task #63). 4 bells
+ * Scroll-driven storytelling multi-chapitres (28/08 task #63). 5 bells
  * successives, chacune ancree au milieu d'une phase du reveal-arc. Le
  * texte apparait puis fade out avant le suivant : narration cardinale
  * qui accompagne le scroll sans jamais occulter la scene 3D.
@@ -218,24 +218,38 @@ export function getIntroOpacity(progress: number): number {
  *  0 : L'approche       (penombre ~0.05-0.18)
  *  1 : Le regard         (conscience ~0.28-0.42)
  *  2 : Face-a-face       (face-a-face ~0.53-0.67)
- *  3 : Les chemins       (chemins-reveles ~0.78-0.92)
+ *  3 : Les chemins       (chemins-reveles ~0.78-0.90)
+ *  4 : L'Ollin           (climax ~0.92-1.0, ne s'efface pas — 29/08)
+ *
+ * Le 5e chapitre est le seul dont le tuple contient un troisieme
+ * booleen `keepAfterEnd` : au lieu de fade out symetrique bell curve,
+ * il monte puis reste plateau 1 jusqu'a p=1. Signature "le voyage
+ * commence, le monde tremble sous ton doigt" — ancre narrative de la
+ * feature press-deform Ollin (voir Codex section ollin).
  */
-const CHAPTER_WINDOWS: [number, number][] = [
+type ChapterWindow = readonly [number, number] | readonly [number, number, boolean];
+const CHAPTER_WINDOWS: readonly ChapterWindow[] = [
   [0.05, 0.18],
   [0.28, 0.42],
   [0.53, 0.67],
-  [0.78, 0.92],
+  [0.78, 0.90],
+  [0.92, 1.0, true],
 ];
 
 export function getChapterOpacity(progress: number, chapterIdx: number): number {
   const w = CHAPTER_WINDOWS[chapterIdx];
   if (!w) return 0;
   const [start, end] = w;
+  const keepAfterEnd = w.length === 3 ? w[2] : false;
   const p = clampProgress(progress);
-  if (p < start || p > end) return 0;
-  // Bell curve : monte 30% du window, plateau 40%, redescend 30%
-  const t = (p - start) / (end - start); // 0..1 dans le window
+  if (p < start) return 0;
+  if (p > end && !keepAfterEnd) return 0;
+  const t = Math.min(1, (p - start) / (end - start));
   const fadeIn = Math.min(1, t / 0.3);
+  if (keepAfterEnd) {
+    // Pas de fade out — plateau tenu apres montee.
+    return fadeIn;
+  }
   const fadeOut = Math.min(1, (1 - t) / 0.3);
   return Math.min(fadeIn, fadeOut);
 }

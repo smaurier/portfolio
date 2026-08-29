@@ -47,9 +47,15 @@ export default function LoadingVeil({
   const [displayedProgress, setDisplayedProgress] = useState(0);
   const displayedRef = useRef(0);
   const reducedMotionRef = useRef(false);
-  // Selection random au mount (useState initializer garantit UN pick
-  // pour toute la duree du LoadingVeil, jamais re-shuffle en cours).
-  const [selected] = useState(() => phrases[Math.floor(Math.random() * phrases.length)]);
+  // Selection random au mount, MAIS pour eviter mismatch SSR/client
+  // (Math.random sur server != client), on initialise avec phrases[0]
+  // et on override apres hydratation via useEffect. Un flash bref
+  // possible mais imperceptible vu la duree du veil (~600ms fade
+  // apres load, la plupart du temps le pick client est deja en place).
+  const [selected, setSelected] = useState(phrases[0]);
+  useEffect(() => {
+    setSelected(phrases[Math.floor(Math.random() * phrases.length)]);
+  }, [phrases]);
   const phrase = selected.phrase;
   const translation = selected.translation;
 

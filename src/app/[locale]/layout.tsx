@@ -10,12 +10,15 @@ import EasterEgg from "../components/easter-egg";
 import KeyboardNav from "../components/keyboard-nav";
 import ReadingModeToggle from "../components/reading-mode-toggle";
 import RouteAnnouncer from "../components/route-announcer";
+import XolotlWitnessMessage from "../components/xolotl-witness";
 import SoundDesign from "../components/sound-design";
 import TiltCards from "../components/tilt-cards";
 import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
 import SkipNav from "../components/skip-nav";
 import SmoothScroll from "../components/smooth-scroll";
+import { formatAztecYear } from "../../lib/aztec-calendar";
+import { renderWithNahuatl } from "../../lib/nahuatl";
 import { ReadingModeProvider } from "../../lib/reading-mode-context";
 import LoadingVeil from "../components/stag-scene/loading-veil";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
@@ -310,8 +313,19 @@ export default async function LocaleLayout({
               </div>
             </div>
             <div className="footerBottom">
+              {/* Signature date rituelle (29/08) — annee Gregorienne +
+                  porteur Xiuhpohualli nahua (convention Rafael Tena,
+                  1519 = 2 Acatl). 2026 = 2 Tochtli · Lapin. Cycle
+                  complet 52 ans (siecle nahua). Discret, en italique
+                  entre parentheses. Le nom Tochtli est wrappe
+                  lang=nah automatiquement via renderWithNahuatl. */}
               © {new Date().getFullYear()} NAHUAL Studio · Sylvain Maurier
+              <span className="footerAztec"> · {renderWithNahuatl(formatAztecYear(new Date().getFullYear(), locale))}</span>
             </div>
+            {/* XolotlWitnessMessage (29/08 easter egg) — apparait
+                seulement si user a vu Xolotl passer + n'a pas encore
+                visite le Codex depuis. Renvoi discret italique. */}
+            <XolotlWitnessMessage message={dict.common.xolotlSeen} locale={locale} />
           </footer>
           {/* LoadingVeil monté ici (une seule instance par session)
               plutôt que dans SceneStage (une par mount de page) depuis

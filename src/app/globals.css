@@ -905,6 +905,79 @@ body.nahual-lab-reveal .ctaButton {
   text-align: center;
 }
 
+/* Signature date rituelle Xiuhpohualli (29/08) — annee nahua discrete
+   apres le copyright. Italique + teinte jade sourd pour marquer le
+   basculement de temporalité, sans distraire du copyright standard. */
+.footerAztec {
+  font-style: italic;
+  color: color-mix(in srgb, #00c078 65%, rgba(244, 234, 213, 0.55));
+  letter-spacing: 0.02em;
+}
+
+/* Xolotl easter egg (29/08). 3 layers activés uniquement quand
+   l'utilisateur a vu Xolotl passer au moins une fois (localStorage
+   nahual-xolotl-witnessed=1 → body.xolotl-witnessed appliqué par
+   xolotl-companion.tsx dès son démontage post-anim complete).
+   Le highlight retombe une fois le codex visité (xolotl-codex-read=1
+   → composant XolotlWitnessMessage retire lui-même le message via
+   CustomEvent). */
+
+/* 1. Message discret après footer bottom, italique jade sourd. */
+.xolotlWitnessMessage {
+  max-width: 1200px;
+  margin: 8px auto 0;
+  text-align: center;
+  font-size: 0.75rem;
+  font-style: italic;
+  opacity: 0.7;
+  color: color-mix(in srgb, #6b3fa8 55%, rgba(244, 234, 213, 0.7));
+}
+
+.xolotlWitnessMessage a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(107, 63, 168, 0.5);
+  text-underline-offset: 3px;
+}
+
+.xolotlWitnessMessage a:hover {
+  text-decoration-color: #6b3fa8;
+}
+
+/* 2. Astérisque après le lien "Codex" dans le footer si témoin +
+      pas encore lu. Couleur obsidienne violet (couleur de Xolotl,
+      cohérent avec sa direction Nord).
+      body.xolotl-codex-read écrase et retire l'astérisque. */
+body.xolotl-witnessed:not(.xolotl-codex-read) .footerCol a[href*="codex"]::after,
+body.xolotl-witnessed:not(.xolotl-codex-read) .footerCol a[href*="códice"]::after,
+body.xolotl-witnessed:not(.xolotl-codex-read) .footerCol a[href*="codex"]::after {
+  content: " *";
+  color: #6b3fa8;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* 3. Section Xolotl du codex : highlight subtil border gauche
+      obsidienne si témoin post-première visite. Le CSS suffit,
+      pas de state React nécessaire — le body class fait le tri. */
+body.xolotl-witnessed:not(.xolotl-codex-read) .codexSectionXolotl {
+  position: relative;
+  padding-left: 20px;
+  border-left: 2px solid rgba(107, 63, 168, 0.6);
+  animation: xolotlSectionPulse 3s ease-in-out infinite;
+}
+
+@keyframes xolotlSectionPulse {
+  0%, 100% { border-left-color: rgba(107, 63, 168, 0.4); }
+  50% { border-left-color: rgba(107, 63, 168, 0.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.xolotl-witnessed:not(.xolotl-codex-read) .codexSectionXolotl {
+    animation: none;
+  }
+}
+
 @media (max-width: 767px) {
   .footerCols {
     grid-template-columns: repeat(2, 1fr);

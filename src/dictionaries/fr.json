@@ -20,6 +20,7 @@
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
     "newWindow": "nouvelle fenêtre",
+    "xolotlSeen": "L'avez-vous vu passer ? Visitez le Codex.",
     "skipNav": "Aller au contenu principal",
     "sound": {
       "on": "Activer le son",
@@ -81,7 +82,8 @@
       { "kicker": "I · L'approche", "line": "Il broute dans la pénombre, indifférent au chemin qui mène vers lui." },
       { "kicker": "II · Le regard", "line": "Le cerf t'a remarqué. Il ne fuit pas — il attend." },
       { "kicker": "III · Face à face", "line": "Un silence. Trois entités : ton corps, son corps, ce qui passe entre les deux." },
-      { "kicker": "IV · Les chemins", "line": "Quatre directions autour de toi, une cinquième au centre. À toi de choisir." }
+      { "kicker": "IV · Les chemins", "line": "Quatre directions autour de toi, une cinquième au centre. À toi de choisir." },
+      { "kicker": "V · L'Ollin", "line": "Tu bouges. Le monde tremble. Le voyage commence." }
     ]
   },
   "services": {
@@ -280,6 +282,10 @@
         { "name": "Tonalli · tête", "text": "La force vitale liée au jour de naissance dans le calendrier tonalpohualli. Elle réside dans la tête et rayonne comme une chaleur. Elle peut s'évader lors d'un effroi intense — d'où les rituels de rappel du tonalli en cas de choc." },
         { "name": "Ihíyotl · foie", "text": "Le souffle, les passions, les désirs. Elle réside dans le foie et dans le ventre. Si elle n'est pas maîtrisée, elle peut s'échapper et affecter les autres — les maladies morales viennent de là." }
       ]
+    },
+    "xolotl": {
+      "title": "Xolotl, le chien du crépuscule",
+      "text": "Frère jumeau de Quetzalcoatl, Xolotl est le chien qui guide les âmes vers Mictlán après la mort. Squelettique, silencieux, il traverse les mondes sans jamais s'arrêter — sauf pour ceux qui savent regarder. Sur ce site, il apparaît rarement : plus souvent au Nord (la page Mémoire, chemin naturel vers Mictlán), plus discret ailleurs. Jamais sur l'accueil. Si vous l'avez vu passer, c'est que la scène vous a jugé digne de son attention. Il ne reviendra peut-être pas de sitôt."
     },
     "totem": {
       "title": "Le cerf, Mazātl",

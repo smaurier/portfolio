@@ -20,6 +20,7 @@
     "openMenu": "Abrir el menú",
     "closeMenu": "Cerrar el menú",
     "newWindow": "nueva ventana",
+    "xolotlSeen": "¿Lo ha visto pasar? Visite el Códice.",
     "skipNav": "Ir al contenido principal",
     "sound": {
       "on": "Activar sonido",
@@ -81,7 +82,8 @@
       { "kicker": "I · La aproximación", "line": "Pastorea en la penumbra, indiferente al camino que lleva hacia él." },
       { "kicker": "II · La mirada", "line": "El ciervo te ha notado. No huye — espera." },
       { "kicker": "III · Cara a cara", "line": "Un silencio. Tres entidades: tu cuerpo, su cuerpo, lo que pasa entre los dos." },
-      { "kicker": "IV · Los caminos", "line": "Cuatro direcciones a tu alrededor, una quinta en el centro. Tu decisión." }
+      { "kicker": "IV · Los caminos", "line": "Cuatro direcciones a tu alrededor, una quinta en el centro. Tu decisión." },
+      { "kicker": "V · El Ollin", "line": "Te mueves. El mundo tiembla. El viaje comienza." }
     ]
   },
   "services": {
@@ -271,6 +273,10 @@
         { "name": "Tonalli · cabeza", "text": "La fuerza vital ligada al día de nacimiento en el calendario tonalpohualli. Reside en la cabeza e irradia como un calor. Puede escapar durante un susto intenso — de ahí los rituales para llamar de vuelta al tonalli tras un choque." },
         { "name": "Ihíyotl · hígado", "text": "El aliento, las pasiones, los deseos. Reside en el hígado y en el vientre. Si no se domina, puede escapar y afectar a los demás — las enfermedades morales vienen de ahí." }
       ]
+    },
+    "xolotl": {
+      "title": "Xolotl, el perro del crepúsculo",
+      "text": "Hermano gemelo de Quetzalcoatl, Xolotl es el perro que guía las almas hacia Mictlán después de la muerte. Esquelético, silencioso, atraviesa los mundos sin detenerse jamás — salvo para quienes saben mirar. En este sitio, aparece raramente: más a menudo al Norte (la página Memoria, camino natural hacia Mictlán), más discreto en otros lugares. Nunca en la página de inicio. Si lo ha visto pasar, la escena le ha juzgado digno de su atención. Puede que no vuelva pronto."
     },
     "totem": {
       "title": "El ciervo, Mazātl",

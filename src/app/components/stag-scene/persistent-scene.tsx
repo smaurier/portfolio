@@ -9,6 +9,7 @@ import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { isBot } from "@/lib/is-bot";
 import { useReadingMode } from "@/lib/reading-mode-context";
+import XolotlCompanion from "./xolotl-companion";
 import styles from "./scene-stage.module.css";
 
 /**
@@ -99,6 +100,11 @@ export default function PersistentScene() {
           climaxAccentColor={climaxAccentColor}
           fogTint={fogTint}
         />
+        {/* Xolotl (29/08) — chien-frère de Quetzalcoatl, guide vers
+            Mictlán. Spawn aléatoire session-based par direction :
+            15% pages écho, 40% Mémoire (Nord), 0% home. Traverse
+            fugitivement en fond ~18s. Voir codex.xolotl. */}
+        <XolotlCompanion />
         {refs.perfProfile.postFx && <PostFX />}
       </Canvas>
     </div>

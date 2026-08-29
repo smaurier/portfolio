@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ObfuscatedEmail from "../../components/obfuscated-email";
+import XolotlCodexReader from "../../components/xolotl-codex-reader";
 import EchoScenePage from "../../components/stag-scene/echo-scene-page";
 import type { DirectionKey } from "../../components/stag-scene/direction-colors";
 import { getDictionary, isLocale, locales, type Locale, type Dictionary } from "../../../dictionaries";
@@ -266,6 +267,7 @@ function toRoman(n: number): string {
 function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
   return (
     <div className="contentPage codexPage">
+      <XolotlCodexReader />
       <h1>{renderWithNahuatl(dict.title)}</h1>
       <p>{renderWithNahuatl(dict.intro)}</p>
 
@@ -316,6 +318,11 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
       <section className="codexSection">
         <h2>{renderWithNahuatl(dict.totem.title)}</h2>
         <p>{renderWithNahuatl(dict.totem.text)}</p>
+      </section>
+
+      <section className="codexSection codexSectionXolotl">
+        <h2>{renderWithNahuatl(dict.xolotl.title)}</h2>
+        <p>{renderWithNahuatl(dict.xolotl.text)}</p>
       </section>
 
       <section className="codexSection">
