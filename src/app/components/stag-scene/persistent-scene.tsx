@@ -36,6 +36,11 @@ export default function PersistentScene() {
   // r3f prop frameloop "always" (defaut) tourne rAF permanent meme
   // en tab background = drain CPU/GPU + batterie. "demand" gele le
   // canvas jusqu'a next invalidate. Bascule via visibilitychange.
+  //
+  // Egalement "demand" en permanence si prefers-reduced-motion :
+  // gele le breath cycle du cerf, la parallax camera, les
+  // particles, les ambiances 5 directions. Utilisateur voit une
+  // scene statique lisible (RGAA 13.6, WCAG 2.3.3).
   const [frameloop, setFrameloop] = useState<"always" | "demand">("always");
   // Skip Canvas WebGL pour bots (Lighthouse/PageSpeed/crawlers).
   // Detection post-hydration via useEffect pour eviter mismatch SSR.
@@ -47,12 +52,26 @@ export default function PersistentScene() {
   }, []);
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    if (typeof window === "undefined") return;
+    const reducedMotionMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    function computeFrameloop() {
+      if (reducedMotionMq.matches) return "demand" as const;
+      if (typeof document !== "undefined" && document.hidden) return "demand" as const;
+      return "always" as const;
+    }
+    setFrameloop(computeFrameloop());
     function onVisibility() {
-      setFrameloop(document.hidden ? "demand" : "always");
+      setFrameloop(computeFrameloop());
+    }
+    function onReducedMotionChange() {
+      setFrameloop(computeFrameloop());
     }
     document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
+    reducedMotionMq.addEventListener("change", onReducedMotionChange);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      reducedMotionMq.removeEventListener("change", onReducedMotionChange);
+    };
   }, []);
 
   const climaxRimColor = useMemo(() => readDirectionColor(direction), [direction]);

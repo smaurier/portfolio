@@ -100,7 +100,17 @@ export default function KeyboardNav() {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
       if (isTypingContext(e.target)) return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // Requiert Alt+ArrowLeft/Right (29/08 fix a11y). Sans modifier,
+      // les fleches capturees interceptaient la navigation NVDA/JAWS
+      // en browse mode (les SR utilisent fleches pour parcourir le
+      // contenu ligne par ligne) — user SR se retrouvait navigue sur
+      // une autre page a chaque tentative de lecture. Alt = signature
+      // rare, n'entre pas en conflit avec NVDA ni avec le back/forward
+      // browser (qui est Alt+Left aussi mais navigateur laisse le JS
+      // preventDefault).
+      if (!e.altKey) return;
+      if (e.metaKey || e.ctrlKey) return;
+      e.preventDefault();
 
       const idx = currentIndex();
       const dir = e.key === "ArrowRight" ? 1 : -1;

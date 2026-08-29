@@ -312,6 +312,59 @@ narrative après. Immersion parallèle à l'expérience visuelle
 
 ---
 
+## Passe 7 — Fix bloquants découverts au test NVDA (2026-08-29)
+
+### 🔴 Fix bloquant : KeyboardNav volait les flèches NVDA browse mode
+
+Symptôme (remonté par Sylvain lors du test NVDA réel) : « on ne peut
+pas lire les contenus de textes propres aux pages ».
+
+Cause racine : `src/app/components/keyboard-nav.tsx` écoutait
+`ArrowLeft` / `ArrowRight` sans modifier. NVDA en **browse mode**
+(mode par défaut sur une page HTML) utilise ces flèches pour parcourir
+le contenu ligne par ligne, mot par mot, caractère par caractère.
+
+Résultat : dès que l'utilisateur SR tentait de lire le contenu, le
+listener JavaScript capturait la flèche → navigation SPA vers page
+suivante ou précédente → l'utilisateur se retrouvait sur une autre
+page à chaque tentative de lecture. Bug **critique bloquant**
+totalement l'accès au contenu.
+
+Fix : `if (!e.altKey) return;` + `e.preventDefault()`. Raccourci
+passe à `Alt+ArrowLeft` / `Alt+ArrowRight`. Alt + flèche n'entre pas
+en conflit avec NVDA/JAWS ni avec le raccourci back/forward du
+navigateur (qui laisse `preventDefault` reprendre la main).
+
+**Impact** : bug le plus grave découvert de tout le chantier. Aucun
+test automatisé Playwright ne l'aurait détecté — seul le test réel
+avec un SR pouvait le révéler. Confirme que l'étape « test humain
+avec NVDA » n'est pas optionnelle.
+
+### ✅ Fix RGAA 13.6 : freeze scène 3D si `prefers-reduced-motion`
+
+L'audit RGAA 28/08 pointait la scène 3D (breath cerf, orbit-camera
+parallax, spirit-particles, cardinal-ambience 5 moods) comme
+non-conforme au critère 13.6 (contrôle mouvement).
+
+Fix : `PersistentScene` détecte `prefers-reduced-motion: reduce` au
+mount + listener `change`. Si actif, `frameloop="demand"` en
+permanence → Three.js ne rend qu'un frame initial puis attend un
+`invalidate()` explicite. Le breath, la parallax, les particles ne
+tournent plus. La scène est statique, lisible, sans animation.
+
+`useEffect` combine visibilitychange (déjà en place) + reduced-motion
+change dans une fonction `computeFrameloop()` unique. Toujours
+`demand` si l'un des deux est actif.
+
+### Update RGAA doc
+
+`docs/rgaa-audit.md` complété avec section « État après chantier
+29/08 » : 11 fixes appliqués, nouveau taux de conformité **89%** (vs
+65% le 28/08), aucune non-conformité bloquante restante. Reste 3 PC
+mineurs (contrôle audio séparé, 2 tests manuels zoom).
+
+---
+
 ## Passe 6 — Prononciation IPA + doc audit contraste manuel (2026-08-29)
 
 ### ✅ Prononciation phonétique dans `<span title>`

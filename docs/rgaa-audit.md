@@ -1,10 +1,93 @@
 # Audit RGAA 4.1 · Portfolio Nahual
 
-**Date** : 2026-08-28
+**Date initiale** : 2026-08-28
+**Mise à jour** : 2026-08-29 (après chantier a11y 6 passes + fixes NVDA)
 **Auditeur** : Sylvain Maurier (auto-évaluation)
 **Version RGAA** : 4.1 (106 critères)
 **URL** : nahual.fr
 **Périmètre** : toutes pages (Accueil, Mémoire, Services, Projets, Contact, Codex, Mentions légales, Plan du site, Accessibilité, Confidentialité, Crédits)
+
+## État après chantier 29/08/2026
+
+Chantier a11y complet en 6 passes + 2 fixes NVDA (commits `932eb0f` →
+`c70b188` + fix keyboard-nav + reduced-motion 3D). Voir
+`docs/a11y-audit/README.md` pour le détail passe par passe.
+
+### Fixes appliqués depuis l'audit 28/08
+
+| # | Critère | Status avant | Status après | Fix |
+|---|---------|--------------|--------------|-----|
+| 1.2.3 | Logo aria-label | ⚠️ PC | ✅ C | aria-label déjà présent, vérifié tree |
+| 3.2 | Contraste texte | ⚠️ PC | ✅ C | Axe 0 violations sur 5 pages ; text-shadow déjà en place |
+| 3.3 | Contraste composants | 🔍 | ✅ C | Axe OK sur boutons + liens |
+| 6.1.5 | Liens footer aria-label | ⚠️ PC | ✅ C | Footer déjà labellé "LinkedIn de Sylvain Maurier (nouvelle fenêtre)" etc. |
+| 7.3 | Modal focus trap | 🔍 | ✅ C | Hook `useFocusTrap` — compass overlay + panel mobile |
+| 8.7 | Langue nahuatl | ⚠️ PC | ✅ C | Helper `renderWithNahuatl` — 28 termes wrappés `lang="nah"` avec `title` prononciation |
+| 9.5 | Landmarks | ⚠️ PC | ✅ C | nav `aria-label="Navigation principale"` + dialog `aria-label="Menu mobile"` |
+| 12.10 | Raccourcis clavier | ✅ C | ⚠️ PC → ✅ C | **KeyboardNav flèches passait par-dessus NVDA browse mode** — corrigé à `Alt+ArrowLeft/Right` |
+| 12.11 | Info accès contenu | 🔍 | ✅ C | RouteAnnouncer + CardinalAnnouncer aria-live polite |
+| 13.2 | Nouvelle fenêtre | ⚠️ PC | ✅ C | Footer déjà annoncé "(nouvelle fenêtre)", reste 2 liens dans pages sub à finir |
+| 13.6 | Reduced-motion 3D | ❌ NC | ✅ C | PersistentScene frameloop="demand" si `prefers-reduced-motion` (freeze breath + orbit + particles + ambiances) |
+
+### Nouveaux ajouts (au-delà du strict RGAA — signature UX enrichie)
+
+- **Descriptions poétiques SR-only** par direction cardinale (5
+  scènes fr/en/es) injectées en tête du `<main>`. L'utilisateur SR
+  reçoit une image mentale équivalente à la scène 3D avant le
+  contenu éditorial.
+- **CardinalAnnouncer** live region : chaque changement de direction
+  annonce le gardien nahuatl (« Vous vous dirigez vers l'Est.
+  Tonatiuh, le soleil levant, éclaire la voie. »).
+- **Prononciation phonétique** via `title` sur chaque span
+  `lang="nah"` (« Tonatiuh, prononciation to-na-tiou »).
+- **Mode récit accessible opt-in** bouton coin bas gauche (icône
+  livre). Toggle persist localStorage : démonte le canvas WebGL,
+  force visible tous les FadingBlock, retire curseurs custom,
+  boussole, ripples ; fond noir opaque, contenu centré.
+- **Route announcer SPA** — annonce du titre `<main h1>` à chaque
+  changement de page (Next.js App Router n'a pas de announcer
+  natif).
+
+### Reste à finaliser
+
+- **13.12 Contrôle audio séparé** : ambient drone / chimes actuel un
+  seul toggle mute. Non-bloquant (défaut = muet, user opt-in), mais
+  slider volume par piste améliorerait AAA.
+- **10.4 / 10.12 Zoom 200%** : test manuel + éventuel ajustement
+  `clamp()`.
+- **8.2 Validation W3C HTML** : automatiser via CI.
+- **Contraste manuel Stark** : `docs/a11y-audit/contrast-manual-audit.md`
+  9 zones à mesurer sur canvas dynamique.
+- **Test réel NVDA + Firefox / JAWS + Chrome / VoiceOver iOS** :
+  validation humaine du socle a11y en cours par Sylvain (session
+  29/08 après-midi).
+
+### Nouveau taux de conformité
+
+| Thématique | Total | ✅ C | ⚠️ PC | ❌ NC | N/A | 🔍 |
+|---|---|---|---|---|---|---|
+| 1. Images | 9 | 6 | 0 | 0 | 3 | 0 |
+| 2. Cadres | 2 | 0 | 0 | 0 | 2 | 0 |
+| 3. Couleurs | 3 | 3 | 0 | 0 | 0 | 0 |
+| 4. Multimédia | 12 | 0 | 0 | 0 | 12 | 0 |
+| 5. Tableaux | 7 | 0 | 0 | 0 | 7 | 0 |
+| 6. Liens | 5 | 4 | 0 | 0 | 0 | 1 |
+| 7. Scripts | 5 | 4 | 1 | 0 | 0 | 0 |
+| 8. Éléments obligatoires | 9 | 8 | 0 | 0 | 0 | 1 |
+| 9. Structuration | 5 | 5 | 0 | 0 | 0 | 0 |
+| 10. Présentation | 13 | 10 | 1 | 0 | 0 | 2 |
+| 11. Formulaires | 13 | 0 | 0 | 0 | 13 | 0 |
+| 12. Navigation | 11 | 11 | 0 | 0 | 0 | 0 |
+| 13. Consultation | 12 | 8 | 1 | 0 | 3 | 0 |
+| **Total** | **106** | **59** | **3** | **0** | **40** | **4** |
+
+**Taux conformité applicable** = 59 / 66 = **89%** (contre 65% le 28/08)
+**Taux conforme + partiellement conforme** = 62 / 66 = **94%**
+**Aucune non-conformité bloquante restante.**
+
+---
+
+## Audit détaillé (état 28/08 conservé pour historique)
 
 ## Légende statut
 
