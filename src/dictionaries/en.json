@@ -48,6 +48,20 @@
       "turquoise": "Projects · South direction",
       "cendre": "Contact · West direction",
       "obsidienne": "Memory · North direction"
+    },
+    "sceneDescriptions": {
+      "jade": "You are entering the deer's sanctuary. At the center of an obsidian circle, a gray stag stands still, head lowered. Around it, four cardinal points glow softly: north a nocturnal amber violet, east a dawn gold, south a mosaic turquoise, west a twilight red. The deer is your nahual: the essence revealed in animal form.",
+      "dore": "You face the East, Tlahuizcalpan, the house of dawn. Tonatiuh, the rising sun, gilds the deer's coat. The light is new, the day opens.",
+      "turquoise": "You face the South, Huitztlampa, land of thorns and flowers. Huitzilopochtli watches over what grows. The scene takes on turquoise tones of Xiuhtecuhtli mosaic.",
+      "cendre": "You face the West, Cihuatlampa, region of the mauve twilight. The Cihuateteo, deified dead women, escort the sun back. The scene glows softly red.",
+      "obsidienne": "You face the North, Mictlampa, the place of rest. Mictlantecuhtli, lord of violet obsidian, keeps what has been lived. The scene turns nocturnal, deep."
+    },
+    "cardinalAnnouncement": {
+      "jade": "You return to the Center. The deer's sanctuary welcomes you.",
+      "dore": "You head East. Tonatiuh, the rising sun, lights the way.",
+      "turquoise": "You head South. Huitzilopochtli watches over what grows.",
+      "cendre": "You head West. The Cihuateteo escort the sun back.",
+      "obsidienne": "You head North. Mictlantecuhtli keeps what has been lived."
     }
   },
   "home": {

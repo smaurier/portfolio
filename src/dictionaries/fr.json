@@ -48,6 +48,20 @@
       "turquoise": "Projets · direction Sud",
       "cendre": "Contact · direction Ouest",
       "obsidienne": "Mémoire · direction Nord"
+    },
+    "sceneDescriptions": {
+      "jade": "Vous entrez dans le sanctuaire du cerf. Au centre d'un cercle d'obsidienne, un cerf gris se tient immobile, tête basse. Autour de lui, quatre points cardinaux luisent doucement : au nord un violet d'ambre nocturne, à l'est un doré d'aube, au sud un turquoise de mosaïque, à l'ouest un rouge de crépuscule. Le cerf est votre nahual : l'essence qui se révèle sous forme animale.",
+      "dore": "Vous êtes tourné vers l'Est, Tlahuizcalpan, la maison de l'aube. Tonatiuh, le soleil levant, dore le pelage du cerf. La lumière est neuve, la journée s'ouvre.",
+      "turquoise": "Vous êtes tourné vers le Sud, Huitztlampa, terre des épines et des fleurs. Huitzilopochtli veille sur ce qui pousse. La scène prend des teintes turquoise de mosaïque Xiuhtecuhtli.",
+      "cendre": "Vous êtes tourné vers l'Ouest, Cihuatlampa, région du crépuscule mauve. Les Cihuateteo, femmes-mortes divinisées, raccompagnent le soleil. La scène rougeoie doucement.",
+      "obsidienne": "Vous êtes tourné vers le Nord, Mictlampa, le lieu du repos. Mictlantecuhtli, seigneur de l'obsidienne violette, garde ce qui a été vécu. La scène devient nocturne, profonde."
+    },
+    "cardinalAnnouncement": {
+      "jade": "Vous revenez au Centre. Le sanctuaire du cerf vous accueille.",
+      "dore": "Vous vous dirigez vers l'Est. Tonatiuh, le soleil levant, éclaire la voie.",
+      "turquoise": "Vous vous dirigez vers le Sud. Huitzilopochtli veille sur ce qui pousse.",
+      "cendre": "Vous vous dirigez vers l'Ouest. Les Cihuateteo raccompagnent le soleil.",
+      "obsidienne": "Vous vous dirigez vers le Nord. Mictlantecuhtli garde ce qui a été vécu."
     }
   },
   "home": {

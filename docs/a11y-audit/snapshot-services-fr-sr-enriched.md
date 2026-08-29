@@ -1,0 +1,149 @@
+- generic [active] [ref=f1e1]:
+  - link "Aller au contenu principal" [ref=f1e2] [cursor=pointer]:
+    - /url: "#main"
+  - status [ref=f1e3]: Services
+  - status [ref=f1e4]
+  - banner [ref=f1e5]:
+    - generic [ref=f1e6]:
+      - list "Liens externes" [ref=f1e7]:
+        - listitem [ref=f1e8]:
+          - link "linkedin" [ref=f1e9] [cursor=pointer]:
+            - /url: https://www.linkedin.com/in/smaurier/
+        - listitem [ref=f1e10]:
+          - link "github" [ref=f1e11] [cursor=pointer]:
+            - /url: https://github.com/smaurier
+        - listitem [ref=f1e12]:
+          - link "bonjour@nahual.fr" [ref=f1e133] [cursor=pointer]:
+            - /url: mailto:bonjour@nahual.fr
+      - list "Changer de langue" [ref=f1e13]:
+        - listitem [ref=f1e14]:
+          - link "Français" [ref=f1e15] [cursor=pointer]:
+            - /url: /fr/services
+            - text: FR
+        - listitem [ref=f1e16]:
+          - link "English" [ref=f1e17] [cursor=pointer]:
+            - /url: /en/services
+            - text: EN
+        - listitem [ref=f1e18]:
+          - link "Español" [ref=f1e19] [cursor=pointer]:
+            - /url: /es/servicios
+            - text: ES
+    - generic [ref=f1e20]:
+      - link "Nahual — Retour à l'accueil" [ref=f1e21] [cursor=pointer]:
+        - /url: /fr
+        - generic [ref=f1e22]: Nahual
+      - navigation "Navigation principale" [ref=f1e23]:
+        - list [ref=f1e24]:
+          - listitem [ref=f1e25]:
+            - link "Accueil" [ref=f1e26] [cursor=pointer]:
+              - /url: /fr
+          - listitem [ref=f1e27]:
+            - link "Mémoire" [ref=f1e28] [cursor=pointer]:
+              - /url: /fr/memoire
+          - listitem [ref=f1e29]:
+            - link "Services" [ref=f1e30] [cursor=pointer]:
+              - /url: /fr/services
+          - listitem [ref=f1e31]:
+            - link "Projets" [ref=f1e32] [cursor=pointer]:
+              - /url: /fr/projets
+          - listitem [ref=f1e33]:
+            - link "Contact" [ref=f1e34] [cursor=pointer]:
+              - /url: /fr/contact
+  - generic:
+    - generic:
+      - generic:
+        - heading [level=2]:
+          - generic: Est
+          - generic: ·
+          - generic: Tlahuizcalpan
+        - paragraph: L'aube dorée. Tonatiuh se lève, la journée s'ouvre.
+        - link:
+          - /url: /fr/projets
+          - text: Sud · Turquoise
+          - generic: →
+  - main [ref=f1e48]:
+    - paragraph [ref=f1e49]: Vous êtes tourné vers l'Est, Tlahuizcalpan, la maison de l'aube. Tonatiuh, le soleil levant, dore le pelage du cerf. La lumière est neuve, la journée s'ouvre.
+    - generic [ref=f1e50]:
+      - heading "Services" [level=1] [ref=f1e51]
+      - paragraph [ref=f1e52]: "Nahual, c'est le studio de création de Sylvain Maurier, développeur frontend senior spécialisé en accessibilité numérique. Deux offres, un seul objectif : des sites qui marchent, pour tout le monde."
+      - generic [ref=f1e53]:
+        - heading "Création de site web" [level=2] [ref=f1e54]
+        - paragraph [ref=f1e55]: "Sites vitrines, applications sur-mesure : développement frontend et fullstack (React, Next.js, Vue/Nuxt), design system, performance. Du cahier des charges à la mise en ligne."
+      - generic [ref=f1e56]:
+        - heading "Audit accessibilité RGAA" [level=2] [ref=f1e57]
+        - paragraph [ref=f1e58]: Audit de conformité RGAA/WCAG avec recommandations directement implémentables. Je livre le code de correction, pas seulement un rapport.
+        - paragraph [ref=f1e59]: Spécialisation en cours de certification (examen access42, 23 octobre 2026), pas encore obtenue.
+      - link "Discutons de votre projet →" [ref=f1e60] [cursor=pointer]:
+        - /url: /fr/contact
+  - contentinfo [ref=f1e61]:
+    - generic [ref=f1e62]:
+      - generic [ref=f1e63]:
+        - heading "Navigation" [level=3] [ref=f1e64]
+        - list [ref=f1e65]:
+          - listitem [ref=f1e66]:
+            - link "Accueil" [ref=f1e67] [cursor=pointer]:
+              - /url: /fr
+          - listitem [ref=f1e68]:
+            - link "Mémoire" [ref=f1e69] [cursor=pointer]:
+              - /url: /fr/memoire
+          - listitem [ref=f1e70]:
+            - link "Services" [ref=f1e71] [cursor=pointer]:
+              - /url: /fr/services
+          - listitem [ref=f1e72]:
+            - link "Projets" [ref=f1e73] [cursor=pointer]:
+              - /url: /fr/projets
+          - listitem [ref=f1e74]:
+            - link "Contact" [ref=f1e75] [cursor=pointer]:
+              - /url: /fr/contact
+      - generic [ref=f1e76]:
+        - heading "Ressources" [level=3] [ref=f1e77]
+        - list [ref=f1e78]:
+          - listitem [ref=f1e79]:
+            - link "Codex" [ref=f1e80] [cursor=pointer]:
+              - /url: /fr/codex
+          - listitem [ref=f1e81]:
+            - link "Crédits" [ref=f1e82] [cursor=pointer]:
+              - /url: /fr/credits
+          - listitem [ref=f1e83]:
+            - link "Plan du site" [ref=f1e84] [cursor=pointer]:
+              - /url: /fr/plan-du-site
+      - generic [ref=f1e85]:
+        - heading "Informations légales" [level=3] [ref=f1e86]
+        - list [ref=f1e87]:
+          - listitem [ref=f1e88]:
+            - link "Mentions légales" [ref=f1e89] [cursor=pointer]:
+              - /url: /fr/mentions-legales
+          - listitem [ref=f1e90]:
+            - link "Accessibilité" [ref=f1e91] [cursor=pointer]:
+              - /url: /fr/accessibilite
+          - listitem [ref=f1e92]:
+            - link "Confidentialité" [ref=f1e93] [cursor=pointer]:
+              - /url: /fr/confidentialite
+      - generic [ref=f1e94]:
+        - heading "Contact" [level=3] [ref=f1e95]
+        - list [ref=f1e96]:
+          - listitem [ref=f1e97]:
+            - link "LinkedIn de Sylvain Maurier (nouvelle fenêtre)" [ref=f1e98] [cursor=pointer]:
+              - /url: https://www.linkedin.com/in/sylvain-maurier/
+              - text: LinkedIn
+          - listitem [ref=f1e99]:
+            - link "GitHub de Sylvain Maurier (nouvelle fenêtre)" [ref=f1e100] [cursor=pointer]:
+              - /url: https://github.com/smaurier
+              - text: GitHub
+          - listitem [ref=f1e101]:
+            - 'link "Email : bonjour@nahual.fr" [ref=f1e102] [cursor=pointer]':
+              - /url: mailto:bonjour@nahual.fr
+              - text: Email
+    - generic [ref=f1e103]: © 2026 NAHUAL Studio · Sylvain Maurier
+  - status
+  - button "Activer le son" [ref=f1e109] [cursor=pointer]
+  - navigation "Boussole cardinale" [ref=f1e112]:
+    - button "Nord · Mémoire" [ref=f1e114] [cursor=pointer]
+    - button "Ouest · Contact" [ref=f1e116] [cursor=pointer]
+    - button "Centre · Accueil" [ref=f1e117] [cursor=pointer]
+    - button "Est · Services" [ref=f1e118] [cursor=pointer]
+    - button "Sud · Projets" [ref=f1e120] [cursor=pointer]
+    - button "Explorer les 5 directions" [ref=f1e122] [cursor=pointer]:
+      - generic [ref=f1e123]: i
+  - button "Open Next.js Dev Tools" [ref=f1e129] [cursor=pointer]
+  - alert [ref=f1e134]

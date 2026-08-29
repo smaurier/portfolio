@@ -32,6 +32,7 @@ export type HomeContent = {
 export default function StagScene({
   home,
   servicesHref,
+  sceneDescription,
 }: {
   home: HomeContent;
   servicesHref: string;
@@ -40,18 +41,25 @@ export default function StagScene({
    * aboutTitle, contactCta, githubCta ne sont plus utilises non plus
    * depuis la sortie du bloc "A propos" de la home le 29/08). */
   contactHref?: string;
+  /** Description poetique-immersive de la scene 3D pour les lecteurs
+   * d'ecran (29/08 chantier a11y "SR enrichi"). Injectee en tete du
+   * sr-only pour donner a l'utilisateur SR une image mentale
+   * equivalente a la scene visuelle. */
+  sceneDescription: string;
 }) {
   return (
     <SceneStage
       overlay={({ progressRef, reducedMotionRef }) => (
         <main id="main">
           {/* Recit canonique pour lecteurs d'ecran (29/08 chantier
-              a11y). Le tree accessibility est structure : h1 hero +
-              texte + section chapitres ordonnee. Toujours dans le
-              flux, jamais cache par les FadingBlock scroll-driven qui
-              vivent en aria-hidden ci-dessous. Le CTA reste dans le
-              bloc visuel pour ne pas doubler le focus clavier. */}
+              a11y). Le tree accessibility est structure : description
+              scene + h1 hero + texte + section chapitres ordonnee.
+              Toujours dans le flux, jamais cache par les FadingBlock
+              scroll-driven qui vivent en aria-hidden ci-dessous. Le
+              CTA reste dans le bloc visuel pour ne pas doubler le
+              focus clavier. */}
           <div className="sr-only">
+            <p>{sceneDescription}</p>
             <h1>{home.heroTitle}</h1>
             <p>{home.heroText}</p>
             <section aria-label="Recit du cerf, quatre chapitres">

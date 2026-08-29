@@ -48,6 +48,20 @@
       "turquoise": "Proyectos · dirección Sur",
       "cendre": "Contacto · dirección Oeste",
       "obsidienne": "Memoria · dirección Norte"
+    },
+    "sceneDescriptions": {
+      "jade": "Entra en el santuario del venado. En el centro de un círculo de obsidiana, un venado gris permanece inmóvil, con la cabeza baja. A su alrededor, cuatro puntos cardinales brillan suavemente: al norte un violeta de ámbar nocturno, al este un dorado del alba, al sur un turquesa de mosaico, al oeste un rojo de crepúsculo. El venado es su nahual: la esencia que se revela bajo forma animal.",
+      "dore": "Está orientado hacia el Este, Tlahuizcalpan, la casa del alba. Tonatiuh, el sol naciente, dora el pelaje del venado. La luz es nueva, el día se abre.",
+      "turquoise": "Está orientado hacia el Sur, Huitztlampa, tierra de espinas y flores. Huitzilopochtli vela por lo que crece. La escena toma tonos turquesa de mosaico Xiuhtecuhtli.",
+      "cendre": "Está orientado hacia el Oeste, Cihuatlampa, región del crepúsculo malva. Las Cihuateteo, mujeres muertas divinizadas, acompañan de vuelta al sol. La escena arde suavemente en rojo.",
+      "obsidienne": "Está orientado hacia el Norte, Mictlampa, el lugar del reposo. Mictlantecuhtli, señor de la obsidiana violeta, guarda lo que ha sido vivido. La escena se vuelve nocturna, profunda."
+    },
+    "cardinalAnnouncement": {
+      "jade": "Regresa al Centro. El santuario del venado le acoge.",
+      "dore": "Se dirige hacia el Este. Tonatiuh, el sol naciente, ilumina el camino.",
+      "turquoise": "Se dirige hacia el Sur. Huitzilopochtli vela por lo que crece.",
+      "cendre": "Se dirige hacia el Oeste. Las Cihuateteo acompañan de vuelta al sol.",
+      "obsidienne": "Se dirige hacia el Norte. Mictlantecuhtli guarda lo que ha sido vivido."
     }
   },
   "home": {

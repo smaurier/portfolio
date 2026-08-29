@@ -144,7 +144,11 @@ export default async function LocalizedProjetDetail({
   ];
 
   return (
-    <EchoScenePage directionKey={direction} locale={locale}>
+    <EchoScenePage
+      directionKey={direction}
+      locale={locale}
+      sceneDescription={fullDict.common.sceneDescriptions[direction]}
+    >
       {jsonLd.map((entry, i) => (
         <script
           key={i}

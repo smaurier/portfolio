@@ -236,6 +236,80 @@ recevoir les updates.
 - Prononciation nahuatl audio ou phonétique
 - Mode « récit accessible » opt-in
 
+---
+
+## Passe 3 — SR enrichi (2026-08-29)
+
+Le chantier « expérience SR à part entière » (promesse Sylvain :
+« l'accessibilité doit être une nouvelle expérience utilisateur »).
+Deux ajouts complémentaires :
+
+### ✅ Descriptions poétiques SR-only par scène cardinale
+
+5 textes fr/en/es dans `dict.common.sceneDescriptions.{jade|dore|
+turquoise|cendre|obsidienne}`. Ton poétique-immersif, court (3-5
+lignes), révèlent le symbolisme Nahual invisible à l'œil (le cerf
+est votre nahual, les 4 gardiens cardinaux, les couleurs).
+
+Injection :
+- `stag-scene.tsx` : `<p className="sr-only">{sceneDescription}</p>`
+  en tête du div sr-only, avant h1 hero.
+- `echo-scene-page.tsx` : `<p className="sr-only">{sceneDescription}
+  </p>` en tête du `<main>`, avant le h1 de la page.
+
+Callers passent la description depuis dict :
+- `page.js` (home) : `sceneDescriptions.jade`
+- `[slug]/page.tsx` : `sceneDescriptions[direction]`
+- `[slug]/[projetSlug]/page.tsx` : `sceneDescriptions.turquoise`
+
+L'utilisateur SR au chargement d'une page reçoit d'abord une image
+mentale de la scène (« Vous entrez dans le sanctuaire du cerf... »)
+puis le contenu éditorial. Équivalent narratif du plaisir visuel
+que reçoit l'utilisateur voyant.
+
+### ✅ Live region cardinale (`CardinalAnnouncer`)
+
+Nouveau composant `src/app/components/cardinal-announcer.tsx`
+monté dans layout, à côté du RouteAnnouncer. Observe la direction
+cardinale via `useCurrentDirection()`, annonce le gardien nahuatl
+à chaque changement de direction :
+
+- « Vous vous dirigez vers l'Est. Tonatiuh, le soleil levant, éclaire la voie. »
+- « Vous vous dirigez vers le Sud. Huitzilopochtli veille sur ce qui pousse. »
+- « Vous vous dirigez vers l'Ouest. Les Cihuateteo raccompagnent le soleil. »
+- « Vous vous dirigez vers le Nord. Mictlantecuhtli garde ce qui a été vécu. »
+- « Vous revenez au Centre. Le sanctuaire du cerf vous accueille. »
+
+Skip première monte (utilisateur lit déjà la description sr-only
+complète au chargement). Ne re-annonce pas si la direction ne change
+pas (ex : sub-pages légales toutes jade). Pattern reset-puis-set
+identique au RouteAnnouncer pour garantir re-annonce même valeur
+identique.
+
+Complémentaire au RouteAnnouncer :
+- RouteAnnouncer : titre court h1 (« Services »)
+- CardinalAnnouncer : narrative mytho (« Vous vous dirigez vers
+  l'Est. Tonatiuh... »)
+
+Les 2 régions sont `polite`, queue naturelle : titre court d'abord,
+narrative après. Immersion parallèle à l'expérience visuelle
+(couleurs cardinales, View Transitions).
+
+### Snapshots
+
+- `snapshot-home-fr-sr-enriched.md` : description sanctuaire en tête
+  du sr-only, avant h1
+- `snapshot-services-fr-sr-enriched.md` : description Tlahuizcalpan
+  en tête du main, avant h1 Services
+
+### Restant
+
+- `lang="nah"` sur termes nahuatl inline (Tonatiuh, Xiuhtecuhtli,
+  Mazātl, etc.) — refactor rendu dicts
+- Test réel NVDA + Firefox + JAWS + VoiceOver iOS
+- Prononciation phonétique optionnelle
+- Mode « récit accessible » opt-in (bouton header) — bonus futur
+
 
 ## Validation manuelle attendue
 

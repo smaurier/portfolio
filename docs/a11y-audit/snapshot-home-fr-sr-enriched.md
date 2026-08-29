@@ -1,0 +1,155 @@
+- generic [active] [ref=e1]:
+  - link "Aller au contenu principal" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - status [ref=e3]: Nahual · studio de création
+  - status [ref=e4]
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - list "Liens externes" [ref=e7]:
+        - listitem [ref=e8]:
+          - link "linkedin" [ref=e9] [cursor=pointer]:
+            - /url: https://www.linkedin.com/in/smaurier/
+        - listitem [ref=e10]:
+          - link "github" [ref=e11] [cursor=pointer]:
+            - /url: https://github.com/smaurier
+        - listitem [ref=e12]:
+          - link "bonjour@nahual.fr" [ref=e128] [cursor=pointer]:
+            - /url: mailto:bonjour@nahual.fr
+      - list "Changer de langue" [ref=e13]:
+        - listitem [ref=e14]:
+          - link "Français" [ref=e15] [cursor=pointer]:
+            - /url: /fr
+            - text: FR
+        - listitem [ref=e16]:
+          - link "English" [ref=e17] [cursor=pointer]:
+            - /url: /en
+            - text: EN
+        - listitem [ref=e18]:
+          - link "Español" [ref=e19] [cursor=pointer]:
+            - /url: /es
+            - text: ES
+    - generic [ref=e20]:
+      - link "Nahual — Retour à l'accueil" [ref=e21] [cursor=pointer]:
+        - /url: /fr
+        - generic [ref=e22]: Nahual
+      - navigation "Navigation principale" [ref=e23]:
+        - list [ref=e24]:
+          - listitem [ref=e25]:
+            - link "Accueil" [ref=e26] [cursor=pointer]:
+              - /url: /fr
+          - listitem [ref=e27]:
+            - link "Mémoire" [ref=e28] [cursor=pointer]:
+              - /url: /fr/memoire
+          - listitem [ref=e29]:
+            - link "Services" [ref=e30] [cursor=pointer]:
+              - /url: /fr/services
+          - listitem [ref=e31]:
+            - link "Projets" [ref=e32] [cursor=pointer]:
+              - /url: /fr/projets
+          - listitem [ref=e33]:
+            - link "Contact" [ref=e34] [cursor=pointer]:
+              - /url: /fr/contact
+  - generic:
+    - generic:
+      - main:
+        - generic:
+          - paragraph: "Vous entrez dans le sanctuaire du cerf. Au centre d'un cercle d'obsidienne, un cerf gris se tient immobile, tête basse. Autour de lui, quatre points cardinaux luisent doucement : au nord un violet d'ambre nocturne, à l'est un doré d'aube, au sud un turquoise de mosaïque, à l'ouest un rouge de crépuscule. Le cerf est votre nahual : l'essence qui se révèle sous forme animale."
+          - heading "Nahual · studio de création" [level=1]
+          - paragraph: "Chez les Nahuas, peuple mésoaméricain, le cerf (Mazātl) est le septième jour du calendrier sacré : un messager entre les mondes, associé à la grâce, à la vigilance, et à la faculté de cacher sa vraie nature aux autres. Le nahual, c'est cette même idée : une essence humaine qui se révèle dans sa forme animale véritable, incarnée ici par ce cerf."
+          - region "Recit du cerf, quatre chapitres":
+            - list:
+              - listitem:
+                - strong: I · L'approche
+                - text: — Il broute dans la pénombre, indifférent au chemin qui mène vers lui.
+              - listitem:
+                - strong: II · Le regard
+                - text: — Le cerf t'a remarqué. Il ne fuit pas — il attend.
+              - listitem:
+                - strong: III · Face à face
+                - text: "— Un silence. Trois entités : ton corps, son corps, ce qui passe entre les deux."
+              - listitem:
+                - strong: IV · Les chemins
+                - text: — Quatre directions autour de toi, une cinquième au centre. À toi de choisir.
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - heading [level=1] [ref=e41]:
+              - generic [ref=e42]: Nahual
+              - generic [ref=e44]: ·
+              - generic [ref=e46]: studio
+              - generic [ref=e48]: de
+              - generic [ref=e50]: création
+            - paragraph [ref=e52]: "Chez les Nahuas, peuple mésoaméricain, le cerf (Mazātl) est le septième jour du calendrier sacré : un messager entre les mondes, associé à la grâce, à la vigilance, et à la faculté de cacher sa vraie nature aux autres. Le nahual, c'est cette même idée : une essence humaine qui se révèle dans sa forme animale véritable, incarnée ici par ce cerf."
+          - link "Découvrir mes services" [ref=e54] [cursor=pointer]:
+            - /url: /fr/services
+  - contentinfo [ref=e56]:
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - heading "Navigation" [level=3] [ref=e59]
+        - list [ref=e60]:
+          - listitem [ref=e61]:
+            - link "Accueil" [ref=e62] [cursor=pointer]:
+              - /url: /fr
+          - listitem [ref=e63]:
+            - link "Mémoire" [ref=e64] [cursor=pointer]:
+              - /url: /fr/memoire
+          - listitem [ref=e65]:
+            - link "Services" [ref=e66] [cursor=pointer]:
+              - /url: /fr/services
+          - listitem [ref=e67]:
+            - link "Projets" [ref=e68] [cursor=pointer]:
+              - /url: /fr/projets
+          - listitem [ref=e69]:
+            - link "Contact" [ref=e70] [cursor=pointer]:
+              - /url: /fr/contact
+      - generic [ref=e71]:
+        - heading "Ressources" [level=3] [ref=e72]
+        - list [ref=e73]:
+          - listitem [ref=e74]:
+            - link "Codex" [ref=e75] [cursor=pointer]:
+              - /url: /fr/codex
+          - listitem [ref=e76]:
+            - link "Crédits" [ref=e77] [cursor=pointer]:
+              - /url: /fr/credits
+          - listitem [ref=e78]:
+            - link "Plan du site" [ref=e79] [cursor=pointer]:
+              - /url: /fr/plan-du-site
+      - generic [ref=e80]:
+        - heading "Informations légales" [level=3] [ref=e81]
+        - list [ref=e82]:
+          - listitem [ref=e83]:
+            - link "Mentions légales" [ref=e84] [cursor=pointer]:
+              - /url: /fr/mentions-legales
+          - listitem [ref=e85]:
+            - link "Accessibilité" [ref=e86] [cursor=pointer]:
+              - /url: /fr/accessibilite
+          - listitem [ref=e87]:
+            - link "Confidentialité" [ref=e88] [cursor=pointer]:
+              - /url: /fr/confidentialite
+      - generic [ref=e89]:
+        - heading "Contact" [level=3] [ref=e90]
+        - list [ref=e91]:
+          - listitem [ref=e92]:
+            - link "LinkedIn de Sylvain Maurier (nouvelle fenêtre)" [ref=e93] [cursor=pointer]:
+              - /url: https://www.linkedin.com/in/sylvain-maurier/
+              - text: LinkedIn
+          - listitem [ref=e94]:
+            - link "GitHub de Sylvain Maurier (nouvelle fenêtre)" [ref=e95] [cursor=pointer]:
+              - /url: https://github.com/smaurier
+              - text: GitHub
+          - listitem [ref=e96]:
+            - 'link "Email : bonjour@nahual.fr" [ref=e97] [cursor=pointer]':
+              - /url: mailto:bonjour@nahual.fr
+              - text: Email
+    - generic [ref=e98]: © 2026 NAHUAL Studio · Sylvain Maurier
+  - status
+  - button "Activer le son" [ref=e104] [cursor=pointer]
+  - navigation "Boussole cardinale" [ref=e107]:
+    - button "Nord · Mémoire" [ref=e109] [cursor=pointer]
+    - button "Ouest · Contact" [ref=e111] [cursor=pointer]
+    - button "Centre · Accueil" [ref=e112] [cursor=pointer]
+    - button "Est · Services" [ref=e113] [cursor=pointer]
+    - button "Sud · Projets" [ref=e115] [cursor=pointer]
+    - button "Explorer les 5 directions" [ref=e117] [cursor=pointer]:
+      - generic [ref=e118]: i
+  - button "Open Next.js Dev Tools" [ref=e124] [cursor=pointer]
+  - alert [ref=e129]

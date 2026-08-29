@@ -25,10 +25,16 @@ import SceneStage from "./scene-stage";
 export default function EchoScenePage({
   directionKey,
   locale,
+  sceneDescription,
   children,
 }: {
   directionKey: DirectionKey;
   locale: Locale;
+  /** Description poetique-immersive de la scene 3D pour SR (29/08
+   * chantier a11y "SR enrichi"). Injectee en tete du main pour que
+   * l'utilisateur SR entende ou il est arrive avant le contenu
+   * editorial de la page. */
+  sceneDescription: string;
   children: ReactNode;
 }) {
   return (
@@ -43,7 +49,10 @@ export default function EchoScenePage({
         />
       )}
     >
-      <main id="main" data-direction={directionKey}>{children}</main>
+      <main id="main" data-direction={directionKey}>
+        <p className="sr-only">{sceneDescription}</p>
+        {children}
+      </main>
     </SceneStage>
   );
 }

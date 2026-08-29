@@ -402,8 +402,13 @@ export default async function LocalizedPage({
     ],
   };
 
+  const directionKey = DIRECTION_BY_PAGE[key];
   return (
-    <EchoScenePage directionKey={DIRECTION_BY_PAGE[key]} locale={locale}>
+    <EchoScenePage
+      directionKey={directionKey}
+      locale={locale}
+      sceneDescription={fullDict.common.sceneDescriptions[directionKey]}
+    >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}

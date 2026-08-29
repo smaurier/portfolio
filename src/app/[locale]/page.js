@@ -21,6 +21,7 @@ export default function Home({ params }) {
       home={dict.home}
       servicesHref={getPath(locale, "services")}
       contactHref={getPath(locale, "contact")}
+      sceneDescription={dict.common.sceneDescriptions.jade}
     />
   );
 }

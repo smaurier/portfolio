@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import "../globals.css";
+import CardinalAnnouncer from "../components/cardinal-announcer";
 import CardinalCompass from "../components/cardinal-compass";
 import CardinalHoverSync from "../components/cardinal-hover-sync";
 import CursorTrail from "../components/cursor-trail";
@@ -220,6 +221,11 @@ export default async function LocaleLayout({
               sr-only. NVDA/JAWS/VoiceOver le lisent au router.push
               sans que l'utilisateur SR ait a reparcourir la page. */}
           <RouteAnnouncer />
+          {/* Cardinal announcer (29/08 chantier a11y "SR enrichi") —
+              couche narrative mytho au-dessus du RouteAnnouncer :
+              annonce le nom nahuatl + role du gardien de la
+              direction cible a chaque changement cardinal. */}
+          <CardinalAnnouncer dict={dict.common.cardinalAnnouncement} />
           {/* Lenis smooth scroll (28/08 task #48) — signature silky
               scroll. Respect reducedMotion (pas monte du tout).
               window.scrollY reste synchro, la scene 3D reveal-arc
