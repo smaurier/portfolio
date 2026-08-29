@@ -11,5 +11,9 @@ export const AUTHOR_NAME = "Sylvain Maurier";
 export const AUTHOR_EMAIL = "bonjour@nahual.fr";
 export const AUTHOR_LINKEDIN = "https://www.linkedin.com/in/sylvain-maurier/";
 export const AUTHOR_GITHUB = "https://github.com/smaurier";
+// sylvainmaurier.com (achete 29/08) redirige 301 → nahual.fr via
+// Netlify domain settings. Reference dans JSON-LD Person.sameAs pour
+// signaler l'equivalence a Google.
+export const AUTHOR_SITE = "https://sylvainmaurier.com";
 
 export const FAVICON_PATH = "/img/mini-logo.svg";

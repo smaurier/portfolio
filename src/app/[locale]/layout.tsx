@@ -25,6 +25,7 @@ import {
   AUTHOR_GITHUB,
   AUTHOR_LINKEDIN,
   AUTHOR_NAME,
+  AUTHOR_SITE,
   SITE_NAME,
   SITE_URL,
 } from "../../lib/seo";
@@ -110,7 +111,7 @@ export default async function LocaleLayout({
       url: SITE_URL,
       email: `mailto:${AUTHOR_EMAIL}`,
       jobTitle: "Frontend Developer · Creative Developer · RGAA Auditor",
-      sameAs: [AUTHOR_LINKEDIN, AUTHOR_GITHUB],
+      sameAs: [AUTHOR_LINKEDIN, AUTHOR_GITHUB, AUTHOR_SITE],
       knowsAbout: ["Accessibility", "RGAA", "WCAG", "React", "Next.js", "React Three Fiber", "TypeScript", "WebGL"],
       worksFor: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
     },
