@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { Color, ShaderMaterial, type Group, type Mesh } from "three";
+import { Color, MeshBasicMaterial, type Group, type Mesh } from "three";
 import { isBot } from "@/lib/is-bot";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import type { DirectionKey } from "./direction-colors";
@@ -117,59 +117,83 @@ export default function XolotlCompanion() {
   const { scene, animations } = useGLTF("/models/xolotl.glb");
   const { actions } = useAnimations(animations, groupRef);
 
-  // ShaderMaterial fresnel obsidienne (29/08 iter 7 retour user
-  // "juste ses edges colores et transparent + halo").
+  // Fresnel obsidienne via onBeforeCompile sur MeshBasicMaterial
+  // (29/08 iter 8 : ShaderMaterial custom cassait skinning Wolf.glb
+  // → chien fige en bind pose, ne marchait plus). MeshBasicMaterial
+  // gere skinning natif via chunks three.js, on injecte fresnel
+  // dans les slots standards.
   //
   // Fresnel : edges perpendiculaires camera opaques, centre face-a-
   // face transparent → silhouette lumineuse, corps see-through.
-  // Signature "psychopompe fantomatique" — mytho Xolotl guide entre
-  // mondes vivants/morts, ne s'appartient pas totalement a un cote.
+  // Signature "psychopompe fantomatique" — Xolotl guide entre mondes
+  // vivants/morts, n'appartient pas totalement a un cote.
   //
-  // Boost couleur bord × uBoost (2.8) : les edges brillent au-dela
-  // de 1.0 en linear space → PostFX Bloom capte cette luminescence
-  // et cree un halo naturel autour du chien sans code supplementaire.
+  // uBoost 2.8 : edges brillent au-dela de 1.0 en linear space →
+  // PostFX Bloom capte cette luminescence et cree halo naturel.
   //
-  // Instance partagee via useMemo : un seul material pour tous les
-  // 11 meshes du Wolf.glb → 1 update opacity par frame au lieu de 11.
-  //
-  // ShaderMaterial ignore fog par defaut = immune brouillard scene.
-  // renderOrder:999 + depthTest:true (default) = rendu apres les
-  // autres transparents, mais occlusion Z opaques respectee (cerf,
-  // cactus, montagnes bloquent Xolotl).
+  // Uniforms ref conservee dans useRef pour update par frame de
+  // uOpacity (une seule instance partagee pour tous les meshes).
+  const shaderUniformsRef = useRef<{ uOpacity: { value: number } } | null>(null);
   const fresnelMaterial = useMemo(() => {
-    return new ShaderMaterial({
-      uniforms: {
-        uColor: { value: new Color(XOLOTL_COLOR) },
-        uPower: { value: 2.2 },
-        uOpacity: { value: 0 },
-        uBoost: { value: 2.8 },
-      },
-      vertexShader: /* glsl */ `
-        varying vec3 vNormal;
-        varying vec3 vViewDirection;
-        void main() {
-          vNormal = normalize(normalMatrix * normal);
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          vViewDirection = normalize(-mvPosition.xyz);
-          gl_Position = projectionMatrix * mvPosition;
-        }
-      `,
-      fragmentShader: /* glsl */ `
-        uniform vec3 uColor;
-        uniform float uPower;
-        uniform float uOpacity;
-        uniform float uBoost;
-        varying vec3 vNormal;
-        varying vec3 vViewDirection;
-        void main() {
-          float fresnel = pow(1.0 - abs(dot(vNormal, vViewDirection)), uPower);
-          vec3 color = uColor * (1.0 + fresnel * uBoost);
-          gl_FragColor = vec4(color, fresnel * uOpacity);
-        }
-      `,
+    const mat = new MeshBasicMaterial({
+      color: new Color(XOLOTL_COLOR),
       transparent: true,
       depthWrite: false,
+      fog: false,
     });
+    mat.onBeforeCompile = (shader) => {
+      shader.uniforms.uPower = { value: 2.2 };
+      shader.uniforms.uBoost = { value: 2.8 };
+      shader.uniforms.uOpacity = { value: 0 };
+      shaderUniformsRef.current = shader.uniforms as unknown as {
+        uOpacity: { value: number };
+      };
+      // Vertex : MeshBasicMaterial ne calcule normal que si USE_ENVMAP.
+      // On force le pipeline normal (beginnormal + skinnormal +
+      // defaultnormal) juste avant begin_vertex pour que objectNormal
+      // et transformedNormal existent apres skinning.
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          "#include <common>",
+          `#include <common>
+           varying vec3 vFresnelNormal;
+           varying vec3 vFresnelView;`
+        )
+        .replace(
+          "#include <begin_vertex>",
+          `#include <beginnormal_vertex>
+           #include <morphnormal_vertex>
+           #include <skinbase_vertex>
+           #include <skinnormal_vertex>
+           #include <defaultnormal_vertex>
+           #include <begin_vertex>`
+        )
+        .replace(
+          "#include <fog_vertex>",
+          `#include <fog_vertex>
+           vFresnelNormal = normalize(transformedNormal);
+           vec4 mvPosXolotl = modelViewMatrix * vec4(transformed, 1.0);
+           vFresnelView = normalize(-mvPosXolotl.xyz);`
+        );
+      // Fragment : remplace couleur finale par fresnel-boosted.
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          "#include <common>",
+          `#include <common>
+           uniform float uPower;
+           uniform float uBoost;
+           uniform float uOpacity;
+           varying vec3 vFresnelNormal;
+           varying vec3 vFresnelView;`
+        )
+        .replace(
+          "#include <opaque_fragment>",
+          `float fresnel = pow(1.0 - abs(dot(normalize(vFresnelNormal), normalize(vFresnelView))), uPower);
+           vec3 finalXolotlCol = diffuse * (1.0 + fresnel * uBoost);
+           gl_FragColor = vec4(finalXolotlCol, fresnel * uOpacity);`
+        );
+    };
+    return mat;
   }, []);
 
   useEffect(() => {
@@ -272,7 +296,11 @@ export default function XolotlCompanion() {
     }
     // Update uniform opacity fresnel (une seule instance partagee =
     // un seul set par frame quel que soit le nombre de meshes du Wolf).
-    fresnelMaterial.uniforms.uOpacity.value = opacity;
+    // onBeforeCompile n'expose les uniforms qu'apres 1ere compilation
+    // → ref peut etre null au 1er frame, no-op silencieux.
+    if (shaderUniformsRef.current) {
+      shaderUniformsRef.current.uOpacity.value = opacity;
+    }
   });
 
   // Applique body.xolotl-witnessed dès le mount si déjà vu (survit
