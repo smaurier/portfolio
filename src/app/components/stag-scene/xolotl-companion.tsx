@@ -58,18 +58,20 @@ const FADE_MS = 2_500;
 const TRAVERSE_MS = 9_000;
 const TOTAL_MS = FADE_MS * 2 + TRAVERSE_MS; // 14 s
 
-// Amplitude X (29/08 fix visibilite). A Z=-5 depuis camera radius ~5,
-// FOV 45° rend ~±8 units visibles. On garde [-6,6] pour margin sur
-// fade in/out (chien entre en bord, sort en bord opposé).
-const START_X = -6;
-const END_X = 6;
-// Z=-5 (retour user 29/08 "il est aussi gros que le cerf, plus au
-// loin"). Cerf central a Z~0, taille ~1.5 unit. A Z=-5 le chien
-// apparait ~2x plus petit perceptuellement → silhouette secondaire
-// lointaine, coherent narratif "guide silencieux au loin".
-// Fog immune (material.fog=false) + renderOrder 999 = pas de risque
-// de disparition qu'on avait a Z=-4 initial.
-const Z_DEPTH = -5;
+// Amplitude X (29/08 iter 2 recul Z=-10). A cette distance depuis
+// camera radius ~5-7, FOV 45° rend ~±12 units visibles. On pousse
+// a [-8, 8] pour plus longue traverse laterale, cohérent perspective
+// eloignee (le chien parcourt un plus grand chemin apparent car il
+// est loin).
+const START_X = -8;
+const END_X = 8;
+// Z=-10 (retour user 29/08 "encore plus loin"). Silhouette perçue
+// ~25% taille cerf → guide silencieux vraiment lointain.
+// Attention : fog scene near=10 far=34 (voir reveal-lighting.tsx).
+// Le chien peut passer legerement au-dela du fog near. material.fog
+// est neanmoins false sur Xolotl → immune. renderOrder 999 = rendu
+// par-dessus fog visuellement. Verifie safe.
+const Z_DEPTH = -10;
 // Y=0 : niveau sol du cerf.
 const Y_LEVEL = 0;
 // Peak opacity 0.7 : visible malgre distance et fond climax teinte.
@@ -77,11 +79,11 @@ const PEAK_OPACITY = 0.7;
 
 const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
 
-// Scale du Wolf.glb (~2 units natif) → 0.9 = ~1.8 unit world. Aux
-// yeux depuis camera radius 5+ regardant Z=-5, la silhouette apparait
-// ~40% taille cerf (cerf a Z=0 plus proche + scale 1.5). Coherent
-// "compagnon secondaire lointain".
-const XOLOTL_SCALE = 0.9;
+// Scale du Wolf.glb (~2 units natif) → 1.4 = ~2.8 unit world. Aux
+// yeux depuis camera radius 5+ regardant Z=-10, la silhouette
+// apparait ~25% taille cerf (perspective naturelle). Boost scale
+// legere compense la distance sans ecraser la perception "lointain".
+const XOLOTL_SCALE = 1.4;
 
 // Nom de l'animation Walk dans le Wolf.glb Quaternius. Convention
 // pack Animals : "AnimalArmature|<AnimName>".
