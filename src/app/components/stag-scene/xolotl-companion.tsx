@@ -3,10 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { MeshBasicMaterial, type Group, type Mesh } from "three";
+import { Color, ShaderMaterial, type Group, type Mesh } from "three";
 import { isBot } from "@/lib/is-bot";
 import { useReadingMode } from "@/lib/reading-mode-context";
-import { getTerrainHeight } from "@/lib/terrain-height";
 import type { DirectionKey } from "./direction-colors";
 import { useCurrentDirection } from "./use-current-direction";
 
@@ -62,19 +61,24 @@ const FADE_MS = 3_000;
 const TRAVERSE_MS = 14_000;
 const TOTAL_MS = FADE_MS * 2 + TRAVERSE_MS; // 20 s
 
-// Amplitude X (29/08 iter 5 fix invisible). Trajet arc simplifie.
+// Amplitude X (29/08 iter 7 : ligne droite retour user "pas partir
+// derriere colline"). Traverse pure lateraie.
 const START_X = -9;
 const END_X = 9;
 
-// Arc en Z reduit amplitude (fix invisible retour user). Chien
-// commence loin (-12), passe milieu plus proche (-8), redevient loin
-// (-12). Amplitude arc reduite pour eviter passage trop proche cerf
-// central qui creait masquage visuel.
-const Z_FAR = -12;
-const Z_NEAR = -8;
+// Z fixe (retire arc + terrain follow) — chien marche en ligne droite
+// a distance constante. Disparition naturelle par fade in/out
+// uniquement, plus par occlusion terrain.
+const Z_DEPTH = -10;
 
-// Peak opacity 0.75 : visible malgre distance + fond climax teinte.
-const PEAK_OPACITY = 0.75;
+// Peak opacity fresnel — 1.0 sur edges via shader (bord opaque),
+// centre transparent. C'est la variable qui module la globale
+// d'ensemble (fade in/out uniquement).
+const PEAK_OPACITY = 1.0;
+
+// Y fixe : le chien marche sur le sol plat imaginaire, pas de
+// terrain follow (retour user 29/08 "pas partir derriere colline").
+const Y_LEVEL = 0;
 
 const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
 
@@ -84,18 +88,6 @@ const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
 // unit world = tiers taille cerf central (~1.5 unit). Coherent
 // perception anatomique.
 const XOLOTL_SCALE = 0.35;
-
-// Offset Y au-dessus du terrain — Wolf.glb centre pivot pas exactement
-// aux pattes. Boost positif (fix invisible 29/08) : le chien flottait
-// peut-etre dans le terrain a Y=0. +0.2 le releve au-dessus des
-// dunes de bruit.
-const Y_OFFSET_ABOVE_TERRAIN = 0.2;
-
-// Terrain height threshold : au-dela le chien est considere derriere
-// une colline/montagne trop haute → fade out opacite pour signaler
-// "il disparait dans le relief". Signature naturelle "il descend
-// derriere la colline".
-const TERRAIN_HIDE_THRESHOLD = 2.5;
 
 // Nom de l'animation Walk dans le Wolf.glb Quaternius. Convention
 // pack Animals : "AnimalArmature|<AnimName>".
@@ -125,39 +117,70 @@ export default function XolotlCompanion() {
   const { scene, animations } = useGLTF("/models/xolotl.glb");
   const { actions } = useAnimations(animations, groupRef);
 
-  // Override matériaux originaux Wolf → MeshBasicMaterial obsidienne
-  // semi-transparent. Une fois au mount, réappliqué à chaque scene
-  // reload defensive.
+  // ShaderMaterial fresnel obsidienne (29/08 iter 7 retour user
+  // "juste ses edges colores et transparent + halo").
   //
-  // depthWrite:false : evite conflits transparence avec autres meshes
-  //   de la scene 3D (Xolotl ne "cache" pas ce qui est derriere).
-  // depthTest:true (defaut) : RESPECTE l'occlusion Z — Xolotl passe
-  //   DERRIERE cerf + cactus + colline naturellement.
-  // fog:false : immune au brouillard eventuel — le chien du
-  //   crepuscule n'appartient pas a l'atmosphere de la scene.
-  // renderOrder:999 : rendu APRES les autres transparents/climax pour
-  //   sort transparency correct. Combine avec depthTest:true =
-  //   \"rendu en dernier MAIS bloque par opaques Z\" - occlusion cerf/
-  //   cactus/montagnes OK, ET visible malgre fond climax teinte
-  //   (fix user 29/08 iter 5 \"pas visible bout scroll\").
-  //   ATTENTION : ne PAS combiner avec depthTest:false (ferait
-  //   passer par-dessus opaques = bug precedent \"passe par dessus
-  //   cactus\").
+  // Fresnel : edges perpendiculaires camera opaques, centre face-a-
+  // face transparent → silhouette lumineuse, corps see-through.
+  // Signature "psychopompe fantomatique" — mytho Xolotl guide entre
+  // mondes vivants/morts, ne s'appartient pas totalement a un cote.
+  //
+  // Boost couleur bord × uBoost (2.8) : les edges brillent au-dela
+  // de 1.0 en linear space → PostFX Bloom capte cette luminescence
+  // et cree un halo naturel autour du chien sans code supplementaire.
+  //
+  // Instance partagee via useMemo : un seul material pour tous les
+  // 11 meshes du Wolf.glb → 1 update opacity par frame au lieu de 11.
+  //
+  // ShaderMaterial ignore fog par defaut = immune brouillard scene.
+  // renderOrder:999 + depthTest:true (default) = rendu apres les
+  // autres transparents, mais occlusion Z opaques respectee (cerf,
+  // cactus, montagnes bloquent Xolotl).
+  const fresnelMaterial = useMemo(() => {
+    return new ShaderMaterial({
+      uniforms: {
+        uColor: { value: new Color(XOLOTL_COLOR) },
+        uPower: { value: 2.2 },
+        uOpacity: { value: 0 },
+        uBoost: { value: 2.8 },
+      },
+      vertexShader: /* glsl */ `
+        varying vec3 vNormal;
+        varying vec3 vViewDirection;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          vViewDirection = normalize(-mvPosition.xyz);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: /* glsl */ `
+        uniform vec3 uColor;
+        uniform float uPower;
+        uniform float uOpacity;
+        uniform float uBoost;
+        varying vec3 vNormal;
+        varying vec3 vViewDirection;
+        void main() {
+          float fresnel = pow(1.0 - abs(dot(vNormal, vViewDirection)), uPower);
+          vec3 color = uColor * (1.0 + fresnel * uBoost);
+          gl_FragColor = vec4(color, fresnel * uOpacity);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+    });
+  }, []);
+
   useEffect(() => {
     scene.traverse((child) => {
       const mesh = child as Mesh;
       if (mesh.isMesh) {
-        mesh.material = new MeshBasicMaterial({
-          color: XOLOTL_COLOR,
-          transparent: true,
-          opacity: 0,
-          depthWrite: false,
-          fog: false,
-        });
+        mesh.material = fresnelMaterial;
         mesh.renderOrder = 999;
       }
     });
-  }, [scene]);
+  }, [scene, fresnelMaterial]);
 
   // Décide spawn une fois par session/direction. sessionStorage évite
   // re-random au re-mount SPA (nav retour sur même page).
@@ -231,17 +254,15 @@ export default function XolotlCompanion() {
       window.dispatchEvent(new CustomEvent("nahual-xolotl-appearing", { detail: { visible: false } }));
       return;
     }
-    // Position — trajet arc : X lerp lineaire, Z varie en arc concave
-    // (loin aux bords, proche au milieu). Y suit le terrain.
-    // Rotation orientee vers la direction de deplacement (heading
-    // tangent au path) → chien regarde toujours devant lui.
+    // Position ligne droite : X lerp lineaire, Y et Z fixes.
+    // Disparition organique via fade in/out uniquement (retour user
+    // 29/08 iter 7 "pas partir derriere colline, laisse le marcher
+    // droit et disparaitre naturellement").
     const t = elapsed / TOTAL_MS;
     const x = START_X + (END_X - START_X) * t;
-    const z = Z_FAR + (Z_NEAR - Z_FAR) * Math.sin(Math.PI * t);
-    const terrainY = getTerrainHeight(x, z);
-    g.position.set(x, terrainY + Y_OFFSET_ABOVE_TERRAIN, z);
+    g.position.set(x, Y_LEVEL, Z_DEPTH);
 
-    // Enveloppe fade in/out standard
+    // Enveloppe fade in/out
     let opacity = PEAK_OPACITY;
     if (elapsed < FADE_MS) {
       opacity *= elapsed / FADE_MS;
@@ -249,23 +270,9 @@ export default function XolotlCompanion() {
       const fadeOutT = (elapsed - FADE_MS - TRAVERSE_MS) / FADE_MS;
       opacity *= 1 - fadeOutT;
     }
-    // Fade supplementaire selon relief : si terrain trop haut (colline
-    // devant lui), reduit opacite pour effet "disparait derriere
-    // colline". Smooth transition entre 2 et 2.5 units terrain height.
-    if (terrainY > TERRAIN_HIDE_THRESHOLD) {
-      const overshoot = terrainY - TERRAIN_HIDE_THRESHOLD;
-      const hideT = Math.min(1, overshoot / 1.5);
-      opacity *= 1 - hideT;
-    }
-    // Applique opacité à tous les mesh du group (materials override
-    // ont déjà transparent:true)
-    g.traverse((child) => {
-      const mesh = child as Mesh;
-      if (mesh.isMesh) {
-        const mat = mesh.material as MeshBasicMaterial;
-        if (mat && "opacity" in mat) mat.opacity = opacity;
-      }
-    });
+    // Update uniform opacity fresnel (une seule instance partagee =
+    // un seul set par frame quel que soit le nombre de meshes du Wolf).
+    fresnelMaterial.uniforms.uOpacity.value = opacity;
   });
 
   // Applique body.xolotl-witnessed dès le mount si déjà vu (survit
