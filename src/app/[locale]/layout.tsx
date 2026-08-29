@@ -4,7 +4,6 @@ import "../globals.css";
 import CardinalAnnouncer from "../components/cardinal-announcer";
 import CardinalCompass from "../components/cardinal-compass";
 import CardinalHoverSync from "../components/cardinal-hover-sync";
-import CursorTrail from "../components/cursor-trail";
 import MaskReveal from "../components/mask-reveal";
 import CustomCursor from "../components/custom-cursor";
 import EasterEgg from "../components/easter-egg";
@@ -364,10 +363,11 @@ export default async function LocaleLayout({
               projectCase/serviceCard : radial gradient direction
               suit curseur, signature "regarde derriere le voile". */}
           <MaskReveal />
-          {/* Cursor path traces (28/08 boite outil #10) — canvas 2D
-              overlay trainee curseur qui s'efface. Signature "traces
-              des ancetres". */}
-          <CursorTrail />
+          {/* CursorTrail retire 29/08 (retour Sylvain "a quoi sert-il
+              ?"). Trace jade opacity 0.08 largeur 1px etait quasi
+              imperceptible sur canvas 3D noir dynamique + mix-blend
+              screen, ne se justifiait pas visuellement. Composant
+              supprime, canvas en moins = -1 rAF = petit gain perf. */}
           {/* Cardinal compass (28/08 retour Sylvain) — indicateur bas
               droite croix 5 points, direction courante highlight
               couleur cardinale, cliquable nav rapide. */}

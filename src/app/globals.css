@@ -965,7 +965,6 @@ body.reading-mode [class*="reveal-text-module"] [class*="inner"] {
    PageClosure (bloc narratif deja aria-hidden). */
 body.reading-mode canvas,
 body.reading-mode [class*="custom-cursor"],
-body.reading-mode [class*="cursor-trail"],
 body.reading-mode [class*="cardinal-compass"],
 body.reading-mode [class*="page-closure"],
 body.reading-mode .cardinalRipple,
