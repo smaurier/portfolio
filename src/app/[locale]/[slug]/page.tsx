@@ -283,6 +283,11 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
       </section>
 
       <section className="codexSection">
+        <h2>{renderWithNahuatl(dict.ollin.title)}</h2>
+        <p>{renderWithNahuatl(dict.ollin.text)}</p>
+      </section>
+
+      <section className="codexSection">
         <h2>{renderWithNahuatl(dict.totem.title)}</h2>
         <p>{renderWithNahuatl(dict.totem.text)}</p>
       </section>
