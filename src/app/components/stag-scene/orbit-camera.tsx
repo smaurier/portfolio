@@ -25,9 +25,13 @@ import { useSceneRefs } from "./scene-refs-context";
  * même garde-fou d'accessibilité que le reste de l'arc (cf reveal-arc.ts
  * et cursor-reveal.ts).
  */
-const PARALLAX_X = 0.35;
-const PARALLAX_Y = 0.25;
+const PARALLAX_X = 0.5;
+const PARALLAX_Y = 0.35;
 const MOUSE_LERP = 0.08;
+// Multiplicateur maximum du parallax pendant une onde Ollin (29/08).
+// Au peak du press, la camera suit ×2.5 plus fort le curseur, decroit
+// avec l'onde (~800ms). Signature "l'onde tire aussi le regard".
+const OLLIN_PARALLAX_BOOST = 1.5;
 
 /**
  * Touch drag orbit (28/08 task #50 mobile). Sur devices touch, un
@@ -141,8 +145,15 @@ export default function OrbitCamera({
     // Parallaxe : décale la position caméra XY selon la souris, la cible
     // reste ancrée sur le cerf → orbite légère autour du sujet. Y inversé
     // (clientY descend, caméra doit monter).
-    const parallaxX = reducedMotionRef.current ? 0 : mouseSmoothRef.current.x * PARALLAX_X;
-    const parallaxY = reducedMotionRef.current ? 0 : -mouseSmoothRef.current.y * PARALLAX_Y;
+    // Boost Ollin (29/08) : pendant l'onde de press, la camera amplifie
+    // sa reponse au parallax. Lu depuis window.__nahualOllinBoost pose
+    // par OllinShockwave. 0 au repos, 1 au peak, decay avec l'onde.
+    const ollinBoost = typeof window !== "undefined"
+      ? (window as unknown as { __nahualOllinBoost?: { current: number } }).__nahualOllinBoost?.current ?? 0
+      : 0;
+    const parallaxMult = 1 + ollinBoost * OLLIN_PARALLAX_BOOST;
+    const parallaxX = reducedMotionRef.current ? 0 : mouseSmoothRef.current.x * PARALLAX_X * parallaxMult;
+    const parallaxY = reducedMotionRef.current ? 0 : -mouseSmoothRef.current.y * PARALLAX_Y * parallaxMult;
 
     // Touch orbit offset — décay progressif au relâchement, sinon
     // reste. Ajoute au parallax pour combiner drag + repos.

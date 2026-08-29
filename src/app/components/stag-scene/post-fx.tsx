@@ -6,6 +6,7 @@ import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, Vignette } fr
 import { BlendFunction } from "postprocessing";
 import { useCardinalTransition } from "./cardinal-transition-context";
 import { useSceneRefs } from "./scene-refs-context";
+import OllinShockwave from "./ollin-shockwave";
 
 /**
  * Post-processing — retour de Sylvain le 18/08, après audit comparé à des
@@ -103,7 +104,13 @@ export default function PostFX() {
 
   return (
     <EffectComposer multisampling={4}>
-      {/* DOF en premier : les autres effets (bloom, CA) s'appliquent
+      {/* OllinShockwave (29/08) — onde de pression au pointerdown user,
+          signature nahua "tremblement d'Ollin". En premier de la
+          chaine : deforme la scene rendue AVANT DOF/bloom/CA, effet
+          plus organique (le bokeh et le bloom prennent la distortion
+          en compte). Skip si prefers-reduced-motion ou reading-mode. */}
+      <OllinShockwave />
+      {/* DOF en second : les autres effets (bloom, CA) s'appliquent
           par-dessus le rendu focus-racké. Focus fixe sur ~cerf.
           bokehScale animé par useFrame ci-dessus. */}
       <DepthOfField
