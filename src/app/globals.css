@@ -922,14 +922,16 @@ body.nahual-lab-reveal .ctaButton {
    → composant XolotlWitnessMessage retire lui-même le message via
    CustomEvent). */
 
-/* 1. Message discret après footer bottom, italique jade sourd. */
+/* 1. Message discret entre les footer cols et le copyright, italique
+      jade sourd. Positionne apres cols + avant footerBottom
+      (retour Sylvain 29/08 : plus visible qu'apres la ligne credit). */
 .xolotlWitnessMessage {
   max-width: 1200px;
-  margin: 8px auto 0;
+  margin: 0 auto 20px;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-style: italic;
-  opacity: 0.7;
+  opacity: 0.85;
   color: color-mix(in srgb, #6b3fa8 55%, rgba(244, 234, 213, 0.7));
 }
 

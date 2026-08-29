@@ -312,6 +312,12 @@ export default async function LocaleLayout({
                 </ul>
               </div>
             </div>
+            {/* XolotlWitnessMessage (29/08 easter egg) — apparait
+                seulement si user a vu Xolotl passer + n'a pas encore
+                visite le Codex depuis. Positionne entre les cols et
+                le copyright (retour Sylvain 29/08 : plus visible
+                qu'apres la ligne credit). Renvoi discret italique. */}
+            <XolotlWitnessMessage message={dict.common.xolotlSeen} locale={locale} />
             <div className="footerBottom">
               {/* Signature date rituelle (29/08) — annee Gregorienne +
                   porteur Xiuhpohualli nahua (convention Rafael Tena,
@@ -322,10 +328,6 @@ export default async function LocaleLayout({
               © {new Date().getFullYear()} NAHUAL Studio · Sylvain Maurier
               <span className="footerAztec"> · {renderWithNahuatl(formatAztecYear(new Date().getFullYear(), locale))}</span>
             </div>
-            {/* XolotlWitnessMessage (29/08 easter egg) — apparait
-                seulement si user a vu Xolotl passer + n'a pas encore
-                visite le Codex depuis. Renvoi discret italique. */}
-            <XolotlWitnessMessage message={dict.common.xolotlSeen} locale={locale} />
           </footer>
           {/* LoadingVeil monté ici (une seule instance par session)
               plutôt que dans SceneStage (une par mount de page) depuis
