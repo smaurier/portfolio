@@ -151,25 +151,17 @@ export default function XolotlCompanion() {
       shader.uniforms.uPower = shaderUniforms.uPower;
       shader.uniforms.uBoost = shaderUniforms.uBoost;
       shader.uniforms.uOpacity = shaderUniforms.uOpacity;
-      // Vertex : MeshBasicMaterial ne calcule normal que si USE_ENVMAP.
-      // On force le pipeline normal (beginnormal + skinnormal +
-      // defaultnormal) juste avant begin_vertex pour que objectNormal
-      // et transformedNormal existent apres skinning.
+      // Vertex : MeshBasicMaterial declare deja transformedNormal
+      // dans son bloc `#if defined(USE_ENVMAP) || defined(USE_SKINNING)`
+      // en tete de main(). SkinnedMesh → USE_SKINNING auto → objectNormal
+      // et transformedNormal existent apres skinning au moment de
+      // <fog_vertex>. On lit juste ces vars, aucune re-declaration.
       shader.vertexShader = shader.vertexShader
         .replace(
           "#include <common>",
           `#include <common>
            varying vec3 vFresnelNormal;
            varying vec3 vFresnelView;`
-        )
-        .replace(
-          "#include <begin_vertex>",
-          `#include <beginnormal_vertex>
-           #include <morphnormal_vertex>
-           #include <skinbase_vertex>
-           #include <skinnormal_vertex>
-           #include <defaultnormal_vertex>
-           #include <begin_vertex>`
         )
         .replace(
           "#include <fog_vertex>",
