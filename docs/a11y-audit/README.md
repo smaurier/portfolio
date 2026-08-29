@@ -1,0 +1,170 @@
+# Audit a11y nahual.fr — 2026-08-29
+
+Méthode: dump accessibility tree Playwright MCP (browser Chromium) sur 3
+pages représentatives + audit code. But: comparer ce qu'un lecteur
+d'écran voit vs ce que voit l'utilisateur visuel, avant chantier de fond.
+
+## Snapshots
+
+- `snapshot-home-fr-before.md` — home /fr
+- `snapshot-services-fr-before.md` — page écho /fr/services
+- `snapshot-memoire-fr-before.md` — page écho /fr/memoire
+
+## Findings clés
+
+### 🔴🔴 HOME = récit invisible pour SR
+
+Le `<main>` ne contient QUE le bloc "à-propos" (h2 + 1 paragraphe + 2
+liens). Absents du tree :
+
+- h1 hero title
+- p hero text
+- CTA hero
+- 3 chapitres narratifs (kicker + line)
+
+Cause : `FadingBlock` applique `display:none` quand opacity < 0.001, et
+`RevealText` ne révèle qu'au scroll via IntersectionObserver. Au load
+sans scroll, ces éléments sortent du tree accessibilité.
+
+Un utilisateur NVDA / JAWS au chargement de la home entend
+uniquement : "À propos, titre 2. [paragraphe about]. Me contacter,
+lien. Voir mon code sur GitHub, lien." Le récit du cerf n'existe pas
+pour lui. Hiérarchie brisée (h2 sans h1 précédent).
+
+Impact RGAA : échec sévère critères 9.1 (titres), 9.2 (hiérarchie),
+10.7 (contenu compréhensible sans style/JS).
+
+### 🔴 PageClosure orphelin avant `<main>`
+
+Sur `/services` et `/memoire`, avant `<main>`, un bloc "Direction ·
+Nom nahuatl" (heading level=2) + link "Direction suivante" est rendu.
+Hors main, sans conteneur sémantique. SR l'atteint entre le header et
+le vrai h1 de la page → confusion pédagogique + hiérarchie titres
+brisée.
+
+Cause : `PageClosure` monté par `EchoScenePage` via
+`SceneStage.overlay`, dans `SceneTextOverlay` qui est un layer fixe
+au-dessus du canvas — hors flux DOM du main.
+
+### ✅ Confirmé fonctionnel
+
+- Skip nav "Aller au contenu principal"
+- Banner / contentinfo
+- Boussole cardinale `<nav aria-label="Boussole cardinale">`
+- Bouton son labellé
+- Langues avec `aria-current`
+- Pages écho (services, memoire) : h1 + h2 propres, contenu texte
+  complet dans le main
+
+### 🟠 À corriger
+
+- `<nav>` header desktop sans `aria-label` → tree affiche "navigation"
+  générique
+- Bouton compass expand : texte visible "i" + `aria-label` lu ensemble
+  (redondance)
+- `alert` role vide en fin de tree (composant orphelin ?)
+- `status` role vide (LoadingVeil résiduel après démontage ?)
+
+## Prochaines étapes
+
+1. Créer utilitaire `.sr-only` dans `globals.css` (bloquant)
+2. Fix FadingBlock : contenu doit être dans le tree SR peu importe
+   l'état visuel de la révélation scroll
+3. Fix PageClosure : soit dans `<main>`, soit en `<aside>` après,
+   soit sur un heading level=6 non-orphelin
+4. Ajouter `aria-label` sur nav header
+5. Re-dump tree, comparer, prouver le fix
+
+Corrections mesurables via nouveau dump Playwright — chaque item aura
+son "before / after".
+
+---
+
+## Passe 1 — corrections top 🔴 (2026-08-29)
+
+Snapshots `*-after.md` livrés. Comparaison avec `*-before.md`:
+
+### ✅ Home `/fr` — récit désormais dans le tree SR
+
+**Avant:** `<main>` contenait uniquement `heading "À propos" [level=2]`
++ 1 paragraphe + 2 liens. Hero, chapters, hiérarchie h1: absents.
+
+**Après:**
+```
+main:
+  heading "Nahual · studio de création" [level=1]
+  paragraph: [texte hero complet, Mazātl, cerf...]
+  region "Recit du cerf, quatre chapitres":
+    list:
+      listitem: strong "I · L'approche" — texte
+      listitem: strong "II · Le regard" — texte
+      listitem: strong "III · Face à face" — texte
+      listitem: strong "IV · Les chemins" — texte
+  [rendu visuel FadingBlock aria-hidden pour SR, CTA focusable pour tous]
+```
+
+Décisions:
+- Bloc « À propos » retiré de la home (retour Sylvain : « À propos pour
+  une page d'accueil c'est nul »). Contenu conservé dans le dict pour
+  usage ailleurs (Codex ou Services). Un seul CTA hero reste, page
+  pas orpheline.
+- `sr-only` doublé le récit : version canonique dans le flux, jamais
+  affectée par le scroll-driven reveal. Version visuelle vit en
+  `aria-hidden` pour éviter la lecture en doublon.
+- CTA reste hors du `sr-only` (dans le FadingBlock hero) — permet un
+  seul chemin focus clavier, pas de doublon.
+
+### ✅ PageClosure orphelin — aria-hidden appliqué
+
+**Avant:** avant `<main>`, `heading "Est · Tlahuizcalpan" [level=2]`
++ paragraphe + `link "Sud · Turquoise"`. SR entendait ce bloc entre
+le header et le vrai h1 de la page.
+
+**Après:** headings et link ont perdu leur accessible name (aria-hidden
+hérité). Le tree Playwright les affiche encore pour debug, mais NVDA/
+JAWS/VoiceOver les skip. Équivalent fonctionnel garanti via la
+boussole cardinale (déjà labellée) et la nav header.
+
+### ✅ Nav header — désambiguïsée
+
+**Avant:** `navigation` (générique, tree ne sait pas laquelle).
+
+**Après:** `navigation "Navigation principale"`. Idem pour la liste
+des liens externes (`list "Liens externes"`) et le panel mobile
+(`dialog aria-label="Menu mobile"` + `navigation "Navigation
+principale"` interne).
+
+Nouvelles clés dict `common.navMainLabel`, `navMobileLabel`,
+`navExternalLabel` (fr/en/es).
+
+### ✅ Bouton compass expand — plus de doublon
+
+**Avant:** `button "Explorer les 5 directions": i` — SR lisait le
+label + le caractère « i » séparé.
+
+**Après:** le « i » est wrappé en `<span aria-hidden="true">`. Tree
+affiche `button "Explorer les 5 directions": generic "i"` — SR lit
+juste le label.
+
+## Restants pour la passe 2
+
+- `alert` role orphelin en fin de tree (source à identifier, pas dans
+  notre code — probablement Next.js dev tools)
+- `status` role orphelin (LoadingVeil résiduel après démontage ? ou
+  easter-egg toast ?)
+- Focus trap manquant : modal compass overlay + panel mobile
+- Nav SPA change contenu sans annoncer (item 13 audit initial)
+- `prefers-reduced-motion` non respecté par custom-cursor, cursor-
+  trail, mask-reveal, tilt-cards (item 17)
+- Termes nahuatl inline non marqués `lang="nah"` (item 23)
+- Contrastes texte petit sur canvas dynamique à mesurer précisément
+  (item 16)
+- Puis chantier opportunités A-H (narration SR enrichie, prononciation
+  nahuatl, mode « récit accessible » opt-in, etc.)
+
+## Validation manuelle attendue
+
+Une fois la passe 2 finie, tester avec NVDA + Firefox sur les 3 pages
+échantillons. Confirmer que le récit est audible, la navigation
+cardinale utilisable, le focus visible sur tous les focusables.
+

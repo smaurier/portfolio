@@ -13,6 +13,9 @@
       "codex": "Codex"
     },
     "langSwitcherLabel": "Changer de langue",
+    "navMainLabel": "Navigation principale",
+    "navMobileLabel": "Menu mobile",
+    "navExternalLabel": "Liens externes",
     "showEmail": "Afficher l'email",
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",

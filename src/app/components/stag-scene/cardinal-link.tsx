@@ -67,6 +67,7 @@ type CardinalLinkProps = Omit<LinkProps, "href"> & {
   "aria-current"?: React.AriaAttributes["aria-current"];
   hrefLang?: string;
   lang?: string;
+  tabIndex?: number;
 };
 
 const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function CardinalLink(

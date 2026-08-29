@@ -179,7 +179,7 @@ export default function CardinalCompass({ locale }: { locale: string }) {
           aria-label={dict.common.compass.expand}
           title={dict.common.compass.expand}
         >
-          i
+          <span aria-hidden="true">i</span>
         </button>
       </nav>
       {overlayOpen && (

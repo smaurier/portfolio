@@ -1,0 +1,152 @@
+- generic [active] [ref=e1]:
+  - link "Aller au contenu principal" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - list "Liens externes" [ref=e5]:
+        - listitem [ref=e6]:
+          - link "linkedin" [ref=e7] [cursor=pointer]:
+            - /url: https://www.linkedin.com/in/smaurier/
+        - listitem [ref=e8]:
+          - link "github" [ref=e9] [cursor=pointer]:
+            - /url: https://github.com/smaurier
+        - listitem [ref=e10]:
+          - link "bonjour@nahual.fr" [ref=e126] [cursor=pointer]:
+            - /url: mailto:bonjour@nahual.fr
+      - list "Changer de langue" [ref=e11]:
+        - listitem [ref=e12]:
+          - link "Français" [ref=e13] [cursor=pointer]:
+            - /url: /fr
+            - text: FR
+        - listitem [ref=e14]:
+          - link "English" [ref=e15] [cursor=pointer]:
+            - /url: /en
+            - text: EN
+        - listitem [ref=e16]:
+          - link "Español" [ref=e17] [cursor=pointer]:
+            - /url: /es
+            - text: ES
+    - generic [ref=e18]:
+      - link "Nahual — Retour à l'accueil" [ref=e19] [cursor=pointer]:
+        - /url: /fr
+        - generic [ref=e20]: Nahual
+      - navigation "Navigation principale" [ref=e21]:
+        - list [ref=e22]:
+          - listitem [ref=e23]:
+            - link "Accueil" [ref=e24] [cursor=pointer]:
+              - /url: /fr
+          - listitem [ref=e25]:
+            - link "Mémoire" [ref=e26] [cursor=pointer]:
+              - /url: /fr/memoire
+          - listitem [ref=e27]:
+            - link "Services" [ref=e28] [cursor=pointer]:
+              - /url: /fr/services
+          - listitem [ref=e29]:
+            - link "Projets" [ref=e30] [cursor=pointer]:
+              - /url: /fr/projets
+          - listitem [ref=e31]:
+            - link "Contact" [ref=e32] [cursor=pointer]:
+              - /url: /fr/contact
+  - generic:
+    - generic:
+      - main:
+        - generic:
+          - heading "Nahual · studio de création" [level=1]
+          - paragraph: "Chez les Nahuas, peuple mésoaméricain, le cerf (Mazātl) est le septième jour du calendrier sacré : un messager entre les mondes, associé à la grâce, à la vigilance, et à la faculté de cacher sa vraie nature aux autres. Le nahual, c'est cette même idée : une essence humaine qui se révèle dans sa forme animale véritable, incarnée ici par ce cerf."
+          - region "Recit du cerf, quatre chapitres":
+            - list:
+              - listitem:
+                - strong: I · L'approche
+                - text: — Il broute dans la pénombre, indifférent au chemin qui mène vers lui.
+              - listitem:
+                - strong: II · Le regard
+                - text: — Le cerf t'a remarqué. Il ne fuit pas — il attend.
+              - listitem:
+                - strong: III · Face à face
+                - text: "— Un silence. Trois entités : ton corps, son corps, ce qui passe entre les deux."
+              - listitem:
+                - strong: IV · Les chemins
+                - text: — Quatre directions autour de toi, une cinquième au centre. À toi de choisir.
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - heading [level=1] [ref=e39]:
+              - generic [ref=e40]: Nahual
+              - generic [ref=e42]: ·
+              - generic [ref=e44]: studio
+              - generic [ref=e46]: de
+              - generic [ref=e48]: création
+            - paragraph [ref=e50]: "Chez les Nahuas, peuple mésoaméricain, le cerf (Mazātl) est le septième jour du calendrier sacré : un messager entre les mondes, associé à la grâce, à la vigilance, et à la faculté de cacher sa vraie nature aux autres. Le nahual, c'est cette même idée : une essence humaine qui se révèle dans sa forme animale véritable, incarnée ici par ce cerf."
+          - link "Découvrir mes services" [ref=e52] [cursor=pointer]:
+            - /url: /fr/services
+  - contentinfo [ref=e54]:
+    - generic [ref=e55]:
+      - generic [ref=e56]:
+        - heading "Navigation" [level=3] [ref=e57]
+        - list [ref=e58]:
+          - listitem [ref=e59]:
+            - link "Accueil" [ref=e60] [cursor=pointer]:
+              - /url: /fr
+          - listitem [ref=e61]:
+            - link "Mémoire" [ref=e62] [cursor=pointer]:
+              - /url: /fr/memoire
+          - listitem [ref=e63]:
+            - link "Services" [ref=e64] [cursor=pointer]:
+              - /url: /fr/services
+          - listitem [ref=e65]:
+            - link "Projets" [ref=e66] [cursor=pointer]:
+              - /url: /fr/projets
+          - listitem [ref=e67]:
+            - link "Contact" [ref=e68] [cursor=pointer]:
+              - /url: /fr/contact
+      - generic [ref=e69]:
+        - heading "Ressources" [level=3] [ref=e70]
+        - list [ref=e71]:
+          - listitem [ref=e72]:
+            - link "Codex" [ref=e73] [cursor=pointer]:
+              - /url: /fr/codex
+          - listitem [ref=e74]:
+            - link "Crédits" [ref=e75] [cursor=pointer]:
+              - /url: /fr/credits
+          - listitem [ref=e76]:
+            - link "Plan du site" [ref=e77] [cursor=pointer]:
+              - /url: /fr/plan-du-site
+      - generic [ref=e78]:
+        - heading "Informations légales" [level=3] [ref=e79]
+        - list [ref=e80]:
+          - listitem [ref=e81]:
+            - link "Mentions légales" [ref=e82] [cursor=pointer]:
+              - /url: /fr/mentions-legales
+          - listitem [ref=e83]:
+            - link "Accessibilité" [ref=e84] [cursor=pointer]:
+              - /url: /fr/accessibilite
+          - listitem [ref=e85]:
+            - link "Confidentialité" [ref=e86] [cursor=pointer]:
+              - /url: /fr/confidentialite
+      - generic [ref=e87]:
+        - heading "Contact" [level=3] [ref=e88]
+        - list [ref=e89]:
+          - listitem [ref=e90]:
+            - link "LinkedIn de Sylvain Maurier (nouvelle fenêtre)" [ref=e91] [cursor=pointer]:
+              - /url: https://www.linkedin.com/in/sylvain-maurier/
+              - text: LinkedIn
+          - listitem [ref=e92]:
+            - link "GitHub de Sylvain Maurier (nouvelle fenêtre)" [ref=e93] [cursor=pointer]:
+              - /url: https://github.com/smaurier
+              - text: GitHub
+          - listitem [ref=e94]:
+            - 'link "Email : bonjour@nahual.fr" [ref=e95] [cursor=pointer]':
+              - /url: mailto:bonjour@nahual.fr
+              - text: Email
+    - generic [ref=e96]: © 2026 NAHUAL Studio · Sylvain Maurier
+  - status
+  - button "Activer le son" [ref=e102] [cursor=pointer]
+  - navigation "Boussole cardinale" [ref=e105]:
+    - button "Nord · Mémoire" [ref=e107] [cursor=pointer]
+    - button "Ouest · Contact" [ref=e109] [cursor=pointer]
+    - button "Centre · Accueil" [ref=e110] [cursor=pointer]
+    - button "Est · Services" [ref=e111] [cursor=pointer]
+    - button "Sud · Projets" [ref=e113] [cursor=pointer]
+    - button "Explorer les 5 directions" [ref=e115] [cursor=pointer]:
+      - generic [ref=e116]: i
+  - button "Open Next.js Dev Tools" [ref=e122] [cursor=pointer]
+  - alert [ref=e127]

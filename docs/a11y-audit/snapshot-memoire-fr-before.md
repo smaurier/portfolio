@@ -1,0 +1,185 @@
+- generic [active] [ref=f2e1]:
+  - link "Aller au contenu principal" [ref=f2e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=f2e3]:
+    - generic [ref=f2e4]:
+      - list [ref=f2e5]:
+        - listitem [ref=f2e6]:
+          - link "linkedin" [ref=f2e7] [cursor=pointer]:
+            - /url: https://www.linkedin.com/in/smaurier/
+        - listitem [ref=f2e8]:
+          - link "github" [ref=f2e9] [cursor=pointer]:
+            - /url: https://github.com/smaurier
+        - listitem [ref=f2e10]:
+          - link "bonjour@nahual.fr" [ref=f2e158] [cursor=pointer]:
+            - /url: mailto:bonjour@nahual.fr
+      - list "Changer de langue" [ref=f2e11]:
+        - listitem [ref=f2e12]:
+          - link "Français" [ref=f2e13] [cursor=pointer]:
+            - /url: /fr/memoire
+            - text: FR
+        - listitem [ref=f2e14]:
+          - link "English" [ref=f2e15] [cursor=pointer]:
+            - /url: /en/memory
+            - text: EN
+        - listitem [ref=f2e16]:
+          - link "Español" [ref=f2e17] [cursor=pointer]:
+            - /url: /es/memoria
+            - text: ES
+    - generic [ref=f2e18]:
+      - link "Nahual — Retour à l'accueil" [ref=f2e19] [cursor=pointer]:
+        - /url: /fr
+        - generic [ref=f2e20]: Nahual
+      - navigation [ref=f2e21]:
+        - list [ref=f2e22]:
+          - listitem [ref=f2e23]:
+            - link "Accueil" [ref=f2e24] [cursor=pointer]:
+              - /url: /fr
+          - listitem [ref=f2e25]:
+            - link "Mémoire" [ref=f2e26] [cursor=pointer]:
+              - /url: /fr/memoire
+          - listitem [ref=f2e27]:
+            - link "Services" [ref=f2e28] [cursor=pointer]:
+              - /url: /fr/services
+          - listitem [ref=f2e29]:
+            - link "Projets" [ref=f2e30] [cursor=pointer]:
+              - /url: /fr/projets
+          - listitem [ref=f2e31]:
+            - link "Contact" [ref=f2e32] [cursor=pointer]:
+              - /url: /fr/contact
+  - generic:
+    - generic:
+      - generic:
+        - heading "Nord · Mictlampa" [level=2]:
+          - generic: Nord
+          - generic: ·
+          - generic: Mictlampa
+        - paragraph: Le lieu du repos. Mictlán reçoit ce qui a été vécu.
+        - link "Retour au Centre":
+          - /url: /fr
+          - text: Retour au Centre
+          - generic: ↺
+  - main [ref=f2e46]:
+    - generic [ref=f2e47]:
+      - heading "Teyolía · Mémoire" [level=1] [ref=f2e48]
+      - paragraph [ref=f2e49]: "Teyolía, l'une des trois entités qui, dans la pensée nahua, composent une personne : elle réside dans le cœur, porte la mémoire, et c'est elle qui voyage vers Mictlán après la mort. Cette page n'est pas un blog : c'est une épitaphe. Ce qui n'a pas survécu à la construction de ce site, gardé plutôt qu'effacé."
+      - generic [ref=f2e50]:
+        - generic: I
+        - heading "La marche" [level=2] [ref=f2e51]
+        - paragraph [ref=f2e52]: "Le cerf avançait au fil du scroll, un cycle de foulée techniquement juste, mais illisible sur les quelques crans de molette d'un vrai scroll. Retirée plutôt que peaufinée une troisième fois : elle n'apportait presque rien pour ce qu'elle coûtait."
+      - generic [ref=f2e53]:
+        - generic: II
+        - heading "L'arbre qui ne venait pas d'ici" [level=2] [ref=f2e54]
+        - paragraph [ref=f2e55]: Un premier accent de flore, texture photoréaliste, taille disproportionnée, jurait avec le reste du décor, plat et en vertex-color. Remplacé par un ocotillo procédural, plus fidèle à la flore précolombienne du centre du Mexique.
+      - generic [ref=f2e56]:
+        - generic: III
+        - heading "Les serpents" [level=2] [ref=f2e57]
+        - paragraph [ref=f2e58]: "Deux tentatives de Xiuhcoatl pour le voile de chargement, deux échecs assumés : une polyligne trop fine sans tête reconnaissable, puis un tracé encore raté. Retirés en attendant une vraie silhouette dessinée à la main plutôt qu'une génération procédurale de plus."
+      - generic [ref=f2e59]:
+        - generic: IV
+        - heading "L'intro qui se dissolvait" [level=2] [ref=f2e60]
+        - paragraph [ref=f2e61]: La Piedra del Sol et le texte se dissolvaient en un nuage de braises avant de révéler la scène. Une vraie technique vectorielle (échantillonnage d'environ 250 tracés SVG), mais l'effet ne servait pas l'histoire. Retirée le lendemain de sa mise en ligne.
+      - generic [ref=f2e62]:
+        - generic: V
+        - heading "Les glyphes calendaires" [level=2] [ref=f2e63]
+        - paragraph [ref=f2e64]: Cinq glyphes hybrides — Nahui Ollin pour le Centre, Tonatiuh pour l'Est, Xochitl pour le Sud, Iztli pour l'Ouest, Ollin pour le Nord — dessinés pour animer les transitions cardinales. Techniquement réussis, mais leur fidélité au codex les rendait sacrés. Retirés sans regret, par respect.
+      - generic [ref=f2e65]:
+        - generic: VI
+        - heading "Le rideau de pétales 2D" [level=2] [ref=f2e66]
+        - paragraph [ref=f2e67]: "Première tentative de transition inter-page : 1800 ellipses solides en mix-blend screen qui traversaient l'écran comme des confettis. Rapide à coder, cheap à regarder. Remplacé par la View Transitions API native, plus élégante."
+      - generic [ref=f2e68]:
+        - generic: VII
+        - heading "La lame de découpe" [level=2] [ref=f2e69]
+        - paragraph [ref=f2e70]: Un overlay HTML qui découpait l'écran en tranches horizontales et les faisait glisser dans la direction cardinale, comme un origami qui se déplie. Trop mécanique, trop lisible comme effet, pas assez organique pour la cosmologie du site.
+      - generic [ref=f2e71]:
+        - generic: VIII
+        - heading "La tempête de pétales 3D" [level=2] [ref=f2e72]
+        - paragraph [ref=f2e73]: "Une pluie de particules Three.js éjectées du cerf pendant la transition. Signal fort mais lecture confuse : on ne savait plus où regarder. Doublonnait la dispersion des pétales existants. Retirée quand la View Transitions API a pris le relais."
+      - generic [ref=f2e74]:
+        - generic: IX
+        - heading "Le fondu brutal" [level=2] [ref=f2e75]
+        - paragraph [ref=f2e76]: "Toute première itération des transitions : router.push sans burst, coupure sec du canvas WebGL, page suivante qui apparaît instantanée. Correct techniquement, désastreux narrativement. Le cerf téléportait entre les mondes au lieu de les traverser."
+      - generic [ref=f2e77]:
+        - generic: X
+        - heading "Le curseur ventouse" [level=2] [ref=f2e78]
+        - paragraph [ref=f2e79]: "Premier essai du curseur custom : lerp 0.02, un ring qui mettait deux secondes à rattraper la souris. Sensation « chewing-gum ». Corrigé à 0.15 pour laisser respirer la trainée sans la coller."
+      - generic [ref=f2e80]:
+        - generic: XI
+        - heading "La flamme jade axiale" [level=2] [ref=f2e81]
+        - paragraph [ref=f2e82]: "Première Xiuhtecuhtli du Centre : une colonne de feu de trois mètres qui traversait le cerf. Signature forte, mais elle aveuglait la lecture du sujet. Réduite à des embers modestes qui montent en cercle plutôt qu'à un axe unique dominant."
+      - generic [ref=f2e83]:
+        - generic: XII
+        - heading "Les god-rays photoréalistes" [level=2] [ref=f2e84]
+        - paragraph [ref=f2e85]: "Premier Tonatiuh de l'Est : shader post-processing GodRaysEffect avec sampling volumétrique complet. Superbe à 60fps sur GPU dédié, catastrophique sur mobile (30fps). Remplacé par des planes triangulaires additifs, mesh-based, gratuit à l'affichage."
+      - paragraph [ref=f2e86]: Les motifs cardinaux du site (soleil, fleur, silex, spirale, quinconce) sont des évocations stylisées inspirées de l'iconographie mésoaméricaine, pas des reproductions de glyphes sacrés. Hommage familial à la culture nahua vivante, pour Elda et nos filles.
+  - contentinfo [ref=f2e87]:
+    - generic [ref=f2e88]:
+      - generic [ref=f2e89]:
+        - heading "Navigation" [level=3] [ref=f2e90]
+        - list [ref=f2e91]:
+          - listitem [ref=f2e92]:
+            - link "Accueil" [ref=f2e93] [cursor=pointer]:
+              - /url: /fr
+          - listitem [ref=f2e94]:
+            - link "Mémoire" [ref=f2e95] [cursor=pointer]:
+              - /url: /fr/memoire
+          - listitem [ref=f2e96]:
+            - link "Services" [ref=f2e97] [cursor=pointer]:
+              - /url: /fr/services
+          - listitem [ref=f2e98]:
+            - link "Projets" [ref=f2e99] [cursor=pointer]:
+              - /url: /fr/projets
+          - listitem [ref=f2e100]:
+            - link "Contact" [ref=f2e101] [cursor=pointer]:
+              - /url: /fr/contact
+      - generic [ref=f2e102]:
+        - heading "Ressources" [level=3] [ref=f2e103]
+        - list [ref=f2e104]:
+          - listitem [ref=f2e105]:
+            - link "Codex" [ref=f2e106] [cursor=pointer]:
+              - /url: /fr/codex
+          - listitem [ref=f2e107]:
+            - link "Crédits" [ref=f2e108] [cursor=pointer]:
+              - /url: /fr/credits
+          - listitem [ref=f2e109]:
+            - link "Plan du site" [ref=f2e110] [cursor=pointer]:
+              - /url: /fr/plan-du-site
+      - generic [ref=f2e111]:
+        - heading "Informations légales" [level=3] [ref=f2e112]
+        - list [ref=f2e113]:
+          - listitem [ref=f2e114]:
+            - link "Mentions légales" [ref=f2e115] [cursor=pointer]:
+              - /url: /fr/mentions-legales
+          - listitem [ref=f2e116]:
+            - link "Accessibilité" [ref=f2e117] [cursor=pointer]:
+              - /url: /fr/accessibilite
+          - listitem [ref=f2e118]:
+            - link "Confidentialité" [ref=f2e119] [cursor=pointer]:
+              - /url: /fr/confidentialite
+      - generic [ref=f2e120]:
+        - heading "Contact" [level=3] [ref=f2e121]
+        - list [ref=f2e122]:
+          - listitem [ref=f2e123]:
+            - link "LinkedIn de Sylvain Maurier (nouvelle fenêtre)" [ref=f2e124] [cursor=pointer]:
+              - /url: https://www.linkedin.com/in/sylvain-maurier/
+              - text: LinkedIn
+          - listitem [ref=f2e125]:
+            - link "GitHub de Sylvain Maurier (nouvelle fenêtre)" [ref=f2e126] [cursor=pointer]:
+              - /url: https://github.com/smaurier
+              - text: GitHub
+          - listitem [ref=f2e127]:
+            - 'link "Email : bonjour@nahual.fr" [ref=f2e128] [cursor=pointer]':
+              - /url: mailto:bonjour@nahual.fr
+              - text: Email
+    - generic [ref=f2e129]: © 2026 NAHUAL Studio · Sylvain Maurier
+  - status
+  - button "Activer le son" [ref=f2e135] [cursor=pointer]
+  - navigation "Boussole cardinale" [ref=f2e138]:
+    - button "Nord · Mémoire" [ref=f2e140] [cursor=pointer]
+    - button "Ouest · Contact" [ref=f2e142] [cursor=pointer]
+    - button "Centre · Accueil" [ref=f2e143] [cursor=pointer]
+    - button "Est · Services" [ref=f2e144] [cursor=pointer]
+    - button "Sud · Projets" [ref=f2e146] [cursor=pointer]
+    - button "Explorer les 5 directions" [ref=f2e148] [cursor=pointer]: i
+  - button "Open Next.js Dev Tools" [ref=f2e154] [cursor=pointer]
+  - alert [ref=f2e159]

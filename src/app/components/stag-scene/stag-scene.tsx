@@ -1,6 +1,6 @@
 "use client";
 
-import { getChapterOpacity, getIntroOpacity, getNavEmphasis } from "@/lib/reveal-arc";
+import { getChapterOpacity, getIntroOpacity } from "@/lib/reveal-arc";
 import RevealText from "../reveal-text";
 import CardinalLink from "./cardinal-link";
 import FadingBlock from "./fading-block";
@@ -32,24 +32,52 @@ export type HomeContent = {
 export default function StagScene({
   home,
   servicesHref,
-  contactHref,
 }: {
   home: HomeContent;
   servicesHref: string;
-  contactHref: string;
+  /** Conserve pour compat call-site (page.js passe encore contactHref).
+   * A retirer au prochain nettoyage de dictionnaire home (aboutText,
+   * aboutTitle, contactCta, githubCta ne sont plus utilises non plus
+   * depuis la sortie du bloc "A propos" de la home le 29/08). */
+  contactHref?: string;
 }) {
   return (
     <SceneStage
       overlay={({ progressRef, reducedMotionRef }) => (
         <main id="main">
+          {/* Recit canonique pour lecteurs d'ecran (29/08 chantier
+              a11y). Le tree accessibility est structure : h1 hero +
+              texte + section chapitres ordonnee. Toujours dans le
+              flux, jamais cache par les FadingBlock scroll-driven qui
+              vivent en aria-hidden ci-dessous. Le CTA reste dans le
+              bloc visuel pour ne pas doubler le focus clavier. */}
+          <div className="sr-only">
+            <h1>{home.heroTitle}</h1>
+            <p>{home.heroText}</p>
+            <section aria-label="Recit du cerf, quatre chapitres">
+              <ol>
+                {home.chapters.map((chapter, i) => (
+                  <li key={i}>
+                    <strong>{chapter.kicker}</strong> — {chapter.line}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          </div>
+
           <FadingBlock
             progressRef={progressRef}
             reducedMotionRef={reducedMotionRef}
             getOpacity={getIntroOpacity}
             initialOpacity={1}
           >
-            <RevealText as="h1" text={home.heroTitle} delayPerWord={50} />
-            <p>{home.heroText}</p>
+            {/* Textes du hero : deja lus via sr-only, aria-hidden pour
+                eviter le doublon. Le CardinalLink reste focusable et
+                cliquable pour tous (souris, clavier, SR focus mode). */}
+            <div aria-hidden="true">
+              <RevealText as="h1" text={home.heroTitle} delayPerWord={50} />
+              <p>{home.heroText}</p>
+            </div>
             <div className={overlayStyles.links}>
               <CardinalLink href={servicesHref} className={overlayStyles.cta}>
                 {home.heroCta}
@@ -57,17 +85,8 @@ export default function StagScene({
             </div>
           </FadingBlock>
           {/* Chapitres narratifs scroll-driven (28/08 task #63).
-              Le chapitre 3 (face-a-face) est enveloppe dans un
-              FaceAFacePin (boite outil #6) qui pin le contenu sur
-              200vh de scroll extra + scrub PostFX bloom + camera fov
-              via pinProgressRef partage. */}
-          {/* FaceAFacePin desactive 28/08 (retour Sylvain "molette
-              sur cerf glitche fort") — ScrollTrigger scrub 1 + Lenis
-              smoothWheel + auto-release kill() creaient un feedback
-              loop qui saccadait camera + PostFX. Chapter 3 face-a-face
-              revient a un FadingBlock normal comme les autres.
-              A ré-explorer session dédiée avec approche différente
-              (position: sticky CSS pur? plus de ScrollTrigger?). */}
+              aria-hidden : contenu equivalent deja dans le sr-only
+              ci-dessus, evite lecture en doublon. */}
           {home.chapters.map((chapter, i) => (
             <FadingBlock
               key={i}
@@ -76,32 +95,12 @@ export default function StagScene({
               getOpacity={(p) => getChapterOpacity(p, i)}
               initialOpacity={0}
             >
-              <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
-              <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
+              <div aria-hidden="true">
+                <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
+                <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
+              </div>
             </FadingBlock>
           ))}
-          <FadingBlock
-            progressRef={progressRef}
-            reducedMotionRef={reducedMotionRef}
-            getOpacity={getNavEmphasis}
-            initialOpacity={0}
-          >
-            <RevealText as="h2" text={home.aboutTitle} delayPerWord={50} />
-            <p>{home.aboutText}</p>
-            <div className={overlayStyles.links}>
-              <CardinalLink href={contactHref} className={overlayStyles.cta}>
-                {home.contactCta}
-              </CardinalLink>
-              <a
-                href="https://github.com/smaurier"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={overlayStyles.secondaryLink}
-              >
-                {home.githubCta}
-              </a>
-            </div>
-          </FadingBlock>
         </main>
       )}
     />

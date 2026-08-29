@@ -62,7 +62,7 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
   return (
     <header className="header">
       <div className="header_up">
-        <ul>
+        <ul aria-label={dict.navExternalLabel}>
           <li>
             <Link href="https://www.linkedin.com/in/smaurier/">linkedin</Link>
           </li>
@@ -104,7 +104,7 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
             (racines, ce qui a été gardé) → Services (offre) → Projets
             (preuves) → Contact (canal). Codex retiré du menu principal
             (accessible via footer). */}
-        <nav>
+        <nav aria-label={dict.navMainLabel}>
           <ul>
             <li>
               <CardinalLink href={`/${locale}`}>{dict.nav.home}</CardinalLink>
@@ -143,8 +143,8 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
           permanent pour éviter que les liens soient dans l'ordre de
           tabulation quand le panel est fermé sur mobile. */}
       {open && (
-        <div id="mobile-menu-panel" className="mobilePanel" role="dialog" aria-modal="true">
-          <nav className="mobileNav" aria-label={dict.nav.home}>
+        <div id="mobile-menu-panel" className="mobilePanel" role="dialog" aria-modal="true" aria-label={dict.navMobileLabel}>
+          <nav className="mobileNav" aria-label={dict.navMainLabel}>
             <ul>
               <li>
                 <CardinalLink href={`/${locale}`} onClick={close}>{dict.nav.home}</CardinalLink>

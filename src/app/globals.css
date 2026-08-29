@@ -928,6 +928,40 @@ button:focus-visible,
   border-radius: 2px;
 }
 
+/* Utilitaire sr-only (29/08 chantier a11y). Pattern WCAG standard :
+   contenu invisible visuellement, lu par les lecteurs d'ecran (NVDA,
+   JAWS, VoiceOver). Utilise pour :
+   - Descriptions poetiques des scenes 3D (hero, cardinaux)
+   - Traductions/prononciations des termes nahuatl
+   - Textes de contexte pour les liens ambigus ("nouvelle fenetre")
+   - Numerotations semantiques que le visuel n'affiche pas
+   NE PAS utiliser display:none ni visibility:hidden : les SR les
+   ignorent aussi. clip + overflow:hidden = seule technique fiable. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Variante focusable : skip links, boutons de secours qui doivent
+   apparaitre quand un utilisateur clavier les atteint. */
+.sr-only-focusable:focus,
+.sr-only-focusable:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
 /* Case study cards (28/08 task #51) — signature "portfolio pro" vs
    galerie captures. Article distinct par projet, structure dl
    context/role/stack/highlights/outcome.

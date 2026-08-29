@@ -119,8 +119,17 @@ export default function PageClosure({
     "--closure-accent": DIRECTION_ACCENT_COMPLEMENTARY[directionKey],
   } as CSSProperties;
 
+  // aria-hidden + tabIndex=-1 sur CTA (29/08 chantier a11y). Le bloc
+  // est monte hors main via SceneStage.overlay, ordre DOM avant le
+  // <main> reel : sans ce masquage, les SR annoncent le h2 cardinal
+  // + le lien "prochain" AVANT le vrai h1 de la page (hierarchie
+  // brisee, confusion pedagogique). Equivalent fonctionnel garanti
+  // via la boussole cardinale (nav aria-label="Boussole cardinale",
+  // 5 boutons labelles + boussole detaillee) et la nav du header
+  // (nav aria-label a fixer, en cours). Reste 100% visible et
+  // cliquable pour utilisateurs souris.
   return (
-    <div ref={rootRef} className={styles.closure} style={style}>
+    <div ref={rootRef} className={styles.closure} style={style} aria-hidden="true">
       <h2 className={styles.title}>
         {cardinalWords.map((word, i) => (
           <span key={i} className={styles.word}>
@@ -130,7 +139,7 @@ export default function PageClosure({
       </h2>
       <div className={styles.underline} />
       <p className={styles.poetic}>{closure.poetic}</p>
-      <CardinalLink href={nextHref} className={styles.cta}>
+      <CardinalLink href={nextHref} className={styles.cta} tabIndex={-1}>
         {closure.nextLabel}
         <span className={styles.arrow} aria-hidden>
           {closure.nextKey ? "→" : "↺"}
