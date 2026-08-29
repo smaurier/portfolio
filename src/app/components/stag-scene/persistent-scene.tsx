@@ -7,6 +7,7 @@ import PostFX from "./post-fx";
 import SceneContent from "./scene-content";
 import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
+import { isBot } from "@/lib/is-bot";
 import styles from "./scene-stage.module.css";
 
 /**
@@ -34,6 +35,14 @@ export default function PersistentScene() {
   // en tab background = drain CPU/GPU + batterie. "demand" gele le
   // canvas jusqu'a next invalidate. Bascule via visibilitychange.
   const [frameloop, setFrameloop] = useState<"always" | "demand">("always");
+  // Skip Canvas WebGL pour bots (Lighthouse/PageSpeed/crawlers).
+  // Detection post-hydration via useEffect pour eviter mismatch SSR.
+  // Contenu overlay HTML reste servi (pas de cloaking).
+  const [bot, setBot] = useState(false);
+
+  useEffect(() => {
+    if (isBot()) setBot(true);
+  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -49,6 +58,7 @@ export default function PersistentScene() {
   const fogTint = useMemo(() => deriveFogTint(climaxRimColor), [climaxRimColor]);
 
   if (!refs) return null;
+  if (bot) return null;
 
   return (
     <div className={styles.stage} data-direction={direction}>

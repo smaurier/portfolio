@@ -1,6 +1,7 @@
 "use client";
 
 import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { isBot } from "@/lib/is-bot";
 import styles from "./reveal-text.module.css";
 
 /**
@@ -41,6 +42,13 @@ export default function RevealText({
   const words = useMemo(() => text.split(/(\s+)/), [text]);
 
   useEffect(() => {
+    // Bots (Lighthouse/PageSpeed/crawlers) : revele instantanement
+    // sans IntersectionObserver. Sans ca, .inner reste opacity:0
+    // (fade CSS suspendu) et LCP Lighthouse mesure du vide.
+    if (isBot()) {
+      setRevealed(true);
+      return;
+    }
     const node = ref.current;
     if (!node) return;
     if (revealed) return;

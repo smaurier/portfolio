@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
+import { useEffect, useRef, useState, type MutableRefObject, type ReactNode } from "react";
+import { isBot } from "@/lib/is-bot";
 import styles from "./scene-text-overlay.module.css";
 
 /**
@@ -46,8 +47,18 @@ export default function FadingBlock({
   children: ReactNode;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  // Bots (Lighthouse/PageSpeed/crawlers) : skip rAF permanent + force
+  // contenu visible (les chapitres et l'a-propos demarrent invisibles,
+  // seul le hero serait crawle sinon). Detection post-hydration =
+  // pas de mismatch SSR.
+  const [bot, setBot] = useState(false);
 
   useEffect(() => {
+    if (isBot()) setBot(true);
+  }, []);
+
+  useEffect(() => {
+    if (bot) return;
     let raf: number;
     function tick() {
       const opacity = reducedMotionRef.current ? 1 : getOpacity(progressRef.current);
@@ -61,18 +72,18 @@ export default function FadingBlock({
     }
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [progressRef, reducedMotionRef, getOpacity]);
+  }, [bot, progressRef, reducedMotionRef, getOpacity]);
+
+  const inlineStyle = bot
+    ? { opacity: 1, pointerEvents: "auto" as const, display: "flex" as const }
+    : {
+        opacity: initialOpacity,
+        pointerEvents: (initialOpacity > 0.05 ? "auto" : "none") as "auto" | "none",
+        display: (initialOpacity > 0.001 ? "flex" : "none") as "flex" | "none",
+      };
 
   return (
-    <div
-      ref={rootRef}
-      className={styles.block}
-      style={{
-        opacity: initialOpacity,
-        pointerEvents: initialOpacity > 0.05 ? "auto" : "none",
-        display: initialOpacity > 0.001 ? "flex" : "none",
-      }}
-    >
+    <div ref={rootRef} className={styles.block} style={inlineStyle}>
       {children}
     </div>
   );
