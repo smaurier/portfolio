@@ -59,21 +59,26 @@ const FADE_MS = 2_500;
 const TRAVERSE_MS = 9_000;
 const TOTAL_MS = FADE_MS * 2 + TRAVERSE_MS; // 14 s
 
-// Amplitude X (29/08 iter 3). A Z=-11, camera radius ~5-7 FOV 45° =
-// frustum tres large a cette distance (~±13 units). On pousse a
-// [-10, 10] pour vraie traverse laterale complete de la colline
-// arriere → chien apparait de derriere une bosse gauche, disparait
-// derriere colline droite (occlusion terrain naturel + fade).
+// Amplitude X (29/08 iter 4). Trajet arc — chien apparait bord
+// gauche lointain, passe plus proche au milieu, disparait bord droit
+// lointain. Perspective naturelle fait varier la taille perçue :
+// petit aux extremes, plus grand au milieu.
 const START_X = -10;
 const END_X = 10;
-// Z=-11 (retour user 29/08 "encore plus loin" + suit contour colline).
-// A cette distance le chien est vraiment lointain. Terrain fonction
-// getTerrainHeight fait epouser le relief (dunes + montagnes) →
-// disparait derriere colline en descendant naturellement.
-const Z_DEPTH = -11;
+
+// Arc en Z (29/08 retour user "taille varie au fur et a mesure + evite
+// montagnes"). Z varie en arc concave : loin aux bords (Z_FAR), plus
+// proche au milieu (Z_NEAR). Formule Z(t) = Z_FAR + (Z_NEAR-Z_FAR) *
+// sin(π*t) → arc lisse depart et fin identique.
+//
+// Z_FAR=-14 : bords tres loin, hors zone montagnes generic (radius
+// 18-30) et Popo/Izta (radius 16). Chien passe entre.
+// Z_NEAR=-6 : milieu plus proche, chien devient plus grand
+// perceptuellement (perspective) → coherent "approche" narratif.
+const Z_FAR = -14;
+const Z_NEAR = -6;
+
 // Peak opacity 0.75 : visible malgre distance + fond climax teinte.
-// Boost car chien plus petit et plus loin = besoin plus de contraste
-// pour discernabilite.
 const PEAK_OPACITY = 0.75;
 
 const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
@@ -88,6 +93,12 @@ const XOLOTL_SCALE = 0.35;
 // Offset Y au-dessus du terrain — Wolf.glb centre pivot pas exactement
 // aux pattes, petit offset pour ne pas s'enfoncer.
 const Y_OFFSET_ABOVE_TERRAIN = 0.0;
+
+// Terrain height threshold : au-dela le chien est considere derriere
+// une colline/montagne trop haute → fade out opacite pour signaler
+// "il disparait dans le relief". Signature naturelle "il descend
+// derriere la colline".
+const TERRAIN_HIDE_THRESHOLD = 2.5;
 
 // Nom de l'animation Walk dans le Wolf.glb Quaternius. Convention
 // pack Animals : "AnimalArmature|<AnimName>".
@@ -206,21 +217,31 @@ export default function XolotlCompanion() {
       setStartedAt(null);
       return;
     }
-    // Position lerp gauche → droite, Y suit le terrain via
-    // getTerrainHeight(x, z) → chien epouse le relief (dunes +
-    // montagnes) naturellement. Descend derriere colline en fin
-    // parcours = disparition organique.
+    // Position — trajet arc : X lerp lineaire, Z varie en arc concave
+    // (loin aux bords, proche au milieu). Y suit le terrain.
+    // Rotation orientee vers la direction de deplacement (heading
+    // tangent au path) → chien regarde toujours devant lui.
     const t = elapsed / TOTAL_MS;
     const x = START_X + (END_X - START_X) * t;
-    const y = getTerrainHeight(x, Z_DEPTH) + Y_OFFSET_ABOVE_TERRAIN;
-    g.position.set(x, y, Z_DEPTH);
-    // Enveloppe fade in/out
+    const z = Z_FAR + (Z_NEAR - Z_FAR) * Math.sin(Math.PI * t);
+    const terrainY = getTerrainHeight(x, z);
+    g.position.set(x, terrainY + Y_OFFSET_ABOVE_TERRAIN, z);
+
+    // Enveloppe fade in/out standard
     let opacity = PEAK_OPACITY;
     if (elapsed < FADE_MS) {
       opacity *= elapsed / FADE_MS;
     } else if (elapsed > FADE_MS + TRAVERSE_MS) {
       const fadeOutT = (elapsed - FADE_MS - TRAVERSE_MS) / FADE_MS;
       opacity *= 1 - fadeOutT;
+    }
+    // Fade supplementaire selon relief : si terrain trop haut (colline
+    // devant lui), reduit opacite pour effet "disparait derriere
+    // colline". Smooth transition entre 2 et 2.5 units terrain height.
+    if (terrainY > TERRAIN_HIDE_THRESHOLD) {
+      const overshoot = terrainY - TERRAIN_HIDE_THRESHOLD;
+      const hideT = Math.min(1, overshoot / 1.5);
+      opacity *= 1 - hideT;
     }
     // Applique opacité à tous les mesh du group (materials override
     // ont déjà transparent:true)
