@@ -47,6 +47,15 @@ const SPECIES: Species[] = [
   { path: "/models/nopal-quaternius.glb", targetHeight: 1.0 },
   { path: "/models/nopal-google.glb", targetHeight: 1.0 },
   { path: "/models/cactus-barrel.glb", targetHeight: 0.55 },
+  // Ajout 30/08 : cactus-quaternius (petit rond en second plan, 0.5
+  // pour rester bas). Retour Sylvain "un peu de diversite aurait ete
+  // cool" — au lieu de laisser cet asset orphelin, on le met a
+  // l'ouvrage. Le yucca.glb (orphelin lui aussi) a ete essaye mais
+  // c'est un yucca EN POT (mesh "yucca_plant_large_potted", plante +
+  // pot en une seule primitive, impossible de separer sans editer au
+  // vertex level) — retire de la scene, garde en .glb au cas ou un
+  // futur remplacement propre.
+  { path: "/models/cactus-quaternius.glb", targetHeight: 0.5 },
 ];
 
 // 2 -> 4 (18/08, retour Sylvain : "tu peux les répéter et aussi faire
