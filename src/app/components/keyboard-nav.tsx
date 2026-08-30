@@ -10,8 +10,10 @@ import { useCardinalTransition, type CardinalDirection } from "./stag-scene/card
 /**
  * Navigation clavier flèches gauche/droite (28/08 task #58). Signature
  * portfolio interactif "toi aussi tu es nahual — tu voyages entre les
- * mondes". Ordre nav identique au header (Accueil premier, puis
- * rotation cardinale Est→Sud→Ouest→Nord→Centre).
+ * mondes". Ordre nav identique au header : Accueil premier, puis
+ * ordre narratif Mémoire (racines) → Services (offre) → Projets
+ * (preuves) → Contact (canal). Codex accessible via footer, hors
+ * cycle clavier.
  *
  * Skip si focus dans input/textarea/contenteditable (ne pas piéger
  * la frappe de l'utilisateur). Trigger transitions cardinales
@@ -19,7 +21,7 @@ import { useCardinalTransition, type CardinalDirection } from "./stag-scene/card
  * Transitions API).
  */
 
-const NAV_ORDER: PageKey[] = ["services", "projets", "contact", "memoire", "codex"];
+const NAV_ORDER: PageKey[] = ["memoire", "services", "projets", "contact"];
 
 const DIRECTION_BY_KEY: Record<PageKey, CardinalDirection> = {
   services: "dore",

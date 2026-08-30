@@ -356,7 +356,7 @@
     "title": "Créditos y atribuciones",
     "intro": "Este sitio usa recursos creados por otras personas. Reconocimiento y gratitud.",
     "sections": [
-      { "title": "Modelos 3D", "text": "El ciervo y parte de la flora provienen de packs open-source Quaternius (licencia CC0). Xolotl (el perro-hermano de Quetzalcoatl que a veces atraviesa la escena) reutiliza el mesh Wolf del pack Quaternius Ultimate Animated Animals, teñido de obsidiana. Los modelos complementarios (ocotillo, lianas, flores) se generan proceduralmente." },
+      { "title": "Modelos 3D", "text": "El ciervo y parte de la flora provienen de packs open-source Quaternius (licencia CC0). Xolotl (el perro-hermano de Quetzalcoatl que a veces atraviesa la escena) usa el modelo Xoloitzcuintle de Nyilonelycompany, comprado en Fab.com, teñido de obsidiana. Los modelos complementarios (ocotillo, lianas, flores) se generan proceduralmente." },
       { "title": "Tipografías", "text": "Geist Sans y Geist Mono, creadas por Vercel (licencia SIL Open Font)." },
       { "title": "Bibliotecas de software", "text": "React (MIT), Next.js (MIT), Three.js (MIT), React Three Fiber (MIT), drei (MIT), postprocessing (Zlib), GSAP (licencia estándar), Lenis (MIT), Sass (MIT), TypeScript (Apache 2.0), Vitest (MIT)." },
       { "title": "Inspiraciones", "text": "Sacred Labs (Joseph Santamaria), Lusion, Immersive Garden, Bruno Simon, Codrops. Códices Fejérváry-Mayer y Borgia para la cosmología. Estudios de Miguel León-Portilla y Alfredo López Austin para la profundidad de la filosofía náhuatl." },

@@ -365,7 +365,7 @@
     "title": "Credits and attributions",
     "intro": "This site uses resources created by others. Recognition and gratitude.",
     "sections": [
-      { "title": "3D models", "text": "The stag and part of the flora come from Quaternius open-source packs (CC0 license). Xolotl (the dog-brother of Quetzalcoatl who sometimes crosses the scene) reuses the Wolf mesh from the Quaternius Ultimate Animated Animals pack, tinted obsidian. Complementary models (ocotillo, vines, flowers) are procedurally generated." },
+      { "title": "3D models", "text": "The stag and part of the flora come from Quaternius open-source packs (CC0 license). Xolotl (the dog-brother of Quetzalcoatl who sometimes crosses the scene) uses the Xoloitzcuintle model by Nyilonelycompany, purchased on Fab.com, tinted obsidian. Complementary models (ocotillo, vines, flowers) are procedurally generated." },
       { "title": "Fonts", "text": "Geist Sans and Geist Mono, created by Vercel (SIL Open Font license)." },
       { "title": "Software libraries", "text": "React (MIT), Next.js (MIT), Three.js (MIT), React Three Fiber (MIT), drei (MIT), postprocessing (Zlib), GSAP (standard license), Lenis (MIT), Sass (MIT), TypeScript (Apache 2.0), Vitest (MIT)." },
       { "title": "Inspirations", "text": "Sacred Labs (Joseph Santamaria), Lusion, Immersive Garden, Bruno Simon, Codrops. Fejérváry-Mayer and Borgia codices for cosmology. Miguel León-Portilla's and Alfredo López Austin's studies for the depth of Nahua philosophy." },
