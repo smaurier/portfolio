@@ -344,7 +344,7 @@ export default function XolotlCompanion() {
     if (typeof window === "undefined") return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (isBot() || readingMode.active) return void setSpawn(false);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return void setSpawn(false);
     const key = `nahual-xolotl-spawn-${direction}`;
     const cached = sessionStorage.getItem(key);

@@ -35,6 +35,8 @@ const LABEL: Record<Locale, { on: string; off: string; description: string }> = 
 export default function ShortcutsToggle({ locale }: { locale: Locale }) {
   const [enabled, setEnabled] = useState(true);
   useEffect(() => {
+    // Lecture localStorage post-hydratation (SSR-safe, initial true).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEnabled(isShortcutsEnabled());
     return subscribeShortcuts(setEnabled);
   }, []);

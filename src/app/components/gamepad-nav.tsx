@@ -100,6 +100,8 @@ export default function GamepadNav() {
   const transition = useCardinalTransition();
   const [enabled, setEnabled] = useState(true);
   useEffect(() => {
+    // Lecture localStorage post-hydratation (SSR-safe, initial true).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEnabled(isShortcutsEnabled());
     return subscribeShortcuts(setEnabled);
   }, []);

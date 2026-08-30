@@ -51,7 +51,7 @@ export default function CardinalAmbience() {
   // valeurs frame-based sans re-render. Legitime dans un contexte 3D
   // r3f, le lint react-hooks/refs et immutability sont trop stricts
   // pour ce cas (60 fps de re-render React tuerait la perf).
-  // eslint-disable-next-line react-hooks/refs
+   
   activeDirectionRef.current = direction;
   const sceneRefs = useSceneRefs();
 
@@ -61,7 +61,7 @@ export default function CardinalAmbience() {
     const active = activeDirectionRef.current;
     if (sceneRefs?.reducedMotionRef.current) {
       for (const key of Object.keys(alphaRefs) as DirectionKey[]) {
-        // eslint-disable-next-line react-hooks/immutability
+         
         alphaRefs[key].current = key === active ? 1 : 0;
       }
       return;
@@ -71,10 +71,10 @@ export default function CardinalAmbience() {
       const cur = alphaRefs[key].current;
       const diff = target - cur;
       if (Math.abs(diff) < 0.001) {
-        // eslint-disable-next-line react-hooks/immutability
+         
         alphaRefs[key].current = target;
       } else {
-        // eslint-disable-next-line react-hooks/immutability
+         
         alphaRefs[key].current = cur + Math.sign(diff) * Math.min(Math.abs(diff), FADE_SPEED);
       }
     }

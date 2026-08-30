@@ -140,6 +140,8 @@ export default function KeyboardNav() {
   // concernes par 12.10 mais on les respecte quand meme par coherence.
   const [enabled, setEnabled] = useState(true);
   useEffect(() => {
+    // Lecture localStorage post-hydratation (SSR-safe, initial true).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEnabled(isShortcutsEnabled());
     return subscribeShortcuts(setEnabled);
   }, []);
