@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { ImageResponse } from "next/og";
 import { getDictionary, isLocale, locales } from "@/dictionaries";
 import { STUDIO_NAME } from "@/lib/seo";
@@ -38,6 +40,16 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
   const dict = getDictionary(locale);
   const codex = CODEX_PHRASE[locale] ?? CODEX_PHRASE.fr;
 
+  // Charge la Piedra V2 en PNG (next/og ne supporte pas WebP en data
+  // URL, seulement PNG/JPEG/GIF). PNG generee au build par sharp
+  // depuis le SVG source (pas dans le pipeline vu qu'utilisee seulement
+  // ici, generee une fois via Downloads/xolo_inspect script).
+  // 30/08 : 2e des 3 pistes de reemploi de la Piedra (voile + sol
+  // deja fait). Marque de fabrique coherente avec le reste.
+  const piedraPath = path.join(process.cwd(), "public", "img", "piedra-del-sol-og.png");
+  const piedraBuf = await readFile(piedraPath);
+  const piedraDataUrl = `data:image/png;base64,${piedraBuf.toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -54,6 +66,26 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
           position: "relative",
         }}
       >
+        {/* Piedra del Sol en fond decoratif (30/08 : 2e piste de reemploi,
+            cf piedra-veil.tsx voile + piedra-ground.tsx sol). Position
+            absolute centree, opacite faible, mix-blend-mode screen pour
+            que les strokes blancs se somment sur le gradient obsidien
+            sans etre plaques dessus. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={piedraDataUrl}
+          alt=""
+          width={720}
+          height={720}
+          style={{
+            position: "absolute",
+            top: -100,
+            right: -180,
+            opacity: 0.14,
+            transform: "rotate(-8deg)",
+          }}
+        />
+
         {/* Rosette cardinale : 4 points cardinaux autour du centre */}
         <div
           style={{
