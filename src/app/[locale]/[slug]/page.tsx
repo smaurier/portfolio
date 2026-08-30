@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ObfuscatedEmail from "../../components/obfuscated-email";
+import ShortcutsToggle from "../../components/shortcuts-toggle";
 import XolotlCodexReader from "../../components/xolotl-codex-reader";
 import EchoScenePage from "../../components/stag-scene/echo-scene-page";
 import type { DirectionKey } from "../../components/stag-scene/direction-colors";
@@ -366,13 +367,16 @@ type LegalSection =
 
 function LegalPage({
   dict,
+  topExtra,
 }: {
   dict: { title: string; intro: string; sections: LegalSection[] };
+  topExtra?: React.ReactNode;
 }) {
   return (
     <div className="contentPage codexPage">
       <h1>{dict.title}</h1>
       <p>{dict.intro}</p>
+      {topExtra}
       {dict.sections.map((section, i) => (
         <section key={i} className="codexSection">
           <h2>{section.title}</h2>
@@ -453,7 +457,7 @@ export default async function LocalizedPage({
       content = <LegalPage dict={fullDict.planDuSite} />;
       break;
     case "accessibilite":
-      content = <LegalPage dict={fullDict.accessibilite} />;
+      content = <LegalPage dict={fullDict.accessibilite} topExtra={<ShortcutsToggle locale={locale} />} />;
       break;
     case "confidentialite":
       content = <LegalPage dict={fullDict.confidentialite} />;

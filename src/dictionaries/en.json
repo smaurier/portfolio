@@ -79,11 +79,26 @@
     "githubCta": "See my code on GitHub →",
     "contactCta": "Get in touch",
     "chapters": [
-      { "kicker": "I · The approach", "line": "He grazes in the half-light, indifferent to the path leading toward him." },
-      { "kicker": "II · The gaze", "line": "The stag has noticed you. He doesn't flee — he waits." },
-      { "kicker": "III · Face to face", "line": "A silence. Three entities: your body, his body, what passes between them." },
-      { "kicker": "IV · The paths", "line": "Four directions around you, a fifth at the center. Yours to choose." },
-      { "kicker": "V · The Ollin", "line": "You move. The world trembles. The journey begins." }
+      {
+        "kicker": "I · The approach",
+        "line": "He grazes in the half-light, indifferent to the path leading toward him."
+      },
+      {
+        "kicker": "II · The gaze",
+        "line": "The stag has noticed you. He doesn't flee — he waits."
+      },
+      {
+        "kicker": "III · Face to face",
+        "line": "A silence. Three entities: your body, his body, what passes between them."
+      },
+      {
+        "kicker": "IV · The paths",
+        "line": "Four directions around you, a fifth at the center. Yours to choose."
+      },
+      {
+        "kicker": "V · The Ollin",
+        "line": "You move. The world trembles. The journey begins."
+      }
     ]
   },
   "services": {
@@ -125,11 +140,26 @@
         "backCta": "← Back to projects",
         "hero": "The auditor who codes the fix.",
         "narrative": [
-          { "title": "The market reality", "text": "The French RGAA accessibility audit market is mature but paradoxical. Large firms deliver 80-page PDF reports, structured against the 106 criteria of the standard, listing each non-compliance with a screenshot and a generic recommendation. The engineering teams receiving those reports are often left helpless: how do you translate \"improve link focus contrast\" into a concrete pull request? Nuada starts from that observation to propose something else." },
-          { "title": "The technical stance", "text": "Each non-compliance identified by Nuada is delivered with directly implementable fix code, tested on a client project fork when possible. No vague \"recommendation,\" no \"to investigate on the team side\": a Git diff, an explanation of why, a non-regression test. The auditor becomes a temporary contributor, not a consultant leaving behind a knot of problems." },
-          { "title": "Site architecture", "text": "Astro for static generation, native i18n for fr/en/es with no overhead, MDX for long-form articles, Netlify hosting with preview branches for each new piece of content. The site itself is RGAA 4.1 compliant by construction — no post-audit patching, every component is designed accessible from the start. A test-driven a11y approach that serves as its own example." },
-          { "title": "What Nuada teaches me", "text": "Building Nuada forced me to formalize what was implicit: what I did intuitively on client missions (deliver code rather than text) becomes a reproducible method. The real deliverable of an accessibility audit isn't a document, it's a codebase more accessible than before." },
-          { "title": "Next steps", "text": "Once the RGAA certification is validated (access42 exam October 23, 2026), Nuada can move from showcase site to real tool: partial audit automation via axe-core in CI, before/after comparator on pull request, public library of reusable accessible patterns." }
+          {
+            "title": "The market reality",
+            "text": "The French RGAA accessibility audit market is mature but paradoxical. Large firms deliver 80-page PDF reports, structured against the 106 criteria of the standard, listing each non-compliance with a screenshot and a generic recommendation. The engineering teams receiving those reports are often left helpless: how do you translate \"improve link focus contrast\" into a concrete pull request? Nuada starts from that observation to propose something else."
+          },
+          {
+            "title": "The technical stance",
+            "text": "Each non-compliance identified by Nuada is delivered with directly implementable fix code, tested on a client project fork when possible. No vague \"recommendation,\" no \"to investigate on the team side\": a Git diff, an explanation of why, a non-regression test. The auditor becomes a temporary contributor, not a consultant leaving behind a knot of problems."
+          },
+          {
+            "title": "Site architecture",
+            "text": "Astro for static generation, native i18n for fr/en/es with no overhead, MDX for long-form articles, Netlify hosting with preview branches for each new piece of content. The site itself is RGAA 4.1 compliant by construction — no post-audit patching, every component is designed accessible from the start. A test-driven a11y approach that serves as its own example."
+          },
+          {
+            "title": "What Nuada teaches me",
+            "text": "Building Nuada forced me to formalize what was implicit: what I did intuitively on client missions (deliver code rather than text) becomes a reproducible method. The real deliverable of an accessibility audit isn't a document, it's a codebase more accessible than before."
+          },
+          {
+            "title": "Next steps",
+            "text": "Once the RGAA certification is validated (access42 exam October 23, 2026), Nuada can move from showcase site to real tool: partial audit automation via axe-core in CI, before/after comparator on pull request, public library of reusable accessible patterns."
+          }
         ]
       }
     },
@@ -148,11 +178,26 @@
         "backCta": "← Back to projects",
         "hero": "Making a niche industrial site breathe.",
         "narrative": [
-          { "title": "Client context", "text": "KleyFrance is a French manufacturer of custom lifting solutions — slings, winches, specialized spreader beams — for very specialized sectors: oil, offshore oceanography, military industry. A legacy WordPress site, not responsive, whose graphic charter came down to an aging logo and a gray-blue palette without identity. The brief: rebuild while keeping industrial credibility, without falling into the \"heavy metal\" cliché that plagues this market." },
-          { "title": "Art direction approach", "text": "Rather than a flashy site, a design that breathes technical seriousness. Product photos on a clean background, sober but modern industrial typography (not thick futura, rather a balanced neo-grotesque), tight palette deep blue + functional orange like a safety marking ribbon. The redesigned logo keeps the founder's \"K\" spirit but with golden ratio proportions, legible at 16px as at 2m on a trade show." },
-          { "title": "The editorial challenge", "text": "The vocabulary is ultra-specialized. \"Balancing spreader beam,\" \"30t hydraulic underwater winch,\" \"DNV/LOLER compliance.\" The site had to remain accessible to technical buyers (who know) without scaring off more generalist buyers (military, industrialists). Solution: a systematic dual reading — an explicit title in plain French, a precise technical subtitle with the industry vocabulary." },
-          { "title": "Concrete impact", "text": "Loading time divided by 3 (optimized WordPress, WebP images, Cloudflare cache). Mobile-first responsive. Unified quote forms with pre-filled conditions by target sector. Client feedback: incoming first contacts become more qualified — prospects arrive having understood the specialization before contacting." },
-          { "title": "What I take from it", "text": "In a B2B niche market, art direction matters more than one might think. Technical credibility comes through graphic choices consistent with the trade — no unnecessary creative dev effects, but each element must signal \"we know what we're talking about.\"" }
+          {
+            "title": "Client context",
+            "text": "KleyFrance is a French manufacturer of custom lifting solutions — slings, winches, specialized spreader beams — for very specialized sectors: oil, offshore oceanography, military industry. A legacy WordPress site, not responsive, whose graphic charter came down to an aging logo and a gray-blue palette without identity. The brief: rebuild while keeping industrial credibility, without falling into the \"heavy metal\" cliché that plagues this market."
+          },
+          {
+            "title": "Art direction approach",
+            "text": "Rather than a flashy site, a design that breathes technical seriousness. Product photos on a clean background, sober but modern industrial typography (not thick futura, rather a balanced neo-grotesque), tight palette deep blue + functional orange like a safety marking ribbon. The redesigned logo keeps the founder's \"K\" spirit but with golden ratio proportions, legible at 16px as at 2m on a trade show."
+          },
+          {
+            "title": "The editorial challenge",
+            "text": "The vocabulary is ultra-specialized. \"Balancing spreader beam,\" \"30t hydraulic underwater winch,\" \"DNV/LOLER compliance.\" The site had to remain accessible to technical buyers (who know) without scaring off more generalist buyers (military, industrialists). Solution: a systematic dual reading — an explicit title in plain French, a precise technical subtitle with the industry vocabulary."
+          },
+          {
+            "title": "Concrete impact",
+            "text": "Loading time divided by 3 (optimized WordPress, WebP images, Cloudflare cache). Mobile-first responsive. Unified quote forms with pre-filled conditions by target sector. Client feedback: incoming first contacts become more qualified — prospects arrive having understood the specialization before contacting."
+          },
+          {
+            "title": "What I take from it",
+            "text": "In a B2B niche market, art direction matters more than one might think. Technical credibility comes through graphic choices consistent with the trade — no unnecessary creative dev effects, but each element must signal \"we know what we're talking about.\""
+          }
         ]
       }
     },
@@ -171,11 +216,26 @@
         "backCta": "← Back to projects",
         "hero": "A continuous AI memory across three machines.",
         "narrative": [
-          { "title": "The lived problem", "text": "In 2026, I use Claude Code daily on three machines: my personal setup at home, the one on mission at LR Technologies, a backup laptop. Each machine manages its own memory (user preferences, project context, validated feedback). Result: I repeat the same explanations to Claude on each machine, or worse, I manually copy memory files between machines with conflict risks. The \"multiple assistants that don't know each other\" pattern quickly becomes counterproductive." },
-          { "title": "Architecture chosen", "text": "Synapse is a plugin that bootstraps a Git-versioned memory structure, with automatic background sync on every significant change. Memory is typed: feedback (learned work rules), project (active project context), user (user profile), reference (pointers to external sources). Each entry has explicit YAML frontmatter, a short description, a type. A `[[name]]` linking system weaves entries together like a mini knowledge graph." },
-          { "title": "Technical choices", "text": "Node.js + TypeScript for cross-platform. Native Claude Code hooks (SessionStart, SessionEnd, UserPromptSubmit) to intercept key moments without monkey-patching. Background Git sync via non-blocking `child_process`. Smart local cache to avoid unnecessary network round-trips. Sync collision detection: two machines write at the same time, Synapse attempts automatic per-entry merge, alerts the user on conflict." },
-          { "title": "Quality as obligation", "text": "283 tests from the first public release, green CI, coverage > 80%. Why this rigor for a personal plugin? Because memory is precious — a bug that silently overwrites an entry is context lost that I won't recover. TDD here isn't dogma but a guarantee that memory doesn't corrupt itself." },
-          { "title": "Community opening", "text": "Published open-source from the first commit on github.com/smaurier/claude-synapse. Careful documentation, concrete examples, ADR (Architecture Decision Records) to trace choices. Ambition: that other multi-machine Claude Code users can bootstrap their own system. No business model, no premium — a tool solving a real problem for those who have it." }
+          {
+            "title": "The lived problem",
+            "text": "In 2026, I use Claude Code daily on three machines: my personal setup at home, the one on mission at LR Technologies, a backup laptop. Each machine manages its own memory (user preferences, project context, validated feedback). Result: I repeat the same explanations to Claude on each machine, or worse, I manually copy memory files between machines with conflict risks. The \"multiple assistants that don't know each other\" pattern quickly becomes counterproductive."
+          },
+          {
+            "title": "Architecture chosen",
+            "text": "Synapse is a plugin that bootstraps a Git-versioned memory structure, with automatic background sync on every significant change. Memory is typed: feedback (learned work rules), project (active project context), user (user profile), reference (pointers to external sources). Each entry has explicit YAML frontmatter, a short description, a type. A `[[name]]` linking system weaves entries together like a mini knowledge graph."
+          },
+          {
+            "title": "Technical choices",
+            "text": "Node.js + TypeScript for cross-platform. Native Claude Code hooks (SessionStart, SessionEnd, UserPromptSubmit) to intercept key moments without monkey-patching. Background Git sync via non-blocking `child_process`. Smart local cache to avoid unnecessary network round-trips. Sync collision detection: two machines write at the same time, Synapse attempts automatic per-entry merge, alerts the user on conflict."
+          },
+          {
+            "title": "Quality as obligation",
+            "text": "283 tests from the first public release, green CI, coverage > 80%. Why this rigor for a personal plugin? Because memory is precious — a bug that silently overwrites an entry is context lost that I won't recover. TDD here isn't dogma but a guarantee that memory doesn't corrupt itself."
+          },
+          {
+            "title": "Community opening",
+            "text": "Published open-source from the first commit on github.com/smaurier/claude-synapse. Careful documentation, concrete examples, ADR (Architecture Decision Records) to trace choices. Ambition: that other multi-machine Claude Code users can bootstrap their own system. No business model, no premium — a tool solving a real problem for those who have it."
+          }
         ]
       }
     },
@@ -253,21 +313,48 @@
       "title": "The five directions",
       "text": "In Mesoamerican thought, the universe isn't read in four cardinal points but in five — the four horizons plus the center. Each direction carries its color, its god, its animal, its time of day. This site follows that plan.",
       "directions": [
-        { "name": "Center · Xiuhtecuhtli · jade", "text": "The cosmic axis, the fire that burns without ever going out. Here is the home, the hub, the possible return." },
-        { "name": "East · Tonatiuh · gold", "text": "Dawn, the rising sun. Here are the services, what I offer to build with you." },
-        { "name": "South · Huitzilopochtli · turquoise", "text": "Noon, the warrior hummingbird. Here are the projects, what I've already carried through." },
-        { "name": "West · Ehecatl · ash", "text": "Dusk, the breath of wind. Here is contact, an open channel." },
-        { "name": "North · Mictlantecuhtli · obsidian", "text": "Night, the lord of the land of the dead. Here is Teyolía · Memory, what was kept rather than erased." }
+        {
+          "name": "Center · Xiuhtecuhtli · jade",
+          "text": "The cosmic axis, the fire that burns without ever going out. Here is the home, the hub, the possible return."
+        },
+        {
+          "name": "East · Tonatiuh · gold",
+          "text": "Dawn, the rising sun. Here are the services, what I offer to build with you."
+        },
+        {
+          "name": "South · Huitzilopochtli · turquoise",
+          "text": "Noon, the warrior hummingbird. Here are the projects, what I've already carried through."
+        },
+        {
+          "name": "West · Ehecatl · ash",
+          "text": "Dusk, the breath of wind. Here is contact, an open channel."
+        },
+        {
+          "name": "North · Mictlantecuhtli · obsidian",
+          "text": "Night, the lord of the land of the dead. Here is Teyolía · Memory, what was kept rather than erased."
+        }
       ]
     },
     "suns": {
       "title": "The four previous suns",
       "text": "Before Nahui Ollin, four worlds lived and perished. Each left a lesson on how to die — and therefore how to live. Nahua cosmology does not think of creation as linear but as cycles that beget one another by collapsing. Our current sun is the fifth. It is mortal like the previous ones.",
       "list": [
-        { "name": "Nahui Ocelotl · 4 Jaguar", "text": "The first sun. Inhabitants were giants who lived on acorns. The world collapsed under jaguars who devoured the race. Fall by excess of strength." },
-        { "name": "Nahui Ehecatl · 4 Wind", "text": "The second sun, ruled by Quetzalcoatl. An immense wind blew the world away, humans transformed into monkeys still clinging to branches. Fall by lack of grounding." },
-        { "name": "Nahui Quiahuitl · 4 Fire Rain", "text": "The third sun, ruled by Tlaloc. A rain of fire burned the world, inhabitants transformed into turkeys who keep their red crest. Fall by celestial anger." },
-        { "name": "Nahui Atl · 4 Water", "text": "The fourth sun, ruled by Chalchiuhtlicue, Jade Skirt. A flood drowned the world, humans transformed into fish. Fall by tears held back too long." }
+        {
+          "name": "Nahui Ocelotl · 4 Jaguar",
+          "text": "The first sun. Inhabitants were giants who lived on acorns. The world collapsed under jaguars who devoured the race. Fall by excess of strength."
+        },
+        {
+          "name": "Nahui Ehecatl · 4 Wind",
+          "text": "The second sun, ruled by Quetzalcoatl. An immense wind blew the world away, humans transformed into monkeys still clinging to branches. Fall by lack of grounding."
+        },
+        {
+          "name": "Nahui Quiahuitl · 4 Fire Rain",
+          "text": "The third sun, ruled by Tlaloc. A rain of fire burned the world, inhabitants transformed into turkeys who keep their red crest. Fall by celestial anger."
+        },
+        {
+          "name": "Nahui Atl · 4 Water",
+          "text": "The fourth sun, ruled by Chalchiuhtlicue, Jade Skirt. A flood drowned the world, humans transformed into fish. Fall by tears held back too long."
+        }
       ]
     },
     "ollin": {
@@ -278,9 +365,18 @@
       "title": "The three entities of the Nahua being",
       "text": "In Nahua thought, a person is not a single soul but three entities that coexist, each lodged in a part of the body. They separate at death and take distinct paths. Understanding this triptych is understanding why Teyolía names the Memory page of this site.",
       "list": [
-        { "name": "Teyolía · heart", "text": "The seat of memory, personality, intimate knowledge. It resides in the heart and, at death, travels to Mictlán after a four-year journey. It carries what you have been." },
-        { "name": "Tonalli · head", "text": "The vital force tied to the day of birth in the tonalpohualli calendar. It resides in the head and radiates like a heat. It can escape during intense fright — hence the rituals to recall the tonalli after a shock." },
-        { "name": "Ihíyotl · liver", "text": "The breath, the passions, the desires. It resides in the liver and belly. If unmastered, it can escape and affect others — moral illnesses come from there." }
+        {
+          "name": "Teyolía · heart",
+          "text": "The seat of memory, personality, intimate knowledge. It resides in the heart and, at death, travels to Mictlán after a four-year journey. It carries what you have been."
+        },
+        {
+          "name": "Tonalli · head",
+          "text": "The vital force tied to the day of birth in the tonalpohualli calendar. It resides in the head and radiates like a heat. It can escape during intense fright — hence the rituals to recall the tonalli after a shock."
+        },
+        {
+          "name": "Ihíyotl · liver",
+          "text": "The breath, the passions, the desires. It resides in the liver and belly. If unmastered, it can escape and affect others — moral illnesses come from there."
+        }
       ]
     },
     "xolotl": {
@@ -312,73 +408,189 @@
     "title": "Legal notices",
     "intro": "Legal information for the nahual.fr site under French LCEN law of June 21, 2004.",
     "sections": [
-      { "title": "Publisher", "text": "Nahual · Creative Studio. Sylvain Maurier, sole proprietor. SIRET: to be completed. Email: bonjour@nahual.fr. Phone: on request." },
-      { "title": "Publication director", "text": "Sylvain Maurier." },
-      { "title": "Hosting", "text": "Netlify Inc., 44 Montgomery Street, Suite 300, San Francisco, CA 94104, USA. https://www.netlify.com." },
-      { "title": "Intellectual property", "text": "All content (text, images, structure, original source code) is the property of Sylvain Maurier, unless otherwise indicated on the Credits page. The 3D models and fonts used are under open license (see Credits)." },
-      { "title": "Applicable law", "text": "The site is subject to French law. Any dispute falls under the exclusive jurisdiction of French courts." }
+      {
+        "title": "Publisher",
+        "text": "Nahual · Creative Studio. Sylvain Maurier, sole proprietor. SIRET: to be completed. Email: bonjour@nahual.fr. Phone: on request."
+      },
+      {
+        "title": "Publication director",
+        "text": "Sylvain Maurier."
+      },
+      {
+        "title": "Hosting",
+        "text": "Netlify Inc., 44 Montgomery Street, Suite 300, San Francisco, CA 94104, USA. https://www.netlify.com."
+      },
+      {
+        "title": "Intellectual property",
+        "text": "All content (text, images, structure, original source code) is the property of Sylvain Maurier, unless otherwise indicated on the Credits page. The 3D models and fonts used are under open license (see Credits)."
+      },
+      {
+        "title": "Applicable law",
+        "text": "The site is subject to French law. Any dispute falls under the exclusive jurisdiction of French courts."
+      }
     ]
   },
   "planDuSite": {
     "title": "Sitemap",
     "intro": "Overview of the site's pages (RGAA criterion 12.1).",
     "sections": [
-      { "title": "Main pages", "links": [
-        { "label": "Home", "href": "/en" },
-        { "label": "Teyolía · Memory", "href": "/en/memory" },
-        { "label": "Services", "href": "/en/services" },
-        { "label": "Projects", "href": "/en/projects" },
-        { "label": "Contact", "href": "/en/contact" }
-      ] },
-      { "title": "Resources", "links": [
-        { "label": "Codex (cosmogony + about)", "href": "/en/codex" },
-        { "label": "Credits", "href": "/en/credits" }
-      ] },
-      { "title": "Legal information", "links": [
-        { "label": "Legal notices", "href": "/en/legal-notices" },
-        { "label": "Accessibility statement", "href": "/en/accessibility" },
-        { "label": "Privacy policy", "href": "/en/privacy" }
-      ] }
+      {
+        "title": "Main pages",
+        "links": [
+          {
+            "label": "Home",
+            "href": "/en"
+          },
+          {
+            "label": "Teyolía · Memory",
+            "href": "/en/memory"
+          },
+          {
+            "label": "Services",
+            "href": "/en/services"
+          },
+          {
+            "label": "Projects",
+            "href": "/en/projects"
+          },
+          {
+            "label": "Contact",
+            "href": "/en/contact"
+          }
+        ]
+      },
+      {
+        "title": "Resources",
+        "links": [
+          {
+            "label": "Codex (cosmogony + about)",
+            "href": "/en/codex"
+          },
+          {
+            "label": "Credits",
+            "href": "/en/credits"
+          }
+        ]
+      },
+      {
+        "title": "Legal information",
+        "links": [
+          {
+            "label": "Legal notices",
+            "href": "/en/legal-notices"
+          },
+          {
+            "label": "Accessibility statement",
+            "href": "/en/accessibility"
+          },
+          {
+            "label": "Privacy policy",
+            "href": "/en/privacy"
+          }
+        ]
+      }
     ]
   },
   "accessibilite": {
     "title": "Accessibility statement",
     "intro": "Nahual is committed to making its site accessible under the French General Accessibility Improvement Reference (RGAA) version 4.1.",
     "sections": [
-      { "title": "Conformance state", "text": "This site is partially compliant with RGAA 4.1. A full audit is planned after the 2026 redesign stabilizes." },
-      { "title": "Non-accessible content", "text": "The interactive 3D scene (WebGL canvas) is decorative: main textual content (titles, texts, links) is accessible to assistive technologies. prefers-reduced-motion is respected." },
-      { "title": "Statement drafting", "text": "This statement was drafted on August 28, 2026 based on self-assessment. An external audit is planned after obtaining RGAA certification (October 2026)." },
-      { "title": "Feedback and contact", "text": "To report an access issue or obtain an alternative version of content, contact bonjour@nahual.fr. If no response within 60 days, contact the French Rights Defender: https://www.defenseurdesdroits.fr." }
+      {
+        "title": "Conformance state",
+        "text": "This site is partially compliant with RGAA 4.1. A full audit is planned after the 2026 redesign stabilizes."
+      },
+      {
+        "title": "Non-accessible content",
+        "text": "The interactive 3D scene (WebGL canvas) is decorative: main textual content (titles, texts, links) is accessible to assistive technologies. prefers-reduced-motion is respected."
+      },
+      {
+        "title": "Statement drafting",
+        "text": "This statement was drafted on August 28, 2026 based on self-assessment. An external audit is planned after obtaining RGAA certification (October 2026)."
+      },
+      {
+        "title": "Feedback and contact",
+        "text": "To report an access issue or obtain an alternative version of content, contact bonjour@nahual.fr. If no response within 60 days, contact the French Rights Defender: https://www.defenseurdesdroits.fr."
+      },
+      {
+        "title": "Keyboard shortcuts",
+        "text": "Alt+Up/Right/Down/Left Arrow: direct cardinal navigation (up=Memory North, right=Services East, down=Projects South, left=Contact West). WASD (QWERTY) or ZQSD (AZERTY) — independent of physical layout — same cardinal grid: W/Z=Memory, D=Services, S=Projects, A/Q=Contact, C=Home (Center). Escape: return home."
+      },
+      {
+        "title": "Gamepad shortcuts",
+        "text": "A USB or Bluetooth gamepad (Xbox, PlayStation, standard) is auto-detected. D-pad: cardinal navigation (up=Memory, right=Services, down=Projects, left=Contact). A/B buttons (Xbox) or Cross/Circle (PlayStation): return home."
+      }
     ]
   },
   "confidentialite": {
     "title": "Privacy policy",
     "intro": "This site complies with the General Data Protection Regulation (GDPR) and the French Data Protection Act.",
     "sections": [
-      { "title": "Data collected", "text": "No data is collected without your explicit action. Sending a message via the email shown on the Contact page is the only entry point: the information provided (email, message content) is used solely to reply." },
-      { "title": "Cookies and trackers", "text": "This site does not use tracking cookies or third-party analytics tools (no Google Analytics, no Meta Pixel). Only local storage (localStorage) is used to remember your sound preference (on/off) and whether you've already seen certain animations. This data stays in your browser and is never transmitted." },
-      { "title": "Retention", "text": "Messages received by email are kept for the time needed to process them, then archived in the responsible party's personal mailbox for future reference. You can request their deletion at any time." },
-      { "title": "Your rights", "text": "Under GDPR, you have the right to access, rectify, erase, and port your data. Contact: bonjour@nahual.fr." }
+      {
+        "title": "Data collected",
+        "text": "No data is collected without your explicit action. Sending a message via the email shown on the Contact page is the only entry point: the information provided (email, message content) is used solely to reply."
+      },
+      {
+        "title": "Cookies and trackers",
+        "text": "This site does not use tracking cookies or third-party analytics tools (no Google Analytics, no Meta Pixel). Only local storage (localStorage) is used to remember your sound preference (on/off) and whether you've already seen certain animations. This data stays in your browser and is never transmitted."
+      },
+      {
+        "title": "Retention",
+        "text": "Messages received by email are kept for the time needed to process them, then archived in the responsible party's personal mailbox for future reference. You can request their deletion at any time."
+      },
+      {
+        "title": "Your rights",
+        "text": "Under GDPR, you have the right to access, rectify, erase, and port your data. Contact: bonjour@nahual.fr."
+      }
     ]
   },
   "credits": {
     "title": "Credits and attributions",
     "intro": "This site uses resources created by others. Recognition and gratitude.",
     "sections": [
-      { "title": "3D models", "text": "The stag and part of the flora come from Quaternius open-source packs (CC0 license). Xolotl (the dog-brother of Quetzalcoatl who sometimes crosses the scene) uses the Xoloitzcuintle model by Nyilonelycompany, purchased on Fab.com, tinted obsidian. Complementary models (ocotillo, vines, flowers) are procedurally generated." },
-      { "title": "Fonts", "text": "Geist Sans and Geist Mono, created by Vercel (SIL Open Font license)." },
-      { "title": "Software libraries", "text": "React (MIT), Next.js (MIT), Three.js (MIT), React Three Fiber (MIT), drei (MIT), postprocessing (Zlib), GSAP (standard license), Lenis (MIT), Sass (MIT), TypeScript (Apache 2.0), Vitest (MIT)." },
-      { "title": "Inspirations", "text": "Sacred Labs (Joseph Santamaria), Lusion, Immersive Garden, Bruno Simon, Codrops. Fejérváry-Mayer and Borgia codices for cosmology. Miguel León-Portilla's and Alfredo López Austin's studies for the depth of Nahua philosophy." },
-      { "title": "Cultural recognition", "text": "This site is a tribute to the living Nahua culture, not a museum. For Elda, Alondra, Léopoldine, and all who carry this memory." }
+      {
+        "title": "3D models",
+        "text": "The stag and part of the flora come from Quaternius open-source packs (CC0 license). Xolotl (the dog-brother of Quetzalcoatl who sometimes crosses the scene) uses the Xoloitzcuintle model by Nyilonelycompany, purchased on Fab.com, tinted obsidian. Complementary models (ocotillo, vines, flowers) are procedurally generated."
+      },
+      {
+        "title": "Fonts",
+        "text": "Geist Sans and Geist Mono, created by Vercel (SIL Open Font license)."
+      },
+      {
+        "title": "Software libraries",
+        "text": "React (MIT), Next.js (MIT), Three.js (MIT), React Three Fiber (MIT), drei (MIT), postprocessing (Zlib), GSAP (standard license), Lenis (MIT), Sass (MIT), TypeScript (Apache 2.0), Vitest (MIT)."
+      },
+      {
+        "title": "Inspirations",
+        "text": "Sacred Labs (Joseph Santamaria), Lusion, Immersive Garden, Bruno Simon, Codrops. Fejérváry-Mayer and Borgia codices for cosmology. Miguel León-Portilla's and Alfredo López Austin's studies for the depth of Nahua philosophy."
+      },
+      {
+        "title": "Cultural recognition",
+        "text": "This site is a tribute to the living Nahua culture, not a museum. For Elda, Alondra, Léopoldine, and all who carry this memory."
+      }
     ]
   },
   "lab": {
     "loadingPhrases": [
-      { "phrase": "In xochitl, in cuicatl", "translation": "\"Flower and song\" — the only truth according to the tlamatinimeh" },
-      { "phrase": "Nahui Ollin", "translation": "\"Four movements\" — the name of the fifth sun, our world" },
-      { "phrase": "In tlilli, in tlapalli", "translation": "\"The black ink, the red ink\" — knowledge written in the codices" },
-      { "phrase": "Ipalnemohuani", "translation": "\"He by whom we live\" — name of the supreme principle, duality beyond the gods" },
-      { "phrase": "Cempoalxochitl", "translation": "\"Twenty flowers\" — the marigold, bridge between the living and Mictlán" }
+      {
+        "phrase": "In xochitl, in cuicatl",
+        "translation": "\"Flower and song\" — the only truth according to the tlamatinimeh"
+      },
+      {
+        "phrase": "Nahui Ollin",
+        "translation": "\"Four movements\" — the name of the fifth sun, our world"
+      },
+      {
+        "phrase": "In tlilli, in tlapalli",
+        "translation": "\"The black ink, the red ink\" — knowledge written in the codices"
+      },
+      {
+        "phrase": "Ipalnemohuani",
+        "translation": "\"He by whom we live\" — name of the supreme principle, duality beyond the gods"
+      },
+      {
+        "phrase": "Cempoalxochitl",
+        "translation": "\"Twenty flowers\" — the marigold, bridge between the living and Mictlán"
+      }
     ],
     "loadingLabel": "Loading the scene"
   }

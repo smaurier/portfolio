@@ -1022,6 +1022,33 @@ body.xolotl-witnessed:not(.xolotl-codex-read) .codexSectionXolotl::before {
   pointer-events: none;
 }
 
+/* Feedback nav "touche recue mais deja sur la page cible" (retour
+   Sylvain 30/08 : "si on va dans une direction qui ne correspond pas
+   sur le plan, il n'y a pas de mouvement, par contre on doit mettre
+   un feedback"). Data-attribute temporaire pose 500ms par
+   keyboard-nav / gamepad-nav, anime le dot cardinal correspondant
+   dans la boussole en bas droite. */
+html[data-nav-nowhere] .compass [data-compass-direction] {
+  transition: none;
+}
+html[data-nav-nowhere="jade"] .compass [data-compass-direction="jade"],
+html[data-nav-nowhere="dore"] .compass [data-compass-direction="dore"],
+html[data-nav-nowhere="turquoise"] .compass [data-compass-direction="turquoise"],
+html[data-nav-nowhere="cendre"] .compass [data-compass-direction="cendre"],
+html[data-nav-nowhere="obsidienne"] .compass [data-compass-direction="obsidienne"] {
+  animation: navNowhereShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+@keyframes navNowhereShake {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  10%, 30%, 50%, 70%, 90% { transform: translate3d(-3px, 0, 0) scale(1.1); }
+  20%, 40%, 60%, 80% { transform: translate3d(3px, 0, 0) scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-nav-nowhere] .compass [data-compass-direction] {
+    animation: none;
+  }
+}
+
 @keyframes xolotlSectionPulse {
   0%, 100% { border-left-color: rgba(107, 63, 168, 0.6); }
   50% { border-left-color: rgba(107, 63, 168, 1.0); }

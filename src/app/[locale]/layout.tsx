@@ -8,6 +8,7 @@ import CardinalHoverSync from "../components/cardinal-hover-sync";
 import MaskReveal from "../components/mask-reveal";
 import CustomCursor from "../components/custom-cursor";
 import EasterEgg from "../components/easter-egg";
+import GamepadNav from "../components/gamepad-nav";
 import KeyboardNav from "../components/keyboard-nav";
 import ReadingModeToggle from "../components/reading-mode-toggle";
 import RouteAnnouncer from "../components/route-announcer";
@@ -371,6 +372,7 @@ export default async function LocaleLayout({
               naviguent entre pages dans l'ordre menu (Accueil premier,
               rotation cardinale). Trigger transitions VT comme click. */}
           <KeyboardNav />
+          <GamepadNav />
           {/* Hover tilt 3D micro-interaction (28/08 task #65) — sur
               hover projectCase/serviceCard, tilt subtil perspective
               6° selon position souris. Reset au leave. */}
