@@ -31,7 +31,11 @@ const HEAD_BONE_NAME = "Head";
 // attentif (vérifié visuellement le 21/08 : tête tendue vers le ciel à
 // blend=1). Plafonner à une fraction garde une partie de la pose naturelle
 // mélangée au regard — un vrai tour de tête, pas un remplacement total.
-const MAX_HEAD_TURN_BLEND = 0.4;
+// 0.4 → 0.2 (30/08 retour Sylvain "on dirait l'exorciste") : meme a 40 %
+// de blend, la superposition rotation-tete + suivi-souris + rotation-
+// camera donnait un effet mecanique/possede desagreable. 20 % garde
+// l'idee "le cerf remarque le visiteur" sans caricature.
+const MAX_HEAD_TURN_BLEND = 0.2;
 
 const MODEL_PATH = "/models/stag.glb";
 // Hauteur voulue en unités de scène, pas l'échelle native du GLB (les packs
@@ -237,56 +241,14 @@ export default function StagModel({
         : 1 + Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.003;
       breathGroupRef.current.scale.setScalar(breath);
     }
-    // Registrée après les useFrame ci-dessus (mixer d'animation via
-    // useAnimations, puis rim-light) : dans la boucle de rendu par défaut de
-    // R3F, les callbacks de même priorité s'exécutent dans l'ordre
-    // d'inscription — la pose de l'os Head posée par le mixer ce tick est
-    // donc déjà à jour quand applyHeadLook la lit.
-    if (!headBone) return;
-
-    // Signature "cerf mène" (28/08) : pendant la fenêtre de transition
-    // cardinale (500ms), la tête du cerf pivote vers un vecteur cardinal
-    // au lieu de la caméra. Le blend est un ease-out sur les 500ms +
-    // un plafond adaptatif (au-delà de MAX_HEAD_TURN_BLEND 0.4 par
-    // moment court, jamais au-delà de 0.7 pour éviter le cou en
-    // extension complète documenté 21/08).
-    if (transition?.transitionDirection && transition.transitionProgressRef.current > 0) {
-      const t = transition.transitionProgressRef.current; // 0→1 sur 500ms
-      // Bell curve : monte 0→0.55 sur première moitié, reste au plafond
-      // puis relâche à la toute fin — pointe la direction au plus fort
-      // au milieu du burst, pas juste à la sortie.
-      const bell = Math.sin(t * Math.PI); // 0→1→0
-      const blend = Math.min(0.55, bell * 0.55);
-      if (blend > 0.01) {
-        const vec = CARDINAL_VECTORS[transition.transitionDirection];
-        // Point cardinal éloigné dans la direction, hauteur légèrement
-        // relevée pour que le cou reste dans un angle naturel.
-        cardinalTargetScratch.set(vec[0] * 8, 1.5 + vec[1] * 4, vec[2] * 8);
-        applyHeadLook(headBone, cardinalTargetScratch, blend);
-        return;
-      }
-    }
-
-    // Cas normal : cible = caméra + décalage souris (28/08 boite outil
-    // B "cerf regard mouse actif"). Le cerf oriente activement sa
-    // tete vers le curseur — cible = camera worldpos + offset lateral
-    // proportionnel a mouseSmooth. Lissage 0.08 evite tremblements.
-    mouseSmoothRef.current.x += (mouseNormalizedRef.current.x - mouseSmoothRef.current.x) * 0.08;
-    mouseSmoothRef.current.y += (mouseNormalizedRef.current.y - mouseSmoothRef.current.y) * 0.08;
-
-    const blend = getHeadTurnAmount(progressRef.current) * MAX_HEAD_TURN_BLEND;
-    if (blend <= 0) return;
-    camera.getWorldPosition(cameraWorldPos);
-    // Cible virtuelle : depuis camera, decale de mouseSmooth * amplitude
-    // sur les axes lateraux (X) et vertical (Y). Le cerf regarde donc
-    // legerement decale ou est le curseur, pas juste vers la camera fixe.
-    mouseWorldTargetScratch.copy(cameraWorldPos);
-    // Amplitude mouse offset X 1.6, Y 0.8 (retour Sylvain 28/08
-    // "cerf ne suit pas trop le curseur"). Milieu entre 2.5/1.5
-    // (trop, cou extension excessive) et 0.8/0.5 (trop peu, invisible).
-    mouseWorldTargetScratch.x += mouseSmoothRef.current.x * 1.6;
-    mouseWorldTargetScratch.y -= mouseSmoothRef.current.y * 0.8;
-    applyHeadLook(headBone, mouseWorldTargetScratch, blend);
+    // Head-look COUPE le 30/08 (retour Sylvain "on dirait qu'il a le
+    // cou casse" apres tentative de reduction MAX_HEAD_TURN_BLEND
+    // 0.4 → 0.2). Le bone Head porte deja ~85° de courbure de repos
+    // dans le rig (bind pose grazing) et toute rotation supplementaire,
+    // meme faible, casse la ligne du cou visuellement. Sujet ferme pour
+    // ce rig ; le module head-look.ts + ses tests restent en place au
+    // cas ou on l'utiliserait un jour sur un autre asset avec un
+    // meilleur bind pose (Xolo Fab par exemple, non teste).
   });
 
   return (
