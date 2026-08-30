@@ -11,6 +11,7 @@ import Ground from "./ground";
 import Milpa from "./milpa";
 import Ocotillo from "./ocotillo";
 import OrbitCamera from "./orbit-camera";
+import PiedraGround from "./piedra-ground";
 import RevealLighting from "./reveal-lighting";
 import StagModel from "./stag-model";
 import Vines from "./vines";
@@ -57,6 +58,9 @@ export default function SceneContent({
       <CursorRevealScene noticedRef={noticedRef} progressRef={progressRef}>
         <EnvironmentDepthFade>
           <Ground />
+          <Suspense fallback={null}>
+            <PiedraGround />
+          </Suspense>
           <Suspense fallback={null}>
             <BackgroundFlora />
           </Suspense>
