@@ -34,12 +34,15 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
   const ambientNodesRef = useRef<{ osc: OscillatorNode; gain: GainNode }[]>([]);
   const masterGainRef = useRef<GainNode | null>(null);
 
-  // Lecture initiale de l'état muté depuis localStorage
+  // Lecture initiale de l'état muté depuis localStorage. Pattern
+  // SSR-safe : initial state true, correction post-hydratation cote
+  // client si preference persistee. eslint-disable justifie.
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
       // Default true (muté). Seul "0" = unmute persisté.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (saved === "0") setMuted(false);
     } catch {}
   }, []);

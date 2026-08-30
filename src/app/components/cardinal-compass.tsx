@@ -91,6 +91,45 @@ function isLocale(v: string): v is Locale {
   return v === "fr" || v === "en" || v === "es";
 }
 
+// Sortir de CardinalCompass (react-hooks/static-components) : declarer
+// les composants au module level plutot que dans le body du parent
+// pour eviter la creation a chaque render.
+function CompassDot({
+  slot,
+  active,
+  locale,
+  onClick,
+}: {
+  slot: Slot;
+  active: boolean;
+  locale: Locale;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={styles.dot}
+      data-active={active ? "true" : "false"}
+      data-compass-direction={slot.direction}
+      style={{ ["--compass-color" as string]: CARDINAL_COLORS[slot.direction] }}
+      onClick={onClick}
+      aria-label={slot.label[locale]}
+      aria-current={active ? "page" : undefined}
+    >
+      {/* Tooltip nahuatl (29/08). Revele au hover/focus le nom nahuatl
+          de la region + le gardien. aria-hidden pour ne pas doubler
+          l'aria-label du bouton. */}
+      <span className={styles.tooltip} aria-hidden="true">
+        {slot.label[locale]}
+        <span className={styles.tooltipDivider}> · </span>
+        {renderWithNahuatl(slot.region)}
+        <span className={styles.tooltipDivider}> · </span>
+        <span className={styles.tooltipGuardian}>{renderWithNahuatl(slot.guardian)}</span>
+      </span>
+    </button>
+  );
+}
+
 export default function CardinalCompass({ locale }: { locale: string }) {
   const router = useRouter();
   const current = useCurrentDirection();
@@ -151,35 +190,15 @@ export default function CardinalCompass({ locale }: { locale: string }) {
     });
   }
 
-  function Dot({ slot }: { slot: Slot }) {
-    const active = slot.direction === current;
-    const l = localeSafe();
-    return (
-      <button
-        type="button"
-        className={styles.dot}
-        data-active={active ? "true" : "false"}
-        data-compass-direction={slot.direction}
-        style={{ ["--compass-color" as string]: CARDINAL_COLORS[slot.direction] }}
-        onClick={(e) => navigate(slot, e)}
-        aria-label={slot.label[l]}
-        aria-current={active ? "page" : undefined}
-      >
-        {/* Tooltip nahuatl (29/08). Revele au hover/focus le nom
-            nahuatl de la region + le gardien. aria-hidden pour ne
-            pas doubler l'aria-label du bouton. */}
-        <span className={styles.tooltip} aria-hidden="true">
-          {slot.label[l]}
-          <span className={styles.tooltipDivider}> · </span>
-          {renderWithNahuatl(slot.region)}
-          <span className={styles.tooltipDivider}> · </span>
-          <span className={styles.tooltipGuardian}>{renderWithNahuatl(slot.guardian)}</span>
-        </span>
-      </button>
-    );
-  }
-
   const l = localeSafe();
+  const dot = (slot: Slot) => (
+    <CompassDot
+      slot={slot}
+      active={slot.direction === current}
+      locale={l}
+      onClick={(e) => navigate(slot, e)}
+    />
+  );
 
   return (
     <>
@@ -188,13 +207,13 @@ export default function CardinalCompass({ locale }: { locale: string }) {
         aria-label={l === "fr" ? "Boussole cardinale" : l === "en" ? "Cardinal compass" : "Brújula cardinal"}
       >
         <span className={styles.slotEmpty} aria-hidden="true" />
-        <Dot slot={SLOTS.N} />
+        {dot(SLOTS.N)}
         <span className={styles.slotEmpty} aria-hidden="true" />
-        <Dot slot={SLOTS.W} />
-        <Dot slot={SLOTS.C} />
-        <Dot slot={SLOTS.E} />
+        {dot(SLOTS.W)}
+        {dot(SLOTS.C)}
+        {dot(SLOTS.E)}
         <span className={styles.slotEmpty} aria-hidden="true" />
-        <Dot slot={SLOTS.S} />
+        {dot(SLOTS.S)}
         <span className={styles.slotEmpty} aria-hidden="true" />
         {/* Bouton expand (28/08 boite outil C) — ouvre modal detaille
             les 5 directions cardinales avec descriptions mytho. */}

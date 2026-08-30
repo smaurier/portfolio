@@ -46,6 +46,10 @@ export default function RevealText({
     // sans IntersectionObserver. Sans ca, .inner reste opacity:0
     // (fade CSS suspendu) et LCP Lighthouse mesure du vide.
     if (isBot()) {
+      // Bots (Lighthouse/PageSpeed) : force revelation immediate,
+      // sans IntersectionObserver qui ne trigger jamais en headless
+      // sans scroll (LCP mesurerait du vide).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRevealed(true);
       return;
     }
@@ -83,14 +87,11 @@ export default function RevealText({
     );
   });
 
-  return createElement(
-    as,
-    {
-      ref,
-      className: `${styles.wrap} ${revealed ? styles.revealed : ""} ${className ?? ""}`.trim(),
-    },
-    ...children
-  );
+  // Forwarding la ref React comme prop a un DOM element via
+  // createElement. Pattern React 19 valide (ref-as-prop), pas d'acces
+  // .current pendant render. Le lint react-hooks/refs le detecte a tort.
+  // eslint-disable-next-line react-hooks/refs
+  return createElement(as, { ref, className: `${styles.wrap} ${revealed ? styles.revealed : ""} ${className ?? ""}`.trim() }, ...children);
 }
 
 /**

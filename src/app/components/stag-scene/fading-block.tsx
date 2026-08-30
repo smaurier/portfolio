@@ -54,6 +54,7 @@ export default function FadingBlock({
   const [bot, setBot] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (isBot()) setBot(true);
   }, []);
 

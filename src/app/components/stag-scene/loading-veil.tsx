@@ -55,6 +55,9 @@ export default function LoadingVeil({
   // apres load, la plupart du temps le pick client est deja en place).
   const [selected, setSelected] = useState(phrases[0]);
   useEffect(() => {
+    // Random pick post-hydration : Math.random() donnerait un mismatch
+    // SSR/client si utilise dans le useState initializer.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelected(phrases[Math.floor(Math.random() * phrases.length)]);
   }, [phrases]);
   const phrase = selected.phrase;

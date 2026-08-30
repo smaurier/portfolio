@@ -342,14 +342,10 @@ export default function XolotlCompanion() {
   // re-random au re-mount SPA (nav retour sur même page).
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (isBot() || readingMode.active) {
-      setSpawn(false);
-      return;
-    }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setSpawn(false);
-      return;
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (isBot() || readingMode.active) return void setSpawn(false);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return void setSpawn(false);
     const key = `nahual-xolotl-spawn-${direction}`;
     const cached = sessionStorage.getItem(key);
     let shouldSpawn: boolean;

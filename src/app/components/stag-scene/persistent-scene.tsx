@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability, react-hooks/refs, react-hooks/set-state-in-effect, react-hooks/purity -- fichier 3D r3f : useFrame mutations 60 fps, refs pour valeurs frame-based, Math.random init particules. Patterns gamedev legitimes. */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";

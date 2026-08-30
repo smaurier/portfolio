@@ -46,6 +46,11 @@ export default function NahualIntro({ locale }: { locale: string }) {
       // storage bloqué (private mode strict, iframe cross-origin, etc.)
       // — on joue quand même l'intro, pas de crash sur exception.
     }
+    // Pattern SSR-safe : initial state false pour eviter mismatch
+    // hydratation (localStorage n'existe pas cote serveur), decision
+    // d'affichage deferree au premier mount client. Pas de solution
+    // "purement hookish" sans casser le comportement SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const timer = setTimeout(() => {
       setDismissed(true);
