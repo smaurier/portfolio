@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getPath } from "@/lib/routes";
 import type { Locale } from "@/dictionaries";
+import CardinalLink from "./stag-scene/cardinal-link";
 
 /**
  * XolotlWitnessMessage (29/08). Message discret entre les footer cols
@@ -91,9 +92,13 @@ export default function XolotlWitnessMessage({
 
   return (
     <div className="xolotlWitnessMessage">
-      <a href={getPath(locale, "codex")} className="footerLink">
+      {/* CardinalLink (pas <a>) : evite le hard-reload qui perdrait
+          l'entree Xolotl et tout le contexte SPA. Burst 3D cardinal
+          jade en bonus. Bug 30/08 : cliquer sur Codex apres decouverte
+          Xolotl faisait tout perdre. */}
+      <CardinalLink href={getPath(locale, "codex")} className="footerLink">
         {message}
-      </a>
+      </CardinalLink>
     </div>
   );
 }

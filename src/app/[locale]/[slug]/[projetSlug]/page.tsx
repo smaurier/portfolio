@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Link from "next/link";
 import EchoScenePage from "../../../components/stag-scene/echo-scene-page";
 import type { DirectionKey } from "../../../components/stag-scene/direction-colors";
 import { getDictionary, isLocale, locales, type Locale, type Dictionary } from "../../../../dictionaries";
@@ -64,11 +65,11 @@ export function generateStaticParams() {
   return params;
 }
 
-function ProjetDetailContent({ projet, newWindowLabel }: { projet: Dictionary["projets"]["nuada"]; newWindowLabel: string }) {
+function ProjetDetailContent({ projet, newWindowLabel, backHref }: { projet: Dictionary["projets"]["nuada"]; newWindowLabel: string; backHref: string }) {
   return (
     <div className="contentPage projetDetailPage">
       <p className="projetDetailBack">
-        <a href="../" className="footerLink">{projet.detail.backCta}</a>
+        <Link href={backHref} className="footerLink">{projet.detail.backCta}</Link>
       </p>
       <h1>{projet.title}</h1>
       <p className="projetDetailHero">{projet.detail.hero}</p>
@@ -157,7 +158,7 @@ export default async function LocalizedProjetDetail({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(entry) }}
         />
       ))}
-      <ProjetDetailContent projet={projet} newWindowLabel={fullDict.common.newWindow} />
+      <ProjetDetailContent projet={projet} newWindowLabel={fullDict.common.newWindow} backHref={`/${locale}/${slug}`} />
     </EchoScenePage>
   );
 }

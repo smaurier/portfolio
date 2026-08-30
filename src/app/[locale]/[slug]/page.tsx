@@ -204,9 +204,9 @@ function ProjectCase({
       </dl>
       <div className="projectCaseCtas">
         {detailHref && detailCta && (
-          <a href={detailHref} className="ctaButton ctaButtonPrimary">
+          <Link href={detailHref} className="ctaButton ctaButtonPrimary">
             {detailCta}
-          </a>
+          </Link>
         )}
         <a href={href} target="_blank" rel="noopener noreferrer" className="ctaButton">
           {cta}
@@ -270,6 +270,13 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
       <XolotlCodexReader />
       <h1>{renderWithNahuatl(dict.title)}</h1>
       <p>{renderWithNahuatl(dict.intro)}</p>
+
+      {/* Section Xolotl gardee en position naturelle (apres totem)
+          dans le DOM, mais REMONTEE EN TETE via CSS order:-1 quand
+          body.xolotl-witnessed:not(.xolotl-codex-read). Retour Sylvain
+          30/08 : "on fait l'ordre conditionnel oui" — Xolotl en tete
+          SEULEMENT pour le temoin actif (pas pour un user qui explore
+          le codex sans avoir vu Xolotl). */}
 
       <section className="codexSection">
         <h2>{renderWithNahuatl(dict.cosmos.title)}</h2>
@@ -374,7 +381,7 @@ function LegalPage({
             <ul className="codexDirections">
               {section.links.map((l) => (
                 <li key={l.href}>
-                  <a href={l.href}>{l.label}</a>
+                  <Link href={l.href}>{l.label}</Link>
                 </li>
               ))}
             </ul>

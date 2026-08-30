@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import "../globals.css";
 import CardinalAnnouncer from "../components/cardinal-announcer";
 import CardinalCompass from "../components/cardinal-compass";
+import CardinalLink from "../components/stag-scene/cardinal-link";
 import CardinalHoverSync from "../components/cardinal-hover-sync";
 import MaskReveal from "../components/mask-reveal";
 import CustomCursor from "../components/custom-cursor";
@@ -252,27 +253,27 @@ export default async function LocaleLayout({
               <div className="footerCol">
                 <h3>{dict.common.footer.navigation}</h3>
                 <ul>
-                  <li><a href={`/${locale}`} className="footerLink">{dict.common.nav.home}</a></li>
-                  <li><a href={getPath(locale, "memoire")} className="footerLink">{dict.common.nav.memoire}</a></li>
-                  <li><a href={getPath(locale, "services")} className="footerLink">{dict.common.nav.services}</a></li>
-                  <li><a href={getPath(locale, "projets")} className="footerLink">{dict.common.nav.projects}</a></li>
-                  <li><a href={getPath(locale, "contact")} className="footerLink">{dict.common.nav.contact}</a></li>
+                  <li><CardinalLink href={`/${locale}`} className="footerLink">{dict.common.nav.home}</CardinalLink></li>
+                  <li><CardinalLink href={getPath(locale, "memoire")} className="footerLink">{dict.common.nav.memoire}</CardinalLink></li>
+                  <li><CardinalLink href={getPath(locale, "services")} className="footerLink">{dict.common.nav.services}</CardinalLink></li>
+                  <li><CardinalLink href={getPath(locale, "projets")} className="footerLink">{dict.common.nav.projects}</CardinalLink></li>
+                  <li><CardinalLink href={getPath(locale, "contact")} className="footerLink">{dict.common.nav.contact}</CardinalLink></li>
                 </ul>
               </div>
               <div className="footerCol">
                 <h3>{dict.common.footer.resources}</h3>
                 <ul>
-                  <li><a href={getPath(locale, "codex")} className="footerLink">{dict.common.nav.codex}</a></li>
-                  <li><a href={getPath(locale, "credits")} className="footerLink">{dict.common.footer.credits}</a></li>
-                  <li><a href={getPath(locale, "planDuSite")} className="footerLink">{dict.common.footer.planDuSite}</a></li>
+                  <li><CardinalLink href={getPath(locale, "codex")} className="footerLink">{dict.common.nav.codex}</CardinalLink></li>
+                  <li><CardinalLink href={getPath(locale, "credits")} className="footerLink">{dict.common.footer.credits}</CardinalLink></li>
+                  <li><CardinalLink href={getPath(locale, "planDuSite")} className="footerLink">{dict.common.footer.planDuSite}</CardinalLink></li>
                 </ul>
               </div>
               <div className="footerCol">
                 <h3>{dict.common.footer.legal}</h3>
                 <ul>
-                  <li><a href={getPath(locale, "mentionsLegales")} className="footerLink">{dict.common.footer.mentionsLegales}</a></li>
-                  <li><a href={getPath(locale, "accessibilite")} className="footerLink">{dict.common.footer.accessibilite}</a></li>
-                  <li><a href={getPath(locale, "confidentialite")} className="footerLink">{dict.common.footer.confidentialite}</a></li>
+                  <li><CardinalLink href={getPath(locale, "mentionsLegales")} className="footerLink">{dict.common.footer.mentionsLegales}</CardinalLink></li>
+                  <li><CardinalLink href={getPath(locale, "accessibilite")} className="footerLink">{dict.common.footer.accessibilite}</CardinalLink></li>
+                  <li><CardinalLink href={getPath(locale, "confidentialite")} className="footerLink">{dict.common.footer.confidentialite}</CardinalLink></li>
                 </ul>
               </div>
               <div className="footerCol">

@@ -371,10 +371,22 @@ export default function XolotlCompanion() {
         walk.timeScale = WALK_TIME_SCALE;
         walk.reset().play();
       }
+      // Reset flag "codex deja lu pour ce cycle" (retour Sylvain 30/08 :
+      // "le footer ne se rafraichit plus lorsque xolotl apparait" —
+      // apres visite Codex, codex-read=1 stay en localStorage indefini,
+      // empechait astérisque + message a chaque spawn suivant). Nouveau
+      // cycle Xolotl = nouveau signal, on efface la trace de la visite
+      // precedente pour que le pattern "voit Xolo → visite Codex" puisse
+      // se rejouer a chaque apparition.
+      try {
+        localStorage.removeItem("nahual-xolotl-codex-read");
+        document.body.classList.remove("xolotl-codex-read");
+      } catch {}
       // Signale "xolotl visible" via event pour WitnessMessage
       // ephemere (retour user 29/08 : message doit apparaitre
       // seulement quand chien apparait, pas persistant).
       window.dispatchEvent(new CustomEvent("nahual-xolotl-appearing", { detail: { visible: true } }));
+      window.dispatchEvent(new CustomEvent("nahual-xolotl-state"));
     }, delay);
     return () => window.clearTimeout(timer);
   }, [spawn, alreadyWitnessed, actions]);

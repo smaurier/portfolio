@@ -956,32 +956,75 @@ body.nahual-lab-reveal .ctaButton {
   text-decoration-color: #6b3fa8;
 }
 
-/* 2. Astérisque après le lien "Codex" dans le footer si témoin +
-      pas encore lu. Couleur obsidienne violet (couleur de Xolotl,
-      cohérent avec sa direction Nord).
-      body.xolotl-codex-read écrase et retire l'astérisque. */
+/* 2. Empreinte de patte apres le lien "Codex" dans le footer si
+      temoin + pas encore lu (retour Sylvain 30/08 : "peut etre toute
+      premiere avec une empreinte de chien"). SVG inline data URL,
+      couleur obsidienne violet (couleur de Xolotl, direction Nord).
+      body.xolotl-codex-read retire l'empreinte via :not().
+      Slug ES "codice" (sans accent), FR/EN "codex". */
 body.xolotl-witnessed:not(.xolotl-codex-read) .footerCol a[href*="codex"]::after,
-body.xolotl-witnessed:not(.xolotl-codex-read) .footerCol a[href*="códice"]::after,
-body.xolotl-witnessed:not(.xolotl-codex-read) .footerCol a[href*="codex"]::after {
-  content: " *";
-  color: #6b3fa8;
-  font-weight: 700;
-  letter-spacing: 0;
+body.xolotl-witnessed:not(.xolotl-codex-read) .footerCol a[href*="codice"]::after {
+  content: "";
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-left: 0.35em;
+  vertical-align: -0.1em;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22%236b3fa8%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%2217%22%20rx%3D%224.5%22%20ry%3D%224%22%2F%3E%3Cellipse%20cx%3D%226%22%20cy%3D%2210%22%20rx%3D%222%22%20ry%3D%222.5%22%2F%3E%3Cellipse%20cx%3D%2210%22%20cy%3D%226%22%20rx%3D%221.8%22%20ry%3D%222.5%22%2F%3E%3Cellipse%20cx%3D%2214%22%20cy%3D%226%22%20rx%3D%221.8%22%20ry%3D%222.5%22%2F%3E%3Cellipse%20cx%3D%2218%22%20cy%3D%2210%22%20rx%3D%222%22%20ry%3D%222.5%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
 }
 
-/* 3. Section Xolotl du codex : highlight subtil border gauche
-      obsidienne si témoin post-première visite. Le CSS suffit,
-      pas de state React nécessaire — le body class fait le tri. */
+/* 3. Section Xolotl du codex : distinctifs renforces + REMONTEE en
+      tete via CSS order (retour Sylvain 30/08 "on fait l'ordre
+      conditionnel oui"). Le codex passe en flex-column pour que
+      order:-1 fonctionne — sinon les sections sont display:block
+      normal, order n'a aucun effet. */
+.codexPage {
+  display: flex;
+  flex-direction: column;
+}
+/* h1 + intro (p direct enfant de .codexPage) gardent leur position
+   naturelle en debut de flex. Les sections ont order:0 par defaut =
+   ordre DOM chronologique. La section Xolotl passe en order:-1 quand
+   temoin actif = juste apres intro/h1, avant toutes les autres. */
 body.xolotl-witnessed:not(.xolotl-codex-read) .codexSectionXolotl {
+  order: -1;
   position: relative;
-  padding-left: 20px;
-  border-left: 2px solid rgba(107, 63, 168, 0.6);
+  padding: 20px 24px;
+  margin-block: 24px;
+  border: 1px solid rgba(107, 63, 168, 0.5);
+  border-left: 3px solid rgba(107, 63, 168, 0.85);
+  border-radius: 6px;
+  background: linear-gradient(
+    135deg,
+    rgba(107, 63, 168, 0.08) 0%,
+    rgba(107, 63, 168, 0.03) 100%
+  );
   animation: xolotlSectionPulse 3s ease-in-out infinite;
 }
 
+/* Empreinte de patte en fond top-right subtil, meme motif que le
+   footer mais grande + tres transparente. */
+body.xolotl-witnessed:not(.xolotl-codex-read) .codexSectionXolotl::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22%236b3fa8%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%2217%22%20rx%3D%224.5%22%20ry%3D%224%22%2F%3E%3Cellipse%20cx%3D%226%22%20cy%3D%2210%22%20rx%3D%222%22%20ry%3D%222.5%22%2F%3E%3Cellipse%20cx%3D%2210%22%20cy%3D%226%22%20rx%3D%221.8%22%20ry%3D%222.5%22%2F%3E%3Cellipse%20cx%3D%2214%22%20cy%3D%226%22%20rx%3D%221.8%22%20ry%3D%222.5%22%2F%3E%3Cellipse%20cx%3D%2218%22%20cy%3D%2210%22%20rx%3D%222%22%20ry%3D%222.5%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.25;
+  transform: rotate(-15deg);
+  pointer-events: none;
+}
+
 @keyframes xolotlSectionPulse {
-  0%, 100% { border-left-color: rgba(107, 63, 168, 0.4); }
-  50% { border-left-color: rgba(107, 63, 168, 0.8); }
+  0%, 100% { border-left-color: rgba(107, 63, 168, 0.6); }
+  50% { border-left-color: rgba(107, 63, 168, 1.0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
