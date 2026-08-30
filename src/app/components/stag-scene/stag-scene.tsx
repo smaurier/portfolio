@@ -51,7 +51,7 @@ export default function StagScene({
   return (
     <SceneStage
       overlay={({ progressRef, reducedMotionRef }) => (
-        <main id="main">
+        <main id="main" tabIndex={-1}>
           {/* Recit canonique pour lecteurs d'ecran (29/08 chantier
               a11y). Le tree accessibility est structure : description
               scene + h1 hero + texte + section chapitres ordonnee.

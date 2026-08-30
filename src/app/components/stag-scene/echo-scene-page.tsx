@@ -50,7 +50,7 @@ export default function EchoScenePage({
         />
       )}
     >
-      <main id="main" data-direction={directionKey}>
+      <main id="main" data-direction={directionKey} tabIndex={-1}>
         <p className="sr-only">{renderWithNahuatl(sceneDescription)}</p>
         {children}
       </main>

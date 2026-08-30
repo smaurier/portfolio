@@ -94,6 +94,16 @@ main {
   justify-content: center;
   align-items: center;
   gap: 24px;
+}
+
+/* Focus programmatique apres nav SPA (RouteAnnouncer deplace le focus
+   vers <main> pour RGAA 12.8) : pas de ring visible. Le main a
+   tabindex="-1" donc n'est jamais atteignable par Tab clavier —
+   focus purement programmatique, aucun signal visuel necessaire.
+   L'utilisateur clavier voit deja la nouvelle page via son scroll,
+   l'utilisateur SR entend l'annonce aria-live. */
+main:focus {
+  outline: none;
   /* header/footer sont en position:fixed (palier 2 DA Nahual, cf
      project-nahual-da) : plus rien ne pousse le contenu, donc on réserve
      l'espace nous-mêmes en padding plutôt qu'en soustrayant du min-height
