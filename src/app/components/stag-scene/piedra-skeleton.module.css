@@ -1,0 +1,166 @@
+/* PiedraSkeleton (30/08). Voile SSR pur, fade out sur html[data-loaded].
+   Repris de loading-veil.module.css + piedra-veil.module.css (fusion, les
+   deux precedents fichiers ont ete supprimes dans le meme refactor). */
+
+.skeleton {
+  position: fixed;
+  inset: 0;
+  z-index: 9700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #000;
+  color: #f2ece1;
+  padding: 24px;
+  text-align: center;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.6s ease-out;
+}
+
+/* Fade out declenche par LoadingSync qui pose data-loaded="true" sur
+   <html> quand useProgress atteint 100 + MIN_VEIL_DURATION_MS ecoulee.
+   Selector sur html plutot que body : plus haut dans le DOM, atteint
+   quel que soit le parent. pointer-events: none pour ne pas bloquer
+   les interactions pendant le fondu de 0.6s. */
+:global(html[data-loaded="true"]) .skeleton {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    transition: none;
+  }
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: min(90vw, 560px);
+  padding: 16px 32px;
+}
+
+/* Piedra container carre centre. */
+.piedra {
+  position: relative;
+  width: min(420px, 80vw);
+  height: min(420px, 80vw);
+  pointer-events: none;
+}
+
+/* Rotators concentriques, sens INVERSES a vitesses differentes (signature
+   Ometeotl — dualite creatrice, cf project-nahual-da). Les 2 vitesses
+   45s/60s sont incommensurables (echo tonalpohualli 260j / xihuitl 365j
+   qui ne coincident que tous les 52 ans = Feu Nouveau). */
+.rotatorForward {
+  position: absolute;
+  inset: 0;
+  animation: piedraRotate 45s linear infinite;
+}
+
+.rotatorReverse {
+  position: absolute;
+  inset: 0;
+  animation: piedraRotateReverse 60s linear infinite;
+}
+
+.inner,
+.middle,
+.outer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  will-change: transform;
+}
+
+/* Coeur central (0-25%) : glyphe Nahui Ollin, opacite 0.30, HORAIRE. */
+.inner {
+  clip-path: circle(25% at 50% 50%);
+  -webkit-clip-path: circle(25% at 50% 50%);
+  opacity: 0.30;
+}
+
+/* Bague du milieu (33-58%) : glyphes des jours + rayons cardinaux,
+   opacite 0.40, ANTI-horaire. */
+.middle {
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    transparent 32%,
+    black 33%,
+    black 57%,
+    transparent 58%
+  );
+  mask-image: radial-gradient(
+    circle at center,
+    transparent 32%,
+    black 33%,
+    black 57%,
+    transparent 58%
+  );
+  opacity: 0.40;
+}
+
+/* Couronne exterieure (60-95%) : anneau figuratif externe, opacite 0.50,
+   HORAIRE (meme sens que le coeur). */
+.outer {
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    transparent 59%,
+    black 60%,
+    black 94%,
+    transparent 95%
+  );
+  mask-image: radial-gradient(
+    circle at center,
+    transparent 59%,
+    black 60%,
+    black 94%,
+    transparent 95%
+  );
+  opacity: 0.50;
+}
+
+@keyframes piedraRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes piedraRotateReverse {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotatorForward,
+  .rotatorReverse {
+    animation: none;
+  }
+}
+
+/* Phrase nahuatl en italique serif — poids narratif fort, on lit ca
+   pendant le chargement. */
+.phrase {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-size: clamp(1.3rem, 4vw, 2rem);
+  font-style: italic;
+  letter-spacing: 0.01em;
+  position: relative;
+  z-index: 1;
+}
+
+.translation {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 0.9rem;
+  color: #b3aabf;
+  max-width: 46ch;
+  position: relative;
+  z-index: 1;
+}

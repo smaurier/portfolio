@@ -1,25 +1,29 @@
-/* Intro cinématique (28/08 task #45). One-shot par session,
-   flag localStorage. Letterbox reveal + phrase Codex + Piedra
-   del Sol + logo, tout se retire en 3.5s. */
+/* Intro cinematique WOW (refonte 30/08). Timeline 6.5s :
+   0..0.5   letterbox in + noir
+   0.4..1.8 phrase char-by-char + chromatic aberration decreasing
+   1.5..3.5 Piedra apparait (scale 0.3→1.0 + rotate 0→180°)
+   2.8..4.2 5 dots cardinaux jaillissent depuis centre Piedra
+   3.8..4.8 logo char-by-char
+   5.0..6.5 fondu global + letterbox retract → transition fluide home
+   6.5      unmount */
 
 .overlay {
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  background: #000;
-  animation: overlayFade 3.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  background: radial-gradient(ellipse at center, #0a0710 0%, #000 70%);
+  animation: overlayFade 6.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   will-change: opacity;
 }
 
 @keyframes overlayFade {
-  0%, 80% { opacity: 1; }
+  0%, 77% { opacity: 1; }
   100% { opacity: 0; }
 }
 
-/* Letterbox : bandes noires haut/bas qui glissent depuis les
-   bords, cadre cinéma. Slide in en 0.4s, hold jusqu'à 2.7s,
-   slide out en 0.8s. */
+/* Letterbox : bandes noires haut/bas, cadre cinéma.
+   Slide in 0..0.5s, hold jusqu'a 5.0s, slide out 5.0..6.5s. */
 .letterboxTop,
 .letterboxBottom {
   position: fixed;
@@ -34,30 +38,28 @@
 .letterboxTop {
   top: 0;
   transform: translateY(-92vh);
-  animation: letterboxTop 3.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation: letterboxTop 6.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
 
 .letterboxBottom {
   bottom: 0;
   transform: translateY(92vh);
-  animation: letterboxBottom 3.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation: letterboxBottom 6.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
 
-/* De -92vh (invisible) à -85vh (couvre le haut), hold, retour à -92vh */
 @keyframes letterboxTop {
   0% { transform: translateY(-92vh); }
-  12% { transform: translateY(-85vh); }
-  78% { transform: translateY(-85vh); }
+  8% { transform: translateY(-85vh); }
+  77% { transform: translateY(-85vh); }
   100% { transform: translateY(-100vh); }
 }
 @keyframes letterboxBottom {
   0% { transform: translateY(92vh); }
-  12% { transform: translateY(85vh); }
-  78% { transform: translateY(85vh); }
+  8% { transform: translateY(85vh); }
+  77% { transform: translateY(85vh); }
   100% { transform: translateY(100vh); }
 }
 
-/* Contenu central : phrase + piedra + logo, centrés */
 .content {
   position: fixed;
   inset: 0;
@@ -71,16 +73,19 @@
   color: #f4ead5;
 }
 
+/* Phrase char-by-char : chaque char apparait avec delay proportionnel
+   a son index (--char-index), et fait un mouvement subtle Y + une
+   chromatic aberration decroissante via drop-shadow decale. */
 .phrase {
   font-family: var(--font-geist-sans), sans-serif;
   font-size: clamp(1.2rem, 2.5vw, 2rem);
   font-style: italic;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  opacity: 0;
-  animation: phraseIn 3.5s ease forwards;
   text-align: center;
   max-width: 90vw;
+  opacity: 0;
+  animation: phraseWrapIn 6.5s ease forwards;
 }
 .phrase small {
   display: block;
@@ -91,51 +96,159 @@
   margin-top: 0.6em;
 }
 
-@keyframes phraseIn {
-  0% { opacity: 0; transform: translateY(20px); }
-  10% { opacity: 0; }
-  30% { opacity: 1; transform: translateY(0); }
-  75% { opacity: 1; }
-  85% { opacity: 0; }
-  100% { opacity: 0; }
+@keyframes phraseWrapIn {
+  0%, 5% { opacity: 0; }
+  10% { opacity: 1; }
+  70% { opacity: 1; }
+  80%, 100% { opacity: 0; }
+}
+
+/* Chaque char de la phrase : opacite + translation Y + aberration
+   chromatique (via drop-shadow decale rouge/cyan qui se resout).
+   Delay proportionnel a --char-index. */
+.phraseText .char,
+.phraseTranslation .char {
+  opacity: 0;
+  transform: translateY(12px);
+  filter: drop-shadow(3px 0 0 #ff003c) drop-shadow(-3px 0 0 #00e0ff);
+  animation: charReveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(0.4s + var(--char-index) * 0.04s);
+}
+.phraseTranslation .char {
+  animation-delay: calc(0.9s + var(--char-index) * 0.03s);
+}
+
+@keyframes charReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: drop-shadow(3px 0 0 #ff003c) drop-shadow(-3px 0 0 #00e0ff);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: drop-shadow(1px 0 0 #ff003c) drop-shadow(-1px 0 0 #00e0ff);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: none;
+  }
+}
+
+/* Piedra stage : container relatif pour permettre au dots cardinaux
+   d'etre absolute autour du centre. */
+.piedraStage {
+  position: relative;
+  width: clamp(180px, 26vw, 320px);
+  height: clamp(180px, 26vw, 320px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .piedraWrap {
-  width: clamp(180px, 26vw, 320px);
-  height: clamp(180px, 26vw, 320px);
-  opacity: 0;
-  transform: rotate(-30deg) scale(0.8);
-  animation: piedraIn 3.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-.piedraWrap svg {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0 40px rgba(212, 167, 71, 0.35));
+  opacity: 0;
+  transform: rotate(-30deg) scale(0.3);
+  animation: piedraIn 6.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.piedraWrap :global(img) {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 40px rgba(212, 167, 71, 0.45));
 }
 
 @keyframes piedraIn {
-  0% { opacity: 0; transform: rotate(-30deg) scale(0.8); }
-  25% { opacity: 0; }
-  55% { opacity: 0.7; transform: rotate(0deg) scale(1); }
-  78% { opacity: 0.7; }
-  90% { opacity: 0; transform: rotate(0deg) scale(1.05); }
+  0%, 20% { opacity: 0; transform: rotate(-30deg) scale(0.3); }
+  35% { opacity: 0.4; transform: rotate(30deg) scale(0.6); }
+  55% { opacity: 0.85; transform: rotate(150deg) scale(1); }
+  75% { opacity: 0.85; transform: rotate(180deg) scale(1); }
+  90% { opacity: 0; transform: rotate(180deg) scale(1.1); }
   100% { opacity: 0; }
 }
 
+/* 5 dots cardinaux : jaillissent depuis le centre (0,0) vers leur
+   position cardinale (translate polaire selon --dot-angle) avec
+   scale grow. Delay stagger 60ms par index. */
+.cardinalDot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  margin-left: -7px;
+  background: var(--dot-color);
+  border-radius: 50%;
+  box-shadow: 0 0 20px var(--dot-color);
+  opacity: 0;
+  transform: translate(0, 0) scale(0);
+  animation: dotBurst 6.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(2.6s + var(--dot-index) * 0.08s);
+}
+
+/* Positions finales des dots : Nord=haut, Est=droite, Sud=bas, Ouest=gauche.
+   Centre reste au (0,0) mais fait un pulse scale a la place. */
+.dot_north { --tx: 0; --ty: -140%; }
+.dot_east { --tx: 140%; --ty: 0; }
+.dot_south { --tx: 0; --ty: 140%; }
+.dot_west { --tx: -140%; --ty: 0; }
+.dot_center { --tx: 0; --ty: 0; }
+
+@keyframes dotBurst {
+  0%, 40% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(calc(var(--tx) * 0.5), calc(var(--ty) * 0.5)) scale(1.4);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(var(--tx), var(--ty)) scale(1);
+  }
+  78% {
+    opacity: 1;
+    transform: translate(var(--tx), var(--ty)) scale(1);
+  }
+  90% {
+    opacity: 0;
+    transform: translate(var(--tx), var(--ty)) scale(1.4);
+  }
+  100% { opacity: 0; }
+}
+
+/* Logo char-by-char : meme pattern que la phrase mais sans aberration
+   chromatique (plus net, plus corporate). Reveal 3.8..4.8s. */
 .logo {
   font-family: var(--font-geist-sans), sans-serif;
   font-size: clamp(1.5rem, 3vw, 2.5rem);
   font-weight: 700;
   letter-spacing: 0.05em;
   opacity: 0;
-  animation: logoIn 3.5s ease forwards;
+  animation: logoWrapIn 6.5s ease forwards;
 }
 
-@keyframes logoIn {
-  0%, 55% { opacity: 0; transform: translateY(10px); }
-  70% { opacity: 1; transform: translateY(0); }
+@keyframes logoWrapIn {
+  0%, 55% { opacity: 0; }
+  65% { opacity: 1; }
   80% { opacity: 1; }
-  95%, 100% { opacity: 0; }
+  92%, 100% { opacity: 0; }
+}
+
+.logoText .char {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: logoCharReveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(3.8s + var(--char-index) * 0.06s);
+}
+
+@keyframes logoCharReveal {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .skip {
@@ -167,9 +280,14 @@
   .letterboxTop,
   .letterboxBottom,
   .phrase,
+  .phraseText .char,
+  .phraseTranslation .char,
   .piedraWrap,
-  .logo {
+  .cardinalDot,
+  .logo,
+  .logoText .char {
     animation-duration: 0.4s !important;
     animation-timing-function: linear !important;
+    animation-delay: 0s !important;
   }
 }

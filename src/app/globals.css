@@ -1022,6 +1022,13 @@ body.xolotl-witnessed:not(.xolotl-codex-read) .codexSectionXolotl::before {
   pointer-events: none;
 }
 
+/* Retire 30/08 : refactor SOTY-style. Le voile de chargement est
+   maintenant un vrai Server Component (PiedraSkeleton) rendu directement
+   dans le HTML SSR — plus besoin de body class + [class*="..."] selectors
+   + pseudo-element ::before + ssrLoadingVeil. Le skeleton est en fixed
+   z-index 9700, couvre tout naturellement. Fade out via
+   html[data-loaded="true"] pose par LoadingSync client component. */
+
 /* Feedback nav "touche recue mais deja sur la page cible" (retour
    Sylvain 30/08 : "si on va dans une direction qui ne correspond pas
    sur le plan, il n'y a pas de mouvement, par contre on doit mettre

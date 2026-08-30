@@ -1,36 +1,16 @@
-// Voile de chargement de la scène du cerf (palier "Usability", cf memory
-// project-nahual-da — retour de Sylvain le 19/08 : c'est là qu'ira la
-// phrase en nahuatl, premier vrai beat de la scène plutôt qu'un simple
-// indicateur de progression). Fonction pure, découplée du rendu — même
-// principe que reveal-arc.ts/camera-path.ts.
+// Constante du voile de chargement — MIN_VEIL_DURATION_MS reste utile
+// pour LoadingSync (le petit client component qui pose data-loaded sur
+// <html> quand assets + duree min atteintes). Les fonctions easeToward
+// et isLoadingDone ont ete retirees le 30/08 avec le refactor
+// PiedraSkeleton (LoadingVeil supprime, plus de rAF ease progress ni
+// de logique done complexe — le voile est un Server Component SSR pur
+// qui fade out sur html[data-loaded="true"]).
 
-/** Durée minimale d'affichage du voile, en ms — sans ce plancher, un
- * chargement depuis le cache navigateur ferait passer les assets à 100%
- * en quelques dizaines de ms : la phrase en nahuatl ne serait qu'un flash
- * illisible plutôt qu'un moment qu'on a le temps de lire. Valeur choisie à
- * l'œil (le temps de lire "In xochitl, in cuicatl" + sa traduction une
- * fois), à ajuster si Sylvain la trouve trop longue/courte en usage réel. */
-export const MIN_VEIL_DURATION_MS = 1400;
-
-/**
- * Le voile ne se lève que quand les DEUX conditions sont réunies : les
- * assets de la scène sont chargés (progress >= 100, cf useProgress de
- * @react-three/drei) ET la durée minimale d'affichage est passée. Les deux
- * sont indépendantes l'une de l'autre — un chargement lent ne doit jamais
- * être raccourci par ce plancher, un chargement instantané ne doit jamais
- * le contourner.
- */
-export function isLoadingDone(progress: number, minDurationElapsed: boolean): boolean {
-  return progress >= 100 && minDurationElapsed;
-}
-
-/**
- * Un pas d'approche exponentielle vers `target` — sert à faire "défiler" le
- * pourcentage affiché (retour de Sylvain le 20/08) plutôt que de le coller
- * directement à `useProgress()`, dont la valeur brute saute par paliers (un
- * asset qui finit de charger d'un coup) au lieu de compter en continu.
- * `factor` dans ]0,1] : plus petit = rattrape la cible plus lentement.
- */
-export function easeToward(current: number, target: number, factor: number): number {
-  return current + (target - current) * factor;
-}
+/** Duree minimale d'affichage du voile, en ms — sans ce plancher, un
+ * chargement depuis le cache navigateur ferait passer les assets a 100%
+ * en quelques dizaines de ms : la phrase en nahuatl ne serait qu'un
+ * flash illisible plutot qu'un moment qu'on a le temps de lire. Retour
+ * Sylvain 30/08 : "On n'a pas le temps de lire" avec 1400ms → 2500ms
+ * (encore trop juste) → 3500ms pour lire confortablement phrase + trad
+ * dans une langue etrangere (nahuatl). */
+export const MIN_VEIL_DURATION_MS = 3500;

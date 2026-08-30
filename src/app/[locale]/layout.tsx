@@ -22,7 +22,8 @@ import SmoothScroll from "../components/smooth-scroll";
 import { formatAztecYear } from "../../lib/aztec-calendar";
 import { renderWithNahuatl } from "../../lib/nahuatl";
 import { ReadingModeProvider } from "../../lib/reading-mode-context";
-import LoadingVeil from "../components/stag-scene/loading-veil";
+import PiedraSkeleton from "../components/stag-scene/piedra-skeleton";
+import LoadingSync from "../components/stag-scene/loading-sync";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
 import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
@@ -141,6 +142,20 @@ export default async function LocaleLayout({
   const locale: Locale = rawLocale;
   const dict = getDictionary(locale);
 
+  // Pick server-side d'une phrase random parmi les 5 mantras nahuas
+  // (30/08 refactor SOTY). Math.random en SSR : nouvelle valeur a chaque
+  // render dynamique. En prod SSG (generateStaticParams), la phrase serait
+  // figee au build → si Sylvain veut rotation par visite en prod, ajouter
+  // `export const dynamic = "force-dynamic"` OU basculer le pick client
+  // (avec suppressHydrationWarning + fade-in pour eviter le flash SSR→client).
+  // react-hooks/purity : Math.random est intentionnel ici, le lint interdit
+  // les impures dans les components pour la garantie de re-render stable,
+  // mais un Server Component est render une seule fois par request — la
+  // valeur est incluse dans le HTML SSR, jamais re-run cote client.
+  const loadingPhrase =
+    // eslint-disable-next-line react-hooks/purity
+    dict.lab.loadingPhrases[Math.floor(Math.random() * dict.lab.loadingPhrases.length)];
+
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -182,6 +197,17 @@ export default async function LocaleLayout({
     <html lang={locale}>
       <head>
         <link rel="icon" href="/img/mini-logo.svg" type="image/svg+xml" />
+        {/* Preload critical assets (30/08 pattern SOTY) — la Piedra V2
+            est LE visuel du skeleton SSR, elle doit etre en cache avant
+            meme que le CSS Module parse. Sans preload le navigateur la
+            fetch au moment du render du <img>, causant un flash sans
+            image avant qu'elle apparaisse. */}
+        <link rel="preload" as="image" href="/img/piedra-del-sol-v2.svg" type="image/svg+xml" />
+        {/* color-scheme:dark declare au navigateur que la page est
+            majoritairement sombre — Chrome/Safari appliquent la
+            scrollbar sombre + form controls sombres AVANT que le CSS
+            parse, evite le flash de scrollbar blanche sur fond noir. */}
+        <meta name="color-scheme" content="dark" />
         {/* JSON-LD structuré (28/08) — Person + WebSite + ProfessionalService.
             Injecté dans <head> plutôt que <body> pour être détecté par les
             crawlers dès le premier byte. Un script par entité (schema.org
@@ -194,6 +220,15 @@ export default async function LocaleLayout({
             dangerouslySetInnerHTML={{ __html: JSON.stringify(entry) }}
           />
         ))}
+        {/* Critical CSS inline dans <head> (30/08 fix "je vois encore le
+            html avant") : force body { background: #000 } AVANT que le
+            HTML body ne commence a parser. Sans ca, body a
+            background:#ffffff par defaut → flash blanc avant que le CSS
+            Module du PiedraSkeleton s'applique. Le style se relache
+            quand html a data-loaded="true" (pose par LoadingSync). */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          html:not([data-loaded="true"]) body { background: #000 !important; }
+        ` }} />
       </head>
       {/* nahual-lab-reveal posé en dur ici (pas seulement dans le useEffect
           de SceneStage) depuis le 25/08 : toutes les pages du site sont
@@ -209,6 +244,17 @@ export default async function LocaleLayout({
         className={`${geistSans.variable} ${geistMono.variable} nahual-lab-reveal`}
         suppressHydrationWarning
       >
+        {/* PiedraSkeleton monte EN TOUT PREMIER dans le body (30/08 fix
+            "je vois encore le html avant") : HTML streaming rend les
+            elements dans leur ordre DOM, donc le skeleton doit etre le
+            premier a etre parse pour couvrir visuellement le reste. Hors
+            des providers pour zero contexte a resoudre avant render. */}
+        <PiedraSkeleton
+          phrase={loadingPhrase.phrase}
+          translation={loadingPhrase.translation}
+          label={dict.lab.loadingLabel}
+        />
+        <LoadingSync />
         {/* Provider transition cardinale "cerf mène" (28/08) — expose
             transitionDirection + progressRef aux consommateurs scène
             3D (StagModel head-look override, OrbitCamera burst
@@ -331,19 +377,6 @@ export default async function LocaleLayout({
               <span className="footerAztec"> · {renderWithNahuatl(formatAztecYear(new Date().getFullYear(), locale))}</span>
             </div>
           </footer>
-          {/* LoadingVeil monté ici (une seule instance par session)
-              plutôt que dans SceneStage (une par mount de page) depuis
-              le 25/08 : retour Sylvain "on ne doit pas avoir l'écran
-              de chargement à chaque changement de page. L'écran doit
-              charger toutes les ressources pour ensuite avoir une
-              navigation super fluide". Layout persiste entre les
-              navigations SPA — LoadingVeil s'auto-démonte après le
-              premier fondu (setMounted(false)) et ne remonte plus
-              jamais tant que l'utilisateur ne reload pas. */}
-          <LoadingVeil
-            phrases={dict.lab.loadingPhrases}
-            label={dict.lab.loadingLabel}
-          />
           {/* Intro cinématique retiree 28/08 (retour Sylvain "gros
               encadré qui charge" — trop lourd au premier load).
               Composant existe encore, remonte-le si besoin.
