@@ -1,0 +1,150 @@
+/* PiedraVeil (30/08 revision : plus de fantomes, split anneau/interieur
+   avec contra-rotation). Container carre centre au milieu de .stage.
+   Position:absolute avec top/left 50 % + translate = independant de la
+   forme de .stage (qui peut etre rectangulaire selon la phrase). */
+.container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(420px, 80vw);
+  height: min(420px, 80vw);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Wrapper reveal : simple container des rotateurs. Le radial reveal
+   clip-path + fade-in opacity progress-driven ont ete retires (retour
+   Sylvain 30/08 "pourquoi le svg n'apparait il pas des 0 % ?") — la
+   Piedra est pleinement visible des le mount, seules les rotations
+   continues (Ometeotl) animent le voile. */
+.reveal {
+  position: absolute;
+  inset: 0;
+}
+
+/* Deux rotators concentriques (memes inset 0), rotations en sens
+   INVERSES a vitesses differentes. L'oeil percoit les 2 mouvements
+   comme distincts (signature mandala + horlogerie complexe). */
+.rotatorForward {
+  position: absolute;
+  inset: 0;
+  animation: piedraRotate 45s linear infinite;
+}
+
+.rotatorReverse {
+  position: absolute;
+  inset: 0;
+  animation: piedraRotateReverse 60s linear infinite;
+}
+
+/* Images : meme SVG utilise 3 fois (le navigateur cache, un seul fetch
+   reseau). Chacune isole une zone concentrique differente de la Piedra
+   via clip-path (coeur) ou mask radial annulaire (bague / couronne). */
+.inner,
+.middle,
+.outer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  will-change: transform;
+}
+
+/* Seuils recalibres 30/08 : la Piedra source (viewBox 554x554) a de la
+   marge blanche autour, l'anneau exterieur figuratif est autour de
+   60 % du rayon img (pas 90 %). Anciens seuils 78-100 % tapaient dans
+   le vide → couronne invisible (retour Sylvain "je ne vois rien de
+   la couronne exterieure"). Nouveaux seuils resserres + gaps minimum
+   2 % (retour "diminuer au maximum les gaps"). */
+
+/* COEUR CENTRAL (0-25 %) : glyphe Nahui Ollin central strict.
+   Resserre a 25 % (retour Sylvain 30/08 "le centre et la bague du
+   milieu se superposent vraiment") — les rayons/griffes qui s'etendent
+   depuis le glyphe central de la Piedra source depassent au-dela de
+   30 %, causaient la superposition avec la bague. Clip-path dur.
+   Opacite BASSE (0.25) pour lisibilite de la phrase par-dessus (retour
+   Sylvain 30/08 "sur le centre basse opacite"). Tourne HORAIRE
+   (rotator forward). */
+.inner {
+  clip-path: circle(25% at 50% 50%);
+  -webkit-clip-path: circle(25% at 50% 50%);
+  opacity: 0.30;
+}
+
+/* BAGUE DU MILIEU (33-58 %) : anneau des glyphes des jours + rayons
+   cardinaux. Start recule a 33 % pour vrai gap 8 % apres le coeur
+   (retire les rayons du Nahui Ollin qui debordent). Opacite MOYENNE
+   (0.45) — plus lisible que le coeur mais toujours en retrait.
+   Tourne ANTI-horaire (rotator reverse) — sens INVERSE. */
+.middle {
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    transparent 32%,
+    black 33%,
+    black 57%,
+    transparent 58%
+  );
+  mask-image: radial-gradient(
+    circle at center,
+    transparent 32%,
+    black 33%,
+    black 57%,
+    transparent 58%
+  );
+  opacity: 0.40;
+}
+
+/* COURONNE EXTERIEURE (60-95 %) : anneau figuratif externe (Xiuhcoatl-
+   bordure, cartouches, glyphes exterieurs). Rayon max 95 % pour rester
+   dans la zone dessinee du SVG. Gap 58-60 % avec la bague du milieu.
+   Opacite 0.55 (garde valeur precedente, retour Sylvain "on reste comme
+   ça pour l'exterieur pour le moment"). Tourne HORAIRE (rotator
+   forward, meme sens que le coeur). */
+.outer {
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    transparent 59%,
+    black 60%,
+    black 94%,
+    transparent 95%
+  );
+  mask-image: radial-gradient(
+    circle at center,
+    transparent 59%,
+    black 60%,
+    black 94%,
+    transparent 95%
+  );
+  opacity: 0.50;
+}
+
+@keyframes piedraRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes piedraRotateReverse {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotatorForward,
+  .rotatorReverse {
+    /* Freeze rotations (RGAA 13.6, coherent avec les autres composants
+       du voile + ambiances). */
+    animation: none;
+  }
+  .reveal {
+    transition: none;
+  }
+}

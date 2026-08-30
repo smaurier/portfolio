@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useProgress } from "@react-three/drei";
 import { easeToward, isLoadingDone, MIN_VEIL_DURATION_MS } from "@/lib/loading-veil";
 import styles from "./loading-veil.module.css";
+import PiedraVeil from "./piedra-veil";
 
 // Vitesse de rattrapage du compteur affiché vers la vraie valeur de
 // useProgress (retour de Sylvain le 20/08 : "fait défiler les
@@ -117,12 +118,13 @@ export default function LoadingVeil({
       aria-live="polite"
       aria-label={label}
     >
-      {/* .stage : position:relative, hérité de l'anneau de serpents qui
-       * l'entourait (retiré le 21/08 — rendu final jugé raté par Sylvain,
-       * cf memory project-nahual-da, à refaire un jour avec une vraie
-       * silhouette dessinée plutôt qu'un tracé calculé). Gardé tel quel :
-       * n'a pas d'effet visible sans élément absolute à l'intérieur. */}
+      {/* .stage : position:relative. PiedraVeil integre la Piedra del
+       * Sol V2 (dessinee main par Sylvain, cf public/img/piedra-del-sol-v2.svg)
+       * en 3 actes narratifs Nahui Ollin (double expo → radial mask
+       * reveal → rotation continue). Remplace les 4 tentatives echouees
+       * de silhouette Xiuhcoatl. */}
       <div className={styles.stage}>
+        <PiedraVeil progress={displayedProgress} />
         <p className={styles.phrase} lang="nah">{phrase}</p>
         <p className={styles.translation}>{translation}</p>
         {/* aria-hidden : le pourcentage change plusieurs fois par seconde —
