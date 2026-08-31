@@ -21,6 +21,20 @@
   --turquoise-bg: #0f6bb8;
   --cendre-bg: #d76464;
   --obsidienne-bg: #6b3fa8;
+  /* Palette VIVE non-themee (31/08) — les vars ci-dessus sont
+     themees (variantes dark tres sombres pour rester bg surface),
+     mais certains contextes ont besoin d'une palette vive constante
+     qui reste lisible quel que soit le theme utilisateur : voile de
+     chargement (PiedraSkeleton dots), shader du cerf (fog/rim), tout
+     usage "signal" plutot que "surface". Ces vars restent identiques
+     dans dark et light — single source of truth partagee avec
+     DIRECTION_COLOR_VIVID (direction-colors.ts). Si tu changes une
+     valeur ici, change-la aussi la-bas. */
+  --cardinal-jade: #00c078;
+  --cardinal-dore: #ffb400;
+  --cardinal-turquoise: #0f6bb8;
+  --cardinal-cendre: #d76464;
+  --cardinal-obsidienne: #6b3fa8;
   /* Hauteurs réelles de .header/.siteFooter, mesurées (getBoundingClientRect)
      plutôt que devinées — servent à réserver l'espace ailleurs maintenant
      que les deux sont en position:fixed (palier 2 DA Nahual, cf

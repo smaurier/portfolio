@@ -23,7 +23,6 @@ import { formatAztecYear } from "../../lib/aztec-calendar";
 import { renderWithNahuatl } from "../../lib/nahuatl";
 import { ReadingModeProvider } from "../../lib/reading-mode-context";
 import PiedraSkeleton from "../components/stag-scene/piedra-skeleton";
-import LoadingSync from "../components/stag-scene/loading-sync";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
 import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
@@ -249,12 +248,17 @@ export default async function LocaleLayout({
             elements dans leur ordre DOM, donc le skeleton doit etre le
             premier a etre parse pour couvrir visuellement le reste. Hors
             des providers pour zero contexte a resoudre avant render. */}
+        {/* PiedraSkeleton monte son propre <RevealTrigger /> client
+            qui orchestre TOUTE la sequence event-driven (data-reveal-
+            done + data-loaded). Plus besoin de LoadingSync ici — il
+            reste dans le codebase (loading-sync.tsx) pour reference
+            historique, non monte. Cf reveal-trigger.tsx pour le
+            detail de l'orchestration. */}
         <PiedraSkeleton
           phrase={loadingPhrase.phrase}
           translation={loadingPhrase.translation}
           label={dict.lab.loadingLabel}
         />
-        <LoadingSync />
         {/* Provider transition cardinale "cerf mène" (28/08) — expose
             transitionDirection + progressRef aux consommateurs scène
             3D (StagModel head-look override, OrbitCamera burst

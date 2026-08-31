@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 
+import SplitText from "../split-text";
+import RevealTrigger from "./reveal-trigger";
 import styles from "./piedra-skeleton.module.css";
 
 /**
@@ -13,7 +15,9 @@ import styles from "./piedra-skeleton.module.css";
  *
  * Pattern SOTY (Bruno Simon, Rauno Freiberg, Basement Studio) :
  *  - fallback SSR d'un boundary Suspense/state
- *  - anims CSS pures (rotations Ometeotl continues)
+ *  - anims CSS pures (rotations Ometeotl continues + reveal char +
+ *    dots cardinaux qui jaillissent — tout timing en CSS custom
+ *    properties, aucun rAF ni requestAnimationFrame)
  *  - fade out par CSS quand `html[data-loaded="true"]`
  *  - pas de pourcentage (aveu de latence, aucun SOTY n'en affiche)
  *  - z-index 9700 pour couvrir compass/cursor/toggles sans avoir a
@@ -27,6 +31,14 @@ import styles from "./piedra-skeleton.module.css";
  * clip-path (coeur) + mask radial annulaire (bague / couronne), 3
  * rotations en sens INVERSES (signature Ometeotl — dualite creatrice).
  * Cf project-nahual-da pour la justification cosmogonique complete.
+ *
+ * 5 dots cardinaux (31/08) : a la fin du reveal texte, jaillissent
+ * depuis le centre de la Piedra vers leur position cardinale
+ * (Est/Sud/Ouest/Nord) + un dot central. Onde sequentielle Est → Sud →
+ * Ouest → Nord (cycle jour narratif nahua : aube → midi → crepuscule →
+ * mort), Centre en premier (Xiuhtecuhtli, feu axial). Timing pilote
+ * par --reveal-end-ms passe en CSS var (calcule cote serveur en
+ * fonction de la longueur des textes).
  */
 
 const PIEDRA_SRC = "/img/piedra-del-sol-v2.svg";
@@ -57,10 +69,56 @@ export default function PiedraSkeleton({
           <div className={styles.rotatorReverse}>
             <img src={PIEDRA_SRC} alt="" className={styles.middle} />
           </div>
+          <div className={styles.dots} aria-hidden="true">
+            {/* Ripple concentrique (D) — 2 ondes qui jaillissent depuis le
+                centre au moment du burst du dot Xiuhtecuhtli, donnent du
+                poids au geste (effet "pierre jetee a l'eau"). */}
+            <span className={`${styles.ripple} ${styles.rippleOne}`} />
+            <span className={`${styles.ripple} ${styles.rippleTwo}`} />
+            {/* 5 dots cardinaux : Centre part le premier (Xiuhtecuhtli),
+                puis onde Est → Sud → Ouest → Nord (cycle jour nahua).
+                Chaque dot enchaine burst + pulse continu (B) qui respire
+                a 30 bpm apres son arrivee. */}
+            <span className={`${styles.dot} ${styles.dotCenter}`} />
+            <span className={`${styles.dot} ${styles.dotEast}`} />
+            <span className={`${styles.dot} ${styles.dotSouth}`} />
+            <span className={`${styles.dot} ${styles.dotWest}`} />
+            <span className={`${styles.dot} ${styles.dotNorth}`} />
+            {/* Cercle d'union (C) — mandala nahua : cadran des 5
+                directions du Codex Fejervary-Mayer refermé une fois
+                tous les dots poses. Fade in subtil, aucun trace stroke. */}
+            <span className={styles.unionCircle} />
+          </div>
         </div>
-        <p className={styles.phrase} lang="nah">{phrase}</p>
-        <p className={styles.translation}>{translation}</p>
+        <p className={styles.phrase} lang="nah">
+          <SplitText text={phrase} ariaLabel={phrase} />
+        </p>
+        <p className={styles.translation}>
+          <SplitText text={translation} ariaLabel={translation} />
+        </p>
       </div>
+      {/* Logo Nahual signature finale (31/08, etape 3/3) — positionne
+          en top-left du voile, meme structure que le vrai .logoLink du
+          header (mini-logo.svg 32x32 + gap 10px + texte casse normale
+          font-weight 700 size 1.1rem letter-spacing 0.02em). Effet :
+          "le header est deja la, en train de se reveiller". L'icone
+          se pose juste avant le premier char du texte (fade + scale
+          doux), le texte s'ecrit ensuite char-by-char. aria-hidden :
+          le voile porte deja son role et aria-label global. */}
+      <p className={styles.logoSignature} aria-hidden="true">
+        <img
+          src="/img/mini-logo.svg"
+          alt=""
+          width={32}
+          height={32}
+          className={styles.logoIcon}
+        />
+        <SplitText text="Nahual" />
+      </p>
+      {/* Pose data-reveal-done="true" sur skeleton apres l'animation
+          du dernier char de la traduction — gate CSS pour toute la
+          sequence post-reveal (dots + cercle + logo). */}
+      <RevealTrigger />
     </div>
   );
 }

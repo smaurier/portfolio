@@ -1,6 +1,11 @@
-/* PiedraSkeleton (30/08). Voile SSR pur, fade out sur html[data-loaded].
-   Repris de loading-veil.module.css + piedra-veil.module.css (fusion, les
-   deux precedents fichiers ont ete supprimes dans le meme refactor). */
+/* PiedraSkeleton (30/08, refonte event-driven 31/08). Voile SSR pur,
+   fade out sur html[data-loaded]. Toute la sequence post-reveal
+   (dots cardinaux + cercle d'union + logo Nahual) est gate sur
+   `.skeleton[data-reveal-done="true"]` — pose par <RevealTrigger />
+   client component quand le DERNIER char de la traduction termine
+   son animationend. Plus fiable qu'un CSS animation-delay calcule
+   depuis un revealEndMs server-side (fragile si voile fade out
+   avant la fin du delay). */
 
 .skeleton {
   position: fixed;
@@ -163,4 +168,408 @@
   max-width: 46ch;
   position: relative;
   z-index: 1;
+}
+
+/* Reveal char-by-char (31/08). SplitText SSR pose --char-index par span
+   (.char pour lettres, .space pour espaces). Stagger via animation-delay
+   proportionnel a l'index. Aberration chromatique (text-shadow rouge/
+   cyan offset) qui se resout — signature glitch dimensionnel Awwwards.
+   Animation forward + fill mode `both` : chaque char part invisible et
+   RESTE dans l'etat final (opacity 1 + shadow residuelle discrete). */
+.phrase :global(.char),
+.phrase :global(.space) {
+  display: inline-block;
+  animation: phraseCharReveal 700ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation-delay: calc(var(--char-index) * 45ms);
+}
+
+.translation :global(.char),
+.translation :global(.space) {
+  display: inline-block;
+  animation: translationCharReveal 550ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  /* Demarre apres la phrase (env. 1800ms pour ~20 chars a 45ms + 700ms
+     de fade) + stagger plus rapide (20ms) et moins d'aberration. */
+  animation-delay: calc(1800ms + var(--char-index) * 20ms);
+}
+
+@keyframes phraseCharReveal {
+  0% {
+    opacity: 0;
+    text-shadow:
+      -3px 0 0 rgba(255, 60, 120, 0.8),
+      3px 0 0 rgba(80, 180, 255, 0.8);
+    filter: blur(1px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    text-shadow:
+      -0.5px 0 0 rgba(255, 60, 120, 0.18),
+      0.5px 0 0 rgba(80, 180, 255, 0.18);
+    filter: blur(0);
+  }
+}
+
+@keyframes translationCharReveal {
+  0% {
+    opacity: 0;
+    text-shadow:
+      -1.5px 0 0 rgba(255, 60, 120, 0.4),
+      1.5px 0 0 rgba(80, 180, 255, 0.4);
+    filter: blur(0.5px);
+  }
+  100% {
+    opacity: 1;
+    text-shadow: none;
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phrase :global(.char),
+  .phrase :global(.space),
+  .translation :global(.char),
+  .translation :global(.space) {
+    animation: none;
+    opacity: 1;
+    text-shadow: none;
+    filter: none;
+  }
+}
+
+/* Dots cardinaux (31/08). 5 dots qui jaillissent depuis le centre de
+   la Piedra a la fin du reveal texte. Sequence gate sur
+   .skeleton[data-reveal-done="true"] (pose par RevealTrigger). Centre
+   part en premier (feu axial Xiuhtecuhtli), puis onde sequentielle
+   Est → Sud → Ouest → Nord (cycle jour nahua : aube → midi →
+   crepuscule → mort). Palette : CSS vars VIVES non-themees de
+   globals.css (--cardinal-jade, --cardinal-dore, etc.) — vives quel
+   que soit le theme utilisateur, single source of truth partagee avec
+   DIRECTION_COLOR_VIVID (direction-colors.ts). */
+
+/* Rayon des dots par rapport au centre de la Piedra — 34vw / max
+   170px = 85% du rayon exterieur de la Piedra (min 210px, 40vw).
+   Constante partagee entre les dots et le cercle d'union. */
+.dots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --dot-radius: min(170px, 34vw);
+  --burst-duration: 900ms;
+}
+
+/* Etat par defaut : invisible, aucune animation. Les animations sont
+   AJOUTEES par la regle [data-reveal-done="true"] plus bas — quand
+   RevealTrigger pose l'attribut, le browser start les animations
+   depuis leur t=0 (relatives au moment ou la regle prend effet). */
+.dot,
+.ripple,
+.unionCircle,
+.logoIcon {
+  opacity: 0;
+}
+
+.dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translate(-50%, -50%) scale(0);
+  will-change: transform, opacity, box-shadow;
+  box-shadow:
+    0 0 8px 1px currentColor,
+    0 0 20px 4px color-mix(in srgb, currentColor 60%, transparent);
+}
+
+/* Chaque dot : couleur cardinale + offset temporel + position finale
+   via --dot-x/--dot-y. Le pulse continu (B) suit le burst — il
+   n'anime que box-shadow (jamais transform, pour ne pas fighter avec
+   l'etat final du burst). */
+.dotCenter {
+  color: var(--cardinal-jade);
+  --dot-offset: 0ms;
+  --dot-scale-final: 1.6;
+}
+
+.dotEast {
+  color: var(--cardinal-dore);
+  --dot-offset: 80ms;
+  --dot-x: var(--dot-radius);
+  --dot-y: 0px;
+}
+
+.dotSouth {
+  color: var(--cardinal-turquoise);
+  --dot-offset: 160ms;
+  --dot-x: 0px;
+  --dot-y: var(--dot-radius);
+}
+
+.dotWest {
+  color: var(--cardinal-cendre);
+  --dot-offset: 240ms;
+  --dot-x: calc(var(--dot-radius) * -1);
+  --dot-y: 0px;
+}
+
+.dotNorth {
+  color: var(--cardinal-obsidienne);
+  --dot-offset: 320ms;
+  --dot-x: 0px;
+  --dot-y: calc(var(--dot-radius) * -1);
+}
+
+/* GATE : quand data-reveal-done pose par RevealTrigger, on ajoute les
+   animations. Delays RELATIFS a 0 (le moment ou la regle prend effet
+   = le moment ou l'attribut apparait). */
+.skeleton[data-reveal-done="true"] .dot {
+  animation:
+    dotBurst var(--burst-duration) cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    dotPulse 2s ease-in-out infinite;
+  animation-delay:
+    var(--dot-offset, 0ms),
+    calc(var(--dot-offset, 0ms) + var(--burst-duration));
+}
+
+.skeleton[data-reveal-done="true"] .dotCenter {
+  animation-name: dotBurstCenter, dotPulse;
+}
+
+@keyframes dotBurst {
+  0% {
+    transform: translate(-50%, -50%) translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(var(--dot-x), var(--dot-y)) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes dotBurstCenter {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(var(--dot-scale-final, 1.4));
+    opacity: 1;
+  }
+}
+
+/* Pulse continu (B) : respiration 30 bpm (2s cycle) apres le burst.
+   Modulation subtile du glow uniquement (transform reste dans son
+   etat final du burst pour ne pas fighter). */
+@keyframes dotPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 8px 1px currentColor,
+      0 0 20px 4px color-mix(in srgb, currentColor 60%, transparent);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow:
+      0 0 14px 2px currentColor,
+      0 0 34px 8px color-mix(in srgb, currentColor 80%, transparent);
+    filter: brightness(1.25);
+  }
+}
+
+/* Halo d'onde (D) : ripple concentrique qui jaillit du centre au burst
+   du dot Xiuhtecuhtli. Deux ondes decalees pour effet "pierre jetee".
+   Diametre final = 2x le rayon des dots (rejoint le cercle d'union). */
+.ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--dot-radius) * 2);
+  height: calc(var(--dot-radius) * 2);
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--cardinal-jade) 70%, transparent);
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+}
+
+.rippleTwo {
+  border-color: color-mix(in srgb, var(--cardinal-jade) 45%, transparent);
+}
+
+.skeleton[data-reveal-done="true"] .ripple {
+  animation: rippleWave 1500ms ease-out both;
+}
+
+.skeleton[data-reveal-done="true"] .rippleOne {
+  animation-delay: 0ms;
+}
+
+.skeleton[data-reveal-done="true"] .rippleTwo {
+  animation-delay: 250ms;
+}
+
+@keyframes rippleWave {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.7;
+  }
+  30% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0;
+  }
+}
+
+/* Cercle d'union (C) : mandala des 5 directions du Codex
+   Fejervary-Mayer, apparait en dernier apres tous les dots. Fade in
+   subtil du stroke, pas de trace dashoffset (trop demonstratif). */
+.unionCircle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--dot-radius) * 2);
+  height: calc(var(--dot-radius) * 2);
+  border-radius: 50%;
+  border: 1px solid rgba(242, 236, 225, 0.35);
+  transform: translate(-50%, -50%) scale(0.95);
+  pointer-events: none;
+}
+
+/* Apparait apres le dernier dot (Nord offset 320ms + burst 900ms) +
+   petit gap de respiration. */
+.skeleton[data-reveal-done="true"] .unionCircle {
+  animation: unionCircleReveal 900ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation-delay: calc(320ms + 900ms + 100ms);
+}
+
+@keyframes unionCircleReveal {
+  0% {
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot,
+  .ripple,
+  .unionCircle {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Logo Nahual — signature finale (31/08, etape 3/3). Positionne en
+   top-left du voile pour matcher la place du vrai logo du header
+   (padding 12px 24px, --header-height ~81px) : effet "le header est
+   deja la, en train de se reveiller". Meme structure que .logoLink :
+   mini-logo.svg 32x32 + gap 10px + texte casse normale (typo alignee
+   sur .logoText de globals.css : weight 700, size 1.1rem,
+   letter-spacing 0.02em). L'icone se pose 100ms avant le premier
+   char (fade + scale doux), le nom s'ecrit ensuite char-by-char. */
+.logoSignature {
+  position: absolute;
+  /* Position pixel-perfect matched au vrai .logoLink du header
+     (mesure Playwright 31/08 : y=35, x=24). Aucun decalage visuel
+     au fade out du voile → le vrai logo prend exactement la place. */
+  top: 35px;
+  left: 24px;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-geist, system-ui), sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #f2ece1;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Icone tête de cerf — le SVG source a `fill="#fff"` sur ses paths
+   (verified 31/08 en inspectant le fichier). Sur fond noir du voile,
+   pas de filter necessaire, le blanc est deja lisible. Le header
+   utilise filter:invert(1) en theme light (pour rendre le SVG noir
+   sur fond clair) et filter:none en dark ; nous, on garde toujours
+   blanc tant que le voile est en fond noir. Quand le voile deviendra
+   themee, il faudra ajouter une condition themee similaire. */
+.logoIcon {
+  transform: scale(0.6);
+}
+
+/* Delais RELATIFS a 0 (moment ou data-reveal-done apparait). Le logo
+   demarre apres :
+     - dernier dot (Nord) burst : 320ms start + 900ms duration = 1220ms
+     - gap 100ms
+     - cercle union : 900ms
+     - gap 200ms
+   = 2420ms → premier char. Icone 100ms avant (2320ms). */
+.skeleton[data-reveal-done="true"] .logoIcon {
+  animation: logoIconAppear 800ms cubic-bezier(0.34, 1.4, 0.5, 1) both;
+  animation-delay: 2320ms;
+}
+
+@keyframes logoIconAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.logoSignature :global(.char) {
+  display: inline-block;
+  opacity: 0;
+}
+
+.skeleton[data-reveal-done="true"] .logoSignature :global(.char) {
+  animation: logoCharReveal 600ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation-delay: calc(2420ms + var(--char-index) * 40ms);
+}
+
+@keyframes logoCharReveal {
+  0% {
+    opacity: 0;
+    text-shadow:
+      -1.5px 0 0 rgba(255, 60, 120, 0.5),
+      1.5px 0 0 rgba(80, 180, 255, 0.5);
+    filter: blur(0.5px);
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    text-shadow: none;
+    filter: none;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logoIcon,
+  .logoSignature :global(.char) {
+    animation: none;
+    opacity: 1;
+    text-shadow: none;
+    filter: none;
+    transform: none;
+  }
 }

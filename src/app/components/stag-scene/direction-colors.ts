@@ -41,6 +41,13 @@ export function hexToRgb(hex: string): ColorRgb {
  * bas-poly PBR chaud. Le shader/le fog/le rim utilisent cette palette
  * vive constante ; les CSS surfaces continuent d'utiliser leurs
  * variantes theme-dependent via --jade-bg et co.
+ *
+ * 31/08 : les memes valeurs sont exposees en CSS vars non-themees
+ * dans globals.css (--cardinal-jade, --cardinal-dore, etc.) pour tous
+ * les contextes CSS qui ont besoin de la palette vive constante
+ * (voile de chargement, tout usage "signal"). Single source of truth
+ * partagee entre ce fichier JS et ces CSS vars — synchroniser
+ * manuellement lors d'un changement de teinte.
  */
 export const DIRECTION_COLOR_VIVID: Record<DirectionKey, string> = {
   // Palette tranchee 28/08 (retour Sylvain "couleurs trop proches
