@@ -27,7 +27,7 @@
             - /url: /es
             - text: ES
     - generic [ref=e18]:
-      - link "Nahual — Retour à l'accueil" [ref=e19] [cursor=pointer]:
+      - link "Nahual · Retour à l'accueil" [ref=e19] [cursor=pointer]:
         - /url: /fr
         - generic [ref=e20]: Nahual
       - navigation [ref=e21]:

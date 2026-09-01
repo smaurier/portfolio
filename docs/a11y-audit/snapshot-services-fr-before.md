@@ -27,7 +27,7 @@
             - /url: /es/servicios
             - text: ES
     - generic [ref=f1e18]:
-      - link "Nahual — Retour à l'accueil" [ref=f1e19] [cursor=pointer]:
+      - link "Nahual · Retour à l'accueil" [ref=f1e19] [cursor=pointer]:
         - /url: /fr
         - generic [ref=f1e20]: Nahual
       - navigation [ref=f1e21]:

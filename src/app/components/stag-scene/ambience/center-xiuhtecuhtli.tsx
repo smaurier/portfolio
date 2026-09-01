@@ -104,7 +104,7 @@ export default function CenterXiuhtecuhtli({ alphaRef }: { alphaRef: MutableRefO
             vec2 uv = gl_PointCoord - 0.5;
             float r = length(uv);
             float shape = 1.0 - smoothstep(0.0, 0.5, r);
-            // Cœur chaud orange, halo jade — l'ember se refroidit en montant
+            // Cœur chaud orange, halo jade, l'ember se refroidit en montant
             vec3 col = mix(uAccent, uColor, vHeat);
             float a = shape * vAlpha * uAlpha;
             gl_FragColor = vec4(col * a, 1.0);

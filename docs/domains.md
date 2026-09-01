@@ -5,7 +5,7 @@
 | Domaine | Rôle | Statut |
 |---|---|---|
 | `nahual.fr` | Primary (marque studio) | Actif Netlify |
-| `sylvainmaurier.com` | Alias personnel — redirect 301 → nahual.fr | À configurer (acheté 29/08/2026) |
+| `sylvainmaurier.com` | Alias personnel · redirect 301 → nahual.fr | À configurer (acheté 29/08/2026) |
 
 ## Setup Netlify sylvainmaurier.com
 

@@ -32,7 +32,7 @@ describe("sampleSerpentArc", () => {
     }
   });
 
-  it("t=0 (tête) est proche du bas de l'ellipse, pour A et B — retour du 21/08 (aligné sur la vraie Piedra)", () => {
+  it("t=0 (tête) est proche du bas de l'ellipse, pour A et B, retour du 21/08 (aligné sur la vraie Piedra)", () => {
     for (const serpent of [SERPENT_A, SERPENT_B]) {
       const head = sampleSerpentArc(serpent)[0];
       expect(head.y).toBeGreaterThan(serpent.cy);

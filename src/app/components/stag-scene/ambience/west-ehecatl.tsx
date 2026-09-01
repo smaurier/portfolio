@@ -67,7 +67,7 @@ export default function WestEhecatl({ alphaRef }: { alphaRef: MutableRefObject<n
           void main() {
             vec3 pos = position;
             // Traversée Est→Ouest continue. Vitesse variable par seed
-            // (0.6 à 1.4) — pas de mur uniforme.
+            // (0.6 à 1.4), pas de mur uniforme.
             float speed = 0.6 + aSeed * 0.8;
             float driftX = mod(uTime * speed + aSeed * 12.0, 12.0) - 6.0;
             pos.x = -driftX; // Ouest = X négatif
