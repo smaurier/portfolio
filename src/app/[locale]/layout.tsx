@@ -88,7 +88,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
           url: `/${locale}/opengraph-image`,
           width: 1200,
           height: 630,
-          alt: `${SITE_NAME} — ${title}`,
+          alt: `${SITE_NAME} · ${title}`,
           type: "image/png",
         },
       ],
@@ -104,9 +104,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       follow: true,
       googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
     },
-    icons: {
-      icon: [{ url: "/img/mini-logo.svg", type: "image/svg+xml" }],
-    },
+    // icons NON declaree en metadata : Next injecte automatiquement
+    // <link rel="icon" href="/icon"> et <link rel="apple-touch-icon"
+    // href="/apple-icon"> depuis src/app/icon.svg + src/app/apple-icon.tsx
+    // (file conventions). Une seule source de verite, pas de doublon.
     manifest: "/manifest.webmanifest",
     // Site verification (29/08 SEO pass v2). Tokens fournis via env
     // Netlify — inutile de commiter. GSC/Bing acceptent aussi la
@@ -195,7 +196,9 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <head>
-        <link rel="icon" href="/img/mini-logo.svg" type="image/svg+xml" />
+        {/* Icones : plus de <link rel="icon"> manuel ici. Next les injecte
+            depuis src/app/icon.svg + src/app/apple-icon.tsx (file conventions
+            App Router). Cf commentaire dans generateMetadata. */}
         {/* Preload critical assets (30/08 pattern SOTY) — la Piedra V2
             est LE visuel du skeleton SSR, elle doit etre en cache avant
             meme que le CSS Module parse. Sans preload le navigateur la

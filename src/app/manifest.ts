@@ -18,7 +18,25 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#0a0710",
     theme_color: "#0a0710",
     icons: [
-      { src: "/img/mini-logo.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+      // SVG carre (fond obsidienne + cerf) — safe zone 78.7% centre,
+      // compatible any + maskable. Le typage Next n'accepte qu'une
+      // seule valeur par entree (le spec Web App Manifest autorise
+      // "any maskable" separe par espace, mais TS restreint), donc
+      // on declare deux entrees pointant sur le meme fichier.
+      // Voir src/app/icon.svg (meme visuel, servi par Next file
+      // convention pour les onglets navigateur).
+      {
+        src: "/icons/icon-square.svg",
+        sizes: "any",
+        type: "image/svg+xml",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-square.svg",
+        sizes: "any",
+        type: "image/svg+xml",
+        purpose: "maskable",
+      },
     ],
     lang: "fr",
     categories: ["portfolio", "design", "development"],

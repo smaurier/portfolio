@@ -34,7 +34,13 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Exclut les assets statiques et fichiers avec extension (favicon, images,
-  // polices) de la redirection de locale.
-  matcher: ["/((?!_next|api|.*\\..*).*)"],
+  // Exclut de la redirection de locale :
+  // - _next, api : internes framework
+  // - .*\\..* : tout path avec une extension (favicon.ico, icon.svg,
+  //   sitemap.xml, robots.txt, manifest.webmanifest, images, polices)
+  // - apple-icon, icon : file conventions Next.js metadata SANS extension
+  //   (src/app/apple-icon.tsx generee au path /apple-icon). Sans cette
+  //   exclusion le proxy les redirige en /fr/apple-icon → 404 car ces
+  //   routes vivent au root, pas sous [locale].
+  matcher: ["/((?!_next|api|apple-icon|icon|.*\\..*).*)"],
 };
