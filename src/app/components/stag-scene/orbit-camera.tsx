@@ -12,7 +12,7 @@ import { useSceneRefs } from "./scene-refs-context";
  * Applique à chaque frame la trajectoire pure de src/lib/camera-path.ts.
  * progressRef est un ref (pas un state) : la position du scroll change à
  * haute fréquence, la faire transiter par le state React re-rendrait tout
- * l'arbre à chaque tick pour rien — useFrame lit le ref directement.
+ * l'arbre à chaque tick pour rien : useFrame lit le ref directement.
  *
  * Parallaxe souris (27/08, retour Sylvain "effet paralaxe sur cerf pour
  * les mouvements de souris"). Signature Awwwards-level classique :
@@ -37,7 +37,7 @@ const OLLIN_PARALLAX_BOOST = 1.5;
 /**
  * Touch drag orbit (28/08 task #50 mobile). Sur devices touch, un
  * swipe horizontal/vertical dérive l'orbite caméra avec accumulation
- * persistante — le cerf peut être observé sous plusieurs angles au
+ * persistante : le cerf peut être observé sous plusieurs angles au
  * lieu du parallax souris limité aux -1..1 souris. Reset progressif
  * au relâchement pour ne pas rester bloqué.
  */
@@ -65,7 +65,7 @@ const DOLLY_BY_DIRECTION: Record<string, number> = {
 
 /**
  * Whip pan amplitude par direction (28/08 task #44). Pendant le burst,
- * la target du lookAt dérive dans la direction cardinale — la caméra
+ * la target du lookAt dérive dans la direction cardinale : la caméra
  * "regarde vers" la direction cible avant de revenir. Signature cinéma
  * (whip pan classique) sans faire tourner tout le monde 3D.
  */
@@ -78,7 +78,7 @@ export default function OrbitCamera({
 }) {
   const { camera } = useThree();
   // Position souris cible (normalisée -1..1) et position lissée qui
-  // rattrape doucement — évite un mouvement caméra saccadé sur chaque
+  // rattrape doucement : évite un mouvement caméra saccadé sur chaque
   // événement pointermove.
   const mouseTargetRef = useRef({ x: 0, y: 0 });
   const mouseSmoothRef = useRef({ x: 0, y: 0 });
@@ -156,7 +156,7 @@ export default function OrbitCamera({
     const parallaxX = reducedMotionRef.current ? 0 : mouseSmoothRef.current.x * PARALLAX_X * parallaxMult;
     const parallaxY = reducedMotionRef.current ? 0 : -mouseSmoothRef.current.y * PARALLAX_Y * parallaxMult;
 
-    // Touch orbit offset — décay progressif au relâchement, sinon
+    // Touch orbit offset : décay progressif au relâchement, sinon
     // reste. Ajoute au parallax pour combiner drag + repos.
     if (!touchLastRef.current) {
       touchOffsetRef.current.x *= 1 - TOUCH_DECAY;
@@ -165,7 +165,7 @@ export default function OrbitCamera({
     const touchX = reducedMotionRef.current ? 0 : touchOffsetRef.current.x * 2.0;
     const touchY = reducedMotionRef.current ? 0 : -touchOffsetRef.current.y * 2.0;
 
-    // Burst cardinal "cerf mène" (28/08) — pendant la fenêtre de
+    // Burst cardinal "cerf mène" (28/08) : pendant la fenêtre de
     // transition (500ms), la caméra dérive dans la direction cible +
     // son FOV s'ouvre en zoom-out cinématique (Phase C
     // cinématographie). Bell curve sur le progress transition.
@@ -190,7 +190,7 @@ export default function OrbitCamera({
       burstY = vec[1] * amp;
       burstZ = vec[2] * amp;
 
-      // Whip pan target (28/08 task #44) — la target du lookAt dérive
+      // Whip pan target (28/08 task #44) : la target du lookAt dérive
       // dans la direction cardinale pendant le burst. La caméra "regarde
       // vers" la direction cible avant de revenir. Bell curve légèrement
       // décalée (Math.pow bell 1.3) : le pan précède le dolly de
@@ -202,12 +202,12 @@ export default function OrbitCamera({
       whipY = vec[1] * panBell * WHIP_PAN_AMPLITUDE;
       whipZ = vec[2] * panBell * WHIP_PAN_AMPLITUDE;
 
-      // FOV shift zoom-out cinema — la caméra "respire" pendant le
+      // FOV shift zoom-out cinema : la caméra "respire" pendant le
       // burst. camera est une PerspectiveCamera (Canvas fov: 45),
       // updateProjectionMatrix nécessaire pour que le changement
       // prenne effet visuel.
       // Base FOV responsive (28/08 retour Sylvain "l'ecran mobile
-      // coupait la partie droite de la tete") — mobile <768px : 58° pour
+      // coupait la partie droite de la tete") : mobile <768px : 58° pour
       // capturer cerf entier + bois, sinon 45°.
       const baseFov = typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45;
       const perspCam = camera as PerspectiveCamera;
@@ -216,7 +216,7 @@ export default function OrbitCamera({
         perspCam.updateProjectionMatrix();
       }
     } else {
-      // Retour repos FOV — safety, réévalue le base FOV responsive.
+      // Retour repos FOV : safety, réévalue le base FOV responsive.
       const baseFov = typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45;
       const perspCam = camera as PerspectiveCamera;
       if (perspCam.isPerspectiveCamera && Math.abs(perspCam.fov - baseFov) > 0.5) {

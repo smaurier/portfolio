@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 
 /**
  * Contexte de la transition cardinale (28/08). Signature "le cerf
- * mène" — au click d'un lien nav, on joue une animation 500ms sur la
+ * mène" : au click d'un lien nav, on joue une animation 500ms sur la
  * scène 3D courante AVANT de naviguer : cerf tourne tête vers
  * direction cible, camera orbit subtil dans direction, content HTML
  * fade. Router.push après ce burst.
@@ -34,7 +34,7 @@ export const CARDINAL_VECTORS: Record<CardinalDirection, [number, number, number
   obsidienne: [0, 0.1, -1], // Nord = devant (vers Z-)
 };
 
-// 500 → 1200ms (28/08 après diagnostic Sylvain "je ne vois rien" — la
+// 500 → 1200ms (28/08 après diagnostic Sylvain "je ne vois rien" : la
 // mécanique fonctionne (capture Playwright mid-burst confirme cerf +
 // palette + PetalStorm rendus), mais 500ms était trop rapide pour
 // que l'œil perçoive la signature. Allongé à 1200ms pour laisser
@@ -53,7 +53,7 @@ export function CardinalTransitionProvider({ children }: { children: ReactNode }
   const [transitionDirection, setTransitionDirection] = useState<CardinalDirection | null>(null);
   const transitionProgressRef = useRef(0);
 
-  // Classe body pendant la transition — le CSS lit
+  // Classe body pendant la transition : le CSS lit
   // `body.nahual-transitioning` pour fader main content, appliquer
   // pointer-events:none temporaire, etc. `data-transition-direction`
   // sert au CSS pour orienter le slide translate cardinal du content.
@@ -87,7 +87,7 @@ export function CardinalTransitionProvider({ children }: { children: ReactNode }
         // Fade-out complète : nav vers la nouvelle page. Le body
         // class `nahual-transitioning` reste posée pour que la
         // nouvelle page mount avec opacity 0.15 (via CSS) et fade
-        // IN progressivement pendant les 400ms suivants — évite la
+        // IN progressivement pendant les 400ms suivants : évite la
         // coupure "old fade to black, new snap in" qui donnait
         // l'impression de rechargement brutal.
         onComplete();
@@ -112,7 +112,7 @@ export function CardinalTransitionProvider({ children }: { children: ReactNode }
   );
 }
 
-/** Hook consommateur. Retourne null hors du Provider — les composants
+/** Hook consommateur. Retourne null hors du Provider : les composants
  *  scène 3D (StagModel/OrbitCamera) peuvent tomber sans casser si le
  *  Provider n'a pas encore été monté. */
 export function useCardinalTransition(): TransitionState | null {

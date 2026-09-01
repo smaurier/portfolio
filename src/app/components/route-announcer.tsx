@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { renderWithNahuatl } from "@/lib/nahuatl";
 
 /**
- * Annonce SR des changements de page (SPA) — WCAG 4.1.3 status
+ * Annonce SR des changements de page (SPA) : WCAG 4.1.3 status
  * messages + RGAA 12.1. Next.js App Router ne fait pas d'annonce
  * automatique comme le faisait le RouteAnnouncer du Pages Router.
  *
@@ -19,7 +19,7 @@ import { renderWithNahuatl } from "@/lib/nahuatl";
  * DEPLACE le focus vers le h1 de la nouvelle page (30/08 retour RGAA :
  * "SPA React : oublier de repositionner le focus au changement de
  * page = non conforme recurrent"). L'annonce aria-live seule ne
- * suffit pas — sans repositionnement du focus, l'utilisateur
+ * suffit pas : sans repositionnement du focus, l'utilisateur
  * clavier/SR reste sur l'element de nav qu'il vient de cliquer, doit
  * re-tabuler dans tout le header avant d'atteindre le nouveau contenu.
  * Reproduit le comportement "premier chargement" (SR annonce le
@@ -54,7 +54,7 @@ export default function RouteAnnouncer() {
       // une page deja visitee dont le titre est identique).
       setMessage("");
       window.setTimeout(() => setMessage(title), 50);
-      // Deplace le focus vers le h1 de la nouvelle page — reproduit
+      // Deplace le focus vers le h1 de la nouvelle page : reproduit
       // le comportement "premier chargement" (focus en haut de page,
       // SR annonce le titre directement). Recommandation Access42
       // pour RGAA 12.8 SPA : "conteneur avec tabindex='-1' qui

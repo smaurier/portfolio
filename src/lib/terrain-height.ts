@@ -1,23 +1,23 @@
-// Relief du sol — retour de Sylvain le 18/08 : "la ligne d'horizon reste
+// Relief du sol : retour de Sylvain le 18/08 : "la ligne d'horizon reste
 // plate, est-ce qu'on ne pourrait pas faire un sol un peu sculpté plutôt ?"
-// Fonction pure, testable — le rendu (déplacement des sommets d'un
+// Fonction pure, testable : le rendu (déplacement des sommets d'un
 // PlaneGeometry) se construit à partir de cette fonction dans ground.tsx,
 // même principe que camera-path.ts/reveal-arc.ts.
 //
 // **Retouche même soirée** : les montagnes (génériques + Popocatépetl/
 // Iztaccíhuatl, ex-mountains.tsx en meshes séparés) sont maintenant des
-// bosses ajoutées à ce même champ de hauteur — retour de Sylvain : "les
+// bosses ajoutées à ce même champ de hauteur : retour de Sylvain : "les
 // montagnes autour doivent être faites avec le sol sculpté, popo et izta
 // inclus". Plus de meshes flottants posés sur le sol : un seul terrain
 // continu, garanti raccordé à sa base (même mesh).
 
 import { generateMountainRangePlacements } from "./mountain-range";
 
-/** Rayon autour du centre où le sol reste parfaitement plat — le cerf, le
+/** Rayon autour du centre où le sol reste parfaitement plat : le cerf, le
  * maïs et les lianes sont tous ancrés à y=0 sans connaître ce relief,
  * sculpter sous leurs pieds les ferait flotter ou s'enfoncer. */
 const FLAT_RADIUS = 4;
-/** Au-delà de ce rayon, l'ondulation de dunes est à pleine amplitude —
+/** Au-delà de ce rayon, l'ondulation de dunes est à pleine amplitude :
  * entre FLAT_RADIUS et ce rayon, une transition progressive. Les bosses de
  * montagne (bien plus loin) ne sont pas concernées par cette transition,
  * seul le bruit de dunes proche l'est. */
@@ -44,7 +44,7 @@ function getDuneHeight(x: number, z: number): number {
 
 type PeakBump = { x: number; z: number; height: number; radius: number };
 
-/** Bosse radiale lisse (compacte, nulle au-delà de radius, C1 aux bords) —
+/** Bosse radiale lisse (compacte, nulle au-delà de radius, C1 aux bords) :
  * plusieurs bosses qui se chevauchent fusionnent naturellement en une
  * crête continue dans un champ de hauteur, contrairement à des meshes
  * séparés qui se touchaient avec une jointure visible (ex-mountains.tsx). */
@@ -58,7 +58,7 @@ function bumpHeight(x: number, z: number, bump: PeakBump): number {
   return bump.height * falloff;
 }
 
-// Rotation Y (convention three.js) — utilitaire local, pas de dépendance
+// Rotation Y (convention three.js) : utilitaire local, pas de dépendance
 // three.js dans ce fichier (garde terrain-height.ts pur/testable).
 function rotateY(x: number, z: number, angle: number): { x: number; z: number } {
   const cos = Math.cos(angle);
@@ -67,7 +67,7 @@ function rotateY(x: number, z: number, angle: number): { x: number; z: number } 
 }
 
 // Chaîne générique, tout autour, à distance non homogène (cf
-// mountain-range.ts) — calculée une seule fois au chargement du module
+// mountain-range.ts) : calculée une seule fois au chargement du module
 // (déterministe, pas de dépendance à x/z), pas à chaque appel de
 // getTerrainHeight qui tourne par sommet du maillage.
 const GENERIC_PEAK_COUNT = 16;
@@ -86,7 +86,7 @@ function getGenericRangeHeight(x: number, z: number): number {
   return height;
 }
 
-// Popocatépetl + Iztaccíhuatl — une seule fois, à l'azimuth exactement
+// Popocatépetl + Iztaccíhuatl : une seule fois, à l'azimuth exactement
 // opposé à la caméra au climax du face-à-face (climaxProgress=0.75, cf
 // camera-path.ts) : "on doit voir le Popo et l'Izta seulement lorsqu'on
 // regarde de face l'animal" (retour Sylvain). Repris tel quel de
@@ -131,7 +131,7 @@ function getNamedMountainsHeight(x: number, z: number): number {
 }
 
 /**
- * Hauteur du sol en un point (x,z) — dunes proches (bruit multi-fréquence
+ * Hauteur du sol en un point (x,z) : dunes proches (bruit multi-fréquence
  * déterministe, gentil) + chaîne générique + Popo/Izta, tous additionnés :
  * les deux couches de montagnes vivent à des rayons bien plus grands que
  * les dunes (16-30 contre 4-9), se chevauchent rarement, l'addition reste

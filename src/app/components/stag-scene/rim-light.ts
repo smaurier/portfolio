@@ -2,7 +2,7 @@ import { Color, MeshStandardMaterial, type Material, type Object3D } from "three
 import { addShaderModifier } from "./shader-patch";
 
 /**
- * Liseré de lumière (fresnel) sur les matériaux standard d'un objet — retour
+ * Liseré de lumière (fresnel) sur les matériaux standard d'un objet : retour
  * de Sylvain le 18/08 après audit DA comparé à des sites de référence
  * (Lusion, cf Codex Nahual/memory project-nahual-da) : aucun matériau de la
  * scène n'avait de traitement custom, tout tournait en meshStandardMaterial
@@ -15,11 +15,11 @@ import { addShaderModifier } from "./shader-patch";
  * terme de bord en plus. Pas de géométrie dupliquée pour une coque fresnel
  * séparée (technique alternative courante) : le cerf est skinné/animé,
  * dupliquer sa géométrie aurait demandé de synchroniser un second squelette
- * — complexité pas justifiée pour cet effet seul.
+ * : complexité pas justifiée pour cet effet seul.
  *
  * addShaderModifier (pas une assignation directe de onBeforeCompile) :
  * indispensable dès que le même matériau reçoit un autre traitement (le
- * cerf a aussi cursor-reveal.ts, 18/08) — une seconde assignation directe
+ * cerf a aussi cursor-reveal.ts, 18/08) : une seconde assignation directe
  * aurait silencieusement écrasé ce liseré.
  */
 
@@ -45,7 +45,7 @@ export type RimLightUniforms = {
   uRimColor: { value: Color };
   uRimIntensity: { value: number };
   uRimPower: { value: number };
-  // Teinte diffuse sur tout le corps du cerf (pas juste le liseré fin) —
+  // Teinte diffuse sur tout le corps du cerf (pas juste le liseré fin) :
   // ajoutée le 25/08 (retour Sylvain : "la couleur progressive doit aussi
   // venir sur le cerf"). Partage uRimColor comme cible ; amount séparé du
   // rim (le rim est un effet de bord net, le body tint est un fondu global).
@@ -53,7 +53,7 @@ export type RimLightUniforms = {
   // Intensité des lignes claires sur les angles du modèle low-poly
   // (26/08, retour Sylvain "lignes claires sur tous les angles qui
   // pulsent en cadence avec notre battement"). Détectées via fwidth
-  // sur vNormal — les arêtes entre deux faces low-poly ont une
+  // sur vNormal : les arêtes entre deux faces low-poly ont une
   // discontinuité de normale nette, fwidth (dérivées d'écran) l'attrape.
   // Additif teinte cardinale, pulse partagé (StagModel pilote la valeur).
   uEdgeIntensity: { value: number };
@@ -62,7 +62,7 @@ export type RimLightUniforms = {
   // fonction de la fréquence de respiration, peut-être jouer sur le
   // colori, la forme"). Séparé d'uEdgeIntensity pour piloter à la fois
   // l'épaisseur (fine en valley → épaisse en peak) et un flash blanc
-  // au sommet du battement — la ligne "respire" visuellement, pas
+  // au sommet du battement : la ligne "respire" visuellement, pas
   // juste une intensité modulée.
   uEdgePulse: { value: number };
 };
@@ -72,7 +72,7 @@ export type RimLightUniforms = {
 // (retour Sylvain : "entre deux scènes après changement de page, le
 // cerf garde la même teinte") : useGLTF met la scene en cache, donc
 // remount de StagModel sur navigation SPA rend applyRimLight sur la
-// même instance de materials — l'ancien WeakSet empêchait de
+// même instance de materials : l'ancien WeakSet empêchait de
 // re-patcher (bien : on veut un seul onBeforeCompile par matériau)
 // mais retournait quand même des NOUVEAUX uniforms non branchés au
 // shader, donc setRimLightColor/Intensity mutait des objets orphelins
@@ -84,7 +84,7 @@ const uniformsByMaterial = new WeakMap<Material, RimLightUniforms>();
 /**
  * Parcourt `root` et patche chaque MeshStandardMaterial rencontré. Renvoie
  * les uniforms de chaque matériau patché (y compris ceux déjà patchés lors
- * d'un appel précédent, pour rester idempotent) — l'appelant les fait
+ * d'un appel précédent, pour rester idempotent) : l'appelant les fait
  * varier lui-même par frame (cf StagModel), pas de useFrame ici : ce module
  * ne connaît pas l'arc de reveal, juste comment brancher l'effet.
  */
@@ -108,7 +108,7 @@ export function applyRimLight(
         // Material déjà patché sur un mount précédent (useGLTF cache
         // la scene entre navigations SPA) : réutilise les uniforms
         // effectivement branchés au shader. L'appelant les mutera au
-        // prochain useFrame — la couleur/intensité seront alors ce
+        // prochain useFrame : la couleur/intensité seront alors ce
         // que la nouvelle page demande (progress=0 après le reset
         // scroll de SceneStage), pas l'état de la page précédente.
         allUniforms.push(existing);
@@ -150,12 +150,12 @@ export function applyRimLight(
             `// Body tint : la couleur cardinale se dépose progressivement
             // sur tout le corps du cerf avant que le rim (bord net) prenne
             // le relais. Screen blend (1 - (1-a)*(1-b)) plutôt qu'un mix
-            // linéaire — retour Sylvain 25/08 : "je trouve la teinte très
-            // grossière" — le screen préserve les hautes lumières et
+            // linéaire : retour Sylvain 25/08 : "je trouve la teinte très
+            // grossière" : le screen préserve les hautes lumières et
             // dépose la couleur surtout dans les tons foncés/moyens, ce
             // qui se lit comme un glow subtil plutôt qu'une couche de
             // peinture plaquée. Plafond ×0.85 (26/08 audit Playwright,
-            // retour Sylvain "cerf plein de couleurs à p=1" — l'ancien
+            // retour Sylvain "cerf plein de couleurs à p=1" : l'ancien
             // plafond ×0.5 gardait un cerf lavé/washed-out au climax).
             vec3 bodyTinted = vec3(1.0) - (vec3(1.0) - gl_FragColor.rgb) * (vec3(1.0) - uRimColor);
             gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 0.06);
@@ -170,7 +170,7 @@ export function applyRimLight(
             // sobre, environnement porte la couleur.
             // Note : pas de multiply pass en fin (testé le 26/08, retour
             // Sylvain "cerf transparent + uniforme, on ne voit plus les
-            // éléments de son corps") — le multiply saturait tellement
+            // éléments de son corps") : le multiply saturait tellement
             // les tons foncés qu'il écrasait la modulation PBR.
             float rimFresnel = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), uRimPower);
             gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity;
@@ -181,11 +181,11 @@ export function applyRimLight(
             //
             // Trois modulations pilotées par uEdgePulse (0.65..1.0
             // formule cardiaque sin^4, cf StagModel/StagAura) :
-            //  1. Épaisseur : facteur seuil mix(6, 16, pulse) — ligne
+            //  1. Épaisseur : facteur seuil mix(6, 16, pulse) : ligne
             //     fine en valley, épaisse en peak (la ligne "gonfle").
             //  2. Flash blanc : au sommet du battement (pulse > 0.85)
-            //     la couleur mixe vers blanc — bioluminescence pulsée.
-            //  3. Intensité globale : multipliée par pulse — la ligne
+            //     la couleur mixe vers blanc : bioluminescence pulsée.
+            //  3. Intensité globale : multipliée par pulse : la ligne
             //     s'éteint entre deux battements plutôt que rester
             //     égale.
             vec3 edgeDeriv = fwidth(vNormal);
@@ -204,11 +204,11 @@ export function applyRimLight(
 }
 
 /**
- * Fait varier l'intensité du liseré déjà branché (cf applyRimLight) — en
+ * Fait varier l'intensité du liseré déjà branché (cf applyRimLight) : en
  * fonction séparée plutôt qu'une assignation directe dans le composant
  * appelant : eslint-plugin-react-hooks (compilateur React 19) refuse une
  * mutation directe (`x.y = z`) sur une valeur issue d'un hook dans le corps
- * du composant, mais pas un appel de fonction qui mute en interne — même
+ * du composant, mais pas un appel de fonction qui mute en interne : même
  * raison que `clone.scale.setScalar(...)` ailleurs dans ce projet
  * (milpa.tsx, background-flora.tsx) plutôt qu'une assignation.
  */
@@ -219,7 +219,7 @@ export function setRimLightIntensity(uniformsList: RimLightUniforms[], intensity
 }
 
 /**
- * Fait varier le taux de teinte diffuse sur tout le corps — même raison
+ * Fait varier le taux de teinte diffuse sur tout le corps : même raison
  * de fonction séparée que setRimLightIntensity (react-hooks/immutability).
  * `blend` : 0 = pas de teinte, 1 = teinte à saturation max (×0.35 dans
  * le shader, cf plafond). Passe getRimColorBlend(progress) en pratique.
@@ -232,7 +232,7 @@ export function setBodyTintAmount(uniformsList: RimLightUniforms[], blend: numbe
 
 /**
  * Fait varier l'intensité des lignes claires sur les angles low-poly
- * (26/08). L'appelant passe le blend (pas le pulse — celui-ci est
+ * (26/08). L'appelant passe le blend (pas le pulse : celui-ci est
  * appliqué séparément côté shader via uEdgePulse pour piloter la
  * forme et la couleur en plus de l'intensité).
  */
@@ -245,7 +245,7 @@ export function setEdgeIntensity(uniformsList: RimLightUniforms[], value: number
 /**
  * Pulse cardiaque brut 0..1 (26/08). Le shader s'en sert pour moduler
  * épaisseur (fine → épaisse), colori (cardinal → flash blanc) et
- * intensité globale de la ligne — la ligne "respire" au lieu d'une
+ * intensité globale de la ligne : la ligne "respire" au lieu d'une
  * simple modulation d'intensité.
  */
 export function setEdgePulse(uniformsList: RimLightUniforms[], value: number) {
@@ -256,20 +256,20 @@ export function setEdgePulse(uniformsList: RimLightUniforms[], value: number) {
 
 // Couleur de repos permanente (doré chaleureux, DEFAULT_OPTIONS.color
 // ci-dessus). Interpolée vers une teinte cible (climaxColor) sur la
-// fenêtre du rim (getRimColorBlend, cf reveal-arc.ts) — jade par
+// fenêtre du rim (getRimColorBlend, cf reveal-arc.ts) : jade par
 // défaut, historique home. Depuis le 25/08, teinte cible par direction
-// (Codex Nahual section 03, cf memory project-nahual-da) — chaque page
+// (Codex Nahual section 03, cf memory project-nahual-da) : chaque page
 // passe la sienne à StagModel, qui la propage ici.
 const REST_COLOR = new Color(DEFAULT_OPTIONS.color);
 const DEFAULT_CLIMAX_COLOR = "#00a86b";
 
-// Scratch alloué au module-level (une seule allocation, réutilisée) —
+// Scratch alloué au module-level (une seule allocation, réutilisée) :
 // évite un `new Color` par frame quand la teinte cible varie ; pattern
 // déjà utilisé pour les scratchs Vector3/Quaternion dans head-look.ts.
 const climaxColorScratch = new Color();
 
 /**
- * Fait varier la couleur du liseré déjà branché — même raison de
+ * Fait varier la couleur du liseré déjà branché : même raison de
  * fonction séparée que setRimLightIntensity ci-dessus
  * (react-hooks/immutability). `climaxBlend` : 0 = REST_COLOR (doré),
  * 1 = `climaxColorHex` (teinte de la direction courante, jade par

@@ -1,18 +1,18 @@
-// Constante du voile de chargement — MIN_VEIL_DURATION_MS reste utile
+// Constante du voile de chargement : MIN_VEIL_DURATION_MS reste utile
 // pour LoadingSync (le petit client component qui pose data-loaded sur
 // <html> quand assets + duree min atteintes). Les fonctions easeToward
 // et isLoadingDone ont ete retirees le 30/08 avec le refactor
 // PiedraSkeleton (LoadingVeil supprime, plus de rAF ease progress ni
-// de logique done complexe — le voile est un Server Component SSR pur
+// de logique done complexe : le voile est un Server Component SSR pur
 // qui fade out sur html[data-loaded="true"]).
 
-/** Duree minimale historique — plancher de securite au cas ou le calcul
+/** Duree minimale historique : plancher de securite au cas ou le calcul
  * dynamique echouerait. Retour Sylvain 30/08 : 1400 → 2500 → 3500ms
  * pour lire confortablement phrase + trad. */
 export const MIN_VEIL_DURATION_MS = 3500;
 
 /** Duree que le voile reste visible APRES que le dernier char de texte
- * soit revele — englobe :
+ * soit revele : englobe :
  *   - dots cardinaux burst sequentiel : ~1220ms
  *   - cercle d'union : 1320 → 2220ms
  *   - logo Nahual signature : 2420 → 3220ms
@@ -35,7 +35,7 @@ export const REVEAL_TIMING = {
     animMs: 700,
   },
   translation: {
-    /** La trad demarre APRES la phrase — offset absolu depuis mount. */
+    /** La trad demarre APRES la phrase : offset absolu depuis mount. */
     startMs: 1800,
     /** Delai entre chaque char pour la traduction (plus rapide). */
     staggerMs: 20,
@@ -45,7 +45,7 @@ export const REVEAL_TIMING = {
 } as const;
 
 /** Compte les chars non-espace d'un texte (les espaces sont revelees
- * sans animation propre — elles s'affichent avec le char suivant). */
+ * sans animation propre : elles s'affichent avec le char suivant). */
 function nonSpaceCharCount(text: string): number {
   return Array.from(text).filter((ch) => ch !== " " && ch !== " ").length;
 }

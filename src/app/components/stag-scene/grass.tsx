@@ -5,10 +5,10 @@ import { generateRingPlacements } from "@/lib/flora-placement";
 import { getTerrainHeight } from "@/lib/terrain-height";
 
 /**
- * Touffes d'herbe sèche, fixes au sol — retour de Sylvain le 18/08 ("un peu
+ * Touffes d'herbe sèche, fixes au sol : retour de Sylvain le 18/08 ("un peu
  * triste", habiller la scène). Herbe sèche/en touffes (pas un gazon) :
  * cohérent avec le reste de la palette désertique déjà posée (agave, nopal,
- * ocotillo) — l'altiplano centre-mexicain est un matorral/steppe semi-aride,
+ * ocotillo) : l'altiplano centre-mexicain est un matorral/steppe semi-aride,
  * pas une prairie.
  *
  * Géométrie procédurale minimale (cônes à 3 faces = silhouette de brin,
@@ -18,9 +18,9 @@ import { getTerrainHeight } from "@/lib/terrain-height";
  * ne s'impose comme évidemment meilleur.
  *
  * Placement réutilise generateRingPlacements (flora-placement.ts) tel quel
- * plutôt qu'un nouveau générateur — même besoin (répartition homogène,
+ * plutôt qu'un nouveau générateur : même besoin (répartition homogène,
  * déterministe) à un rayon différent (plus proche/dense que le fond fixe).
- * Statique, pas de pousse animée — même règle que background-flora.tsx.
+ * Statique, pas de pousse animée : même règle que background-flora.tsx.
  */
 
 const BLADE_COLORS = ["#8a7d4a", "#6f6a3c", "#5c6b3f"];

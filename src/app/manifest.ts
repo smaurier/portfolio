@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE_NAME } from "@/lib/seo";
 
 /**
- * Web App Manifest (29/08 SEO pass v2). Basique — sert surtout a
+ * Web App Manifest (29/08 SEO pass v2). Basique : sert surtout a
  * l'installabilite PWA sur mobile (Add to Home Screen) et a un
  * indicateur SERP "installable" sur mobile Chrome. Rien de complexe.
  * theme_color obsidienne aligne la barre chrome mobile a la palette.

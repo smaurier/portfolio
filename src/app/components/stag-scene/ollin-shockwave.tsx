@@ -10,7 +10,7 @@ import { OllinShockwaveEffect } from "./ollin-shockwave-effect";
  * OllinShockwaveEffect dans l'EffectComposer parent (PostFX) + gere le
  * cycle de vie de l'onde a chaque pointerdown.
  *
- * Trigger : pointerdown global (fenetre, pas juste canvas — n'importe
+ * Trigger : pointerdown global (fenetre, pas juste canvas : n'importe
  * quel toucher declenche l'onde d'Ollin). Skip si :
  *  - prefers-reduced-motion active (troubles vestibulaires)
  *  - mode recit accessible actif (canvas deja demonte, plus rien a
@@ -42,7 +42,7 @@ export default function OllinShockwave() {
       if (document.body.classList.contains("reading-mode")) return;
       // Skip clicks sur boutons UI (focus mode intentionnel, pas
       // "toucher le voile"). Un click sur un CTA lance l'onde ET la
-      // navigation — casse la lisibilite du feedback nav. Filtre.
+      // navigation : casse la lisibilite du feedback nav. Filtre.
       const target = e.target as HTMLElement | null;
       if (target?.closest?.('button, a, input, textarea, select, [role="button"]')) return;
       const uvX = e.clientX / window.innerWidth;
@@ -62,7 +62,7 @@ export default function OllinShockwave() {
 
     // Boost partage OrbitCamera parallax (29/08 retour Sylvain
     // "camera doit suivre le joueur"). Pendant l'onde d'Ollin, la
-    // camera amplifie sa reponse au parallax souris — sensation
+    // camera amplifie sa reponse au parallax souris : sensation
     // "l'onde tire aussi le regard du cerf". Pattern identique a
     // __nahualAudioLevel pose par SoundDesign pour bloom pulse.
     const win = typeof window !== "undefined"
@@ -86,7 +86,7 @@ export default function OllinShockwave() {
       if (win?.__nahualOllinBoost) win.__nahualOllinBoost.current = 0;
       return;
     }
-    // easeOut cubique — impulsion nette au debut, decay doux.
+    // easeOut cubique : impulsion nette au debut, decay doux.
     const eased = 1 - Math.pow(1 - t, 3);
     uProgress.value = eased;
     uAmp.value = AMPLITUDE_PEAK * (1 - eased);

@@ -17,7 +17,7 @@ import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-c
 
 /**
  * Pétales de cempasúchil qui accompagnent le cerf (26/08, Phase 3
- * mytho — cf memory project-nahual-da). Signature nahua directe :
+ * mytho : cf memory project-nahual-da). Signature nahua directe :
  * la fleur emblématique du Día de los Muertos, qui guide les âmes
  * dans la cosmologie mésoaméricaine. Ici déclinée dans la teinte
  * cardinale de la direction (pas juste orange fixe) : la palette
@@ -25,14 +25,14 @@ import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-c
  *
  * Trois choix techniques qui poussent au-dessus du "point additif
  * générique" :
- *  1. **Curl-ish flow field** — dérive fluide dans le vertex shader
+ *  1. **Curl-ish flow field** : dérive fluide dans le vertex shader
  *     (pas un sinus par axe), les pétales suivent des lignes de
  *     courant naturelles plutôt qu'un tremblement isotrope.
- *  2. **Cycle de vie** — chaque pétale a une durée, fade in-out sur
+ *  2. **Cycle de vie** : chaque pétale a une durée, fade in-out sur
  *     sa lifespan, ré-injection au début quand elle expire. Densité
  *     visuelle stable sans motion clichée "particules statiques qui
  *     tremblent".
- *  3. **Forme pétale procédurale + rotation individuelle** —
+ *  3. **Forme pétale procédurale + rotation individuelle** :
  *     gl_PointCoord tourné en fragment, shape ellipse pointue
  *     asymétrique (pas un disque parfait). Chaque pétale a son
  *     orientation propre.
@@ -41,7 +41,7 @@ import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-c
  * alignment natif de gl_PointSize suffit ici (les pétales tombent
  * face caméra à toute distance), on gagne le coût d'un attribut
  * quaternion par instance. gl_PointSize atrophie en périphérie du
- * canvas selon certains drivers — acceptable pour ce cas d'usage,
+ * canvas selon certains drivers : acceptable pour ce cas d'usage,
  * les pétales sur les bords ne sont pas la lecture centrale.
  */
 const PETAL_COUNT = 140;
@@ -51,7 +51,7 @@ const PETAL_COUNT = 140;
 const EMISSION_RADIUS = 2.0;
 const EMISSION_HEIGHT_CENTER = 1.0;
 
-// Fraction des pétales qui portent la teinte accent (Phase 4, 27/08 —
+// Fraction des pétales qui portent la teinte accent (Phase 4, 27/08 :
 // palette accent complémentaire). 15% : assez pour créer un dialogue
 // chromatique, trop peu pour concurrencer la cardinale dominante.
 const ACCENT_RATIO = 0.15;
@@ -77,7 +77,7 @@ export default function SpiritParticles({
 
     for (let i = 0; i < PETAL_COUNT; i++) {
       // Distribution uniforme sphérique (rejection sampling) autour
-      // du corps du cerf — sphère de radius EMISSION_RADIUS centrée
+      // du corps du cerf : sphère de radius EMISSION_RADIUS centrée
       // sur (0, EMISSION_HEIGHT_CENTER, 0). Répartition cube-rootée
       // pour homogénéiser la densité (pas concentrée au centre).
       let x, y, z, s;
@@ -93,7 +93,7 @@ export default function SpiritParticles({
       positions[i * 3 + 1] = (y / norm) * r + EMISSION_HEIGHT_CENTER;
       positions[i * 3 + 2] = (z / norm) * r;
       seeds[i] = Math.random();
-      // Lifespan entre 4 et 8 secondes — pas d'harmonique
+      // Lifespan entre 4 et 8 secondes : pas d'harmonique
       // synchronisée qui ferait "vagues" collectives.
       lifespans[i] = 4.0 + Math.random() * 4.0;
       // 15% des pétales portent la teinte accent complémentaire
@@ -118,7 +118,7 @@ export default function SpiritParticles({
         // transition : cardinal vector × amplitude bell curve, les
         // pétales sont poussées dans la direction cible.
         uCardinalWind: { value: new Vector3(0, 0, 0) },
-        // Force scalaire du vent normalisée 0..1 — permet au vertex
+        // Force scalaire du vent normalisée 0..1 : permet au vertex
         // shader d'amplifier la taille des sprites pendant burst
         // (dispersion visible plus prononcée) et au fragment d'étirer
         // la forme pétale dans la direction du vent (trail visuel).
@@ -134,23 +134,23 @@ export default function SpiritParticles({
     if (!materialRef.current) return;
     const p = progressRef.current;
     const blend = getRimColorBlend(p);
-    // Pulse partagé avec rim/edge/aura — les pétales respirent en
+    // Pulse partagé avec rim/edge/aura : les pétales respirent en
     // phase avec le battement cardiaque (formule sin^4 période 4s).
     const pulse = 0.65 + 0.35 * Math.pow(Math.sin(state.clock.elapsedTime * Math.PI * 0.25), 4);
     uniforms.uIntensity.value = blend * pulse;
     uniforms.uTime.value = state.clock.elapsedTime;
 
-    // Vent cardinal Ehecatl pendant burst transition — pousse les
+    // Vent cardinal Ehecatl pendant burst transition : pousse les
     // pétales dans la direction cible. Courbe rise-and-hold : monte
     // vite (0→0.3), tient au max (0.3→0.8), retombe (0.8→1). Ampli
     // 5.5 (28/08 boost signature dispersion, retour Sylvain "on n'a
-    // pas terminé le truc avec les pétales") — dérive franche
+    // pas terminé le truc avec les pétales") : dérive franche
     // clairement visible pendant les 500ms sans jamais éjecter tout
     // hors scène (les pétales sont ré-injectées à leur position par
     // le cycle de vie lifespan quand elles expirent).
     if (transition?.transitionDirection && transition.transitionProgressRef.current > 0) {
       const t = transition.transitionProgressRef.current;
-      // Rise fast, hold, fall — plus signature qu'une bell smooth qui
+      // Rise fast, hold, fall : plus signature qu'une bell smooth qui
       // atteint son max au milieu seulement.
       let curve: number;
       if (t < 0.3) curve = t / 0.3;
@@ -210,14 +210,14 @@ export default function SpiritParticles({
             vec3 pos = position;
             // Dérive : le flow field échantillonné à la position
             // initiale + une lente évolution du champ dans le temps
-            // (uTime * 0.05) — le champ "respire" doucement, les
+            // (uTime * 0.05) : le champ "respire" doucement, les
             // trajectoires ne sont pas rigidement fixes.
             vec3 drift = flow(pos * 0.5 + uTime * 0.05);
             pos += drift * t * 0.9;
             // Montée légère (les pétales tombent lentement vers le
-            // haut, comme aspirés — signal "esprit qui s'élève").
+            // haut, comme aspirés : signal "esprit qui s'élève").
             pos.y += t * 0.6;
-            // Vent cardinal Ehecatl (28/08) — pendant le burst de
+            // Vent cardinal Ehecatl (28/08) : pendant le burst de
             // transition, uCardinalWind pousse toutes les pétales
             // dans la direction cible. Multiplié par une phase
             // continue par pétale (aSeed) pour que la réponse ne soit
@@ -233,7 +233,7 @@ export default function SpiritParticles({
             vAlpha = fadeIn * fadeOut;
 
             // Rotation individuelle : orientation fixe par pétale
-            // (aSeed) — chaque pétale garde son angle pendant sa vie
+            // (aSeed) : chaque pétale garde son angle pendant sa vie
             // (pas de spin frénétique). Suffit à casser l'uniformité
             // d'un disque radial.
             vRotation = aSeed * 6.2831853;
@@ -244,7 +244,7 @@ export default function SpiritParticles({
             gl_Position = projectionMatrix * mvPosition;
             // Taille en pixels : décroît avec la distance
             // (perspective réaliste). ×90 base, boost pendant burst
-            // Ehecatl (uWindStrength 0..1) — pétales gonflent quand
+            // Ehecatl (uWindStrength 0..1) : pétales gonflent quand
             // le vent souffle, signature dispersion plus visible.
             gl_PointSize = (90.0 + 55.0 * uWindStrength) / -mvPosition.z;
             // Transmis au fragment pour étirer la forme pétale dans
@@ -293,7 +293,7 @@ export default function SpiritParticles({
             float alpha = shape * vAlpha * uIntensity;
             // Prémultiplié + alpha=1 pour AdditiveBlending (le
             // srcFactor SrcAlpha default squasherait uColor*alpha²
-            // au lieu de uColor*alpha — même correction que
+            // au lieu de uColor*alpha : même correction que
             // stag-aura.tsx).
             gl_FragColor = vec4(petalColor * alpha, 1.0);
           }

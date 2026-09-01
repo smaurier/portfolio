@@ -12,7 +12,7 @@ import { useCardinalTransition, type CardinalDirection } from "./stag-scene/card
  * Navigation clavier + manette (28/08 task #58, etendu 30/08).
  *
  * TOUS les raccourcis clavier sont CARDINAUX (retour Sylvain 30/08
- * "alt+fleche c'est incoherent" — l'ancien pattern Alt+←/→ cyclait
+ * "alt+fleche c'est incoherent" : l'ancien pattern Alt+←/→ cyclait
  * dans NAV_ORDER independamment de la direction spatiale, ce qui
  * cassait la coherence "fleche gauche = ouest"). Deux mappings
  * paralleles pour la meme grille cardinale :
@@ -25,14 +25,14 @@ import { useCardinalTransition, type CardinalDirection } from "./stag-scene/card
  *      Alt+ArrowLeft  = Ouest   (contact)
  *
  * 2. WASD (QWERTY) / ZQSD (AZERTY) : meme grille, event.code matche
- *    la POSITION physique — meme touche quel que soit le layout.
+ *    la POSITION physique : meme touche quel que soit le layout.
  *      KeyW = Nord   (memoire)
  *      KeyD = Est    (services)
  *      KeyS = Sud    (projets)
  *      KeyA = Ouest  (contact)
  *      KeyC = Centre (home)
  *
- * 3. Escape : retour Home (Centre / jade) — fallback pour user
+ * 3. Escape : retour Home (Centre / jade) : fallback pour user
  *    habitue au pattern Escape=close/back.
  *
  * Skip si focus dans input/textarea/contenteditable (ne pas pieger la
@@ -62,7 +62,7 @@ const DIRECTION_BY_KEY: Record<PageKey, CardinalDirection> = {
 //         Sud  (0,1)
 // Une touche = un delta directionnel applique a la position actuelle.
 // Nouveau (x',y') doit correspondre a une case habitee (Nord, Est,
-// Sud, Ouest, Centre) — sinon impasse, feedback shake sur la direction
+// Sud, Ouest, Centre) : sinon impasse, feedback shake sur la direction
 // pressee, pas de navigation.
 
 type GridPos = [number, number];

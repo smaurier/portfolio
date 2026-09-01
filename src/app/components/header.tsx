@@ -25,7 +25,7 @@ const langNames: Record<Locale, string> = {
  * liens externes). Desktop inchangé.
  *
  * État `open` local (useState) : le layout est un Server Component,
- * mais Header est déjà `use client` — pas de plomberie
+ * mais Header est déjà `use client` : pas de plomberie
  * supplémentaire nécessaire. Escape ferme, clic sur un lien ferme
  * (utile côté nav interne SPA : le composant reste monté après
  * navigation, il faut refermer explicitement), scroll du body
@@ -145,7 +145,7 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
         </button>
       </div>
 
-      {/* Panel mobile — rendu conditionnel plutôt qu'un display:none
+      {/* Panel mobile : rendu conditionnel plutôt qu'un display:none
           permanent pour éviter que les liens soient dans l'ordre de
           tabulation quand le panel est fermé sur mobile. */}
       {open && (

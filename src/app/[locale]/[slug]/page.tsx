@@ -12,10 +12,10 @@ import { renderWithNahuatl } from "../../../lib/nahuatl";
 import { SITE_URL, SITE_NAME } from "../../../lib/seo";
 
 // Depuis le 25/08 (cf memory project-nahual-da) : plus de fenêtre écho
-// 320×320 par page — la scène 3D plein écran de la home est généralisée
+// 320×320 par page : la scène 3D plein écran de la home est généralisée
 // à Services/Projets/Contact/Mémoire via EchoScenePage. Depuis le
 // 25/08 soir, chaque page porte sa direction (Codex Nahual section
-// 03) — la couleur cible du fog + rim + nav emphasis change par page
+// 03) : la couleur cible du fog + rim + nav emphasis change par page
 // (Est/doré, Sud/turquoise, Ouest/cendre, Nord/obsidienne). Les
 // enrichissements plus profonds (pose du cerf, densité de flore,
 // ambiance) viendront quand nous les coderons (YAGNI).
@@ -39,7 +39,7 @@ export function generateStaticParams() {
 }
 
 /**
- * generateMetadata (29/08 fix RGAA 8.6) — chaque page sous-slug avait
+ * generateMetadata (29/08 fix RGAA 8.6) : chaque page sous-slug avait
  * le title global "Nahual . studio de création" (dict.metadata.title
  * du layout parent), identique a la home. Non-conformite bloquante :
  * un utilisateur SR ou un lecteur d'onglets ne pouvait pas distinguer
@@ -238,10 +238,10 @@ function ContactPage({ dict, showEmailLabel, newWindowLabel }: { dict: Dictionar
   );
 }
 
-// Chiffres romains — numérotation nahua codex sur les chapitres
+// Chiffres romains : numérotation nahua codex sur les chapitres
 // memoire (27/08 Codex S4). Signature "manuscrit numéroté" cohérente
 // avec l'ontologie codex nahua (les codex historiques numéraient leurs
-// pages en glyphes). Limité à Memoire (7 chapitres) — sur Services
+// pages en glyphes). Limité à Memoire (7 chapitres) : sur Services
 // (2 offres) ou Projets (3 cases) ça ferait pédant.
 function toRoman(n: number): string {
   const values = [10, 9, 5, 4, 1];
@@ -259,7 +259,7 @@ function toRoman(n: number): string {
 /**
  * Codex page (28/08 task #52 audit SOTY). Hub cosmogonique + about
  * incarne. Fusion en une seule page pour ne pas dedoubler About et
- * Codex — le cœur nahua etant justement l'unite entre la cosmologie
+ * Codex : le cœur nahua etant justement l'unite entre la cosmologie
  * et la personne qui l'ecrit. Sections : cosmos (5 directions) +
  * totem (cerf Mazatl) + human (Sylvain) + family (Elda, Léopoldine,
  * Alondra, cadre franco-mexicain) + respect (garde-fou appropriation)
@@ -275,7 +275,7 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
       {/* Section Xolotl gardee en position naturelle (apres totem)
           dans le DOM, mais REMONTEE EN TETE via CSS order:-1 quand
           body.xolotl-witnessed:not(.xolotl-codex-read). Retour Sylvain
-          30/08 : "on fait l'ordre conditionnel oui" — Xolotl en tete
+          30/08 : "on fait l'ordre conditionnel oui" : Xolotl en tete
           SEULEMENT pour le temoin actif (pas pour un user qui explore
           le codex sans avoir vu Xolotl). */}
 
@@ -410,7 +410,7 @@ function MemoirePage({ dict }: { dict: Dictionary["memoire"] }) {
         </div>
       ))}
 
-      {/* Crédit respectueux motifs cardinaux (28/08 option A) — l'ajout
+      {/* Crédit respectueux motifs cardinaux (28/08 option A) : l'ajout
         * de motifs iconographiques mésoaméricains sur le site nécessite
         * une mention explicite : évocation stylisée, pas reproduction,
         * hommage familial. Prévention appropriation culturelle. */}
@@ -467,7 +467,7 @@ export default async function LocalizedPage({
       break;
   }
 
-  // BreadcrumbList JSON-LD (29/08 SEO pass v2) — aide Google a afficher
+  // BreadcrumbList JSON-LD (29/08 SEO pass v2) : aide Google a afficher
   // le fil d'Ariane dans les SERP, meme sur les pages sub.
   const pageUrl = `${SITE_URL}/${locale}/${slug}`;
   const homeUrl = `${SITE_URL}/${locale}`;

@@ -1,13 +1,13 @@
 /**
  * Géométrie des deux Xiuhcoatl (serpents de feu) qui encerclent le voile de
- * chargement — retour de Sylvain le 20/08 (cf memory project-nahual-da) :
+ * chargement : retour de Sylvain le 20/08 (cf memory project-nahual-da) :
  * référence directe à la Piedra del Sol (déjà présente sur la home,
  * piedra-del-sol.tsx), dont l'anneau extérieur réel est formé de deux
  * serpents de feu.
  *
  * Orientation vérifiée par recherche le 21/08 (Tenochtitlan/Fordham) : sur
  * la vraie pierre, les DEUX têtes (gueules ouvertes) sont en BAS, les deux
- * queues se rejoignent en HAUT — pas un unique point de rencontre "tête
+ * queues se rejoignent en HAUT : pas un unique point de rencontre "tête
  * contre tête". Chaque serpent est tracé tête d'abord (t=0, en bas) vers
  * queue (t=1, en haut) : l'animation de chargement fait donc littéralement
  * "partir du bas pour se rejoindre en haut" (retour de Sylvain), tout en
@@ -19,16 +19,16 @@
  * chevauchent légèrement à leurs extrémités (haut et bas).
  *
  * Traits réels réutilisés pour dépasser la 1ère tentative jugée "nulle" (une
- * ligne fine sans épaisseur, sans tête reconnaissable, sans texture) — cf
+ * ligne fine sans épaisseur, sans tête reconnaissable, sans texture) : cf
  * recherche du 21/08 (Wikipedia, Xiuhcōātl) : museau "fortement recourbé
  * vers l'arrière" (buildSnoutHook), queue façon "signe trapèze-et-rayon" de
  * l'année (buildTailFlare), corps segmenté en écailles (buildSegmentTicks).
  * Le corps lui-même est maintenant un vrai RUBAN fermé (buildSerpentOutlinePath,
- * offset de part et d'autre de la centerline) plutôt qu'une ligne centrale —
+ * offset de part et d'autre de la centerline) plutôt qu'une ligne centrale :
  * rendu en contour (fill: none), pas en couleur pleine (choix de Sylvain :
  * linework minimal, pas un remplissage façon codex).
  *
- * Fonctions pures (pas de Math.random — les ondulations sont des sinusoïdes
+ * Fonctions pures (pas de Math.random : les ondulations sont des sinusoïdes
  * à phase fixe) : déterministe, donc pas de désaccord SSR/client à
  * l'hydratation, et testable.
  */
@@ -67,7 +67,7 @@ function pointOnArc(params: SerpentArcParams, t: number): Point {
 }
 
 /** Liste de points échantillonnés le long de l'arc (t=0 = tête, t=1 =
- * queue) — base commune à toutes les fonctions de tracé ci-dessous, pour ne
+ * queue) : base commune à toutes les fonctions de tracé ci-dessous, pour ne
  * pas dupliquer la trigonométrie. */
 export function sampleSerpentArc(params: SerpentArcParams): Point[] {
   const points: Point[] = [];
@@ -77,7 +77,7 @@ export function sampleSerpentArc(params: SerpentArcParams): Point[] {
   return points;
 }
 
-/** Tangente locale (normalisée) au point d'indice i — moyenne avant/arrière
+/** Tangente locale (normalisée) au point d'indice i : moyenne avant/arrière
  * pour rester stable aux deux extrémités. */
 function tangentAt(points: Point[], i: number): Point {
   const p0 = points[Math.max(0, i - 1)];
@@ -132,7 +132,7 @@ export function widthAt(t: number, options: BodyWidthOptions = SERPENT_BODY_WIDT
 }
 
 /** Ruban fermé (bord +normal de t=0 à t=1, cap plat, bord -normal de t=1 à
- * t=0, cap plat qui referme sur le point de départ) — se lit comme un vrai
+ * t=0, cap plat qui referme sur le point de départ) : se lit comme un vrai
  * corps de serpent en silhouette (contour, `fill: none` côté composant) au
  * lieu d'une ligne centrale sans épaisseur. Corrige le retour du 20/08
  * ("ligne fine... pas de vraie forme pleine"). */
@@ -166,7 +166,7 @@ export const SNOUT_HOOK: SnoutHookOptions = { length: 4.5, curlDeg: 150, steps: 
 /** Petit tracé décoratif séparé (pas fondu dans le ruban fermé, pour éviter
  * tout risque d'auto-intersection du contour principal) : part de la pointe
  * tête vers l'avant puis recourbe progressivement vers l'arrière jusqu'à
- * `curlDeg` — approximation stylisée du "museau fortement recourbé vers
+ * `curlDeg` : approximation stylisée du "museau fortement recourbé vers
  * l'arrière" documenté (cf recherche du 21/08, Wikipedia). */
 export function buildSnoutHook(params: SerpentArcParams, options: SnoutHookOptions = SNOUT_HOOK): string {
   const points = sampleSerpentArc(params);
@@ -200,7 +200,7 @@ export type TailFlareOptions = { tabWidths: number[]; tabLength: number; rayLeng
 export const TAIL_FLARE: TailFlareOptions = { tabWidths: [3, 5, 7], tabLength: 1.8, rayLength: 3 };
 
 /** Paliers de largeur croissante (le "trapèze") au-delà de la pointe queue,
- * plus un petit segment final (le "rayon") — approximation stylisée du
+ * plus un petit segment final (le "rayon") : approximation stylisée du
  * signe trapèze-et-rayon de l'année associé à la queue du vrai Xiuhcoatl
  * (cf recherche du 21/08, Wikipedia), plutôt qu'une pointe simple. */
 export function buildTailFlare(params: SerpentArcParams, options: TailFlareOptions = TAIL_FLARE): string {
@@ -230,7 +230,7 @@ export type SegmentTickOptions = { count: number; startT: number; endT: number; 
 
 export const SEGMENT_TICKS: SegmentTickOptions = { count: 9, startT: 0.18, endT: 0.82, tickWidthFrac: 0.9 };
 
-/** Traits perpendiculaires réguliers le long du corps — évoque les écailles
+/** Traits perpendiculaires réguliers le long du corps : évoque les écailles
  * carrées segmentées du vrai Xiuhcoatl (diagnostic du 20/08 : "pas de
  * texture segmentée") sans recourir à un remplissage. Exclut les zones
  * tête/queue, déjà traitées par leurs propres motifs. */
@@ -279,7 +279,7 @@ const SHARED: Pick<
 };
 
 // Serpent A : tête en bas (100°, légèrement après le point bas, t=0), queue
-// en haut (260°, légèrement avant le sommet, t=1) — couvre le côté droit de
+// en haut (260°, légèrement avant le sommet, t=1) : couvre le côté droit de
 // l'anneau (via 360°/0° au passage). Le tracé va tête -> queue : l'animation
 // de chargement fait "partir du bas" (retour de Sylvain).
 export const SERPENT_A: SerpentArcParams = {
@@ -290,7 +290,7 @@ export const SERPENT_A: SerpentArcParams = {
   wobblePhase2: 2.1,
 };
 
-// Serpent B : tête en bas (80°, t=0), queue en haut (280°, t=1) — couvre le
+// Serpent B : tête en bas (80°, t=0), queue en haut (280°, t=1) : couvre le
 // côté gauche, phases différentes de A pour ne pas être un simple miroir
 // (retour de Sylvain : "irrégulier", pas symétrique).
 export const SERPENT_B: SerpentArcParams = {

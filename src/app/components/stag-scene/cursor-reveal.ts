@@ -2,7 +2,7 @@ import { MeshStandardMaterial, Vector2, type Material, type Object3D } from "thr
 import { addShaderModifier } from "./shader-patch";
 
 /**
- * Révélation par curseur — retour de Sylvain le 18/08 : "au départ, tous
+ * Révélation par curseur : retour de Sylvain le 18/08 : "au départ, tous
  * les éléments doivent être translucides [et en nuances de gris], et avec
  * le mouvement de souris ils vont se révéler petit à petit." Reprend une
  * idée déjà posée dans le Codex Nahual d'origine (17/08, jamais codée
@@ -14,10 +14,10 @@ import { addShaderModifier } from "./shader-patch";
  * des distances très différentes de la caméra).
  *
  * **Garde-fou accessibilité, posé avec Sylvain avant de coder** : ni
- * l'opacité ni la saturation ne tombent à zéro sans mouvement de souris —
+ * l'opacité ni la saturation ne tombent à zéro sans mouvement de souris :
  * la scène reste lisible dans son état "reveal=0" (translucide+désaturé,
  * jamais invisible). Un visiteur tactile/clavier/sans mouvement voit une
- * scène toujours là, juste moins "révélée" — jamais un contenu caché
+ * scène toujours là, juste moins "révélée" : jamais un contenu caché
  * derrière un geste obligatoire. L'arc de lumière du scroll (RevealLighting)
  * continue de garantir la visibilité de base indépendamment de cet effet.
  * Portée limitée à la scène 3D (confirmé par Sylvain) : header/footer/nav
@@ -26,21 +26,21 @@ import { addShaderModifier } from "./shader-patch";
  *
  * **Plancher piloté par le scroll depuis le 20/08** (retour de Sylvain :
  * "on est encore majoritairement en noir et blanc et transparence à la
- * fin") — avant, MIN_OPACITY/MIN_SATURATION étaient des constantes figées,
+ * fin") : avant, MIN_OPACITY/MIN_SATURATION étaient des constantes figées,
  * ce qui contredisait le principe posé dans le Codex Nahual dès le début
  * ("hover = présence locale, scroll = révélation structurelle") : le
  * scroll ne pilotait en réalité jamais cette révélation-là, seul le
- * curseur le faisait — la majorité du cadre restait grise/translucide même
+ * curseur le faisait : la majorité du cadre restait grise/translucide même
  * à "chemins révélés" si le curseur n'était pas passé dessus. Le plancher
  * remonte maintenant vers 1 avec le même rythme que le reste de l'arc
  * (getRevealFloor) : à "chemins révélés", la scène entière est pleinement
  * révélée par défaut, le curseur ne fait plus qu'accentuer localement
- * pendant les phases plus précoces — jamais de régression du garde-fou
+ * pendant les phases plus précoces : jamais de régression du garde-fou
  * d'accessibilité, le plancher ne redescend jamais.
  */
 
 // Valeurs de plancher en tout début de pénombre (progress=0, cf
-// setCursorRevealFloor) — mêmes valeurs qu'avant le 20/08, juste plus
+// setCursorRevealFloor) : mêmes valeurs qu'avant le 20/08, juste plus
 // figées : le point de départ de la remontée, pas la seule valeur possible.
 const MIN_OPACITY_START = 0.4;
 const MIN_SATURATION_START = 0.15;
@@ -53,7 +53,7 @@ export type CursorRevealUniforms = {
   uMinSaturation: { value: number };
 };
 
-/** Un seul jeu d'uniforms partagé par tous les matériaux patchés — la
+/** Un seul jeu d'uniforms partagé par tous les matériaux patchés : la
  * position souris est globale, pas propre à chaque objet (contrairement à
  * rim-light.ts/depth-fade.ts). Muter ces deux Vector2 une fois par frame
  * met à jour tous les matériaux d'un coup, pas besoin de reparcourir une
@@ -61,7 +61,7 @@ export type CursorRevealUniforms = {
  *
  * Depuis le 26/08 : singleton module-level, plus un nouvel objet par
  * appel. Retour Sylvain "en navigant d'un onglet à l'autre, le cerf
- * est transparent en fin de scroll" — même bug que rim-light fixé le
+ * est transparent en fin de scroll" : même bug que rim-light fixé le
  * 25/08 (69d70f2). useGLTF cache la scene entre navigations SPA →
  * `patchedMaterials` (WeakSet) skip les matériaux déjà patchés lors
  * du premier mount → tout mount ultérieur créait de NOUVEAUX uniforms
@@ -75,7 +75,7 @@ export function createCursorRevealUniforms(): CursorRevealUniforms {
   if (sharedUniforms) return sharedUniforms;
   sharedUniforms = {
     // Hors-écran tant qu'aucun mouvement n'a eu lieu : reveal=0 partout,
-    // l'état voulu par Sylvain au chargement — pas une valeur à corriger.
+    // l'état voulu par Sylvain au chargement : pas une valeur à corriger.
     uMouse: { value: new Vector2(-9999, -9999) },
     uResolution: { value: new Vector2(1, 1) },
     uRevealRadius: { value: 260 },
@@ -88,11 +88,11 @@ export function createCursorRevealUniforms(): CursorRevealUniforms {
 const patchedMaterials = new WeakSet<Material>();
 
 /**
- * Parcourt `root` et patche chaque MeshStandardMaterial rencontré — via
+ * Parcourt `root` et patche chaque MeshStandardMaterial rencontré : via
  * addShaderModifier (shader-patch.ts) pour composer proprement avec un
  * autre traitement déjà posé sur le même matériau (ex. le cerf a aussi
  * rim-light.ts). Idempotent (WeakSet), peut être rappelée chaque frame
- * pour les enfants montés après coup (flore CC0 sous Suspense) — même
+ * pour les enfants montés après coup (flore CC0 sous Suspense) : même
  * raison que depth-fade.ts.
  */
 export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms): void {
@@ -142,10 +142,10 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
 
 /**
  * Fait remonter le plancher (opacité/saturation minimales) avec l'arc de
- * reveal — en fonction séparée plutôt qu'une assignation directe dans le
+ * reveal : en fonction séparée plutôt qu'une assignation directe dans le
  * useFrame appelant : même raison react-hooks/immutability que
  * setRimLightIntensity (rim-light.ts). `revealFloor` : 0..1, cf
- * getRevealFloor (reveal-arc.ts) — 0 = plancher de départ (0.4/0.15),
+ * getRevealFloor (reveal-arc.ts) : 0 = plancher de départ (0.4/0.15),
  * 1 = pleinement révélé (1/1), jamais au-delà ni en-deçà.
  */
 export function setCursorRevealFloor(uniforms: CursorRevealUniforms, revealFloor: number): void {

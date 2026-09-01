@@ -7,7 +7,7 @@ import styles from "./sound-design.module.css";
  * Sound design cardinal (28/08 task #46). Sons génératifs Web Audio
  * API, zéro fichier externe :
  *  - Ambient drone : 3 sinus low très doux (F2, A2, C3) qui tournent
- *    en permanence quand unmute — respiration cosmique cardinal
+ *    en permanence quand unmute : respiration cosmique cardinal
  *  - Chime cardinal : bell timbre distinct par direction, joué au
  *    click sur un lien [data-cardinal-direction]
  *  - Whoosh : white noise burst filtré, joué au declenchement
@@ -21,11 +21,11 @@ import styles from "./sound-design.module.css";
 const STORAGE_KEY = "nahual-sound-muted";
 
 const CHIME_FREQ: Record<string, number[]> = {
-  jade: [432, 648], // Centre — bell claire
-  dore: [523, 784, 1046], // Est — ocarina triadique
-  turquoise: [660, 990], // Sud — flute quinte
-  cendre: [220, 330], // Ouest — tambour basse
-  obsidienne: [110, 165, 220], // Nord — gong grave
+  jade: [432, 648], // Centre : bell claire
+  dore: [523, 784, 1046], // Est : ocarina triadique
+  turquoise: [660, 990], // Sud : flute quinte
+  cendre: [220, 330], // Ouest : tambour basse
+  obsidienne: [110, 165, 220], // Nord : gong grave
 };
 
 export default function SoundDesign({ label }: { label: { on: string; off: string } }) {
@@ -119,7 +119,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     }
 
     // Ambient : 3 sinus low avec léger detuning pour donner épaisseur
-    const freqs = [87.31, 110, 130.81]; // F2, A2, C3 — accord mineur cosmique
+    const freqs = [87.31, 110, 130.81]; // F2, A2, C3 : accord mineur cosmique
     const nodes: { osc: OscillatorNode; gain: GainNode }[] = [];
     for (const f of freqs) {
       const osc = ctx.createOscillator();

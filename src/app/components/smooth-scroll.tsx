@@ -10,7 +10,7 @@ import Lenis from "lenis";
  * jusqu'à unmount.
  *
  * Respect prefers-reduced-motion : si l'utilisateur préfère moins de
- * mouvement, on ne mount pas Lenis du tout — scroll natif conservé,
+ * mouvement, on ne mount pas Lenis du tout : scroll natif conservé,
  * pas de lissage.
  *
  * Compatibilité scène 3D : Lenis met à jour window.scrollY à chaque

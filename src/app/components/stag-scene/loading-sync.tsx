@@ -11,15 +11,15 @@ import { MIN_VEIL_DURATION_MS } from "@/lib/loading-veil";
  *  - `minDurationMs` s'est ecoule (temps de lire phrase + trad)
  *
  * 31/08 : duree min calculee dynamiquement par le layout via
- * `computeMinVeilDuration(phrase, translation)` — reveal complet des
- * chars + 3s de lecture confortable — au lieu d'un timer fige. Prop
+ * `computeMinVeilDuration(phrase, translation)` : reveal complet des
+ * chars + 3s de lecture confortable : au lieu d'un timer fige. Prop
  * optionnelle, fallback sur MIN_VEIL_DURATION_MS.
  *
  * Le CSS de PiedraSkeleton lit ce data-attribute pour fade out le
- * voile de chargement. Aucune body class posee, aucun hack CSS — le
+ * voile de chargement. Aucune body class posee, aucun hack CSS : le
  * CSS Modules cible `html[data-loaded="true"]` directement.
  *
- * Ne rend rien (return null) — c'est juste un side-effect isole.
+ * Ne rend rien (return null) : c'est juste un side-effect isole.
  * Persist au niveau layout (comme LoadingVeil avant lui) : monte une
  * seule fois pour toute la session SPA.
  */

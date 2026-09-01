@@ -110,7 +110,7 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
       return;
     }
     // Intercepte : burst 3D (cerf/camera/bloom) puis navigation via
-    // View Transitions API si supportée — la page ENTIÈRE glisse
+    // View Transitions API si supportée : la page ENTIÈRE glisse
     // dans la direction cardinale, ancienne sort, nouvelle arrive.
     // Signature "vraie transition de page" (retour Sylvain 28/08
     // "faudrait vraiment que les pages coulissent et soient
@@ -122,7 +122,7 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
       // ::view-transition-old/new sélectionnent la bonne animation
       // cardinale (défini dans globals.css).
       document.documentElement.setAttribute("data-cardinal-nav", direction);
-      // Callback ASYNC (28/08 fix) — router.push est sync mais React
+      // Callback ASYNC (28/08 fix) : router.push est sync mais React
       // commit le nouveau DOM au tick suivant. Browser capture le new
       // snapshot dès que le callback retourne : sync = new === old =
       // pas d'anim visible. Attendre 2 rAF garantit que React a

@@ -2,12 +2,12 @@ import { MeshStandardMaterial, type Material, type Object3D } from "three";
 import { addShaderModifier } from "./shader-patch";
 
 /**
- * Perspective atmosphérique — retour de Sylvain le 18/08 : "plus on est
+ * Perspective atmosphérique : retour de Sylvain le 18/08 : "plus on est
  * loin et plus ça devient gris, comme en peinture" (désaturation par
  * profondeur, technique classique du paysage peint). Même mécanisme que
  * rim-light.ts (onBeforeCompile sur vViewPosition, déjà disponible dans le
  * shader standard three.js), mais purement géométrique : aucune mise à
- * jour par frame nécessaire côté JS — vViewPosition dépend déjà de la
+ * jour par frame nécessaire côté JS : vViewPosition dépend déjà de la
  * position caméra à chaque frame, recalculé côté GPU.
  *
  * Désature vers le gris de LUMINANCE du pixel (pas une teinte grise fixe) :
@@ -16,12 +16,12 @@ import { addShaderModifier } from "./shader-patch";
  *
  * Volontairement pas appliqué au cerf (cf StagModel, rim-light.ts à la
  * place) : le sujet doit rester net et coloré, c'est l'environnement (sol,
- * montagnes, flore de fond) qui doit reculer visuellement — même principe
+ * montagnes, flore de fond) qui doit reculer visuellement : même principe
  * que "le sujet ne doit jamais être noyé" déjà posé pour le post-processing.
  *
  * addShaderModifier (shader-patch.ts, pas une assignation directe de
  * onBeforeCompile) : indispensable depuis que cursor-reveal.ts (18/08)
- * s'applique aussi à l'environnement — sans ça, la seconde assignation
+ * s'applique aussi à l'environnement : sans ça, la seconde assignation
  * aurait silencieusement écrasé cette désaturation par profondeur.
  */
 
@@ -42,7 +42,7 @@ const patchedMaterials = new WeakSet<Material>();
 /**
  * Parcourt `root` et patche chaque MeshStandardMaterial rencontré.
  * Idempotent (WeakSet) : peut être rappelée chaque frame sans coût
- * significatif — nécessaire ici parce que certains enfants (flore CC0,
+ * significatif : nécessaire ici parce que certains enfants (flore CC0,
  * Suspense) montent après le premier rendu, même raison documentée pour le
  * recadrage par bounding box ailleurs dans ce projet (background-flora.tsx).
  */

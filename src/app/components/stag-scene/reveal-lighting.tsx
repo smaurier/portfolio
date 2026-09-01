@@ -20,10 +20,10 @@ import {
  * useFrame plutôt que prop/state React, même raison que OrbitCamera : ça
  * change à chaque frame de scroll.
  *
- * Le brouillard vivait avant dans stag-scene.tsx (couleur fixe #000000) —
+ * Le brouillard vivait avant dans stag-scene.tsx (couleur fixe #000000) :
  * déplacé ici : retour de Sylvain le 20/08 (intégrer le jade à la scène,
- * cf memory project-nahual-da — étude concurrentielle, piste "lueur
- * d'ambiance") — sa teinte fait maintenant partie du même système que
+ * cf memory project-nahual-da : étude concurrentielle, piste "lueur
+ * d'ambiance") : sa teinte fait maintenant partie du même système que
  * l'intensité lumineuse plutôt qu'un prop statique séparé.
  */
 export default function RevealLighting({
@@ -44,11 +44,11 @@ export default function RevealLighting({
   // sur plusieurs faces du décor, la scène aussi devrait suivre le
   // même traitement"). Tinter les lumières fait porter la teinte
   // cardinale à TOUT le décor PBR (sol, montagnes, milpa, vines,
-  // ocotillo, cempasúchils, flore de fond) via l'éclairage — pas
+  // ocotillo, cempasúchils, flore de fond) via l'éclairage : pas
   // besoin de patcher chaque matériau.
   const whiteColor = useMemo(() => new Color(1, 1, 1), []);
   const cardinalColor = useMemo(() => new Color(climaxRimColor ?? "#00c078"), [climaxRimColor]);
-  // Scratchs alloués une seule fois — mutés dans useFrame plutôt que
+  // Scratchs alloués une seule fois : mutés dans useFrame plutôt que
   // recréés à chaque tick (même pattern que rim-light climaxColorScratch).
   const ambientColorScratch = useMemo(() => new Color(), []);
   const directionalColorScratch = useMemo(() => new Color(), []);
@@ -58,7 +58,7 @@ export default function RevealLighting({
     const blend = getRimColorBlend(p);
     if (ambientRef.current) {
       ambientRef.current.intensity = getAmbientIntensity(p);
-      // Tint ambient 65% (28/08 recalibré après boost raté à 100% —
+      // Tint ambient 65% (28/08 recalibré après boost raté à 100% :
       // trop d'ambient teinté coloriait le cerf ENTIER uniformément
       // via l'éclairage global, contradictoire avec l'objectif "cerf
       // sobre témoin"). 65% laisse assez de lumière blanche
@@ -70,7 +70,7 @@ export default function RevealLighting({
     if (directionalRef.current) {
       directionalRef.current.intensity = getDirectionalIntensity(p);
       // Directional 45% (recalibré 28/08 depuis 75%) : la
-      // directionnelle porte les hautes lumières — trop teintée elle
+      // directionnelle porte les hautes lumières : trop teintée elle
       // colore les crêtes cerf+décor uniformément, 45% laisse un
       // éclairage principal quasi-blanc qui préserve la lecture
       // "cerf brun mystique".
@@ -85,7 +85,7 @@ export default function RevealLighting({
   return (
     <>
       {/* near/far au-delà de l'orbite caméra (radius max 9) : le fog ne
-       * doit jamais assombrir la scène proche, seulement l'horizon —
+       * doit jamais assombrir la scène proche, seulement l'horizon :
        * inchangé depuis stag-scene.tsx, seule la couleur bouge désormais. */}
       <fog ref={fogRef} attach="fog" args={["#000000", 10, 34]} />
       <ambientLight ref={ambientRef} />

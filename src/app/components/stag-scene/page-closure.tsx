@@ -13,7 +13,7 @@ import {
 import styles from "./page-closure.module.css";
 
 /**
- * Bloc de closure narratif au climax des pages écho — signature
+ * Bloc de closure narratif au climax des pages écho : signature
  * "Codex nahua" (27/08, retour Sylvain "overlay fait grossier").
  *
  * Card glass avec gradient direction, border 1px cardinale qui se
@@ -29,7 +29,7 @@ import styles from "./page-closure.module.css";
  *  - obsidienne / Nord / Mictlampa (retour Centre pour fermer le cycle)
  *
  * La classe `.revealed` est posée en fonction de getNavEmphasis > 0.05
- * (rAF interne, pas de useState pour éviter les re-renders inutiles) —
+ * (rAF interne, pas de useState pour éviter les re-renders inutiles) :
  * mêmes fenêtres que FadingBlock ancienne version, mais transitions CSS
  * enchaînées au lieu d'un simple opacity fade.
  */
@@ -89,10 +89,10 @@ export default function PageClosure({
   const closure = CLOSURES[directionKey];
   const nextHref = closure.nextKey ? getPath(locale, closure.nextKey) : `/${locale}`;
 
-  // Toggle `.revealed` en fonction de getNavEmphasis via rAF — pas de
+  // Toggle `.revealed` en fonction de getNavEmphasis via rAF : pas de
   // useState pour éviter re-renders. Sous prefers-reduced-motion, le CSS
   // court-circuite les animations, mais on veut quand même que la card
-  // soit VISIBLE (pas cachée par le clip-path initial) — on force
+  // soit VISIBLE (pas cachée par le clip-path initial) : on force
   // .revealed en dur au montage dans ce cas.
   useEffect(() => {
     let raf: number;
@@ -103,7 +103,7 @@ export default function PageClosure({
         const emphasis = reduced ? 1 : getNavEmphasis(progressRef.current);
         const shouldReveal = emphasis > 0.05;
         el.classList.toggle(styles.revealed, shouldReveal);
-        // pointer-events uniquement quand la card est visible — évite
+        // pointer-events uniquement quand la card est visible : évite
         // qu'un CTA invisible reste cliquable en début de scroll.
         el.style.pointerEvents = emphasis > 0.15 ? "auto" : "none";
       }

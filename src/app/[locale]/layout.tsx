@@ -110,7 +110,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     // (file conventions). Une seule source de verite, pas de doublon.
     manifest: "/manifest.webmanifest",
     // Site verification (29/08 SEO pass v2). Tokens fournis via env
-    // Netlify — inutile de commiter. GSC/Bing acceptent aussi la
+    // Netlify : inutile de commiter. GSC/Bing acceptent aussi la
     // methode DNS TXT, ces meta sont un fallback simple.
     verification: {
       google: process.env.NEXT_PUBLIC_GSC_VERIFICATION,
@@ -120,7 +120,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       },
     },
     // theme-color obsidienne aligne l'UI chrome mobile (barre URL) sur la
-    // palette du site — signal marque, evite le blanc par defaut qui casse
+    // palette du site : signal marque, evite le blanc par defaut qui casse
     // l'immersion premiere seconde apres load.
     other: {
       "theme-color": "#0a0710",
@@ -150,7 +150,7 @@ export default async function LocaleLayout({
   // (avec suppressHydrationWarning + fade-in pour eviter le flash SSR→client).
   // react-hooks/purity : Math.random est intentionnel ici, le lint interdit
   // les impures dans les components pour la garantie de re-render stable,
-  // mais un Server Component est render une seule fois par request — la
+  // mais un Server Component est render une seule fois par request : la
   // valeur est incluse dans le HTML SSR, jamais re-run cote client.
   const loadingPhrase =
     // eslint-disable-next-line react-hooks/purity
@@ -199,21 +199,21 @@ export default async function LocaleLayout({
         {/* Icones : plus de <link rel="icon"> manuel ici. Next les injecte
             depuis src/app/icon.svg + src/app/apple-icon.tsx (file conventions
             App Router). Cf commentaire dans generateMetadata. */}
-        {/* Preload critical assets (30/08 pattern SOTY) — la Piedra V2
+        {/* Preload critical assets (30/08 pattern SOTY) : la Piedra V2
             est LE visuel du skeleton SSR, elle doit etre en cache avant
             meme que le CSS Module parse. Sans preload le navigateur la
             fetch au moment du render du <img>, causant un flash sans
             image avant qu'elle apparaisse. */}
         <link rel="preload" as="image" href="/img/piedra-del-sol-v2.svg" type="image/svg+xml" />
         {/* color-scheme:dark declare au navigateur que la page est
-            majoritairement sombre — Chrome/Safari appliquent la
+            majoritairement sombre : Chrome/Safari appliquent la
             scrollbar sombre + form controls sombres AVANT que le CSS
             parse, evite le flash de scrollbar blanche sur fond noir. */}
         <meta name="color-scheme" content="dark" />
-        {/* JSON-LD structuré (28/08) — Person + WebSite + ProfessionalService.
+        {/* JSON-LD structuré (28/08) : Person + WebSite + ProfessionalService.
             Injecté dans <head> plutôt que <body> pour être détecté par les
             crawlers dès le premier byte. Un script par entité (schema.org
-            recommande cette forme plutôt qu'un @graph unique — plus simple à
+            recommande cette forme plutôt qu'un @graph unique : plus simple à
             debugger avec Rich Results Test). */}
         {jsonLd.map((entry, i) => (
           <script
@@ -253,7 +253,7 @@ export default async function LocaleLayout({
             des providers pour zero contexte a resoudre avant render. */}
         {/* PiedraSkeleton monte son propre <RevealTrigger /> client
             qui orchestre TOUTE la sequence event-driven (data-reveal-
-            done + data-loaded). Plus besoin de LoadingSync ici — il
+            done + data-loaded). Plus besoin de LoadingSync ici : il
             reste dans le codebase (loading-sync.tsx) pour reference
             historique, non monte. Cf reveal-trigger.tsx pour le
             detail de l'orchestration. */}
@@ -262,7 +262,7 @@ export default async function LocaleLayout({
           translation={loadingPhrase.translation}
           label={dict.lab.loadingLabel}
         />
-        {/* Provider transition cardinale "cerf mène" (28/08) — expose
+        {/* Provider transition cardinale "cerf mène" (28/08) : expose
             transitionDirection + progressRef aux consommateurs scène
             3D (StagModel head-look override, OrbitCamera burst
             orbit) et l'API startTransition à CardinalLink. Persiste
@@ -272,34 +272,34 @@ export default async function LocaleLayout({
         <ReadingModeProvider>
         <SceneRefsProvider>
         <CardinalTransitionProvider>
-          {/* Skip nav a11y (28/08 task #49) — premier element focusable,
+          {/* Skip nav a11y (28/08 task #49) : premier element focusable,
               premier tab depuis top = "aller au contenu principal".
               Sr-only par defaut, visible au focus. */}
           <SkipNav label={dict.common.skipNav} />
-          {/* Route announcer SPA (29/08 chantier a11y) — annonce le
+          {/* Route announcer SPA (29/08 chantier a11y) : annonce le
               titre de chaque nouvelle page dans une region aria-live
               sr-only. NVDA/JAWS/VoiceOver le lisent au router.push
               sans que l'utilisateur SR ait a reparcourir la page. */}
           <RouteAnnouncer />
-          {/* Cardinal announcer (29/08 chantier a11y "SR enrichi") —
+          {/* Cardinal announcer (29/08 chantier a11y "SR enrichi") :
               couche narrative mytho au-dessus du RouteAnnouncer :
               annonce le nom nahuatl + role du gardien de la
               direction cible a chaque changement cardinal. */}
           <CardinalAnnouncer dict={dict.common.cardinalAnnouncement} />
-          {/* Lenis smooth scroll (28/08 task #48) — signature silky
+          {/* Lenis smooth scroll (28/08 task #48) : signature silky
               scroll. Respect reducedMotion (pas monte du tout).
               window.scrollY reste synchro, la scene 3D reveal-arc
               n'est pas cassee. */}
           <SmoothScroll />
           <Header locale={locale} dict={dict.common} />
-          {/* Scène 3D persistante (28/08 Phase A refactor) — Canvas
+          {/* Scène 3D persistante (28/08 Phase A refactor) : Canvas
               vit ici pour survivre à toutes les navigations SPA,
               plus de coupure. Direction cardinale lue via
               usePathname côté PersistentScene, palette anime en
               douceur au changement d'URL. */}
           <PersistentScene />
           {children}
-          {/* Footer exhaustif (28/08 retour Sylvain) — 4 colonnes :
+          {/* Footer exhaustif (28/08 retour Sylvain) : 4 colonnes :
               Navigation, Ressources, Légal, Contact. Bottom row : ©
               + baseline localisée. */}
           <footer className="siteFooter">
@@ -367,14 +367,14 @@ export default async function LocaleLayout({
                 </ul>
               </div>
             </div>
-            {/* XolotlWitnessMessage (29/08 easter egg) — apparait
+            {/* XolotlWitnessMessage (29/08 easter egg) : apparait
                 seulement si user a vu Xolotl passer + n'a pas encore
                 visite le Codex depuis. Positionne entre les cols et
                 le copyright (retour Sylvain 29/08 : plus visible
                 qu'apres la ligne credit). Renvoi discret italique. */}
             <XolotlWitnessMessage message={dict.common.xolotlSeen} locale={locale} />
             <div className="footerBottom">
-              {/* Signature date rituelle (29/08) — annee Gregorienne +
+              {/* Signature date rituelle (29/08) : annee Gregorienne +
                   porteur Xiuhpohualli nahua (convention Rafael Tena,
                   1519 = 2 Acatl). 2026 = 2 Tochtli · Lapin. Cycle
                   complet 52 ans (siecle nahua). Discret, en italique
@@ -385,39 +385,39 @@ export default async function LocaleLayout({
             </div>
           </footer>
           {/* Intro cinématique retiree 28/08 (retour Sylvain "gros
-              encadré qui charge" — trop lourd au premier load).
+              encadré qui charge" : trop lourd au premier load).
               Composant existe encore, remonte-le si besoin.
               <NahualIntro locale={locale} /> */}
-          {/* Curseur custom (28/08 task #47) — point cardinal + ring
+          {/* Curseur custom (28/08 task #47) : point cardinal + ring
               qui suit, morph cardinal au survol des liens nav
               (data-cardinal-direction), magnetic attraction sur CTAs
               (data-magnetic). Actif uniquement hover:hover + pointer:fine. */}
           <CustomCursor />
-          {/* Easter egg (28/08 task #56) — tape "nahual" au clavier
+          {/* Easter egg (28/08 task #56) : tape "nahual" au clavier
               n'importe ou sur le site (hors input), reveal toast
               discret 5s. Signature "site vivant" cachee. */}
           <EasterEgg locale={locale} />
-          {/* Sound design cardinal (28/08 task #46) — Web Audio API
+          {/* Sound design cardinal (28/08 task #46) : Web Audio API
               generatif, 0 fichier externe. Toggle mute persist,
               default mute. Ambient drone + chime cardinal par click
               + whoosh transition. */}
           <SoundDesign label={dict.common.sound} />
-          {/* Mode recit accessible opt-in (29/08 chantier a11y) —
+          {/* Mode recit accessible opt-in (29/08 chantier a11y) :
               bouton bas gauche, symetrique du bouton son. Toggle
               persist localStorage via ReadingModeProvider. Cache le
               canvas 3D + retire les anims + centre le contenu pour
               une lecture calme. */}
           <ReadingModeToggle label={dict.common.readingMode} />
-          {/* Nav clavier flèches (28/08 task #58) — ArrowLeft/Right
+          {/* Nav clavier flèches (28/08 task #58) : ArrowLeft/Right
               naviguent entre pages dans l'ordre menu (Accueil premier,
               rotation cardinale). Trigger transitions VT comme click. */}
           <KeyboardNav />
           <GamepadNav />
-          {/* Hover tilt 3D micro-interaction (28/08 task #65) — sur
+          {/* Hover tilt 3D micro-interaction (28/08 task #65) : sur
               hover projectCase/serviceCard, tilt subtil perspective
               6° selon position souris. Reset au leave. */}
           <TiltCards />
-          {/* Mask reveal curseur (28/08 boite outil #4) — hover
+          {/* Mask reveal curseur (28/08 boite outil #4) : hover
               projectCase/serviceCard : radial gradient direction
               suit curseur, signature "regarde derriere le voile". */}
           <MaskReveal />
@@ -426,11 +426,11 @@ export default async function LocaleLayout({
               imperceptible sur canvas 3D noir dynamique + mix-blend
               screen, ne se justifiait pas visuellement. Composant
               supprime, canvas en moins = -1 rAF = petit gain perf. */}
-          {/* Cardinal compass (28/08 retour Sylvain) — indicateur bas
+          {/* Cardinal compass (28/08 retour Sylvain) : indicateur bas
               droite croix 5 points, direction courante highlight
               couleur cardinale, cliquable nav rapide. */}
           <CardinalCompass locale={locale} />
-          {/* Hover sync (28/08 retour Sylvain) — poste
+          {/* Hover sync (28/08 retour Sylvain) : poste
               body[data-cardinal-hover=X] au pointerover sur nav ou
               compass, permet pulse cross-widget des points cardinaux. */}
           <CardinalHoverSync />

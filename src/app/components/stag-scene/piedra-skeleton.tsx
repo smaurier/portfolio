@@ -5,7 +5,7 @@ import RevealTrigger from "./reveal-trigger";
 import styles from "./piedra-skeleton.module.css";
 
 /**
- * PiedraSkeleton (30/08). Server Component SSR pur — aucun useState,
+ * PiedraSkeleton (30/08). Server Component SSR pur : aucun useState,
  * useEffect, ni "use client". Rendu directement dans le HTML envoye au
  * navigateur, visible des la premiere frame avant meme le chargement
  * de React. Remplace le tandem `<div className="ssrLoadingVeil">` +
@@ -16,7 +16,7 @@ import styles from "./piedra-skeleton.module.css";
  * Pattern SOTY (Bruno Simon, Rauno Freiberg, Basement Studio) :
  *  - fallback SSR d'un boundary Suspense/state
  *  - anims CSS pures (rotations Ometeotl continues + reveal char +
- *    dots cardinaux qui jaillissent — tout timing en CSS custom
+ *    dots cardinaux qui jaillissent : tout timing en CSS custom
  *    properties, aucun rAF ni requestAnimationFrame)
  *  - fade out par CSS quand `html[data-loaded="true"]`
  *  - pas de pourcentage (aveu de latence, aucun SOTY n'en affiche)
@@ -29,7 +29,7 @@ import styles from "./piedra-skeleton.module.css";
  *
  * Piedra V2 (dessinee main par Sylvain) en 3 zones concentriques via
  * clip-path (coeur) + mask radial annulaire (bague / couronne), 3
- * rotations en sens INVERSES (signature Ometeotl — dualite creatrice).
+ * rotations en sens INVERSES (signature Ometeotl : dualite creatrice).
  * Cf project-nahual-da pour la justification cosmogonique complete.
  *
  * 5 dots cardinaux (31/08) : a la fin du reveal texte, jaillissent
@@ -70,7 +70,7 @@ export default function PiedraSkeleton({
             <img src={PIEDRA_SRC} alt="" className={styles.middle} />
           </div>
           <div className={styles.dots} aria-hidden="true">
-            {/* Ripple concentrique (D) — 2 ondes qui jaillissent depuis le
+            {/* Ripple concentrique (D) : 2 ondes qui jaillissent depuis le
                 centre au moment du burst du dot Xiuhtecuhtli, donnent du
                 poids au geste (effet "pierre jetee a l'eau"). */}
             <span className={`${styles.ripple} ${styles.rippleOne}`} />
@@ -84,7 +84,7 @@ export default function PiedraSkeleton({
             <span className={`${styles.dot} ${styles.dotSouth}`} />
             <span className={`${styles.dot} ${styles.dotWest}`} />
             <span className={`${styles.dot} ${styles.dotNorth}`} />
-            {/* Cercle d'union (C) — mandala nahua : cadran des 5
+            {/* Cercle d'union (C) : mandala nahua : cadran des 5
                 directions du Codex Fejervary-Mayer refermé une fois
                 tous les dots poses. Fade in subtil, aucun trace stroke. */}
             <span className={styles.unionCircle} />
@@ -97,7 +97,7 @@ export default function PiedraSkeleton({
           <SplitText text={translation} ariaLabel={translation} />
         </p>
       </div>
-      {/* Logo Nahual signature finale (31/08, etape 3/3) — positionne
+      {/* Logo Nahual signature finale (31/08, etape 3/3) : positionne
           en top-left du voile, meme structure que le vrai .logoLink du
           header (mini-logo.svg 32x32 + gap 10px + texte casse normale
           font-weight 700 size 1.1rem letter-spacing 0.02em). Effet :
@@ -116,7 +116,7 @@ export default function PiedraSkeleton({
         <SplitText text="Nahual" />
       </p>
       {/* Pose data-reveal-done="true" sur skeleton apres l'animation
-          du dernier char de la traduction — gate CSS pour toute la
+          du dernier char de la traduction : gate CSS pour toute la
           sequence post-reveal (dots + cercle + logo). */}
       <RevealTrigger />
     </div>

@@ -5,7 +5,7 @@ import { isBot } from "@/lib/is-bot";
 import styles from "./scene-text-overlay.module.css";
 
 /**
- * Bloc de texte dont l'opacité suit le scroll (cf reveal-arc.ts) — en flux
+ * Bloc de texte dont l'opacité suit le scroll (cf reveal-arc.ts) : en flux
  * normal, pas positionné lui-même (contrairement à l'ancienne version de
  * SceneTextOverlay) : c'est SceneTextOverlay (le parent) qui empile
  * plusieurs FadingBlock verticalement, pour que deux blocs cohabitant au
@@ -15,12 +15,12 @@ import styles from "./scene-text-overlay.module.css";
  *
  * `display: none` en plus de l'opacité quand le bloc est totalement
  * invisible : un bloc à opacité 0 reste sinon présent dans le flux et
- * pousse le voisin visible loin de son ancrage réel — bug constaté en vrai
+ * pousse le voisin visible loin de son ancrage réel : bug constaté en vrai
  * (hero collé en haut au lieu du bas, à-propos invisible occupant quand
  * même sa hauteur dans la colonne). Sûr ici : hero (getIntroOpacity) et
  * à-propos (getNavEmphasis) n'ont jamais tous les deux une opacité non
  * nulle en même temps hors reduced-motion (fenêtres [0, 0.25[ et ]0.75, 1]
- * disjointes) — et sous reduced-motion, les deux passent à 1 ensemble,
+ * disjointes) : et sous reduced-motion, les deux passent à 1 ensemble,
  * jamais collapsés, donc jamais superposés (empilés en flux normal).
  *
  * Même technique que l'ancien SceneTextOverlay : requestAnimationFrame
@@ -38,10 +38,10 @@ export default function FadingBlock({
   progressRef: MutableRefObject<number>;
   reducedMotionRef: MutableRefObject<boolean>;
   getOpacity: (progress: number) => number;
-  /** Opacité de tout premier rendu (avant même le premier tick JS) — posée
+  /** Opacité de tout premier rendu (avant même le premier tick JS) : posée
    * explicitement en style inline plutôt que laissée au défaut du
    * navigateur (1) : sans ça, un bloc censé démarrer invisible (l'à-propos)
-   * flashait plein pot avant le premier calcul, superposé au hero — bug
+   * flashait plein pot avant le premier calcul, superposé au hero : bug
    * réel constaté (cf memory project-nahual-da, 19/08), pas hypothétique. */
   initialOpacity: number;
   children: ReactNode;

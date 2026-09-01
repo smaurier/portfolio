@@ -16,7 +16,7 @@ const VINE_COLOR = "#3f6b2f";
 const FLOWER_MODEL_PATH = "/models/vine-flower.glb";
 const FLOWER_TARGET_SIZE = 0.09;
 // En-dessous de ce seuil, on cache plutôt que de rendre un scale
-// quasi-nul — retour de Sylvain le 18/08 : "enlève les fleurs à la base
+// quasi-nul : retour de Sylvain le 18/08 : "enlève les fleurs à la base
 // lorsqu'elles sont à zéro" / "cacher aussi les lianes".
 const HIDDEN_THRESHOLD = 0.002;
 
@@ -24,7 +24,7 @@ const HIDDEN_THRESHOLD = 0.002;
 // composant : eslint-plugin-react-hooks (compilateur React 19) refuse une
 // mutation directe sur une valeur issue d'un hook (ici `clone`, un
 // useMemo) dans le corps du composant, mais pas un appel de fonction qui
-// mute en interne — même raison que setRimLightIntensity (rim-light.ts).
+// mute en interne : même raison que setRimLightIntensity (rim-light.ts).
 function updateFlowerTransform(
   clone: Object3D,
   visible: boolean,
@@ -64,7 +64,7 @@ function VineFlower({
   // même raison : plusieurs clones du même GLB caché par useGLTF). Une fois
   // la boîte englobante connue (position/centre du modèle brut, indépendant
   // de l'ouverture), l'échelle réelle affichée est recalculée chaque frame
-  // à partir de l'ouverture (getVineFlowerBloom) — la fleur grossit depuis
+  // à partir de l'ouverture (getVineFlowerBloom) : la fleur grossit depuis
   // son point d'accroche (position.y = -minY*scale = 0 à toute échelle),
   // pas depuis son centre géométrique.
   useFrame(() => {
@@ -108,26 +108,26 @@ type VineConfig = {
   driftX: number;
   driftZ: number;
   seed: number;
-  /** Décale le départ de la pousse (0..1, cf getMilpaGrowth) — retour de
+  /** Décale le départ de la pousse (0..1, cf getMilpaGrowth) : retour de
    * Sylvain le 18/08 : "tout ne devrait pas pousser en même temps". */
   stagger: number;
 };
 
 // Deux lianes "grimpantes" sur les pattes avant : elles montent plus haut
 // et dérivent vers le centre du corps (driftX/Z proches de 0, c'est là que
-// se trouve le cou du cerf après recadrage — cf StagModel) pour donner
+// se trouve le cou du cerf après recadrage : cf StagModel) pour donner
 // l'effet "vigne vierge qui enlace" demandé par Sylvain, pas juste un
 // enroulement au ras des pattes. Les deux pattes arrière gardent un
-// enroulement plus court, sans dérive — tout le monde n'a pas besoin de
+// enroulement plus court, sans dérive : tout le monde n'a pas besoin de
 // grimper jusqu'au corps pour que l'ensemble se lise comme cohérent.
 //
 // x/z = position approximative des sabots (approximation à l'œil de la
-// pose Idle, pas interrogé les os réels du rig — même remarque que pour le
+// pose Idle, pas interrogé les os réels du rig : même remarque que pour le
 // maïs, cf Codex). Ces coordonnées étaient à l'origine partagées à
 // l'identique avec MIDGROUND_POSITIONS (milpa.tsx) : le maïs a depuis été
 // repoussé à un rayon plus large ("milpa autour du cerf", pas "sur les
 // pattes") pour que les deux se distinguent visuellement (retour de
-// Sylvain le 18/08 : "on ne voit pas la diff") — la liane, elle, doit
+// Sylvain le 18/08 : "on ne voit pas la diff") : la liane, elle, doit
 // rester au plus près de la patte, c'est tout son sujet.
 const VINES: VineConfig[] = [
   { x: 0.32, z: 0.28, height: 1.5, driftX: -0.15, driftZ: -0.1, seed: 0, stagger: 0 },
@@ -159,7 +159,7 @@ function Vine({
     const flowerPoints = generateVineFlowerPlacements(flowerCount).map((f, i) => ({
       point: curve.getPointAt(Math.min(1, Math.max(0, f.t))),
       // Seuil de départ propre à chaque fleur (33%-40% de la pousse de la
-      // liane) — combine l'index de la fleur et le seed de la liane pour
+      // liane) : combine l'index de la fleur et le seed de la liane pour
       // qu'aucune liane ne retombe sur exactement le même motif.
       startAt: getVineFlowerStartThreshold(i, config.seed),
     }));
@@ -172,7 +172,7 @@ function Vine({
   useFrame(() => {
     if (!groupRef.current) return;
     // Même mécanique que le maïs (getMilpaGrowth), avec un stagger propre à
-    // chaque liane — la vie s'éveille pendant la prise de conscience, mais
+    // chaque liane : la vie s'éveille pendant la prise de conscience, mais
     // pas exactement au même instant d'une plante à l'autre.
     const growth = getMilpaGrowth(progressRef.current, config.stagger);
     const visible = growth > HIDDEN_THRESHOLD;
@@ -201,9 +201,9 @@ function Vine({
 }
 
 /**
- * Les lianes — palier 3 de la DA Nahual (cf memory project-nahual-da).
+ * Les lianes : palier 3 de la DA Nahual (cf memory project-nahual-da).
  * Contrairement au maïs (Milpa, asset CC0 trouvé), aucun modèle ne colle à
- * "liane qui grimpe et enlace un cerf" — géométrie procédurale (hélice +
+ * "liane qui grimpe et enlace un cerf" : géométrie procédurale (hélice +
  * dérive vers le corps, cf src/lib/vine-shapes.ts), le seul cas du palier 3
  * où le procédural garde du sens face à des assets trouvés.
  */

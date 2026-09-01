@@ -9,9 +9,9 @@ import styles from "./easter-egg.module.css";
  * un contexte de saisie.
  *
  * Triggers :
- *  - "nahual"  : Tu es nahual — essence forme animale
- *  - "muertos" : Los que se fueron siguen aquí — présence des morts
- *  - "mazatl"  : Le cerf te regarde — reveal du regard
+ *  - "nahual"  : Tu es nahual : essence forme animale
+ *  - "muertos" : Los que se fueron siguen aquí : présence des morts
+ *  - "mazatl"  : Le cerf te regarde : reveal du regard
  *  - Konami (↑↑↓↓←→←→ba) : palette flash cardinal + toast
  */
 
@@ -62,7 +62,7 @@ export default function EasterEgg({ locale }: { locale: string }) {
   function showMessage(msg: MessageSet, konamiFlash = false) {
     konamiFlashRef.current = konamiFlash;
     if (konamiFlash) {
-      // Palette flash cardinal — cycle rapide direction sur body via
+      // Palette flash cardinal : cycle rapide direction sur body via
       // data-attribute anime en CSS (voir globals.css .konami-flash)
       document.body.classList.add("konami-flash");
       window.setTimeout(() => document.body.classList.remove("konami-flash"), 2000);

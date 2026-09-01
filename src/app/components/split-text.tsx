@@ -4,9 +4,9 @@ import type { CSSProperties } from "react";
  * Split-text helper (30/08, promu server-safe 31/08). Divise un texte en
  * `<span>` par caractere pour permettre les animations char-by-char
  * (stagger reveal, wave, chromatic aberration, etc.). Signature Awwwards
- * classique — typo cinetique.
+ * classique : typo cinetique.
  *
- * Aucun hook interne, aucun effet client — utilisable dans un Server
+ * Aucun hook interne, aucun effet client : utilisable dans un Server
  * Component (utilise par PiedraSkeleton SSR pour la phrase nahuatl).
  *
  * Deux CSS custom properties exposees par char :
@@ -19,7 +19,7 @@ import type { CSSProperties } from "react";
  * DOM + les vars.
  *
  * Structure DOM (31/08 fix "les mots sont coupes") : chaque MOT est un
- * `<span class="word">` avec `white-space: nowrap` — evite qu'un mot
+ * `<span class="word">` avec `white-space: nowrap` : evite qu'un mot
  * soit coupe au milieu au retour a la ligne (les chars sont
  * inline-block pour l'animation, sans nowrap sur le parent word le
  * navigateur les traiterait comme atoms independants).
@@ -38,7 +38,7 @@ type Props = {
   ariaLabel?: string;
 };
 
-/** Un mot avec ses chars — les espaces sont rendus a part entre les mots. */
+/** Un mot avec ses chars : les espaces sont rendus a part entre les mots. */
 type Token = { kind: "word"; chars: string[] } | { kind: "space"; ch: string };
 
 function tokenize(text: string): Token[] {

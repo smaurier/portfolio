@@ -1,7 +1,7 @@
-// Géométrie procédurale des lianes — palier 3 de la DA Nahual (cf memory
+// Géométrie procédurale des lianes : palier 3 de la DA Nahual (cf memory
 // project-nahual-da). Contrairement au maïs/agave/nopal (assets CC0
 // trouvés, cf Sylvain "va chercher des modèles"), aucun asset ne colle à
-// "liane qui s'enroule autour d'une patte de cerf" — le procédural garde
+// "liane qui s'enroule autour d'une patte de cerf" : le procédural garde
 // tout son sens ici. Fonctions pures, même principe que camera-path.ts/
 // reveal-arc.ts : testables sans Three.js, le rendu (TubeGeometry) se
 // construit à partir des points dans le composant r3f.
@@ -11,17 +11,17 @@ export type VinePoint = { x: number; y: number; z: number };
 export type VineHelixOptions = {
   /** Hauteur totale de la liane. */
   height: number;
-  /** Rayon de l'enroulement — doit rester petit pour "coller" à une patte. */
+  /** Rayon de l'enroulement : doit rester petit pour "coller" à une patte. */
   radius: number;
   /** Nombre de tours complets sur la hauteur totale. */
   turns: number;
   /** Nombre de points le long de la liane. */
   segments: number;
-  /** Décale la phase de départ — deux lianes avec des seeds différentes ne
+  /** Décale la phase de départ : deux lianes avec des seeds différentes ne
    * démarrent jamais au même angle (déterministe, pas Math.random). */
   seed: number;
   /** Décalage horizontal atteint au sommet (accéléré vers le haut, pas
-   * linéaire) — permet à une liane de grimper une patte puis de "dériver"
+   * linéaire) : permet à une liane de grimper une patte puis de "dériver"
    * vers le corps/le cou en montant, comme une vigne vierge qui grimpe puis
    * s'étale, plutôt que de rester parfaitement verticale sur toute sa
    * hauteur. 0 par défaut = enroulement vertical pur (une patte seule). */
@@ -43,7 +43,7 @@ const DEFAULT_HELIX_OPTIONS: VineHelixOptions = {
  * Spline d'une liane en hélice autour d'un axe globalement vertical (une
  * patte, puis le corps si driftX/driftZ sont fournis) : part du sol (y=0),
  * s'enroule à rayon constant, et dérive horizontalement vers le sommet si
- * demandé — la dérive s'accélère avec la hauteur (t²), donc la base reste
+ * demandé : la dérive s'accélère avec la hauteur (t²), donc la base reste
  * bien plantée sur la patte et c'est le haut de la liane qui part vers le
  * corps, pas l'inverse.
  */
@@ -77,7 +77,7 @@ const DEFAULT_FLOWER_COUNT = 4;
 /**
  * Où accrocher les fleurs le long d'une liane : réparties entre 25% et 95%
  * de la hauteur (jamais au ras du sol, la liane a besoin de "prendre" avant
- * de fleurir), espacement régulier — suffisant ici, contrairement aux
+ * de fleurir), espacement régulier : suffisant ici, contrairement aux
  * feuilles de tige (generateLeafPlacements) qui avaient besoin d'un angle
  * doré pour éviter l'alignement (la position le long de la courbe suffit
  * à les distinguer visuellement, l'angle autour de la liane est déjà fixé
@@ -98,7 +98,7 @@ const GOLDEN_RATIO_CONJUGATE = 0.6180339887498949; // même suite que milpa.tsx
 
 /**
  * Décale à quel niveau de pousse de LA LIANE (pas du scroll directement)
- * une fleur donnée commence à s'ouvrir — retour de Sylvain le 18/08 : les
+ * une fleur donnée commence à s'ouvrir : retour de Sylvain le 18/08 : les
  * fleurs ne doivent pas apparaître dès le début de la pousse de la liane
  * ("enlève les fleurs à la base"), chacune démarre à un seuil légèrement
  * différent dans une plage 33%-40%, jamais exactement synchronisées
@@ -111,15 +111,15 @@ export function getVineFlowerStartThreshold(index: number, vineSeed: number): nu
 
 /**
  * Ouverture d'une fleur de liane (0 fermée -> 1 pleinement ouverte), en
- * fonction de la pousse de la liane elle-même — retour de Sylvain le
+ * fonction de la pousse de la liane elle-même : retour de Sylvain le
  * 18/08 : fermée tant que la liane n'a pas atteint `startAt` (33%-40%
  * selon la fleur, cf getVineFlowerStartThreshold), s'ouvre ensuite jusqu'à
  * ce que la liane atteigne `endAt` (80% par défaut), reste pleinement
- * ouverte après — pas de retour en arrière, même principe que
+ * ouverte après : pas de retour en arrière, même principe que
  * getMilpaGrowth. Varier `startAt` par fleur suffit à faire varier leur
  * vitesse d'ouverture perçue : celle qui démarre à 33% a plus de chemin à
  * parcourir avant 80% que celle qui démarre à 40%, donc s'ouvre plus
- * progressivement — pas besoin de faire varier `endAt` en plus.
+ * progressivement : pas besoin de faire varier `endAt` en plus.
  */
 export function getVineFlowerBloom(vineGrowth: number, startAt: number, endAt: number = 0.8): number {
   if (endAt <= startAt) return vineGrowth >= endAt ? 1 : 0;

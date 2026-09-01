@@ -7,7 +7,7 @@ import { getPerfProfile, type PerfProfile } from "@/lib/mobile-perf";
 /**
  * Contexte partagé des refs et de l'état runtime de la scène 3D
  * (28/08 refactor Phase A "PersistentScene in layout"). Extrait de
- * l'ancien SceneStage pour vivre au niveau layout — le canvas WebGL
+ * l'ancien SceneStage pour vivre au niveau layout : le canvas WebGL
  * persiste ainsi entre navigations SPA, plus de coupure structurelle
  * au router.push.
  *
@@ -38,7 +38,7 @@ export type SceneRefs = {
   noticedRef: MutableRefObject<boolean>;
   reducedMotionRef: MutableRefObject<boolean>;
   perfProfile: PerfProfile;
-  // Pin face-a-face progress (28/08 boite outil #6) — 0..1 sur la
+  // Pin face-a-face progress (28/08 boite outil #6) : 0..1 sur la
   // fenetre de scroll pin (300vh apres l'arc reveal). Alimente par
   // FaceAFacePin composant via GSAP ScrollTrigger scrub. Consommé par
   // PostFX (bloom boost) + OrbitCamera (dolly + fov).
@@ -70,7 +70,7 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
 
     // Reset scroll uniquement au mount initial de la session (layout
     // persist entre navs SPA, donc ce reset ne se rejoue plus au
-    // changement de page — comportement correct : l'utilisateur qui
+    // changement de page : comportement correct : l'utilisateur qui
     // navigue en interne ne veut pas repartir de zéro à chaque nav,
     // il veut voir la scène continue de la nouvelle direction).
     const previousScrollRestoration = window.history.scrollRestoration;
@@ -104,7 +104,7 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
   return <SceneRefsContext.Provider value={value}>{children}</SceneRefsContext.Provider>;
 }
 
-/** Consomme les refs partagés — null hors provider. Chaque composant
+/** Consomme les refs partagés : null hors provider. Chaque composant
  *  scène 3D (StagModel/OrbitCamera/…) doit être monté sous ce provider
  *  (layout.tsx en pratique). */
 export function useSceneRefs(): SceneRefs | null {

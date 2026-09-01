@@ -25,12 +25,12 @@ const HEAD_BONE_NAME = "Head";
 
 // Plafond du regard caméra (21/08) : un seul os (Head) porte déjà une
 // courbure de repos importante dans le rig (le cou "grazing" du bind pose,
-// ~85° entre Neck3 et Head) — un blend complet (1) remplace cette courbure
+// ~85° entre Neck3 et Head) : un blend complet (1) remplace cette courbure
 // par une orientation absolue vers la cible, ce qui pousse le cou en
 // extension complète et se lit comme cassé plutôt que comme un regard
 // attentif (vérifié visuellement le 21/08 : tête tendue vers le ciel à
 // blend=1). Plafonner à une fraction garde une partie de la pose naturelle
-// mélangée au regard — un vrai tour de tête, pas un remplacement total.
+// mélangée au regard : un vrai tour de tête, pas un remplacement total.
 // 0.4 → 0.2 (30/08 retour Sylvain "on dirait l'exorciste") : meme a 40 %
 // de blend, la superposition rotation-tete + suivi-souris + rotation-
 // camera donnait un effet mecanique/possede desagreable. 20 % garde
@@ -39,37 +39,37 @@ const MAX_HEAD_TURN_BLEND = 0.2;
 
 const MODEL_PATH = "/models/stag.glb";
 // Hauteur voulue en unités de scène, pas l'échelle native du GLB (les packs
-// Quaternius exportent parfois dans une autre unité — mesurée, pas devinée :
+// Quaternius exportent parfois dans une autre unité : mesurée, pas devinée :
 // sans normalisation le modèle remplissait l'écran dès la hanche).
 // Essai à 2.6 le 17/08 ("le cerf pourrait être plus grand") : remis à 2,
-// l'idée reste ouverte mais mitigée (cf project-nahual-da) — mélangée à un
+// l'idée reste ouverte mais mitigée (cf project-nahual-da) : mélangée à un
 // changement de rayon caméra en même temps, on ne pouvait plus dire lequel
 // des deux produisait quoi. À retester isolément si l'hypothèse revient.
 const TARGET_HEIGHT = 2;
 
 /**
- * Le cerf (Quaternius, CC0, pack "Animated Animal Pack" — cf memory
+ * Le cerf (Quaternius, CC0, pack "Animated Animal Pack" : cf memory
  * project-nahual-da). Séquence d'entrée (retour de Sylvain le 18/08, cf
  * src/lib/reveal-arc.ts) : Eating (se pose, broute) → Idle_2 (passage
  * bref) → Idle (tête relevée, état final dès qu'il "remarque" le
  * visiteur). Un temps "Walk" (avance scroll-scrubée) a existé entre le
- * 18/08 et le 20/08 — retiré (cf reveal-arc.ts pour le pourquoi), le cerf
+ * 18/08 et le 20/08 : retiré (cf reveal-arc.ts pour le pourquoi), le cerf
  * apparaît directement à sa position de repos.
  *
  * `noticedRef` : partagé avec le parent (StagScene) plutôt que dérivé
- * seulement du scroll ici — retour de Sylvain le 18/08 : "on pourrait avoir
+ * seulement du scroll ici : retour de Sylvain le 18/08 : "on pourrait avoir
  * d'autres événements sur la scène liés à ce point qui feront aussi que le
  * cerf lève la tête rapidement" (ex. le mouvement de souris de l'effet de
  * révélation). Ce composant pose lui-même le déclencheur scroll (dès la
  * prise de conscience) mais n'est pas le seul à pouvoir mettre `noticedRef`
- * à true — jamais remis à false une fois vrai, quelle qu'en soit la cause.
+ * à true : jamais remis à false une fois vrai, quelle qu'en soit la cause.
  *
  * Regard caméra (21/08) : l'os Head pivote vers la caméra pendant le
  * face-à-face (getHeadTurnAmount), en layering par-dessus la pose du mixer
- * (applyHeadLook, cf head-look.ts — jamais un remplacement total). Pas de
+ * (applyHeadLook, cf head-look.ts : jamais un remplacement total). Pas de
  * vérification explicite de prefers-reduced-motion ici : `progressRef` ne
  * dépasse jamais 0 dans ce cas (le scroll est ignoré en amont, cf
- * stag-scene.tsx), donc getHeadTurnAmount(0) = 0 sans code dédié — même
+ * stag-scene.tsx), donc getHeadTurnAmount(0) = 0 sans code dédié : même
  * raisonnement déjà appliqué à OrbitCamera/RevealLighting.
  */
 export default function StagModel({
@@ -84,7 +84,7 @@ export default function StagModel({
   climaxAccentColor?: string;
 }) {
   const group = useRef<Group>(null);
-  // Wrapper dedie au breath cycle (28/08 fix majeur) — separe de
+  // Wrapper dedie au breath cycle (28/08 fix majeur) : separe de
   // group=<primitive> qui refere le scene interne deja scale par
   // centerAndScale. Baseline 1, multiplie par breath (0.997..1.003)
   // uniforme sans casser scene interne.
@@ -95,11 +95,11 @@ export default function StagModel({
   const currentClipRef = useRef<string | null>(null);
   const { camera } = useThree();
   // Scratch réutilisé d'une frame à l'autre (pas d'allocation dans la boucle
-  // de rendu) — même principe que les scratch de head-look.ts.
+  // de rendu) : même principe que les scratch de head-look.ts.
   const cameraWorldPos = useMemo(() => new Vector3(), []);
   // useMemo plutôt qu'un ref réassigné dans un effet : eslint-plugin-react-
   // hooks (compilateur React 19) refuse de muter une valeur affectée
-  // dans/à partir d'un effet — useMemo garde le tableau d'uniforms stable
+  // dans/à partir d'un effet : useMemo garde le tableau d'uniforms stable
   // par référence (recalculé seulement si `scene` change), et useFrame
   // ci-dessous mute juste leurs `.value`, le seul moyen d'animer un uniform
   // Three.js par frame.
@@ -108,7 +108,7 @@ export default function StagModel({
   // Reset explicite des uniforms au mount (ou quand la couleur de la
   // direction change). Sans ce reset, les valeurs sont celles laissées
   // par la dernière frame de la page précédente (useGLTF cache les
-  // materials → uniforms partagés entre navigations SPA) — visible
+  // materials → uniforms partagés entre navigations SPA) : visible
   // pendant les ~16 ms qui séparent le mount du premier tick useFrame
   // (retour Sylvain 25/08 : "le cerf garde la même teinte entre deux
   // scènes... toutes les valeurs doivent être réinitialisées"). Le
@@ -125,7 +125,7 @@ export default function StagModel({
   // Centrage + résolution de l'os tête faits synchronement pendant le
   // render (pas dans un useEffect) : sans ça, une fenêtre d'un frame
   // existe entre le premier montage du `<primitive>` (scene à échelle
-  // native, énorme) et l'exécution de l'effet — le LoadingVeil fade déjà
+  // native, énorme) et l'exécution de l'effet : le LoadingVeil fade déjà
   // pendant cette fenêtre (useProgress hit 100 dès que le glb est
   // chargé) et l'utilisateur voit brièvement le cerf à taille brute
   // (bug reload trouvé le 25/08, cf memory project-nahual-da).
@@ -151,7 +151,7 @@ export default function StagModel({
   useFrame(() => {
     // Déclencheur scroll du "remarqué" : dès la prise de conscience, pas de
     // retour en arrière. D'autres déclencheurs (ex. mouvement de souris)
-    // peuvent aussi mettre noticedRef à true ailleurs dans l'arbre — cette
+    // peuvent aussi mettre noticedRef à true ailleurs dans l'arbre : cette
     // ligne ne fait qu'ajouter celui-ci, jamais ne l'annule.
     if (!noticedRef.current && getRevealPhase(progressRef.current) !== "penombre") {
       noticedRef.current = true;
@@ -168,13 +168,13 @@ export default function StagModel({
 
   useFrame((state) => {
     // Le liseré capte la lumière qui monte avec l'arc de reveal, comme le
-    // reste de la scène (RevealLighting) — jamais dominant (×0.4), un
+    // reste de la scène (RevealLighting) : jamais dominant (×0.4), un
     // simple accent qui suit le même rythme dramatique plutôt qu'une
     // intensité fixe déconnectée de la narration.
-    // 26/08 : pulse cardiaque ~4s (retour Sylvain post-audit — mêmes
+    // 26/08 : pulse cardiaque ~4s (retour Sylvain post-audit : mêmes
     // constantes que StagAura pour que rim et halo respirent en phase).
     const pulse = 0.65 + 0.35 * Math.pow(Math.sin(state.clock.elapsedTime * Math.PI * 0.25), 4);
-    // 26/08 : multiplicateur rim boosté 0.4 → 0.75 — puisque le body
+    // 26/08 : multiplicateur rim boosté 0.4 → 0.75 : puisque le body
     // tint est ramené à 0.25 (retour "cerf uniforme"), le rim doit
     // porter davantage la teinte cardinale au bord pour rester
     // lisible comme signature de direction plutôt que juste un accent.
@@ -183,13 +183,13 @@ export default function StagModel({
     // Doré (repos) -> teinte de la direction courante (climax) sur la
     // fenêtre du rim (getRimColorBlend, 0.5→1.0, élargie le 25/08 par
     // retour Sylvain : "que ça monte progressivement lorsqu'on arrive à
-    // la fin" — l'ancien getNavEmphasis, 0.75→1.0, se lisait comme un
+    // la fin" : l'ancien getNavEmphasis, 0.75→1.0, se lisait comme un
     // saut de couleur au tout dernier moment). Couleur cible par
-    // direction (Codex Nahual section 03, cf memory) — jade par défaut
+    // direction (Codex Nahual section 03, cf memory) : jade par défaut
     // (home / centre) via `climaxRimColor`.
     const rimBlend = getRimColorBlend(progressRef.current);
     setRimLightColor(rimUniforms, rimBlend, climaxRimColor);
-    // Body tint diffus sur tout le corps (pas juste le liseré) — même
+    // Body tint diffus sur tout le corps (pas juste le liseré) : même
     // timing que le rim, retour Sylvain 25/08 : "la couleur progressive
     // doit aussi venir sur le cerf" (le liseré seul se lisait comme un
     // détail, pas une transformation).
@@ -208,7 +208,7 @@ export default function StagModel({
   // Scratch pour cible cardinale pendant la transition "cerf mène"
   // (28/08). Évite un new Vector3 par frame.
   const cardinalTargetScratch = useMemo(() => new Vector3(), []);
-  // Regard mouse actif (28/08 boite outil B) — position souris
+  // Regard mouse actif (28/08 boite outil B) : position souris
   // normalisee -1..1 pour piloter tete + un scratch monde pour la
   // cible virtuelle "curseur projete devant la scene".
   const mouseWorldTargetScratch = useMemo(() => new Vector3(), []);
@@ -253,13 +253,13 @@ export default function StagModel({
 
   return (
     <group>
-      {/* Wrapper breath cycle (fix 28/08) — reference l'os scale
+      {/* Wrapper breath cycle (fix 28/08) : reference l'os scale
           separement de scene interne. Group parent breathGroupRef
           scaled uniforme 0.997..1.003, primitive interne inchange. */}
       <group ref={breathGroupRef}>
         <primitive ref={group} object={scene} />
       </group>
-      {/* Halo diffus (26/08) — parenthèse dans le même repère que la
+      {/* Halo diffus (26/08) : parenthèse dans le même repère que la
         * scène (déjà normalisée par centerAndScale), donc positionné en
         * dur au niveau du volume du cerf. climaxRimColor fallback jade
         * comme le reste des systèmes cardinaux. */}
@@ -267,7 +267,7 @@ export default function StagModel({
         progressRef={progressRef}
         climaxRimColor={climaxRimColor ?? "#00a86b"}
       />
-      {/* Motes d'esprit cardinales (26/08, Phase 3 mytho) — flottent
+      {/* Motes d'esprit cardinales (26/08, Phase 3 mytho) : flottent
         * autour du cerf en dérive lente, pulsent en phase avec le rim
         * et l'aura. Signal "esprits qui accompagnent le nahual" plus
         * qu'un décor abstrait. */}

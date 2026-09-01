@@ -2,15 +2,15 @@ import { test, expect } from "@playwright/test";
 
 /**
  * Tests E2E du voile de chargement (30/08). Verrouille le fix Sylvain
- * "je vois encore le html avant" — ces tests DOIVENT casser si quelqu'un
+ * "je vois encore le html avant" : ces tests DOIVENT casser si quelqu'un
  * retire le critical CSS inline, deplace le PiedraSkeleton, ou casse le
  * mecanisme html[data-loaded="true"].
  */
 
-test.describe("PiedraSkeleton — voile de chargement SOTY", () => {
+test.describe("PiedraSkeleton : voile de chargement SOTY", () => {
   test("body a fond noir des la premiere frame (pas de flash blanc)", async ({ page }) => {
     await page.goto("/fr");
-    // Verifie le fond noir AVANT que useProgress atteigne 100 — le
+    // Verifie le fond noir AVANT que useProgress atteigne 100 : le
     // critical CSS inline dans <head> doit forcer body { background: #000 }
     // tant que html n'a pas data-loaded="true".
     const bgColor = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);

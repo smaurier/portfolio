@@ -14,7 +14,7 @@ import { generateRingPlacements } from "@/lib/flora-placement";
 import { getTerrainHeight } from "@/lib/terrain-height";
 
 // Vert-gris sec, cohérent avec l'ambiance désertique (distinct du vert des
-// lianes VINE_COLOR="#3f6b2f", plus vif — l'ocotillo est une tige ligneuse,
+// lianes VINE_COLOR="#3f6b2f", plus vif : l'ocotillo est une tige ligneuse,
 // pas une plante grimpante fraîche).
 const WAND_COLOR = "#78805a";
 const FLOWER_MODEL_PATH = "/models/vine-flower.glb";
@@ -109,11 +109,11 @@ function OcotilloCluster({
 }
 
 /**
- * Buissons d'ocotillo (Fouquieria splendens), fixes dans le fond — palier 3
+ * Buissons d'ocotillo (Fouquieria splendens), fixes dans le fond : palier 3
  * de la DA Nahual (cf memory project-nahual-da). Remplace elephant-tree.glb
  * (asset CC0 mal assorti au reste du style, cf audit + retrait du 18/08 dans
  * background-flora.tsx). Géométrie procédurale (src/lib/ocotillo-shapes.ts),
- * pas d'asset trouvé — la gerbe de tiges rayonnantes n'a pas d'équivalent
+ * pas d'asset trouvé : la gerbe de tiges rayonnantes n'a pas d'équivalent
  * CC0, et Sylvain a tranché pour le procédural plutôt qu'un compromis
  * générique reteinté. Statique comme le reste du fond, pas de pousse
  * animée (même règle que background-flora.tsx).

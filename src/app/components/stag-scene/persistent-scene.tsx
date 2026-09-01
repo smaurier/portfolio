@@ -16,12 +16,12 @@ import styles from "./scene-stage.module.css";
 /**
  * Scène 3D persistante montée UNE seule fois dans layout.tsx
  * (28/08 refactor Phase A). Le canvas WebGL survit à toutes les
- * navigations SPA — plus de coupure structurelle au router.push,
+ * navigations SPA : plus de coupure structurelle au router.push,
  * plus de flash blanc, plus de reconstruction shader.
  *
  * Direction cardinale lue via usePathname (useCurrentDirection). Au
  * changement d'URL, seules les couleurs propagées (climaxRimColor,
- * climaxAccentColor, fogTint) changent — les enfants scène (StagModel,
+ * climaxAccentColor, fogTint) changent : les enfants scène (StagModel,
  * RevealLighting, SpiritParticles) réagissent progressivement via
  * leurs useFrame internes (les uniforms sont mutés en douceur par
  * les setters existants, pas re-créés).
@@ -101,7 +101,7 @@ export default function PersistentScene() {
           climaxAccentColor={climaxAccentColor}
           fogTint={fogTint}
         />
-        {/* Xolotl (29/08) — chien-frère de Quetzalcoatl, guide vers
+        {/* Xolotl (29/08) : chien-frère de Quetzalcoatl, guide vers
             Mictlán. Spawn aléatoire session-based par direction :
             15% pages écho, 40% Mémoire (Nord), 0% home. Traverse
             fugitivement en fond ~18s. Voir codex.xolotl. */}

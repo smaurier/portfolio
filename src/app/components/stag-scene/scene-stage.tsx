@@ -8,7 +8,7 @@ import SceneTextOverlay from "./scene-text-overlay";
 import styles from "./scene-stage.module.css";
 
 /**
- * Wrapper HTML page — overlay au-dessus du canvas persistant + flow
+ * Wrapper HTML page : overlay au-dessus du canvas persistant + flow
  * scrollable pour le contenu. Refactor 28/08 Phase A : le Canvas
  * WebGL est sorti d'ici, il vit désormais dans layout.tsx via
  * PersistentScene (persist entre navs SPA, plus de coupure).
@@ -17,7 +17,7 @@ import styles from "./scene-stage.module.css";
  *  - rendre l'overlay HTML dans un slot fixed au-dessus du canvas
  *  - rendre le contenu flow (min-height 300vh via .flow) qui pilote
  *    le scroll de l'arc de reveal
- *  - gérer l'emphase de nav ("chemins révélés") — teinte les liens
+ *  - gérer l'emphase de nav ("chemins révélés") : teinte les liens
  *    du header quand le scroll approche du climax, direction cardinale
  *    de cette page
  *
@@ -41,7 +41,7 @@ export default function SceneStage({
 
   useEffect(() => {
     if (!refs) return;
-    // Emphase de nav ("chemins révélés") — teinte les liens du
+    // Emphase de nav ("chemins révélés") : teinte les liens du
     // header progressivement selon le scroll de l'arc. Chaque page a
     // sa direction cardinale, la teinte suit.
     function applyNavEmphasis(progress: number) {

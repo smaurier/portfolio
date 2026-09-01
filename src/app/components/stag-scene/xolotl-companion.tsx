@@ -20,7 +20,7 @@ import { useCurrentDirection } from "./use-current-direction";
  * Probabilité de spawn par direction (session-based) :
  *  - jade (Centre) : 0 % (jamais sur la home)
  *  - dore / turquoise / cendre / codex : 15 %
- *  - obsidienne (Nord / Mémoire) : 40 % — c'est justement le chemin
+ *  - obsidienne (Nord / Mémoire) : 40 % : c'est justement le chemin
  *    vers Mictlán, présence renforcée
  *
  * Timing d'apparition :
@@ -68,12 +68,12 @@ const TOTAL_MS = FADE_MS * 2 + TRAVERSE_MS; // 20 s
 const START_X = -9;
 const END_X = 9;
 
-// Z fixe (retire arc + terrain follow) — chien marche en ligne droite
+// Z fixe (retire arc + terrain follow) : chien marche en ligne droite
 // a distance constante. Disparition naturelle par fade in/out
 // uniquement, plus par occlusion terrain.
 const Z_DEPTH = -10;
 
-// Peak opacity fresnel — 1.0 sur edges via shader (bord opaque),
+// Peak opacity fresnel : 1.0 sur edges via shader (bord opaque),
 // centre transparent. C'est la variable qui module la globale
 // d'ensemble (fade in/out uniquement).
 const PEAK_OPACITY = 1.0;
@@ -89,9 +89,9 @@ const Y_FOOT_OFFSET = 0;
 const XOLOTL_COLOR = "#6b3fa8"; // Obsidienne violet nocturne
 
 // Taille reelle (retour user 29/08 "chien ne devrait arriver qu'a la
-// fin des pattes du cerf" — anatomiquement correct Xolo vs cerf =
+// fin des pattes du cerf" : anatomiquement correct Xolo vs cerf =
 // ratio ~0.35). Le vrai Xolo Fab.com mesh est plus compact que le
-// Wolf Quaternius (bbox hauteur 1.19 vs 2.70) — scale releve pour
+// Wolf Quaternius (bbox hauteur 1.19 vs 2.70) : scale releve pour
 // conserver la meme presence apparente que Wolf@0.35 (world height
 // ~0.94 unit, tiers taille cerf central ~1.5 unit).
 const XOLOTL_SCALE = 0.85;
@@ -108,14 +108,14 @@ const WALK_ANIM = "Walk";
 // son cycle etait plus lent. Baisser encore si "trop rapide" persiste.
 const WALK_TIME_SCALE = 1.0;
 
-// Preload GLB (drei helper) — chargement au premier render du site,
+// Preload GLB (drei helper) : chargement au premier render du site,
 // évite délai lag au premier spawn.
 useGLTF.preload("/models/xolotl.glb");
 
 // Uniforms halo : type + helper de mutation. Passe par une fonction
 // plutot qu'une assignation directe dans useFrame, sinon
 // react-hooks/immutability (React 19 compilateur) refuse la mutation
-// d'une valeur issue d'un hook — meme pattern que setRimLightIntensity
+// d'une valeur issue d'un hook : meme pattern que setRimLightIntensity
 // dans rim-light.ts.
 type HaloUniforms = {
   uColor: { value: Color };
@@ -258,7 +258,7 @@ export default function XolotlCompanion() {
   const cloneGroupRef = useRef<Group>(null);
   const cloneMixer = useMemo(() => new AnimationMixer(clonedScene), [clonedScene]);
 
-  // Fresnel obsidienne via onBeforeCompile — factory reutilisee pour
+  // Fresnel obsidienne via onBeforeCompile : factory reutilisee pour
   // primaire ET afterimage. Chaque instance a son propre jeu
   // d'uniforms pour piloter l'opacite independamment.
   const shaderUniforms = useMemo<FresnelUniforms>(
@@ -372,7 +372,7 @@ export default function XolotlCompanion() {
         walk.reset().play();
       }
       // Reset flag "codex deja lu pour ce cycle" (retour Sylvain 30/08 :
-      // "le footer ne se rafraichit plus lorsque xolotl apparait" —
+      // "le footer ne se rafraichit plus lorsque xolotl apparait" :
       // apres visite Codex, codex-read=1 stay en localStorage indefini,
       // empechait astérisque + message a chaque spawn suivant). Nouveau
       // cycle Xolotl = nouveau signal, on efface la trace de la visite
@@ -405,7 +405,7 @@ export default function XolotlCompanion() {
     cloneMixer.update(delta);
     const elapsed = performance.now() - startedAt;
     if (elapsed > TOTAL_MS) {
-      // Anim complète — marque témoignage si tab visible
+      // Anim complète : marque témoignage si tab visible
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         try {
           localStorage.setItem("nahual-xolotl-witnessed", "1");
@@ -417,7 +417,7 @@ export default function XolotlCompanion() {
       const walk = actions[WALK_ANIM];
       if (walk) walk.stop();
       setStartedAt(null);
-      // Signale "xolotl hidden" — WitnessMessage restera visible
+      // Signale "xolotl hidden" : WitnessMessage restera visible
       // ~30s post-fin via timer interne cote message, puis disparait.
       window.dispatchEvent(new CustomEvent("nahual-xolotl-appearing", { detail: { visible: false } }));
       return;

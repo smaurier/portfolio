@@ -1,12 +1,12 @@
-// Géométrie procédurale de l'ocotillo (Fouquieria splendens) — palier 3 de
+// Géométrie procédurale de l'ocotillo (Fouquieria splendens) : palier 3 de
 // la DA Nahual (cf memory project-nahual-da), remplacement de
 // elephant-tree.glb dans le fond fixe (background-flora.tsx).
 //
 // Aucun asset CC0 étiqueté mesquite/huizache/palo verde/ocotillo n'existe
-// dans les bibliothèques low-poly usuelles (poly.pizza, Sketchfab — recherche
+// dans les bibliothèques low-poly usuelles (poly.pizza, Sketchfab : recherche
 // faite en direct le 18/08) : soit un asset générique reteinté, soit du
 // procédural. Sylvain a tranché pour le procédural, comme pour les lianes
-// (vine-shapes.ts) — même raison ici : aucun asset ne colle précisément à
+// (vine-shapes.ts) : même raison ici : aucun asset ne colle précisément à
 // "gerbe de tiges fines qui rayonnent depuis un pied commun", et le
 // procédural garantit l'exactitude de la silhouette (espèce précolombienne
 // mexicaine, désertique, distincte du nopal/agave déjà en scène) plutôt
@@ -15,7 +15,7 @@
 // Une tige d'ocotillo part quasi verticale à la base puis penche
 // progressivement vers l'extérieur en s'élevant (même principe que la
 // dérive t² des lianes : la base reste plantée, l'écart s'accélère vers le
-// sommet) — pas de spirale/enroulement ici, contrairement aux lianes.
+// sommet) : pas de spirale/enroulement ici, contrairement aux lianes.
 // Plusieurs tiges réparties en éventail autour d'un pied commun (angle doré,
 // même patron que flora-placement.ts) forment le buisson complet.
 
@@ -24,16 +24,16 @@ export type OcotilloPoint = { x: number; y: number; z: number };
 export type OcotilloWandPathOptions = {
   /** Hauteur totale de la tige. */
   height: number;
-  /** Dérive horizontale totale atteinte au sommet — direction du penchant. */
+  /** Dérive horizontale totale atteinte au sommet : direction du penchant. */
   leanX: number;
   leanZ: number;
   /** Amplitude d'un léger balancement organique perpendiculaire au
-   * penchant — une tige naturelle n'est jamais parfaitement droite. */
+   * penchant : une tige naturelle n'est jamais parfaitement droite. */
   wobbleAmplitude: number;
   wobbleFrequency: number;
   /** Nombre de points le long de la tige. */
   segments: number;
-  /** Décale la phase du balancement — déterministe, pas Math.random (même
+  /** Décale la phase du balancement : déterministe, pas Math.random (même
    * principe que vine-shapes/flora-placement). */
   seed: number;
 };
@@ -110,7 +110,7 @@ const DEFAULT_CLUSTER_OPTIONS: OcotilloClusterOptions = {
 const GOLDEN_ANGLE = 2.399963229728653; // même angle que flora-placement.ts
 
 /**
- * Répartit les tiges d'un buisson d'ocotillo autour d'un pied commun —
+ * Répartit les tiges d'un buisson d'ocotillo autour d'un pied commun :
  * angle doré pour une répartition homogène (comme flora-placement.ts),
  * hauteur et rayon d'ouverture variés par tige (pseudo-déterministe, basé
  * sur l'index) pour éviter l'effet "copié-collé en rotation".
@@ -144,7 +144,7 @@ const DEFAULT_TIP_FLOWER_COUNT = 3;
 /**
  * Où accrocher les fleurs sur une tige : contrairement aux lianes (fleurs
  * réparties sur toute la hauteur), l'ocotillo les concentre en petite
- * grappe tout en pointe — cf le vrai Fouquieria splendens.
+ * grappe tout en pointe : cf le vrai Fouquieria splendens.
  */
 export function generateOcotilloFlowerPlacements(
   count: number = DEFAULT_TIP_FLOWER_COUNT,

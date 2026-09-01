@@ -14,18 +14,18 @@ import styles from "./loading-cycle.module.css";
 
 /**
  * Les deux Xiuhcoatl (serpents de feu) qui encerclent le voile de
- * chargement — cf src/lib/serpent-loop.ts pour la géométrie et l'ancrage
+ * chargement : cf src/lib/serpent-loop.ts pour la géométrie et l'ancrage
  * mythologique (Piedra del Sol, orientation vérifiée par recherche le
  * 21/08). Le corps (`outline`) se dessine via stroke-dasharray/dashoffset
  * (technique classique de "line draw" SVG) piloté par `progress` (0-100,
  * même source que le pourcentage affiché à côté) : le ruban se trace tête
- * (en bas) vers queue (en haut) à mesure que la scène charge — les deux
+ * (en bas) vers queue (en haut) à mesure que la scène charge : les deux
  * queues se rejoignant en haut pile quand la scène est prête. Les détails
  * (museau, queue trapèze-et-rayon, écailles) n'ont pas de longueur stable
  * exploitable en dasharray (plusieurs sous-tracés) : ils apparaissent en
  * fondu plutôt qu'en tracé progressif.
  *
- * `getTotalLength()` exige le DOM (pas dispo en SSR) — recalculé à chaque
+ * `getTotalLength()` exige le DOM (pas dispo en SSR) : recalculé à chaque
  * changement de `progress` plutôt qu'une seule fois au montage : bon marché
  * ici (deux <path>, appelé au rythme de useProgress, pas par frame R3F).
  */
@@ -54,7 +54,7 @@ export default function LoadingCycle({ progress }: { progress: number }) {
   const ticksB = useMemo(() => buildSegmentTicks(SERPENT_B), []);
 
   // Point de rencontre de chaque serpent (dernier point échantillonné =
-  // queue, t=1, en haut) — un petit repère "braise" dessus pour lire "les
+  // queue, t=1, en haut) : un petit repère "braise" dessus pour lire "les
   // deux queues qui se rejoignent en haut", pas juste un anneau continu qui
   // s'épaissit.
   const tailA = useMemo(() => sampleSerpentArc(SERPENT_A).at(-1), []);

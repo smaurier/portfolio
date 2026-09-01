@@ -1,4 +1,4 @@
-// Placement de la végétation de fond — palier 3 de la DA Nahual (cf memory
+// Placement de la végétation de fond : palier 3 de la DA Nahual (cf memory
 // project-nahual-da). Fonction pure : répartit N emplacements sur un anneau
 // autour de la scène, en spirale à angle doré (comme les feuilles d'une
 // vraie plante) plutôt qu'un pas régulier qui lirait comme une grille, ou
@@ -7,7 +7,7 @@
 export type FloraPlacement = {
   x: number;
   z: number;
-  /** Orientation autour de l'axe Y, en radians — évite que tous les
+  /** Orientation autour de l'axe Y, en radians : évite que tous les
    * spécimens fassent face à la même direction. */
   rotationY: number;
   /** Multiplicateur de taille, varie légèrement d'un spécimen à l'autre
@@ -18,7 +18,7 @@ export type FloraPlacement = {
 const GOLDEN_ANGLE = 2.399963229728653; // ~137.5°, cf reveal-arc/camera-path
 
 export type RingPlacementOptions = {
-  /** Distance minimale au centre — les fonds ne doivent jamais empiéter sur
+  /** Distance minimale au centre : les fonds ne doivent jamais empiéter sur
    * la zone où la caméra évolue (cf camera-path.ts, endRadius du climax). */
   minRadius: number;
   /** Distance maximale au centre. */
@@ -26,7 +26,7 @@ export type RingPlacementOptions = {
   /** Échelle minimale/maximale des spécimens. */
   minScale: number;
   maxScale: number;
-  /** Décale toute la distribution — deux appels avec des seeds différentes
+  /** Décale toute la distribution : deux appels avec des seeds différentes
    * ne retombent jamais sur les mêmes emplacements. */
   seed: number;
 };
@@ -43,7 +43,7 @@ const DEFAULT_OPTIONS: RingPlacementOptions = {
  * Répartit `count` emplacements en anneau autour du centre de la scène.
  * Utilise le nombre d'or pour l'angle (répartition homogène, jamais deux
  * points alignés) et une variation pseudo-déterministe (basée sur l'index,
- * pas Math.random) pour le rayon/l'échelle/la rotation propre — reproductible
+ * pas Math.random) pour le rayon/l'échelle/la rotation propre : reproductible
  * à chaque rendu, donc testable.
  */
 export function generateRingPlacements(
@@ -58,7 +58,7 @@ export function generateRingPlacements(
   const placements: FloraPlacement[] = [];
   for (let i = 0; i < count; i++) {
     const angle = seed + i * GOLDEN_ANGLE;
-    // Un second angle (fréquence différente) pilote la variation de rayon —
+    // Un second angle (fréquence différente) pilote la variation de rayon :
     // évite que les rayons suivent un motif visible corrélé à l'angle.
     const radiusT = (Math.sin(i * 0.618 + seed) + 1) / 2; // 0..1
     const scaleT = (Math.cos(i * 0.427 + seed) + 1) / 2; // 0..1

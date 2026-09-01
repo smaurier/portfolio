@@ -9,31 +9,31 @@ import { useSceneRefs } from "./scene-refs-context";
 import OllinShockwave from "./ollin-shockwave";
 
 /**
- * Post-processing — retour de Sylvain le 18/08, après audit comparé à des
+ * Post-processing : retour de Sylvain le 18/08, après audit comparé à des
  * sites de référence (Lusion, cf Codex Nahual/memory project-nahual-da) :
  * le plus gros écart entre /lab et une expérience "haute facture" n'était
  * pas le nombre d'objets dans la scène (sol/montagnes/herbe ajoutés plus
- * tôt ce soir), mais l'absence totale de post-processing — tout tournait
+ * tôt ce soir), mais l'absence totale de post-processing : tout tournait
  * en meshStandardMaterial par défaut, sans bloom/vignette/grade, ce qui se
  * lit comme une démo Three.js plutôt qu'une direction artistique.
  *
  * Effets volontairement sobres : le sujet doit rester lisible, l'effet ne
  * doit jamais devenir le sujet.
  * - Bloom : seuil de luminance modéré (pas de matériau emissive dans la
- *   scène pour l'instant — capte les zones déjà les plus lumineuses,
+ *   scène pour l'instant : capte les zones déjà les plus lumineuses,
  *   spéculaires sur le cerf, fleurs rouges éclairées).
- * - Vignette : assombrit les bords, recentre l'œil sur le sujet — le
+ * - Vignette : assombrit les bords, recentre l'œil sur le sujet : le
  *   levier le plus simple pour une lecture "cinématographique" plutôt que
  *   "capture d'écran d'un moteur 3D".
  * - ChromaticAberration : décalage minime, juste assez pour casser le
  *   rendu "trop propre"/synthétique par défaut d'un rendu WebGL sans
- *   grain — pas un effet de lentille appuyé.
+ *   grain : pas un effet de lentille appuyé.
  *
- * Phase C cinématographie (28/08) — pendant le burst de transition
+ * Phase C cinématographie (28/08) : pendant le burst de transition
  * cardinale, Bloom.intensity + ChromaticAberration.offset boostés en
  * bell curve. Signal cinéma renforcé synchro avec dolly caméra + FOV
  * shift (OrbitCamera) + head-look cerf (StagModel). Rester dans les
- * ordres de grandeur "sobres" (bloom max ~1.4, CA max ~0.002) — le
+ * ordres de grandeur "sobres" (bloom max ~1.4, CA max ~0.002) : le
  * boost doit rester subtile SOTA cinéma, pas gimmick.
  */
 
@@ -62,7 +62,7 @@ export default function PostFX() {
   const refs = useSceneRefs();
 
   useFrame(() => {
-    // Vignette breathing scroll (28/08 boite outil D) — vignette
+    // Vignette breathing scroll (28/08 boite outil D) : vignette
     // darkness varie selon progress reveal-arc : plus forte en
     // penombre (0.9) relaxe au climax chemins reveles (0.65). Signature
     // "l'oeil s'ouvre progressivement au monde nahual".
@@ -77,13 +77,13 @@ export default function PostFX() {
     const bell = active ? Math.sin(p * Math.PI) : 0;
 
     if (bloomRef.current) {
-      // Sound-reactive bloom (28/08 boite outil #3) — si audio level
+      // Sound-reactive bloom (28/08 boite outil #3) : si audio level
       // dispo (window.__nahualAudioLevel pose par SoundDesign quand
       // unmuted), ajoute pulse proportionnel. Silencieux si mute.
       const audioLevel = typeof window !== "undefined"
         ? (window as unknown as { __nahualAudioLevel?: { current: number } }).__nahualAudioLevel?.current ?? 0
         : 0;
-      // Pin face-a-face bloom boost (28/08 boite outil #6) — pendant
+      // Pin face-a-face bloom boost (28/08 boite outil #6) : pendant
       // scrub pin, bloom monte de 0 a +1.5 = pic dramatique "regard
       // silencieux amplifie".
       const pinLevel = refs?.pinProgressRef.current ?? 0;
@@ -104,7 +104,7 @@ export default function PostFX() {
 
   return (
     <EffectComposer multisampling={4}>
-      {/* OllinShockwave (29/08) — onde de pression au pointerdown user,
+      {/* OllinShockwave (29/08) : onde de pression au pointerdown user,
           signature nahua "tremblement d'Ollin". En premier de la
           chaine : deforme la scene rendue AVANT DOF/bloom/CA, effet
           plus organique (le bokeh et le bloom prennent la distortion
