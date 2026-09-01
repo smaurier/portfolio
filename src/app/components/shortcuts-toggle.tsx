@@ -16,19 +16,19 @@ const LABEL: Record<Locale, { on: string; off: string; description: string }> = 
     on: "Raccourcis clavier et manette activés",
     off: "Raccourcis clavier et manette désactivés",
     description:
-      "Décochez pour désactiver les raccourcis WASD/ZQSD (navigation cardinale) et les boutons de manette. Les raccourcis avec modificateur (Alt+flèches) et Échap restent actifs — ils ne sont pas soumis au critère RGAA 12.10.",
+      "Décochez pour désactiver les raccourcis WASD/ZQSD (navigation cardinale) et les boutons de manette. Les raccourcis avec modificateur (Alt+flèches) et Échap restent actifs · ils ne sont pas soumis au critère RGAA 12.10.",
   },
   en: {
     on: "Keyboard and gamepad shortcuts enabled",
     off: "Keyboard and gamepad shortcuts disabled",
     description:
-      "Uncheck to disable WASD (cardinal navigation) and gamepad button shortcuts. Modifier shortcuts (Alt+arrows) and Escape remain active — they are not subject to WCAG 2.1.4 / RGAA 12.10.",
+      "Uncheck to disable WASD (cardinal navigation) and gamepad button shortcuts. Modifier shortcuts (Alt+arrows) and Escape remain active · they are not subject to WCAG 2.1.4 / RGAA 12.10.",
   },
   es: {
     on: "Atajos de teclado y mando activados",
     off: "Atajos de teclado y mando desactivados",
     description:
-      "Desmarque para desactivar los atajos WASD (navegación cardinal) y los botones del mando. Los atajos con modificador (Alt+flechas) y Escape permanecen activos — no están sujetos al criterio RGAA 12.10.",
+      "Desmarque para desactivar los atajos WASD (navegación cardinal) y los botones del mando. Los atajos con modificador (Alt+flechas) y Escape permanecen activos · no están sujetos al criterio RGAA 12.10.",
   },
 };
 

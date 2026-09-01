@@ -85,7 +85,7 @@
       },
       {
         "kicker": "II · The gaze",
-        "line": "The stag has noticed you. He doesn't flee — he waits."
+        "line": "The stag has noticed you. He doesn't flee · he waits."
       },
       {
         "kicker": "III · Face to face",
@@ -150,7 +150,7 @@
           },
           {
             "title": "Site architecture",
-            "text": "Astro for static generation, native i18n for fr/en/es with no overhead, MDX for long-form articles, Netlify hosting with preview branches for each new piece of content. The site itself is RGAA 4.1 compliant by construction — no post-audit patching, every component is designed accessible from the start. A test-driven a11y approach that serves as its own example."
+            "text": "Astro for static generation, native i18n for fr/en/es with no overhead, MDX for long-form articles, Netlify hosting with preview branches for each new piece of content. The site itself is RGAA 4.1 compliant by construction · no post-audit patching, every component is designed accessible from the start. A test-driven a11y approach that serves as its own example."
           },
           {
             "title": "What Nuada teaches me",
@@ -180,7 +180,7 @@
         "narrative": [
           {
             "title": "Client context",
-            "text": "KleyFrance is a French manufacturer of custom lifting solutions — slings, winches, specialized spreader beams — for very specialized sectors: oil, offshore oceanography, military industry. A legacy WordPress site, not responsive, whose graphic charter came down to an aging logo and a gray-blue palette without identity. The brief: rebuild while keeping industrial credibility, without falling into the \"heavy metal\" cliché that plagues this market."
+            "text": "KleyFrance is a French manufacturer of custom lifting solutions · slings, winches, specialized spreader beams · for very specialized sectors: oil, offshore oceanography, military industry. A legacy WordPress site, not responsive, whose graphic charter came down to an aging logo and a gray-blue palette without identity. The brief: rebuild while keeping industrial credibility, without falling into the \"heavy metal\" cliché that plagues this market."
           },
           {
             "title": "Art direction approach",
@@ -188,15 +188,15 @@
           },
           {
             "title": "The editorial challenge",
-            "text": "The vocabulary is ultra-specialized. \"Balancing spreader beam,\" \"30t hydraulic underwater winch,\" \"DNV/LOLER compliance.\" The site had to remain accessible to technical buyers (who know) without scaring off more generalist buyers (military, industrialists). Solution: a systematic dual reading — an explicit title in plain French, a precise technical subtitle with the industry vocabulary."
+            "text": "The vocabulary is ultra-specialized. \"Balancing spreader beam,\" \"30t hydraulic underwater winch,\" \"DNV/LOLER compliance.\" The site had to remain accessible to technical buyers (who know) without scaring off more generalist buyers (military, industrialists). Solution: a systematic dual reading · an explicit title in plain French, a precise technical subtitle with the industry vocabulary."
           },
           {
             "title": "Concrete impact",
-            "text": "Loading time divided by 3 (optimized WordPress, WebP images, Cloudflare cache). Mobile-first responsive. Unified quote forms with pre-filled conditions by target sector. Client feedback: incoming first contacts become more qualified — prospects arrive having understood the specialization before contacting."
+            "text": "Loading time divided by 3 (optimized WordPress, WebP images, Cloudflare cache). Mobile-first responsive. Unified quote forms with pre-filled conditions by target sector. Client feedback: incoming first contacts become more qualified · prospects arrive having understood the specialization before contacting."
           },
           {
             "title": "What I take from it",
-            "text": "In a B2B niche market, art direction matters more than one might think. Technical credibility comes through graphic choices consistent with the trade — no unnecessary creative dev effects, but each element must signal \"we know what we're talking about.\""
+            "text": "In a B2B niche market, art direction matters more than one might think. Technical credibility comes through graphic choices consistent with the trade · no unnecessary creative dev effects, but each element must signal \"we know what we're talking about.\""
           }
         ]
       }
@@ -230,11 +230,11 @@
           },
           {
             "title": "Quality as obligation",
-            "text": "283 tests from the first public release, green CI, coverage > 80%. Why this rigor for a personal plugin? Because memory is precious — a bug that silently overwrites an entry is context lost that I won't recover. TDD here isn't dogma but a guarantee that memory doesn't corrupt itself."
+            "text": "283 tests from the first public release, green CI, coverage > 80%. Why this rigor for a personal plugin? Because memory is precious · a bug that silently overwrites an entry is context lost that I won't recover. TDD here isn't dogma but a guarantee that memory doesn't corrupt itself."
           },
           {
             "title": "Community opening",
-            "text": "Published open-source from the first commit on github.com/smaurier/claude-synapse. Careful documentation, concrete examples, ADR (Architecture Decision Records) to trace choices. Ambition: that other multi-machine Claude Code users can bootstrap their own system. No business model, no premium — a tool solving a real problem for those who have it."
+            "text": "Published open-source from the first commit on github.com/smaurier/claude-synapse. Careful documentation, concrete examples, ADR (Architecture Decision Records) to trace choices. Ambition: that other multi-machine Claude Code users can bootstrap their own system. No business model, no premium · a tool solving a real problem for those who have it."
           }
         ]
       }
@@ -273,7 +273,7 @@
       },
       {
         "title": "The calendar glyphs",
-        "text": "Five hybrid glyphs — Nahui Ollin for Center, Tonatiuh for East, Xochitl for South, Iztli for West, Ollin for North — drawn to animate cardinal transitions. Technically successful, but their codex fidelity made them sacred. Removed without regret, out of respect."
+        "text": "Five hybrid glyphs · Nahui Ollin for Center, Tonatiuh for East, Xochitl for South, Iztli for West, Ollin for North · drawn to animate cardinal transitions. Technically successful, but their codex fidelity made them sacred. Removed without regret, out of respect."
       },
       {
         "title": "The 2D petal curtain",
@@ -311,7 +311,7 @@
     "intro": "A short manual for this site. The cosmogony that structures it, the human who writes it, the family that inhabits it.",
     "cosmos": {
       "title": "The five directions",
-      "text": "In Mesoamerican thought, the universe isn't read in four cardinal points but in five — the four horizons plus the center. Each direction carries its color, its god, its animal, its time of day. This site follows that plan.",
+      "text": "In Mesoamerican thought, the universe isn't read in four cardinal points but in five · the four horizons plus the center. Each direction carries its color, its god, its animal, its time of day. This site follows that plan.",
       "directions": [
         {
           "name": "Center · Xiuhtecuhtli · jade",
@@ -337,7 +337,7 @@
     },
     "suns": {
       "title": "The four previous suns",
-      "text": "Before Nahui Ollin, four worlds lived and perished. Each left a lesson on how to die — and therefore how to live. Nahua cosmology does not think of creation as linear but as cycles that beget one another by collapsing. Our current sun is the fifth. It is mortal like the previous ones.",
+      "text": "Before Nahui Ollin, four worlds lived and perished. Each left a lesson on how to die · and therefore how to live. Nahua cosmology does not think of creation as linear but as cycles that beget one another by collapsing. Our current sun is the fifth. It is mortal like the previous ones.",
       "list": [
         {
           "name": "Nahui Ocelotl · 4 Jaguar",
@@ -359,7 +359,7 @@
     },
     "ollin": {
       "title": "Ollin, the tremor of the 5th sun",
-      "text": "We live under Nahui Ollin, the sun of the four movements. Nahua prophecy says our world endures only as long as it trembles: when Ollin ceases, the earth stills one final time, Tonatiuh dies, the Tzitzimime descend. Every breath, every heartbeat, every touch is living proof of Ollin. On this site, when you press the mouse or tap the screen, a radial wave crosses the scene: that is Ollin manifesting. The stag Mazātl, messenger between worlds, feels the vibration before your eyes do. The four guardians awaken, the central fire redistributes. You are performing a ritual whose name you did not know. The historic Ollin glyph is a central circle bordered by four cardinal rays — the same five-point cross as the compass in the bottom right. Gesture and structure answer each other."
+      "text": "We live under Nahui Ollin, the sun of the four movements. Nahua prophecy says our world endures only as long as it trembles: when Ollin ceases, the earth stills one final time, Tonatiuh dies, the Tzitzimime descend. Every breath, every heartbeat, every touch is living proof of Ollin. On this site, when you press the mouse or tap the screen, a radial wave crosses the scene: that is Ollin manifesting. The stag Mazātl, messenger between worlds, feels the vibration before your eyes do. The four guardians awaken, the central fire redistributes. You are performing a ritual whose name you did not know. The historic Ollin glyph is a central circle bordered by four cardinal rays · the same five-point cross as the compass in the bottom right. Gesture and structure answer each other."
     },
     "entities": {
       "title": "The three entities of the Nahua being",
@@ -371,21 +371,21 @@
         },
         {
           "name": "Tonalli · head",
-          "text": "The vital force tied to the day of birth in the tonalpohualli calendar. It resides in the head and radiates like a heat. It can escape during intense fright — hence the rituals to recall the tonalli after a shock."
+          "text": "The vital force tied to the day of birth in the tonalpohualli calendar. It resides in the head and radiates like a heat. It can escape during intense fright · hence the rituals to recall the tonalli after a shock."
         },
         {
           "name": "Ihíyotl · liver",
-          "text": "The breath, the passions, the desires. It resides in the liver and belly. If unmastered, it can escape and affect others — moral illnesses come from there."
+          "text": "The breath, the passions, the desires. It resides in the liver and belly. If unmastered, it can escape and affect others · moral illnesses come from there."
         }
       ]
     },
     "xolotl": {
       "title": "Xolotl, the dog of dusk",
-      "text": "Twin brother of Quetzalcoatl, Xolotl is the dog who guides souls to Mictlán after death. Skeletal, silent, he crosses worlds without ever stopping — except for those who know how to watch. On this site, he appears rarely: more often to the North (the Memory page, natural path to Mictlán), more discreet elsewhere. Never on the home page. If you have seen him pass, the scene has judged you worthy of his attention. He may not return anytime soon."
+      "text": "Twin brother of Quetzalcoatl, Xolotl is the dog who guides souls to Mictlán after death. Skeletal, silent, he crosses worlds without ever stopping · except for those who know how to watch. On this site, he appears rarely: more often to the North (the Memory page, natural path to Mictlán), more discreet elsewhere. Never on the home page. If you have seen him pass, the scene has judged you worthy of his attention. He may not return anytime soon."
     },
     "totem": {
       "title": "The stag, Mazātl",
-      "text": "The nahual is that essence which reveals itself in its true animal form. I chose the stag over the eagle or the jaguar — deliberately avoiding the \"Aztec imagery\" cliché to stay in the more discreet register of presence: messenger between worlds, associated with grace, vigilance, and the ability to hide one's true nature from others."
+      "text": "The nahual is that essence which reveals itself in its true animal form. I chose the stag over the eagle or the jaguar · deliberately avoiding the \"Aztec imagery\" cliché to stay in the more discreet register of presence: messenger between worlds, associated with grace, vigilance, and the ability to hide one's true nature from others."
     },
     "human": {
       "title": "Who writes",
@@ -393,7 +393,7 @@
     },
     "family": {
       "title": "The family that inhabits this site",
-      "text": "Nahual is a French-Mexican project as much as a personal one. Elda, my partner, is Mexican, a native Spanish speaker, a teacher. Léopoldine is our daughter, born in Lyon. Alondra is her older sister, adopted in Mexico. Nahua cosmogony isn't a randomly chosen exotic backdrop — it's a family heritage I'm still learning, with the respect that requires."
+      "text": "Nahual is a French-Mexican project as much as a personal one. Elda, my partner, is Mexican, a native Spanish speaker, a teacher. Léopoldine is our daughter, born in Lyon. Alondra is her older sister, adopted in Mexico. Nahua cosmogony isn't a randomly chosen exotic backdrop · it's a family heritage I'm still learning, with the respect that requires."
     },
     "respect": {
       "title": "On cultural appropriation",
@@ -513,7 +513,7 @@
       },
       {
         "title": "Keyboard shortcuts",
-        "text": "Alt+Up/Right/Down/Left Arrow: direct cardinal navigation (up=Memory North, right=Services East, down=Projects South, left=Contact West). WASD (QWERTY) or ZQSD (AZERTY) — independent of physical layout — same cardinal grid: W/Z=Memory, D=Services, S=Projects, A/Q=Contact, C=Home (Center). Escape: return home."
+        "text": "Alt+Up/Right/Down/Left Arrow: direct cardinal navigation (up=Memory North, right=Services East, down=Projects South, left=Contact West). WASD (QWERTY) or ZQSD (AZERTY) · independent of physical layout · same cardinal grid: W/Z=Memory, D=Services, S=Projects, A/Q=Contact, C=Home (Center). Escape: return home."
       },
       {
         "title": "Gamepad shortcuts",
@@ -573,23 +573,23 @@
     "loadingPhrases": [
       {
         "phrase": "In xochitl, in cuicatl",
-        "translation": "\"Flower and song\" — the only truth according to the tlamatinimeh"
+        "translation": "\"Flower and song\" · the only truth according to the tlamatinimeh"
       },
       {
         "phrase": "Nahui Ollin",
-        "translation": "\"Four movements\" — the name of the fifth sun, our world"
+        "translation": "\"Four movements\" · the name of the fifth sun, our world"
       },
       {
         "phrase": "In tlilli, in tlapalli",
-        "translation": "\"The black ink, the red ink\" — knowledge written in the codices"
+        "translation": "\"The black ink, the red ink\" · knowledge written in the codices"
       },
       {
         "phrase": "Ipalnemohuani",
-        "translation": "\"He by whom we live\" — name of the supreme principle, duality beyond the gods"
+        "translation": "\"He by whom we live\" · name of the supreme principle, duality beyond the gods"
       },
       {
         "phrase": "Cempoalxochitl",
-        "translation": "\"Twenty flowers\" — the marigold, bridge between the living and Mictlán"
+        "translation": "\"Twenty flowers\" · the marigold, bridge between the living and Mictlán"
       }
     ],
     "loadingLabel": "Loading the scene"

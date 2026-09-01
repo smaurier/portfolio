@@ -85,7 +85,7 @@
       },
       {
         "kicker": "II · La mirada",
-        "line": "El ciervo te ha notado. No huye — espera."
+        "line": "El ciervo te ha notado. No huye · espera."
       },
       {
         "kicker": "III · Cara a cara",
@@ -168,7 +168,7 @@
         "narrative": [
           {
             "title": "Contexto cliente",
-            "text": "KleyFrance es un fabricante francés de soluciones de elevación a medida — eslingas, cabrestantes, balancines especializados — para sectores muy específicos: petrolero, offshore oceanográfico, industria militar. Un sitio WordPress heredado, no responsivo, cuya carta gráfica se resumía a un logo envejecido y una paleta gris-azul sin identidad. El brief: rediseñar manteniendo la credibilidad industrial, sin caer en el cliché «heavy metal» que parasita este mercado."
+            "text": "KleyFrance es un fabricante francés de soluciones de elevación a medida · eslingas, cabrestantes, balancines especializados · para sectores muy específicos: petrolero, offshore oceanográfico, industria militar. Un sitio WordPress heredado, no responsivo, cuya carta gráfica se resumía a un logo envejecido y una paleta gris-azul sin identidad. El brief: rediseñar manteniendo la credibilidad industrial, sin caer en el cliché «heavy metal» que parasita este mercado."
           },
           {
             "title": "Enfoque de dirección artística",
@@ -237,7 +237,7 @@
       },
       {
         "title": "Los glifos del calendario",
-        "text": "Cinco glifos híbridos — Nahui Ollin para el Centro, Tonatiuh para el Este, Xochitl para el Sur, Iztli para el Oeste, Ollin para el Norte — dibujados para animar las transiciones cardinales. Técnicamente logrados, pero su fidelidad al códice los hacía sagrados. Retirados sin remordimientos, por respeto."
+        "text": "Cinco glifos híbridos · Nahui Ollin para el Centro, Tonatiuh para el Este, Xochitl para el Sur, Iztli para el Oeste, Ollin para el Norte · dibujados para animar las transiciones cardinales. Técnicamente logrados, pero su fidelidad al códice los hacía sagrados. Retirados sin remordimientos, por respeto."
       },
       {
         "title": "La cortina de pétalos 2D",
@@ -275,7 +275,7 @@
     "intro": "Un pequeño manual de este sitio. La cosmogonía que lo estructura, el humano que lo escribe, la familia que lo habita.",
     "cosmos": {
       "title": "Las cinco direcciones",
-      "text": "En el pensamiento mesoamericano, el universo no se lee en cuatro puntos cardinales sino en cinco — los cuatro horizontes más el centro. Cada dirección lleva su color, su dios, su animal, su momento del día. Este sitio sigue ese plan.",
+      "text": "En el pensamiento mesoamericano, el universo no se lee en cuatro puntos cardinales sino en cinco · los cuatro horizontes más el centro. Cada dirección lleva su color, su dios, su animal, su momento del día. Este sitio sigue ese plan.",
       "directions": [
         {
           "name": "Centro · Xiuhtecuhtli · jade",
@@ -301,7 +301,7 @@
     },
     "suns": {
       "title": "Los cuatro soles anteriores",
-      "text": "Antes de Nahui Ollin, cuatro mundos vivieron y perecieron. Cada uno dejó una lección sobre cómo morir — y por tanto cómo vivir. La cosmología nahua no piensa la creación como lineal sino como ciclos que se engendran al derrumbarse. Nuestro sol actual es el quinto. Es mortal como los anteriores.",
+      "text": "Antes de Nahui Ollin, cuatro mundos vivieron y perecieron. Cada uno dejó una lección sobre cómo morir · y por tanto cómo vivir. La cosmología nahua no piensa la creación como lineal sino como ciclos que se engendran al derrumbarse. Nuestro sol actual es el quinto. Es mortal como los anteriores.",
       "list": [
         {
           "name": "Nahui Ocelotl · 4 Jaguar",
@@ -323,7 +323,7 @@
     },
     "ollin": {
       "title": "Ollin, el temblor del 5º sol",
-      "text": "Vivimos bajo Nahui Ollin, el sol de los cuatro movimientos. La profecía nahua dice que nuestro mundo perdura mientras tiembla: cuando Ollin cesa, la tierra se detiene una última vez, Tonatiuh muere, los Tzitzimime descienden. Cada respiración, cada latido, cada toque es prueba viva de Ollin. En este sitio, cuando presiona el ratón o toca la pantalla, una onda radial atraviesa la escena: es Ollin manifestándose. El ciervo Mazātl, mensajero entre mundos, siente la vibración antes que sus ojos. Los cuatro guardianes despiertan, el fuego central redistribuye. Está realizando un ritual cuyo nombre desconocía. El glifo histórico de Ollin es un círculo central bordeado por cuatro rayos cardinales — la misma cruz de cinco puntos que la brújula en la esquina inferior derecha. El gesto y la estructura se responden."
+      "text": "Vivimos bajo Nahui Ollin, el sol de los cuatro movimientos. La profecía nahua dice que nuestro mundo perdura mientras tiembla: cuando Ollin cesa, la tierra se detiene una última vez, Tonatiuh muere, los Tzitzimime descienden. Cada respiración, cada latido, cada toque es prueba viva de Ollin. En este sitio, cuando presiona el ratón o toca la pantalla, una onda radial atraviesa la escena: es Ollin manifestándose. El ciervo Mazātl, mensajero entre mundos, siente la vibración antes que sus ojos. Los cuatro guardianes despiertan, el fuego central redistribuye. Está realizando un ritual cuyo nombre desconocía. El glifo histórico de Ollin es un círculo central bordeado por cuatro rayos cardinales · la misma cruz de cinco puntos que la brújula en la esquina inferior derecha. El gesto y la estructura se responden."
     },
     "entities": {
       "title": "Las tres entidades del ser nahua",
@@ -335,21 +335,21 @@
         },
         {
           "name": "Tonalli · cabeza",
-          "text": "La fuerza vital ligada al día de nacimiento en el calendario tonalpohualli. Reside en la cabeza e irradia como un calor. Puede escapar durante un susto intenso — de ahí los rituales para llamar de vuelta al tonalli tras un choque."
+          "text": "La fuerza vital ligada al día de nacimiento en el calendario tonalpohualli. Reside en la cabeza e irradia como un calor. Puede escapar durante un susto intenso · de ahí los rituales para llamar de vuelta al tonalli tras un choque."
         },
         {
           "name": "Ihíyotl · hígado",
-          "text": "El aliento, las pasiones, los deseos. Reside en el hígado y en el vientre. Si no se domina, puede escapar y afectar a los demás — las enfermedades morales vienen de ahí."
+          "text": "El aliento, las pasiones, los deseos. Reside en el hígado y en el vientre. Si no se domina, puede escapar y afectar a los demás · las enfermedades morales vienen de ahí."
         }
       ]
     },
     "xolotl": {
       "title": "Xolotl, el perro del crepúsculo",
-      "text": "Hermano gemelo de Quetzalcoatl, Xolotl es el perro que guía las almas hacia Mictlán después de la muerte. Esquelético, silencioso, atraviesa los mundos sin detenerse jamás — salvo para quienes saben mirar. En este sitio, aparece raramente: más a menudo al Norte (la página Memoria, camino natural hacia Mictlán), más discreto en otros lugares. Nunca en la página de inicio. Si lo ha visto pasar, la escena le ha juzgado digno de su atención. Puede que no vuelva pronto."
+      "text": "Hermano gemelo de Quetzalcoatl, Xolotl es el perro que guía las almas hacia Mictlán después de la muerte. Esquelético, silencioso, atraviesa los mundos sin detenerse jamás · salvo para quienes saben mirar. En este sitio, aparece raramente: más a menudo al Norte (la página Memoria, camino natural hacia Mictlán), más discreto en otros lugares. Nunca en la página de inicio. Si lo ha visto pasar, la escena le ha juzgado digno de su atención. Puede que no vuelva pronto."
     },
     "totem": {
       "title": "El ciervo, Mazātl",
-      "text": "El nahual es esa esencia que se revela en su verdadera forma animal. Elegí el ciervo antes que el águila o el jaguar — evitando deliberadamente el cliché de «imaginería azteca» para quedarme en el registro más discreto de la presencia: mensajero entre los mundos, asociado con la gracia, la vigilancia y la facultad de ocultar su verdadera naturaleza a los demás."
+      "text": "El nahual es esa esencia que se revela en su verdadera forma animal. Elegí el ciervo antes que el águila o el jaguar · evitando deliberadamente el cliché de «imaginería azteca» para quedarme en el registro más discreto de la presencia: mensajero entre los mundos, asociado con la gracia, la vigilancia y la facultad de ocultar su verdadera naturaleza a los demás."
     },
     "human": {
       "title": "Quién escribe",
@@ -357,7 +357,7 @@
     },
     "family": {
       "title": "La familia que habita este sitio",
-      "text": "Nahual es un proyecto franco-mexicano tanto como un proyecto personal. Elda, mi compañera, es mexicana, hispanohablante nativa, docente. Léopoldine es nuestra hija, nacida en Lyon. Alondra es su hermana mayor, adoptada en México. La cosmogonía náhuatl no es un decorado exótico elegido al azar — es una herencia familiar que sigo aprendiendo, con el respeto que exige."
+      "text": "Nahual es un proyecto franco-mexicano tanto como un proyecto personal. Elda, mi compañera, es mexicana, hispanohablante nativa, docente. Léopoldine es nuestra hija, nacida en Lyon. Alondra es su hermana mayor, adoptada en México. La cosmogonía náhuatl no es un decorado exótico elegido al azar · es una herencia familiar que sigo aprendiendo, con el respeto que exige."
     },
     "respect": {
       "title": "Sobre la apropiación cultural",
@@ -477,7 +477,7 @@
       },
       {
         "title": "Atajos de teclado",
-        "text": "Alt+Flecha arriba/derecha/abajo/izquierda: navegación cardinal directa (arriba=Memoria Norte, derecha=Servicios Este, abajo=Proyectos Sur, izquierda=Contacto Oeste). WASD (QWERTY) o ZQSD (AZERTY) — sin importar el layout físico — misma cuadrícula cardinal: W/Z=Memoria, D=Servicios, S=Proyectos, A/Q=Contacto, C=Inicio (Centro). Escape: volver al inicio."
+        "text": "Alt+Flecha arriba/derecha/abajo/izquierda: navegación cardinal directa (arriba=Memoria Norte, derecha=Servicios Este, abajo=Proyectos Sur, izquierda=Contacto Oeste). WASD (QWERTY) o ZQSD (AZERTY) · sin importar el layout físico · misma cuadrícula cardinal: W/Z=Memoria, D=Servicios, S=Proyectos, A/Q=Contacto, C=Inicio (Centro). Escape: volver al inicio."
       },
       {
         "title": "Atajos de mando",
@@ -537,23 +537,23 @@
     "loadingPhrases": [
       {
         "phrase": "In xochitl, in cuicatl",
-        "translation": "«Flor y canto» — la única verdad según los tlamatinimeh"
+        "translation": "«Flor y canto» · la única verdad según los tlamatinimeh"
       },
       {
         "phrase": "Nahui Ollin",
-        "translation": "«Cuatro movimientos» — el nombre del quinto sol, nuestro mundo"
+        "translation": "«Cuatro movimientos» · el nombre del quinto sol, nuestro mundo"
       },
       {
         "phrase": "In tlilli, in tlapalli",
-        "translation": "«La tinta negra, la tinta roja» — el saber escrito en los códices"
+        "translation": "«La tinta negra, la tinta roja» · el saber escrito en los códices"
       },
       {
         "phrase": "Ipalnemohuani",
-        "translation": "«Aquel por quien vivimos» — nombre del principio supremo, dualidad más allá de los dioses"
+        "translation": "«Aquel por quien vivimos» · nombre del principio supremo, dualidad más allá de los dioses"
       },
       {
         "phrase": "Cempoalxochitl",
-        "translation": "«Veinte flores» — el cempasúchil, puente entre los vivos y Mictlán"
+        "translation": "«Veinte flores» · el cempasúchil, puente entre los vivos y Mictlán"
       }
     ],
     "loadingLabel": "Cargando la escena"

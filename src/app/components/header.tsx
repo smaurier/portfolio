@@ -101,7 +101,7 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
           href={`/${locale}`}
           className="logoLink"
           onClick={close}
-          aria-label={locale === "fr" ? "Nahual — Retour à l'accueil" : locale === "en" ? "Nahual — Back to home" : "Nahual — Volver al inicio"}
+          aria-label={locale === "fr" ? "Nahual · Retour à l'accueil" : locale === "en" ? "Nahual · Back to home" : "Nahual · Volver al inicio"}
         >
           <Image src="/img/mini-logo.svg" alt="" width={32} height={32} />
           <span className="logoText">Nahual</span>

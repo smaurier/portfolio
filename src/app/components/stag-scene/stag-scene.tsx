@@ -67,7 +67,7 @@ export default function StagScene({
               <ol>
                 {home.chapters.map((chapter, i) => (
                   <li key={i}>
-                    <strong>{chapter.kicker}</strong> — {renderWithNahuatl(chapter.line)}
+                    <strong>{chapter.kicker}</strong> · {renderWithNahuatl(chapter.line)}
                   </li>
                 ))}
               </ol>

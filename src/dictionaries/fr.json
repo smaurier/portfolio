@@ -85,7 +85,7 @@
       },
       {
         "kicker": "II · Le regard",
-        "line": "Le cerf t'a remarqué. Il ne fuit pas — il attend."
+        "line": "Le cerf t'a remarqué. Il ne fuit pas · il attend."
       },
       {
         "kicker": "III · Face à face",
@@ -150,7 +150,7 @@
           },
           {
             "title": "L'architecture du site",
-            "text": "Astro pour la génération statique, i18n natif pour fr/en/es sans surcoût, MDX pour les articles de fond, hébergement Netlify avec preview branches pour chaque nouveau contenu. Le site est lui-même conforme RGAA 4.1 par construction — pas de bricolage post-audit, chaque composant est pensé accessible depuis son écriture initiale. Un tests-driven approach a11y qui sert d'exemple."
+            "text": "Astro pour la génération statique, i18n natif pour fr/en/es sans surcoût, MDX pour les articles de fond, hébergement Netlify avec preview branches pour chaque nouveau contenu. Le site est lui-même conforme RGAA 4.1 par construction · pas de bricolage post-audit, chaque composant est pensé accessible depuis son écriture initiale. Un tests-driven approach a11y qui sert d'exemple."
           },
           {
             "title": "Ce que Nuada m'apprend",
@@ -180,7 +180,7 @@
         "narrative": [
           {
             "title": "Le contexte client",
-            "text": "KleyFrance est un fabricant français de solutions de levage sur-mesure — élingues, treuils, palonniers spécialisés — pour des secteurs très pointus : pétrole, offshore océanographique, industrie militaire. Un site WordPress hérité, non responsive, dont la charte graphique se résumait à un logo vieilli et à une palette gris-bleu sans identité. Le brief : refondre en gardant la crédibilité industrielle, sans céder au cliché « heavy metal » qui parasite ce marché."
+            "text": "KleyFrance est un fabricant français de solutions de levage sur-mesure · élingues, treuils, palonniers spécialisés · pour des secteurs très pointus : pétrole, offshore océanographique, industrie militaire. Un site WordPress hérité, non responsive, dont la charte graphique se résumait à un logo vieilli et à une palette gris-bleu sans identité. Le brief : refondre en gardant la crédibilité industrielle, sans céder au cliché « heavy metal » qui parasite ce marché."
           },
           {
             "title": "L'approche direction artistique",
@@ -188,15 +188,15 @@
           },
           {
             "title": "Le défi éditorial",
-            "text": "Le vocabulaire est ultra-spécialisé. « Palonnier à équilibrage », « treuil hydraulique subaquatique 30t », « conformité DNV/LOLER ». Le site devait rester accessible aux acheteurs techniques (qui connaissent) sans effrayer les acheteurs plus généralistes (armée, industriels). Solution : une double lecture systématique — un titre explicite en français courant, un sous-titre technique précis avec le vocabulaire métier."
+            "text": "Le vocabulaire est ultra-spécialisé. « Palonnier à équilibrage », « treuil hydraulique subaquatique 30t », « conformité DNV/LOLER ». Le site devait rester accessible aux acheteurs techniques (qui connaissent) sans effrayer les acheteurs plus généralistes (armée, industriels). Solution : une double lecture systématique · un titre explicite en français courant, un sous-titre technique précis avec le vocabulaire métier."
           },
           {
             "title": "L'impact concret",
-            "text": "Temps de chargement divisé par 3 (WordPress optimisé, images WebP, cache Cloudflare). Mobile-first responsive. Formulaires devis unifiés avec conditions préremplies selon secteur cible. Retours du client : les premiers contacts entrants deviennent plus qualifiés — les prospects arrivent en ayant compris la spécialisation avant de contacter."
+            "text": "Temps de chargement divisé par 3 (WordPress optimisé, images WebP, cache Cloudflare). Mobile-first responsive. Formulaires devis unifiés avec conditions préremplies selon secteur cible. Retours du client : les premiers contacts entrants deviennent plus qualifiés · les prospects arrivent en ayant compris la spécialisation avant de contacter."
           },
           {
             "title": "Ce que j'en retiens",
-            "text": "Sur un marché B2B niche, la direction artistique compte plus qu'on ne le pense. La crédibilité technique passe par des choix graphiques cohérents avec le métier — pas d'effets creative dev inutiles, mais chaque élément doit signaler « on sait de quoi on parle »."
+            "text": "Sur un marché B2B niche, la direction artistique compte plus qu'on ne le pense. La crédibilité technique passe par des choix graphiques cohérents avec le métier · pas d'effets creative dev inutiles, mais chaque élément doit signaler « on sait de quoi on parle »."
           }
         ]
       }
@@ -230,11 +230,11 @@
           },
           {
             "title": "La qualité comme obligation",
-            "text": "283 tests dès la première release publique, CI verte, coverage > 80%. Pourquoi cette rigueur pour un plugin perso ? Parce que la mémoire est un bien précieux — un bug qui écrase silencieusement une entrée, c'est du contexte perdu que je ne retrouverai pas. Le TDD n'est pas ici un dogme mais une garantie que la mémoire ne se corrompt pas."
+            "text": "283 tests dès la première release publique, CI verte, coverage > 80%. Pourquoi cette rigueur pour un plugin perso ? Parce que la mémoire est un bien précieux · un bug qui écrase silencieusement une entrée, c'est du contexte perdu que je ne retrouverai pas. Le TDD n'est pas ici un dogme mais une garantie que la mémoire ne se corrompt pas."
           },
           {
             "title": "L'ouverture communauté",
-            "text": "Publié en open-source dès le premier commit sur github.com/smaurier/claude-synapse. Documentation soignée, exemples concrets, ADR (Architecture Decision Records) pour tracer les choix. Ambition : que d'autres utilisateurs Claude Code multi-machines puissent bootstrap leur propre système. Pas de business model, pas de premium — un outil qui règle un vrai problème pour ceux qui l'ont."
+            "text": "Publié en open-source dès le premier commit sur github.com/smaurier/claude-synapse. Documentation soignée, exemples concrets, ADR (Architecture Decision Records) pour tracer les choix. Ambition : que d'autres utilisateurs Claude Code multi-machines puissent bootstrap leur propre système. Pas de business model, pas de premium · un outil qui règle un vrai problème pour ceux qui l'ont."
           }
         ]
       }
@@ -273,7 +273,7 @@
       },
       {
         "title": "Les glyphes calendaires",
-        "text": "Cinq glyphes hybrides — Nahui Ollin pour le Centre, Tonatiuh pour l'Est, Xochitl pour le Sud, Iztli pour l'Ouest, Ollin pour le Nord — dessinés pour animer les transitions cardinales. Techniquement réussis, mais leur fidélité au codex les rendait sacrés. Retirés sans regret, par respect."
+        "text": "Cinq glyphes hybrides · Nahui Ollin pour le Centre, Tonatiuh pour l'Est, Xochitl pour le Sud, Iztli pour l'Ouest, Ollin pour le Nord · dessinés pour animer les transitions cardinales. Techniquement réussis, mais leur fidélité au codex les rendait sacrés. Retirés sans regret, par respect."
       },
       {
         "title": "Le rideau de pétales 2D",
@@ -311,7 +311,7 @@
     "intro": "Petit manuel de ce site. La cosmogonie qui le structure, l'humain qui l'écrit, la famille qui l'habite.",
     "cosmos": {
       "title": "Les cinq directions",
-      "text": "Dans la pensée mésoaméricaine, l'univers ne se lit pas en quatre points cardinaux mais en cinq — les quatre horizons plus le centre. Chaque direction porte sa couleur, son dieu, son animal, son moment du jour. Ce site suit ce plan.",
+      "text": "Dans la pensée mésoaméricaine, l'univers ne se lit pas en quatre points cardinaux mais en cinq · les quatre horizons plus le centre. Chaque direction porte sa couleur, son dieu, son animal, son moment du jour. Ce site suit ce plan.",
       "directions": [
         {
           "name": "Centre · Xiuhtecuhtli · jade",
@@ -337,7 +337,7 @@
     },
     "suns": {
       "title": "Les quatre soleils précédents",
-      "text": "Avant Nahui Ollin, quatre mondes ont vécu et péri. Chacun a laissé une leçon sur la façon de mourir — donc de vivre. La cosmologie nahua ne pense pas en une création linéaire mais en cycles qui s'engendrent en s'effondrant. Notre soleil actuel est le cinquième. Il est mortel comme les précédents.",
+      "text": "Avant Nahui Ollin, quatre mondes ont vécu et péri. Chacun a laissé une leçon sur la façon de mourir · donc de vivre. La cosmologie nahua ne pense pas en une création linéaire mais en cycles qui s'engendrent en s'effondrant. Notre soleil actuel est le cinquième. Il est mortel comme les précédents.",
       "list": [
         {
           "name": "Nahui Ocelotl · 4 Jaguar",
@@ -359,7 +359,7 @@
     },
     "ollin": {
       "title": "Ollin, le tremblement du 5ᵉ soleil",
-      "text": "Nous vivons sous Nahui Ollin, le soleil des quatre mouvements. La prophétie nahua dit que notre monde tient tant qu'il tremble : quand Ollin cesse, la terre s'immobilise une dernière fois, Tonatiuh meurt, les Tzitzimime descendent. Chaque respiration, chaque battement, chaque toucher est preuve vivante d'Ollin. Sur ce site, quand vous pressez la souris ou touchez l'écran, une onde radiale traverse la scène : c'est Ollin qui se manifeste. Le cerf Mazātl, messager entre mondes, sent la vibration avant vos yeux. Les quatre gardiens s'éveillent, le feu central redistribue. Vous accomplissez un rituel dont vous ignoriez le nom. Le glyphe historique d'Ollin est un cercle central bordé de quatre rayons cardinaux — la même croix à cinq points que la boussole en bas à droite. Le geste et la structure se répondent."
+      "text": "Nous vivons sous Nahui Ollin, le soleil des quatre mouvements. La prophétie nahua dit que notre monde tient tant qu'il tremble : quand Ollin cesse, la terre s'immobilise une dernière fois, Tonatiuh meurt, les Tzitzimime descendent. Chaque respiration, chaque battement, chaque toucher est preuve vivante d'Ollin. Sur ce site, quand vous pressez la souris ou touchez l'écran, une onde radiale traverse la scène : c'est Ollin qui se manifeste. Le cerf Mazātl, messager entre mondes, sent la vibration avant vos yeux. Les quatre gardiens s'éveillent, le feu central redistribue. Vous accomplissez un rituel dont vous ignoriez le nom. Le glyphe historique d'Ollin est un cercle central bordé de quatre rayons cardinaux · la même croix à cinq points que la boussole en bas à droite. Le geste et la structure se répondent."
     },
     "entities": {
       "title": "Les trois entités de l'être nahua",
@@ -371,21 +371,21 @@
         },
         {
           "name": "Tonalli · tête",
-          "text": "La force vitale liée au jour de naissance dans le calendrier tonalpohualli. Elle réside dans la tête et rayonne comme une chaleur. Elle peut s'évader lors d'un effroi intense — d'où les rituels de rappel du tonalli en cas de choc."
+          "text": "La force vitale liée au jour de naissance dans le calendrier tonalpohualli. Elle réside dans la tête et rayonne comme une chaleur. Elle peut s'évader lors d'un effroi intense · d'où les rituels de rappel du tonalli en cas de choc."
         },
         {
           "name": "Ihíyotl · foie",
-          "text": "Le souffle, les passions, les désirs. Elle réside dans le foie et dans le ventre. Si elle n'est pas maîtrisée, elle peut s'échapper et affecter les autres — les maladies morales viennent de là."
+          "text": "Le souffle, les passions, les désirs. Elle réside dans le foie et dans le ventre. Si elle n'est pas maîtrisée, elle peut s'échapper et affecter les autres · les maladies morales viennent de là."
         }
       ]
     },
     "xolotl": {
       "title": "Xolotl, le chien du crépuscule",
-      "text": "Frère jumeau de Quetzalcoatl, Xolotl est le chien qui guide les âmes vers Mictlán après la mort. Squelettique, silencieux, il traverse les mondes sans jamais s'arrêter — sauf pour ceux qui savent regarder. Sur ce site, il apparaît rarement : plus souvent au Nord (la page Mémoire, chemin naturel vers Mictlán), plus discret ailleurs. Jamais sur l'accueil. Si vous l'avez vu passer, c'est que la scène vous a jugé digne de son attention. Il ne reviendra peut-être pas de sitôt."
+      "text": "Frère jumeau de Quetzalcoatl, Xolotl est le chien qui guide les âmes vers Mictlán après la mort. Squelettique, silencieux, il traverse les mondes sans jamais s'arrêter · sauf pour ceux qui savent regarder. Sur ce site, il apparaît rarement : plus souvent au Nord (la page Mémoire, chemin naturel vers Mictlán), plus discret ailleurs. Jamais sur l'accueil. Si vous l'avez vu passer, c'est que la scène vous a jugé digne de son attention. Il ne reviendra peut-être pas de sitôt."
     },
     "totem": {
       "title": "Le cerf, Mazātl",
-      "text": "Le nahual est cette essence qui se révèle dans sa forme animale véritable. J'ai choisi le cerf plutôt que l'aigle ou le jaguar — évitant volontairement le cliché « imagerie aztèque » pour rester dans le registre plus discret de la présence : messager entre les mondes, associé à la grâce, à la vigilance, et à la faculté de cacher sa vraie nature aux autres."
+      "text": "Le nahual est cette essence qui se révèle dans sa forme animale véritable. J'ai choisi le cerf plutôt que l'aigle ou le jaguar · évitant volontairement le cliché « imagerie aztèque » pour rester dans le registre plus discret de la présence : messager entre les mondes, associé à la grâce, à la vigilance, et à la faculté de cacher sa vraie nature aux autres."
     },
     "human": {
       "title": "Qui écrit",
@@ -393,7 +393,7 @@
     },
     "family": {
       "title": "La famille qui habite ce site",
-      "text": "Nahual est un projet franco-mexicain autant qu'il est un projet perso. Elda, ma compagne, est mexicaine, hispanophone native, enseignante. Léopoldine est notre fille, née à Lyon. Alondra est sa grande sœur adoptée au Mexique. La cosmogonie nahua n'est pas un décor exotique choisi au hasard — c'est un héritage familial que j'apprends encore, avec le respect que ça demande."
+      "text": "Nahual est un projet franco-mexicain autant qu'il est un projet perso. Elda, ma compagne, est mexicaine, hispanophone native, enseignante. Léopoldine est notre fille, née à Lyon. Alondra est sa grande sœur adoptée au Mexique. La cosmogonie nahua n'est pas un décor exotique choisi au hasard · c'est un héritage familial que j'apprends encore, avec le respect que ça demande."
     },
     "respect": {
       "title": "Sur l'appropriation culturelle",
@@ -513,7 +513,7 @@
       },
       {
         "title": "Raccourcis clavier",
-        "text": "Alt+Flèche haute/droite/basse/gauche : navigation cardinale directe (haut=Mémoire au Nord, droite=Services à l'Est, bas=Projets au Sud, gauche=Contact à l'Ouest). WASD (QWERTY) ou ZQSD (AZERTY) — indépendamment du layout physique — même grille cardinale : W/Z=Mémoire, D=Services, S=Projets, A/Q=Contact, C=Accueil (Centre). Échap : retour à l'accueil."
+        "text": "Alt+Flèche haute/droite/basse/gauche : navigation cardinale directe (haut=Mémoire au Nord, droite=Services à l'Est, bas=Projets au Sud, gauche=Contact à l'Ouest). WASD (QWERTY) ou ZQSD (AZERTY) · indépendamment du layout physique · même grille cardinale : W/Z=Mémoire, D=Services, S=Projets, A/Q=Contact, C=Accueil (Centre). Échap : retour à l'accueil."
       },
       {
         "title": "Raccourcis manette",
@@ -577,19 +577,19 @@
       },
       {
         "phrase": "Nahui Ollin",
-        "translation": "« Quatre mouvements » — le nom du cinquième soleil, notre monde"
+        "translation": "« Quatre mouvements » · le nom du cinquième soleil, notre monde"
       },
       {
         "phrase": "In tlilli, in tlapalli",
-        "translation": "« L'encre noire, l'encre rouge » — le savoir écrit dans les codex"
+        "translation": "« L'encre noire, l'encre rouge » · le savoir écrit dans les codex"
       },
       {
         "phrase": "Ipalnemohuani",
-        "translation": "« Celui par qui nous vivons » — nom du principe suprême, dualité au-delà des dieux"
+        "translation": "« Celui par qui nous vivons » · nom du principe suprême, dualité au-delà des dieux"
       },
       {
         "phrase": "Cempoalxochitl",
-        "translation": "« Vingt fleurs » — le souci des morts, pont entre les vivants et Mictlán"
+        "translation": "« Vingt fleurs » · le souci des morts, pont entre les vivants et Mictlán"
       }
     ],
     "loadingLabel": "Chargement de la scène"
