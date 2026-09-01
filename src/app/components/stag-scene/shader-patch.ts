@@ -1,8 +1,8 @@
 import type { Material } from "three";
 
 /**
- * Compose plusieurs modificateurs onBeforeCompile sur un même matériau —
- * nécessaire dès qu'un matériau reçoit plus d'un traitement custom en même
+ * Compose plusieurs modificateurs onBeforeCompile sur un même matériau.
+ * Nécessaire dès qu'un matériau reçoit plus d'un traitement custom en même
  * temps (ex. le cerf : rim-light.ts + cursor-reveal.ts, 18/08). Assigner
  * `material.onBeforeCompile` directement plusieurs fois écraserait le
  * précédent plutôt que de composer (constaté en construisant

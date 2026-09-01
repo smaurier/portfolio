@@ -19,7 +19,7 @@ import { useProgress } from "@react-three/drei";
  * Le voile ne peut plus fade out AVANT la fin de la sequence visible.
  * Retour Sylvain 31/08 : "faut pas mettre un delay mais plutot triger
  * l'affichage en fonction de l'affichage de la phrase". Meme principe
- * pour le fade out final — attendre le vrai signal de fin, pas un
+ * pour le fade out final : attendre le vrai signal de fin, pas un
  * minuteur.
  *
  * Fallbacks : chaque etape a un timer de secours pour ne pas bloquer

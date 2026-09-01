@@ -11,7 +11,7 @@ import { useSceneRefs } from "./scene-refs-context";
  * pendant lequel PostFX bloom scrub via pinProgressRef partage.
  *
  * Auto-release timer 5s (28/08 retour Sylvain "disparition du pin
- * apres x secondes") — au premier atteint du pin (onEnter), timer
+ * apres x secondes"). Au premier atteint du pin (onEnter), timer
  * 5s puis kill() ScrollTrigger + release scroll. Le pin est un
  * moment de contemplation, pas un piege.
  *

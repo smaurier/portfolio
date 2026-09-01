@@ -2,7 +2,7 @@
  * Conversion Grégorien → Xiuhpohualli year-bearer (29/08).
  *
  * Le calendrier solaire nahua Xiuhpohualli (365 jours) désigne
- * chaque année par un « porteur » — un nom parmi 4 (Acatl, Tecpatl,
+ * chaque année par un « porteur », un nom parmi 4 (Acatl, Tecpatl,
  * Calli, Tochtli) préfixé d'un nombre 1-13. Le cycle complet fait
  * 52 années (4 signes × 13 nombres) : c'est le « siècle nahua »,
  * après lequel on célèbre la Cérémonie du Feu Nouveau.

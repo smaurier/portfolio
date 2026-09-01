@@ -11,7 +11,7 @@ import { useCardinalTransition, type CardinalDirection } from "./stag-scene/card
 /**
  * Navigation manette (30/08). Utilise Gamepad API du navigateur pour
  * capter les D-pad + boutons de facade d'une manette connectee, et
- * navigue en cardinal RELATIF (comme WASD) — chaque direction du
+ * navigue en cardinal RELATIF (comme WASD) : chaque direction du
  * D-pad = un delta applique a la position actuelle sur la grille
  * cardinale, pas une position absolue.
  *

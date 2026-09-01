@@ -8,7 +8,7 @@ import type { DirectionKey } from "./direction-colors";
  * Hook client qui dérive la direction cardinale courante depuis le
  * pathname (28/08 refactor Phase A). Utilisé par PersistentScene pour
  * animer les couleurs de la scène 3D en douceur (lerp) au changement
- * de page — la scène persiste, seule la palette évolue.
+ * de page : la scène persiste, seule la palette évolue.
  *
  * Mapping (Codex Nahual section 03) :
  *  - Racine locale (/fr, /en, /es) = jade (Centre)

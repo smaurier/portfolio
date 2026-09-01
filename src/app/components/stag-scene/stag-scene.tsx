@@ -21,7 +21,7 @@ export type HomeContent = {
 
 /**
  * Consommateur home de SceneStage. Le layout scrollable et le contenu 3D
- * sont partagés (cf scene-stage.tsx, scene-content.tsx) — cette page
+ * sont partagés (cf scene-stage.tsx, scene-content.tsx) ; cette page
  * n'apporte que son overlay HTML propre : hero visible dès le chargement
  * (getIntroOpacity, s'efface avec la pénombre) et à-propos révélé à
  * "chemins révélés" (getNavEmphasis, même moment que l'emphase de la

@@ -68,7 +68,7 @@ export default function NahualIntro({ locale }: { locale: string }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     // Marque body pour masquer l'UI ambiante (boussole, curseur, header,
-    // footer, toggles) pendant que l'intro joue — retour Sylvain 30/08.
+    // footer, toggles) pendant que l'intro joue, retour Sylvain 30/08.
     document.body.classList.add("nahual-intro-active");
     const timer = setTimeout(() => {
       setDismissed(true);

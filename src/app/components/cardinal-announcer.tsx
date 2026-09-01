@@ -41,7 +41,7 @@ export default function CardinalAnnouncer({
       return;
     }
     // Ne re-annonce que si la direction CHANGE reellement (evite
-    // un re-annonce sur nav vers meme cardinale — ex : sub-pages
+    // un re-annonce sur nav vers meme cardinale, par exemple les sub-pages
     // legales toutes jade).
     if (previousDirRef.current === direction) return;
     previousDirRef.current = direction;

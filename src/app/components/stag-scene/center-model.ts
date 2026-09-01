@@ -10,7 +10,7 @@ import { Box3, Vector3, type Object3D } from "three";
  * scene ; un remount ou un React strict-mode double-invoke rejoue la
  * fonction sur une scene déjà scalée), la mesure `Box3().setFromObject`
  * retourne la taille *finale* (~targetHeight), le facteur calculé vaut
- * ~1, et `setScalar(1)` efface l'échelle précédente — le modèle
+ * ~1, et `setScalar(1)` efface l'échelle précédente. Le modèle
  * réapparaît à sa taille native (bug reload/remount trouvé le 25/08).
  */
 export function centerAndScale(scene: Object3D, targetHeight: number): void {

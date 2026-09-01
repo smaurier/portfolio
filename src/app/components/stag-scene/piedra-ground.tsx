@@ -30,7 +30,7 @@ import { DoubleSide, PlaneGeometry, RepeatWrapping } from "three";
  *
  * displacementScale petit (0.06) : gravure subtile, pas un mur.
  * displacementBias -0.03 : moitie du relief creuse dans le sol (creux),
- * moitie sort (bosse) — plus naturel qu'une gravure "tout en relief".
+ * moitie sort (bosse), plus naturel qu'une gravure "tout en relief".
  */
 
 const PIEDRA_MAP = "/img/piedra-del-sol-v2.webp";

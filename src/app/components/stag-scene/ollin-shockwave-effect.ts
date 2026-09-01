@@ -18,7 +18,7 @@ import { Uniform, Vector2 } from "three";
  *   vecteur diff), attenuation gaussienne autour du centre.
  *
  * Uniforms mis a jour par le composant React parent OllinShockwave
- * via useFrame — les tick lerp uProgress + uAmplitude jusqu'a
+ * via useFrame ; les tick lerp uProgress + uAmplitude jusqu'a
  * disparition, puis reset.
  */
 
