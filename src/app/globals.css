@@ -1,6 +1,13 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Dark par defaut (01/09 fix isBot/no-canvas) : le site est en dark
+     permanent (cf force color-scheme plus bas). Avant ce fix, la valeur
+     par defaut etait #ffffff et seul le canvas 3D noir masquait le body
+     blanc : tout contexte SANS canvas (bots/Lighthouse via is-bot.ts,
+     crash WebGL, reading mode avant son propre fond) montrait du texte
+     creme sur fond blanc illisible. Le theme light du backlog rethemera
+     ces tokens deliberement le jour venu. */
+  --background: #0a0a0a;
+  --foreground: #ededed;
   --font-geist: "Geist VF", sans-serif;
   /* Palette des 5 points cardinaux (Codex Nahual section 03, cf memory
      project-nahual-da) — chacune a une teinte claire (thème light) et
