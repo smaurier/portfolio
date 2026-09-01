@@ -45,6 +45,18 @@
 - [ ] **Métrique pipeline mensuelle** commune aux deux sites : leads → RDV → devis →
       missions.
 
+## Leviers profil
+
+- [ ] **Cible agences créatives haut de gamme** : Nahual conforme RGAA à 100% est la
+      preuve que WebGL + motion + accessibilité coexistent. Le site lui-même est le
+      pitch : « vos sites primés peuvent être conformes sans tuer la DA ». Prioriser ce
+      segment dans la prospection refonte.
+- [ ] **Case study outillage** : mettre en avant les outils construits (Synapse 283 tests,
+      radar-signaux + MCP) comme preuve « je fabrique mes propres outils », argument
+      rare pour un profil refonte/creative dev.
+- [ ] **Refontes livrées avec tests a11y en CI** (axe-core, Playwright) : différenciateur
+      craft, et pont naturel vers le retainer conformité côté Nuada.
+
 ## Boucle de cross-sell
 
 - [ ] Toute refonte livrée = livrée conforme RGAA + audit certifié Nuada proposé en option.
