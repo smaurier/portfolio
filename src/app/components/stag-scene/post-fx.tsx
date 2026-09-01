@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, Vignette } from "@react-three/postprocessing";
+import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, EffectGroup, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { useCardinalTransition } from "./cardinal-transition-context";
 import { useSceneRefs } from "./scene-refs-context";
@@ -108,8 +108,20 @@ export default function PostFX() {
           signature nahua "tremblement d'Ollin". En premier de la
           chaine : deforme la scene rendue AVANT DOF/bloom/CA, effet
           plus organique (le bokeh et le bloom prennent la distortion
-          en compte). Skip si prefers-reduced-motion ou reading-mode. */}
-      <OllinShockwave />
+          en compte). Skip si prefers-reduced-motion ou reading-mode.
+
+          EffectGroup OBLIGATOIRE (01/09) : @react-three/postprocessing
+          3.1.1 (arrive avec la migration pnpm, ^3.0.5 resolvait avant
+          en 3.0.5) fusionne les effets consecutifs dans une meme
+          EffectPass et ne coupe qu'entre deux convolutions. Sans ce
+          groupe, Ollin (transforme les UV) est fusionne avec DOF
+          (convolution) : postprocessing jette "Effects that transform
+          UVs are incompatible with convolution effects" et le canvas
+          crashe (page blanche prod du 01/09 matin). EffectGroup isole
+          Ollin dans sa propre passe, a sa position dans la chaine. */}
+      <EffectGroup>
+        <OllinShockwave />
+      </EffectGroup>
       {/* DOF en second : les autres effets (bloom, CA) s'appliquent
           par-dessus le rendu focus-racké. Focus fixe sur ~cerf.
           bokehScale animé par useFrame ci-dessus. */}
