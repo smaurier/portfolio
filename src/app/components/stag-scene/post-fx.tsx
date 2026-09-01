@@ -2,9 +2,11 @@
 
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, EffectGroup, Vignette } from "@react-three/postprocessing";
+import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, EffectGroup, HueSaturation, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
+import { approachGrade, getGradeRig, type GradeRig } from "@/lib/direction-grade";
 import { useCardinalTransition } from "./cardinal-transition-context";
+import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import OllinShockwave from "./ollin-shockwave";
 
@@ -58,17 +60,35 @@ export default function PostFX() {
   const caRef = useRef<{ offset: { x: number; y: number } } | null>(null);
   const dofRef = useRef<{ bokehScale: number } | null>(null);
   const vignetteRef = useRef<{ darkness: number } | null>(null);
+  const hueSatRef = useRef<{ saturation: number } | null>(null);
   const transition = useCardinalTransition();
   const refs = useSceneRefs();
+  const direction = useCurrentDirection();
+  // Grade par direction (01/09, etage 3 sprint identites) : crossfade
+  // vers la cible de la direction courante, meme cadence que fog et
+  // rig lumiere (~800ms). Init sur la direction du mount.
+  const gradeRef = useRef<GradeRig>({ ...getGradeRig(direction) });
 
   useFrame(() => {
+    // Grade par direction : snap si prefers-reduced-motion (meme
+    // convention que fog/rig), sinon easing vers la cible.
+    const gradeTarget = getGradeRig(direction);
+    gradeRef.current = refs?.reducedMotionRef.current
+      ? { ...gradeTarget }
+      : approachGrade(gradeRef.current, gradeTarget, 0.06);
+    const grade = gradeRef.current;
+    if (hueSatRef.current) {
+      hueSatRef.current.saturation = grade.saturation;
+    }
+
     // Vignette breathing scroll (28/08 boite outil D) : vignette
     // darkness varie selon progress reveal-arc : plus forte en
     // penombre (0.9) relaxe au climax chemins reveles (0.65). Signature
-    // "l'oeil s'ouvre progressivement au monde nahual".
+    // "l'oeil s'ouvre progressivement au monde nahual". Le grade
+    // directionnel s'ajoute par-dessus (Nord : cadre ferme).
     if (vignetteRef.current && refs) {
       const p = refs.progressRef.current;
-      vignetteRef.current.darkness = 0.9 - p * 0.25;
+      vignetteRef.current.darkness = 0.9 - p * 0.25 + grade.vignetteAdd;
     }
 
     if (!transition) return;
@@ -87,7 +107,9 @@ export default function PostFX() {
       // scrub pin, bloom monte de 0 a +1.5 = pic dramatique "regard
       // silencieux amplifie".
       const pinLevel = refs?.pinProgressRef.current ?? 0;
-      bloomRef.current.intensity = BLOOM_BASE + bell * BLOOM_BURST_ADD + audioLevel * 0.6 + pinLevel * 1.5;
+      // Le grade directionnel module l'ensemble (Nord : bloom sourd,
+      // rien ne brille chez les morts sauf les lames).
+      bloomRef.current.intensity = (BLOOM_BASE + bell * BLOOM_BURST_ADD + audioLevel * 0.6 + pinLevel * 1.5) * grade.bloomScale;
     }
     if (caRef.current) {
       const offset = CA_BASE + bell * CA_BURST_ADD;
@@ -139,6 +161,11 @@ export default function PostFX() {
         mipmapBlur
       />
       <ChromaticAberration ref={caRef as never} offset={[CA_BASE, CA_BASE]} />
+      {/* Grade directionnel (01/09 etage 3) : saturation animee par
+          useFrame selon la direction (0 partout sauf Nord -0.15,
+          leçon Coco : l'air rabat les couleurs). Non-convolution :
+          fusionne sans risque dans la passe Bloom/CA/Vignette. */}
+      <HueSaturation ref={hueSatRef as never} saturation={0} />
       <Vignette ref={vignetteRef as never} eskil={false} offset={0.25} darkness={0.85} blendFunction={BlendFunction.NORMAL} />
     </EffectComposer>
   );
