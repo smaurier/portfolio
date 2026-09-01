@@ -11,6 +11,9 @@ import {
   getRimColorBlend,
   type ColorRgb,
 } from "@/lib/reveal-arc";
+import { approachFog, getFogRange, type FogRange } from "@/lib/direction-fog";
+import { useCurrentDirection } from "./use-current-direction";
+import { useSceneRefs } from "./scene-refs-context";
 
 /**
  * Lumière (+ brouillard, depuis le 20/08) de l'arc de reveal (palier 1, cf
@@ -38,6 +41,13 @@ export default function RevealLighting({
   const ambientRef = useRef<AmbientLight>(null);
   const directionalRef = useRef<DirectionalLight>(null);
   const fogRef = useRef<Fog>(null);
+  const direction = useCurrentDirection();
+  const sceneRefs = useSceneRefs();
+  // Fog par direction (01/09, etage 1 sprint identites) : near/far
+  // crossfadent vers la cible de la direction courante, meme cadence
+  // que les ambiances cardinales (~800ms). Init sur la direction du
+  // mount : pas de lerp-in depuis une valeur d'une autre page.
+  const fogRangeRef = useRef<FogRange>({ ...getFogRange(direction) });
 
   // Palette pour tinter les lumières au climax (26/08, retour Sylvain
   // "on a de la couleur sur le cerf mais il faudrait aussi en prévoir
@@ -79,6 +89,15 @@ export default function RevealLighting({
     }
     if (fogRef.current) {
       fogRef.current.color.set(getFogColor(p, fogTint));
+      // Densite par direction : snap direct si prefers-reduced-motion
+      // (RGAA 13.6, meme convention que le crossfade des ambiances),
+      // sinon easing exponentiel vers la cible.
+      const target = getFogRange(direction);
+      fogRangeRef.current = sceneRefs?.reducedMotionRef.current
+        ? { ...target }
+        : approachFog(fogRangeRef.current, target, 0.06);
+      fogRef.current.near = fogRangeRef.current.near;
+      fogRef.current.far = fogRangeRef.current.far;
     }
   });
 
