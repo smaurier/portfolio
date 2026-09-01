@@ -1,0 +1,70 @@
+import { describe, expect, it } from "vitest";
+import { approachRig, DIRECTION_LIGHT_RIG, getLightRig, NEUTRAL_RIG } from "./direction-light";
+import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+
+const DIRECTIONS = Object.keys(DIRECTION_LIGHT_RIG) as DirectionKey[];
+
+describe("DIRECTION_LIGHT_RIG", () => {
+  it("laisse le jade sur le rig neutre (comportement historique intact)", () => {
+    expect(getLightRig("jade")).toEqual(NEUTRAL_RIG);
+  });
+
+  it("laisse dore/turquoise/cendre neutres tant que leurs fiches ne sont pas enrichies", () => {
+    expect(getLightRig("dore")).toEqual(NEUTRAL_RIG);
+    expect(getLightRig("turquoise")).toEqual(NEUTRAL_RIG);
+    expect(getLightRig("cendre")).toEqual(NEUTRAL_RIG);
+  });
+
+  it("donne au Nord une top light : position quasi zenithale", () => {
+    const [x, y, z] = getLightRig("obsidienne").position;
+    expect(Math.abs(x)).toBeLessThan(1);
+    expect(Math.abs(z)).toBeLessThan(1);
+    expect(y).toBeGreaterThanOrEqual(7);
+  });
+
+  it("assombrit le Nord : ambient et directional sous le neutre", () => {
+    const rig = getLightRig("obsidienne");
+    expect(rig.ambientScale).toBeLessThan(NEUTRAL_RIG.ambientScale);
+    expect(rig.directionalScale).toBeLessThan(NEUTRAL_RIG.directionalScale);
+  });
+
+  it("teinte la lumiere du Nord (colorMix > 0), le neutre reste sans teinte", () => {
+    expect(getLightRig("obsidienne").colorMix).toBeGreaterThan(0);
+    expect(NEUTRAL_RIG.colorMix).toBe(0);
+  });
+
+  it("borne toutes les echelles et mix dans des plages saines", () => {
+    for (const dir of DIRECTIONS) {
+      const rig = getLightRig(dir);
+      expect(rig.ambientScale).toBeGreaterThan(0);
+      expect(rig.ambientScale).toBeLessThanOrEqual(1);
+      expect(rig.directionalScale).toBeGreaterThan(0);
+      expect(rig.directionalScale).toBeLessThanOrEqual(1);
+      expect(rig.colorMix).toBeGreaterThanOrEqual(0);
+      expect(rig.colorMix).toBeLessThanOrEqual(1);
+    }
+  });
+});
+
+describe("approachRig", () => {
+  it("rapproche position, echelles et mix de la cible proportionnellement", () => {
+    const from = { position: [4, 6, 4] as [number, number, number], color: "#ffffff", ambientScale: 1, directionalScale: 1, colorMix: 0 };
+    const to = { position: [0, 8, 0] as [number, number, number], color: "#8a7fb0", ambientScale: 0.4, directionalScale: 0.5, colorMix: 0.8 };
+    const next = approachRig(from, to, 0.5);
+    expect(next.position[0]).toBeCloseTo(2);
+    expect(next.position[1]).toBeCloseTo(7);
+    expect(next.position[2]).toBeCloseTo(2);
+    expect(next.ambientScale).toBeCloseTo(0.7);
+    expect(next.directionalScale).toBeCloseTo(0.75);
+    expect(next.colorMix).toBeCloseTo(0.4);
+    // La couleur cible est portee telle quelle : c'est colorMix qui dose
+    expect(next.color).toBe("#8a7fb0");
+  });
+
+  it("converge exactement sur la cible (snap epsilon, pas d'asymptote)", () => {
+    let rig = { position: [4, 6, 4] as [number, number, number], color: "#ffffff", ambientScale: 1, directionalScale: 1, colorMix: 0 };
+    const target = getLightRig("obsidienne");
+    for (let i = 0; i < 400; i++) rig = approachRig(rig, target, 0.06);
+    expect(rig).toEqual(target);
+  });
+});

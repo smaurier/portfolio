@@ -12,6 +12,7 @@ import {
   type ColorRgb,
 } from "@/lib/reveal-arc";
 import { approachFog, getFogRange, type FogRange } from "@/lib/direction-fog";
+import { approachRig, getLightRig, type LightRig } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -48,6 +49,10 @@ export default function RevealLighting({
   // que les ambiances cardinales (~800ms). Init sur la direction du
   // mount : pas de lerp-in depuis une valeur d'une autre page.
   const fogRangeRef = useRef<FogRange>({ ...getFogRange(direction) });
+  // Rig lumiere par direction (01/09, etage 2 sprint identites) : meme
+  // logique de crossfade que le fog. Init sur la direction du mount.
+  const lightRigRef = useRef<LightRig>({ ...getLightRig(direction) });
+  const rigColorScratch = useMemo(() => new Color(), []);
 
   // Palette pour tinter les lumières au climax (26/08, retour Sylvain
   // "on a de la couleur sur le cerf mais il faudrait aussi en prévoir
@@ -66,8 +71,16 @@ export default function RevealLighting({
   useFrame(() => {
     const p = progressRef.current;
     const blend = getRimColorBlend(p);
+    // Crossfade du rig lumiere vers la direction courante (etage 2) :
+    // snap direct si prefers-reduced-motion, meme convention que le fog.
+    const rigTarget = getLightRig(direction);
+    lightRigRef.current = sceneRefs?.reducedMotionRef.current
+      ? { ...rigTarget }
+      : approachRig(lightRigRef.current, rigTarget, 0.06);
+    const rig = lightRigRef.current;
+    rigColorScratch.set(rig.color);
     if (ambientRef.current) {
-      ambientRef.current.intensity = getAmbientIntensity(p);
+      ambientRef.current.intensity = getAmbientIntensity(p) * rig.ambientScale;
       // Tint ambient 65% (28/08 recalibré après boost raté à 100% :
       // trop d'ambient teinté coloriait le cerf ENTIER uniformément
       // via l'éclairage global, contradictoire avec l'objectif "cerf
@@ -78,14 +91,19 @@ export default function RevealLighting({
       ambientRef.current.color.copy(ambientColorScratch);
     }
     if (directionalRef.current) {
-      directionalRef.current.intensity = getDirectionalIntensity(p);
+      directionalRef.current.intensity = getDirectionalIntensity(p) * rig.directionalScale;
       // Directional 45% (recalibré 28/08 depuis 75%) : la
       // directionnelle porte les hautes lumières : trop teintée elle
       // colore les crêtes cerf+décor uniformément, 45% laisse un
       // éclairage principal quasi-blanc qui préserve la lecture
       // "cerf brun mystique".
       directionalColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.1);
+      // Teinte rig par-dessus la logique historique : colorMix dose la
+      // couleur de la source diegetique (0 partout sauf Nord : la lueur
+      // froide du puits #8a7fb0, contre-jour Mictlampa).
+      directionalColorScratch.lerp(rigColorScratch, rig.colorMix);
       directionalRef.current.color.copy(directionalColorScratch);
+      directionalRef.current.position.set(rig.position[0], rig.position[1], rig.position[2]);
     }
     if (fogRef.current) {
       fogRef.current.color.set(getFogColor(p, fogTint));
