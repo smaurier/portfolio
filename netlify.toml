@@ -7,8 +7,18 @@
 # que c'est la cause du dernier échec en date. NODE_VERSION ici en plus de
 # .nvmrc (belt and suspenders) : Netlify lit les deux, autant ne pas
 # dépendre d'un seul mécanisme.
+[build]
+  # 31/08 : migration npm -> pnpm. Netlify autodetecte le manager
+  # depuis pnpm-lock.yaml, mais on declare explicitement pour eviter
+  # tout doute (defensive) et beneficier de la version pinnee via le
+  # champ packageManager de package.json (Corepack).
+  command = "pnpm run build"
+
 [build.environment]
   # 28/08 : 20 → 22 (retour Netlify UI "Agent Runners work best with
   # Node.js 22 or higher"). Node 22 est le LTS courant, requis par
   # les runners recents. Aligne sur .nvmrc.
   NODE_VERSION = "22"
+  # 31/08 : Netlify auto-detecte pnpm via pnpm-lock.yaml + version
+  # pinnee via le champ packageManager de package.json (Corepack).
+  # Aucun env var supplementaire necessaire.

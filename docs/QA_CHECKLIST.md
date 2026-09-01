@@ -8,8 +8,8 @@ Liste de tests manuels à repasser à chaque release / après grosse modif struc
 
 ## Setup préalable
 
-- Dev server : `npm run dev` → http://localhost:3000
-- Localhost prod-like : `npm run build && npm run start`
+- Dev server : `pnpm run dev` → http://localhost:3000
+- Localhost prod-like : `pnpm run build && pnpm run start`
 - Netlify preview : chaque PR/commit main déploie automatiquement
 
 ### Snippets DevTools utiles
@@ -169,7 +169,7 @@ Ouest    Centre     Est
 
 ## 10. Perf / assets
 
-- ☐ Bundle build prod : `npm run build`, vérifier sizes First Load JS raisonnables
+- ☐ Bundle build prod : `pnpm run build`, vérifier sizes First Load JS raisonnables
 - ☐ `xolotl.glb` : 1.9 MB Meshopt (compressé de 27 MB), lazy load
 - ☐ `stag.glb` : 415 KB Meshopt (compressé de 1 MB)
 - ☐ `nopal-google.glb` / `vine-flower.glb` : 55-60 KB WebP + Meshopt
