@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./custom-cursor.module.css";
 
 /**
@@ -37,6 +37,13 @@ const CARDINAL_COLORS: Record<string, string> = {
 };
 
 export default function CustomCursor() {
+  // Enabled = true seulement sur (hover: hover) and (pointer: fine),
+  // sans prefers-reduced-motion. Sur tactile/pen ou reduced-motion,
+  // on ne rend RIEN — pas juste "on skip la logique", parce que la
+  // div rendue sans handlers laissait une tache figee a sa position
+  // initiale (top-left) sur tablette/mobile.
+  // false par defaut cote SSR, mis a jour dans l'effet gate.
+  const [enabled, setEnabled] = useState(false);
   const cursorRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
@@ -48,17 +55,25 @@ export default function CustomCursor() {
   const magneticTargetRef = useRef<HTMLElement | null>(null);
   const activeRef = useRef(false);
 
+  // Gate matchMedia isole dans son propre effet : si le device passe
+  // hover:hover → hover:none (branchement d'une tablette externe puis
+  // debranchement), on demonte proprement.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    // Media query : hover fine only. Sinon on ne monte pas le
-    // curseur ET on ne masque pas le natif.
-    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
-    if (!mq.matches) return;
-    // Respect prefers-reduced-motion (29/08 a11y) : le lerp du dot
-    // et du ring cree un mouvement continu qui peut declencher
-    // troubles vestibulaires. Skip completement le curseur custom,
-    // le natif reste visible.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const hoverMq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const reducedMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const compute = () => setEnabled(hoverMq.matches && !reducedMq.matches);
+    compute();
+    hoverMq.addEventListener("change", compute);
+    reducedMq.addEventListener("change", compute);
+    return () => {
+      hoverMq.removeEventListener("change", compute);
+      reducedMq.removeEventListener("change", compute);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
 
     document.body.classList.add("nahual-custom-cursor");
     activeRef.current = true;
@@ -167,7 +182,9 @@ export default function CustomCursor() {
       document.body.classList.remove("nahual-custom-cursor");
       activeRef.current = false;
     };
-  }, []);
+  }, [enabled]);
+
+  if (!enabled) return null;
 
   return (
     <div ref={cursorRef} className={styles.cursor} aria-hidden="true">
