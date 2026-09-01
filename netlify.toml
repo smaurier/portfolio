@@ -1,10 +1,10 @@
 # Aucun config file n'existait avant (build Netlify tournait sur ses
-# valeurs par défaut, dont Node 18.20.8) — Next.js 16 exige Node >= 20.9.0
+# valeurs par défaut, dont Node 18.20.8). Or Next.js 16 exige Node >= 20.9.0
 # (message d'erreur exact du build, log Netlify du 20/08/2026 : "You are
 # using Node.js 18.20.8. For Next.js, Node.js version '>=20.9.0' is
 # required."). Depuis quand ce mismatch bloque le build : pas déterminé
-# précisément (pas vérifié l'historique des runs Netlify) — juste confirmé
-# que c'est la cause du dernier échec en date. NODE_VERSION ici en plus de
+# précisément (pas vérifié l'historique des runs Netlify). Simple constat :
+# c'est la cause du dernier échec en date. NODE_VERSION ici en plus de
 # .nvmrc (belt and suspenders) : Netlify lit les deux, autant ne pas
 # dépendre d'un seul mécanisme.
 [build]

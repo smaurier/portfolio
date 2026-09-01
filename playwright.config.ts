@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Playwright config (30/08). Tests E2E cibles sur le voile de chargement
- * PiedraSkeleton + LoadingSync — verrouillent le fix "je vois encore le
+ * PiedraSkeleton + LoadingSync : verrouillent le fix "je vois encore le
  * html avant" (retour Sylvain 30/08). Baseline sur laquelle etendre les
  * tests a11y RGAA + visual regression plus tard.
  */
