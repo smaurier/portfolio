@@ -1,4 +1,4 @@
-// Auto-embedded from src/app/icon.svg — regenerer via node gen-icon-uri.mjs si le SVG change.
+// Auto-embedded from src/app/icon.svg. Regenerer via node gen-icon-uri.mjs si le SVG change.
 // Utilise par apple-icon.tsx (ImageResponse) pour eviter toute IO runtime
 // qui casse les workers Turbopack dev.
 export const NAHUAL_ICON_DATA_URI =

@@ -5,7 +5,7 @@ const defaultLocale = "fr";
 
 // Langue préférée déduite de l'en-tête Accept-Language, sans dépendance
 // externe (negotiator/@formatjs sont overkill pour 3 langues). Repli sur le
-// français si rien de reconnu — cohérent avec un studio francophone.
+// français si rien de reconnu, cohérent avec un studio francophone.
 function getPreferredLocale(request: NextRequest): string {
   const acceptLanguage = request.headers.get("accept-language");
   if (!acceptLanguage) return defaultLocale;

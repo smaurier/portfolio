@@ -14,7 +14,7 @@ export const pageKeys = [
 ] as const;
 export type PageKey = (typeof pageKeys)[number];
 
-// Slug par langue et par page — permet des URLs traduites.
+// Slug par langue et par page, ce qui permet des URLs traduites.
 // Pages legales (28/08 retour Sylvain) : slugs multilingues clairs
 // pour SEO + comprehension utilisateur, tous rendus avec direction
 // jade (centre / neutre) pour ne pas casser le pattern cardinal.

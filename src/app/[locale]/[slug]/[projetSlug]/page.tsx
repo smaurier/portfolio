@@ -115,7 +115,7 @@ export default async function LocalizedProjetDetail({
 
   const direction: DirectionKey = "turquoise";
 
-  // JSON-LD (29/08 SEO pass v2) — BreadcrumbList aide Google a afficher
+  // JSON-LD (29/08 SEO pass v2). BreadcrumbList aide Google a afficher
   // le fil d'Ariane dans les SERP. CreativeWork/Article decrit le case
   // study pour Rich Results + AI SERPs (ChatGPT/Perplexity).
   const detailUrl = `${SITE_URL}/${locale}/${slug}/${projetSlug}`;

@@ -6,7 +6,7 @@ import { STUDIO_NAME } from "@/lib/seo";
 
 /**
  * OG image dynamique par locale (28/08). Générée à la build par Next
- * (statique, pas edge runtime — ImageResponse fonctionne en node
+ * (statique, pas edge runtime : ImageResponse fonctionne en node
  * moderne). Signature codex : fond obsidien, cinq points cardinaux en
  * rosette (Codex Nahual), titre + description locale, phrase Codex.
  * 1200×630 = ratio Facebook/Twitter/LinkedIn standard.

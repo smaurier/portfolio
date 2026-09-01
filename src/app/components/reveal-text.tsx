@@ -96,7 +96,7 @@ export default function RevealText({
 
 /**
  * Variante qui reçoit des children ReactNode (utile pour wrap
- * inline sans changer la structure — mais split moins précis, on ne
+ * inline sans changer la structure, mais split moins précis, on ne
  * traite que les text nodes de premier niveau).
  */
 export function RevealChildren({ children }: { children: ReactNode }) {

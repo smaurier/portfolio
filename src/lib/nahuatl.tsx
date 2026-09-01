@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
  * Termes nahuatl / mesoamericains apparaissant dans les textes du
  * site. Wrapping en <span lang="nah"> permet aux lecteurs d'ecran
  * de basculer sur une prononciation adaptee (proche de l'espagnol
- * pour la majorite des SR — mieux que le francais par defaut qui
+ * pour la majorite des SR : mieux que le francais par defaut qui
  * ecorche les diphtongues et diacritiques nahuatl).
  *
  * Convention : formes canoniques avec macrons/accents quand
