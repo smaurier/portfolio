@@ -4,18 +4,18 @@
 **Version RGAA** : 4.1.2 (10 topics, 106 critères)
 **Source protocole** : criteres.json officiel gouv.fr
 (github.com/DISIC/accessibilite.numerique.gouv.fr)
-**Périmètre** : nahual.fr — 11 pages
+**Périmètre** : nahual.fr : 11 pages
 **Méthode** : batch tests Playwright + code review + fetch protocole
 officiel + inspection manuelle
 **Auditeur** : Sylvain Maurier (auto-évaluation assistée)
 
 ## Légende
 
-- ✅ **C** — Conforme
-- ⚠️ **PC** — Partiellement conforme
-- ❌ **NC** — Non-conforme
-- 🚫 **NA** — Non applicable
-- 🔍 **M** — Test manuel requis (pas automatisable)
+- ✅ **C** : Conforme
+- ⚠️ **PC** : Partiellement conforme
+- ❌ **NC** : Non-conforme
+- 🚫 **NA** : Non applicable
+- 🔍 **M** : Test manuel requis (pas automatisable)
 
 ## Résumé exécutif
 
@@ -124,7 +124,7 @@ officiel + inspection manuelle
 
 ## Thématique 5 · Tableaux (8 critères, 5.1 à 5.8)
 
-- **Applicabilité** : `document.querySelectorAll('table')` = 0. Les données structurées (cases studies) utilisent `<dl><dt><dd>` (`projectCaseDetails` — sémantique correcte).
+- **Applicabilité** : `document.querySelectorAll('table')` = 0. Les données structurées (cases studies) utilisent `<dl><dt><dd>` (`projectCaseDetails` : sémantique correcte).
 - **Verdict pour 5.1 à 5.8** : 🚫 **NA**
 
 ---
@@ -137,7 +137,7 @@ officiel + inspection manuelle
 - **Verdict** : ✅ **C**
 
 ### 6.2 Chaque intitulé de lien est-il pertinent ?
-- **Test code review** : nav header ("Accueil", "Mémoire", "Services", "Projets", "Contact") pertinents. Footer: labels ARIA explicites ("LinkedIn de Sylvain Maurier (nouvelle fenêtre)"). Case studies: "Voir Nuada en ligne →", "Découvrir Nuada dans le journal →" — pertinents.
+- **Test code review** : nav header ("Accueil", "Mémoire", "Services", "Projets", "Contact") pertinents. Footer: labels ARIA explicites ("LinkedIn de Sylvain Maurier (nouvelle fenêtre)"). Case studies: "Voir Nuada en ligne →", "Découvrir Nuada dans le journal →" : pertinents.
 - **Verdict** : ✅ **C**
 
 ---
@@ -192,7 +192,7 @@ officiel + inspection manuelle
 - **Verdict** : ✅ **C**
 
 ### 8.4 Code de langue pertinent (ISO 639-1)
-- **Test** : `fr`, `en`, `es` — tous ISO 639-1 valides.
+- **Test** : `fr`, `en`, `es` : tous ISO 639-1 valides.
 - **Verdict** : ✅ **C**
 
 ### 8.5 Titre de page (`<title>`)
@@ -241,7 +241,7 @@ Ajouter titles uniques par page dans `[slug]/page.tsx`. Fait partie du plan de c
   - Memoire : h1 "Teyolía · Mémoire" + 12 h2 chapitres + 4 h3 footer ✅
   - Mentions légales : h1 + 5 h2 + 4 h3 footer ✅
   - Projet détail : h1 "Nuada" + 5 h2 sections + 4 h3 footer ✅
-  - Home = 1 seul h1, 0 h2 intermédiaire — les h3 footer suivent la structure globale. Acceptable.
+  - Home = 1 seul h1, 0 h2 intermédiaire : les h3 footer suivent la structure globale. Acceptable.
 - **Verdict** : ✅ **C**
 
 ### 9.2 Structure de la page (balises HTML5 landmarks)
@@ -266,7 +266,7 @@ Ajouter titles uniques par page dans `[slug]/page.tsx`. Fait partie du plan de c
 
 ### 10.2 Contenu visible sans CSS reste consultable
 - **Test manuel** : désactiver CSS, vérifier lisibilité + ordre logique.
-- **Verdict** : 🔍 **M** (attendu C — structure sémantique correcte)
+- **Verdict** : 🔍 **M** (attendu C : structure sémantique correcte)
 
 ### 10.3 Info et structure conservées sans CSS
 - **Test** : idem 10.2.
@@ -281,7 +281,7 @@ Ajouter titles uniques par page dans `[slug]/page.tsx`. Fait partie du plan de c
 - **Verdict** : ✅ **C**
 
 ### 10.6 Chaque lien est-il visible par rapport au texte environnant ?
-- **Test** : liens header (nav) — texte seul sans underline mais gros font + isolation. Liens footer — `text-decoration: underline` avec `text-decoration-color: rgba(0,192,120,0.4)` (jade sourd) ✅. Liens inline `.contentPage a` : `text-decoration: underline` + `text-decoration-color` cardinal ✅.
+- **Test** : liens header (nav) : texte seul sans underline mais gros font + isolation. Liens footer : `text-decoration: underline` avec `text-decoration-color: rgba(0,192,120,0.4)` (jade sourd) ✅. Liens inline `.contentPage a` : `text-decoration: underline` + `text-decoration-color` cardinal ✅.
 - **Verdict** : ✅ **C**
 
 ### 10.7 Focus visible sur chaque élément focusable
@@ -299,7 +299,7 @@ Ajouter titles uniques par page dans `[slug]/page.tsx`. Fait partie du plan de c
 ### 10.10 Information n'est-elle pas donnée uniquement par la couleur ?
 - **Voir 3.1** : ✅ **C**
 
-### 10.11 Contenu adaptable — orientation, portrait/paysage, responsive
+### 10.11 Contenu adaptable : orientation, portrait/paysage, responsive
 - **Test manuel** : CSS media queries (`max-width: 767px`, `480px`) présentes. Portrait + landscape doit fonctionner.
 - **Verdict** : 🔍 **M**
 
@@ -344,7 +344,7 @@ Ajouter titles uniques par page dans `[slug]/page.tsx`. Fait partie du plan de c
 - **Verdict** : ✅ **C**
 
 ### 12.5 Menu de navigation identique sur toutes les pages ?
-- **Test** : `<Header>` monté dans layout — nav identique sur toutes pages.
+- **Test** : `<Header>` monté dans layout : nav identique sur toutes pages.
 - **Verdict** : ✅ **C**
 
 ### 12.6 Zones de contenu principales identifiables ?
@@ -357,7 +357,7 @@ Ajouter titles uniques par page dans `[slug]/page.tsx`. Fait partie du plan de c
 
 ### 12.8 Ordre de tabulation cohérent ?
 - **Test manuel** : Tab depuis skip nav → header (linkedin, github, mailto, FR/EN/ES, logo, nav 5 items, mobile burger si <768px) → main content → footer.
-- **Verdict** : 🔍 **M** (attendu C — ordre DOM = ordre visuel)
+- **Verdict** : 🔍 **M** (attendu C : ordre DOM = ordre visuel)
 
 ### 12.9 Contenu ne provoque pas d'action inattendue au chargement ?
 - **Test** : aucun refresh auto, aucun submit auto, aucun `window.location` au load. LoadingVeil informatif seulement.
@@ -386,7 +386,7 @@ Ajouter titles uniques par page dans `[slug]/page.tsx`. Fait partie du plan de c
   - Memoire : 2 externes (footer only), 2 avec warning ✅
   - Mentions légales : 2 externes (footer only), 2 avec warning ✅
   - **Projet détail /projets/nuada** : 3 externes, **1 SANS warning** ❌
-- **Cause code** : `[slug]/page.tsx ProjectCase` — le lien "Voir Nuada en ligne →" (target="_blank") n'a pas de suffixe "(nouvelle fenêtre)". Idem "Discutons de votre projet →" externe.
+- **Cause code** : `[slug]/page.tsx ProjectCase` : le lien "Voir Nuada en ligne →" (target="_blank") n'a pas de suffixe "(nouvelle fenêtre)". Idem "Discutons de votre projet →" externe.
 - **Verdict** : ❌ **NC**
 - **Correctif** : ajouter suffixe SR-only ou aria-label "(nouvelle fenêtre)" sur ProjectCase links + link footer github/linkedin dans pages détail.
 
@@ -435,19 +435,19 @@ Ajouter titles uniques par page dans `[slug]/page.tsx`. Fait partie du plan de c
 - **Verdict** : ✅ **C**
 
 ### 13.12 Réception des messages est-elle contrôlable ?
-- **Test** : messages ARIA polite (RouteAnnouncer, CardinalAnnouncer, EasterEgg, LoadingVeil) — polite = user peut interrompre lecture avec Ctrl. Pas d'alertes bloquantes.
-- **Verdict** : ⚠️ **PC** — ambient drone Web Audio unmute contrôlable via toggle mute, mais pas de slider volume individuel ni contrôle des différents timbres (chimes vs ambient). Non-bloquant strict.
+- **Test** : messages ARIA polite (RouteAnnouncer, CardinalAnnouncer, EasterEgg, LoadingVeil) : polite = user peut interrompre lecture avec Ctrl. Pas d'alertes bloquantes.
+- **Verdict** : ⚠️ **PC** : ambient drone Web Audio unmute contrôlable via toggle mute, mais pas de slider volume individuel ni contrôle des différents timbres (chimes vs ambient). Non-bloquant strict.
 
 ---
 
 ## Non-conformités bloquantes (à fixer avant déclaration)
 
 ### ❌ 8.6 Titre de page pas unique
-- **Pages concernées** : `/fr/services`, `/fr/memoire`, `/fr/mentions-legales`, `/fr/accessibilite`, `/fr/confidentialite`, `/fr/plan-du-site`, `/fr/codex`, `/fr/credits`, `/fr/projets`, `/fr/contact` — tous ont "Nahual . studio de création" identique.
+- **Pages concernées** : `/fr/services`, `/fr/memoire`, `/fr/mentions-legales`, `/fr/accessibilite`, `/fr/confidentialite`, `/fr/plan-du-site`, `/fr/codex`, `/fr/credits`, `/fr/projets`, `/fr/contact` : tous ont "Nahual . studio de création" identique.
 - **Correctif** : ajouter `generateMetadata` dans `[slug]/page.tsx` retournant title spécifique. Ex: `${dict[key].title} · Nahual`.
 
 ### ❌ 13.2 Lien externe sans warning "nouvelle fenêtre"
-- **Page concernée** : `/fr/projets/nuada` (et probablement `/fr/projets/kleyfrance`, `/fr/projets/synapse`) — case study `ProjectCase.tsx` lien externe "Voir Nuada en ligne →" target="_blank" sans indication.
+- **Page concernée** : `/fr/projets/nuada` (et probablement `/fr/projets/kleyfrance`, `/fr/projets/synapse`) : case study `ProjectCase.tsx` lien externe "Voir Nuada en ligne →" target="_blank" sans indication.
 - **Correctif** : ajouter suffixe SR-only " (nouvelle fenêtre)" ou aria-label enrichi sur les liens externes dans `[slug]/page.tsx` (ProjectCase + ContactPage LinkedIn lien externe hors footer).
 
 ## Partiellement conformes non-bloquants
@@ -463,8 +463,8 @@ Ambient drone + chimes contrôlables par 1 toggle unique. Manque slider volume i
 
 ## Tests manuels restants (5)
 
-- **3.2** : contraste canvas dynamique — Stark (grille dans `contrast-manual-audit.md`)
-- **8.2** : validation W3C HTML — `npx html-validate` ou service en ligne
+- **3.2** : contraste canvas dynamique : Stark (grille dans `contrast-manual-audit.md`)
+- **8.2** : validation W3C HTML : `npx html-validate` ou service en ligne
 - **10.2 / 10.3** : contenu sans CSS lisible
 - **10.4** : zoom 200%
 - **10.11** : orientation portrait/paysage

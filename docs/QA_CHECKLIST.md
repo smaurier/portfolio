@@ -1,4 +1,4 @@
-# QA Checklist — Nahual portfolio
+# QA Checklist : Nahual portfolio
 
 Liste de tests manuels à repasser à chaque release / après grosse modif structurelle. Le nombre de features (nav SPA, Xolotl easter egg, ambiances par direction, PiedraVeil/Ground, contrôles clavier+manette, i18n, RGAA) rend une checklist explicite nécessaire pour éviter les régressions.
 
@@ -174,7 +174,7 @@ Ouest    Centre     Est
 - ☐ `stag.glb` : 415 KB Meshopt (compressé de 1 MB)
 - ☐ `nopal-google.glb` / `vine-flower.glb` : 55-60 KB WebP + Meshopt
 - ☐ `agave.glb` / `cactus-barrel.glb` / `cactus-quaternius.glb` : compressés
-- ☐ Aucun `<a href>` interne (hard-reload) — tous en `<Link>` ou `<CardinalLink>`
+- ☐ Aucun `<a href>` interne (hard-reload) : tous en `<Link>` ou `<CardinalLink>`
 - ☐ Images `public/img` optimisées (SVG orphelins supprimés)
 - ☐ 60 FPS solide sur home + pages écho (test scroll)
 - ☐ Bloom + PostFX activés, pas de lag perceptible
@@ -216,6 +216,6 @@ Ouest    Centre     Est
 
 ## Historique release checkée
 
-_Format : ` — YYYY-MM-DD — commit — testeur — notes_
+_Format : ` : YYYY-MM-DD : commit : testeur : notes_
 
 - (à remplir aux prochaines releases)

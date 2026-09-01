@@ -27,7 +27,7 @@
             - /url: /es/memoria
             - text: ES
     - generic [ref=f2e18]:
-      - link "Nahual — Retour à l'accueil" [ref=f2e19] [cursor=pointer]:
+      - link "Nahual : Retour à l'accueil" [ref=f2e19] [cursor=pointer]:
         - /url: /fr
         - generic [ref=f2e20]: Nahual
       - navigation [ref=f2e21]:
@@ -82,7 +82,7 @@
       - generic [ref=f2e62]:
         - generic: V
         - heading "Les glyphes calendaires" [level=2] [ref=f2e63]
-        - paragraph [ref=f2e64]: Cinq glyphes hybrides — Nahui Ollin pour le Centre, Tonatiuh pour l'Est, Xochitl pour le Sud, Iztli pour l'Ouest, Ollin pour le Nord — dessinés pour animer les transitions cardinales. Techniquement réussis, mais leur fidélité au codex les rendait sacrés. Retirés sans regret, par respect.
+        - paragraph [ref=f2e64]: Cinq glyphes hybrides : Nahui Ollin pour le Centre, Tonatiuh pour l'Est, Xochitl pour le Sud, Iztli pour l'Ouest, Ollin pour le Nord : dessinés pour animer les transitions cardinales. Techniquement réussis, mais leur fidélité au codex les rendait sacrés. Retirés sans regret, par respect.
       - generic [ref=f2e65]:
         - generic: VI
         - heading "Le rideau de pétales 2D" [level=2] [ref=f2e66]

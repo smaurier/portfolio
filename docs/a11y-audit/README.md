@@ -1,4 +1,4 @@
-# Audit a11y nahual.fr — 2026-08-29
+# Audit a11y nahual.fr : 2026-08-29
 
 Méthode: dump accessibility tree Playwright MCP (browser Chromium) sur 3
 pages représentatives + audit code. But: comparer ce qu'un lecteur
@@ -6,9 +6,9 @@ d'écran voit vs ce que voit l'utilisateur visuel, avant chantier de fond.
 
 ## Snapshots
 
-- `snapshot-home-fr-before.md` — home /fr
-- `snapshot-services-fr-before.md` — page écho /fr/services
-- `snapshot-memoire-fr-before.md` — page écho /fr/memoire
+- `snapshot-home-fr-before.md` : home /fr
+- `snapshot-services-fr-before.md` : page écho /fr/services
+- `snapshot-memoire-fr-before.md` : page écho /fr/memoire
 
 ## Findings clés
 
@@ -44,7 +44,7 @@ brisée.
 
 Cause : `PageClosure` monté par `EchoScenePage` via
 `SceneStage.overlay`, dans `SceneTextOverlay` qui est un layer fixe
-au-dessus du canvas — hors flux DOM du main.
+au-dessus du canvas : hors flux DOM du main.
 
 ### ✅ Confirmé fonctionnel
 
@@ -75,16 +75,16 @@ au-dessus du canvas — hors flux DOM du main.
 4. Ajouter `aria-label` sur nav header
 5. Re-dump tree, comparer, prouver le fix
 
-Corrections mesurables via nouveau dump Playwright — chaque item aura
+Corrections mesurables via nouveau dump Playwright : chaque item aura
 son "before / after".
 
 ---
 
-## Passe 1 — corrections top 🔴 (2026-08-29)
+## Passe 1 : corrections top 🔴 (2026-08-29)
 
 Snapshots `*-after.md` livrés. Comparaison avec `*-before.md`:
 
-### ✅ Home `/fr` — récit désormais dans le tree SR
+### ✅ Home `/fr` : récit désormais dans le tree SR
 
 **Avant:** `<main>` contenait uniquement `heading "À propos" [level=2]`
 + 1 paragraphe + 2 liens. Hero, chapters, hiérarchie h1: absents.
@@ -96,10 +96,10 @@ main:
   paragraph: [texte hero complet, Mazātl, cerf...]
   region "Recit du cerf, quatre chapitres":
     list:
-      listitem: strong "I · L'approche" — texte
-      listitem: strong "II · Le regard" — texte
-      listitem: strong "III · Face à face" — texte
-      listitem: strong "IV · Les chemins" — texte
+      listitem: strong "I · L'approche" : texte
+      listitem: strong "II · Le regard" : texte
+      listitem: strong "III · Face à face" : texte
+      listitem: strong "IV · Les chemins" : texte
   [rendu visuel FadingBlock aria-hidden pour SR, CTA focusable pour tous]
 ```
 
@@ -111,10 +111,10 @@ Décisions:
 - `sr-only` doublé le récit : version canonique dans le flux, jamais
   affectée par le scroll-driven reveal. Version visuelle vit en
   `aria-hidden` pour éviter la lecture en doublon.
-- CTA reste hors du `sr-only` (dans le FadingBlock hero) — permet un
+- CTA reste hors du `sr-only` (dans le FadingBlock hero) : permet un
   seul chemin focus clavier, pas de doublon.
 
-### ✅ PageClosure orphelin — aria-hidden appliqué
+### ✅ PageClosure orphelin : aria-hidden appliqué
 
 **Avant:** avant `<main>`, `heading "Est · Tlahuizcalpan" [level=2]`
 + paragraphe + `link "Sud · Turquoise"`. SR entendait ce bloc entre
@@ -125,7 +125,7 @@ hérité). Le tree Playwright les affiche encore pour debug, mais NVDA/
 JAWS/VoiceOver les skip. Équivalent fonctionnel garanti via la
 boussole cardinale (déjà labellée) et la nav header.
 
-### ✅ Nav header — désambiguïsée
+### ✅ Nav header : désambiguïsée
 
 **Avant:** `navigation` (générique, tree ne sait pas laquelle).
 
@@ -137,19 +137,19 @@ principale"` interne).
 Nouvelles clés dict `common.navMainLabel`, `navMobileLabel`,
 `navExternalLabel` (fr/en/es).
 
-### ✅ Bouton compass expand — plus de doublon
+### ✅ Bouton compass expand : plus de doublon
 
-**Avant:** `button "Explorer les 5 directions": i` — SR lisait le
+**Avant:** `button "Explorer les 5 directions": i` : SR lisait le
 label + le caractère « i » séparé.
 
 **Après:** le « i » est wrappé en `<span aria-hidden="true">`. Tree
-affiche `button "Explorer les 5 directions": generic "i"` — SR lit
+affiche `button "Explorer les 5 directions": generic "i"` : SR lit
 juste le label.
 
 ## Restants pour la passe 2
 
 - `alert` role orphelin en fin de tree (source à identifier, pas dans
-  notre code — probablement Next.js dev tools)
+  notre code : probablement Next.js dev tools)
 - `status` role orphelin (LoadingVeil résiduel après démontage ? ou
   easter-egg toast ?)
 - Focus trap manquant : modal compass overlay + panel mobile
@@ -164,7 +164,7 @@ juste le label.
 
 ---
 
-## Passe 2 — 2026-08-29 (focus trap + SPA announce + reduced-motion)
+## Passe 2 : 2026-08-29 (focus trap + SPA announce + reduced-motion)
 
 ### ✅ Focus trap : compass overlay + panel mobile burger
 
@@ -197,7 +197,7 @@ identique (nav back).
 Ne déplace pas le focus : moins invasif, laisse l'utilisateur clavier
 maître de sa position.
 
-### ✅ `prefers-reduced-motion` — audit corrigé
+### ✅ `prefers-reduced-motion` : audit corrigé
 
 Mon audit initial pointait 4 composants (custom-cursor, cursor-trail,
 mask-reveal, tilt-cards). Après lecture, 3/4 respectaient déjà (ligne
@@ -210,17 +210,17 @@ CSS dans `globals.css`. OK.
 
 `smooth-scroll.tsx` : déjà couvert (ligne 25-26).
 
-### ✅ `alert` / `status` orphelins — investigation
+### ✅ `alert` / `status` orphelins : investigation
 
 Playwright evaluate `document.querySelectorAll('[role="alert"]')` :
 retourne `[]` sur `/fr`. Le "alert" dans le tree = Next.js dev tools
 (bouton "Open Next.js Dev Tools" visible, dev only). Non-issue prod.
 
 `role="status"` : 3 sources légitimes :
-1. `RouteAnnouncer` (nouveau, chantier a11y) — contient le titre de
+1. `RouteAnnouncer` (nouveau, chantier a11y) : contient le titre de
    la page courante
-2. `LoadingVeil` — présent au mount, disparaît après load
-3. `easter-egg` toast — reste en DOM vide pour recevoir les révélations
+2. `LoadingVeil` : présent au mount, disparaît après load
+3. `easter-egg` toast : reste en DOM vide pour recevoir les révélations
 
 Aucun n'est un bug. Aria-live regions doivent rester montées pour
 recevoir les updates.
@@ -238,7 +238,7 @@ recevoir les updates.
 
 ---
 
-## Passe 3 — SR enrichi (2026-08-29)
+## Passe 3 : SR enrichi (2026-08-29)
 
 Le chantier « expérience SR à part entière » (promesse Sylvain :
 « l'accessibilité doit être une nouvelle expérience utilisateur »).
@@ -308,11 +308,11 @@ narrative après. Immersion parallèle à l'expérience visuelle
 - Test réel NVDA + Firefox + JAWS + VoiceOver iOS
 - Prononciation phonétique optionnelle (dictionnaire IPA à côté du
   span lang="nah" ? attribut aria-describedby ?)
-- Mode « récit accessible » opt-in (bouton header) — bonus futur
+- Mode « récit accessible » opt-in (bouton header) : bonus futur
 
 ---
 
-## Passe 7 — Fix bloquants découverts au test NVDA (2026-08-29)
+## Passe 7 : Fix bloquants découverts au test NVDA (2026-08-29)
 
 ### 🔴 Fix bloquant : KeyboardNav volait les flèches NVDA browse mode
 
@@ -336,7 +336,7 @@ en conflit avec NVDA/JAWS ni avec le raccourci back/forward du
 navigateur (qui laisse `preventDefault` reprendre la main).
 
 **Impact** : bug le plus grave découvert de tout le chantier. Aucun
-test automatisé Playwright ne l'aurait détecté — seul le test réel
+test automatisé Playwright ne l'aurait détecté : seul le test réel
 avec un SR pouvait le révéler. Confirme que l'étape « test humain
 avec NVDA » n'est pas optionnelle.
 
@@ -365,7 +365,7 @@ mineurs (contrôle audio séparé, 2 tests manuels zoom).
 
 ---
 
-## Passe 6 — Prononciation IPA + doc audit contraste manuel (2026-08-29)
+## Passe 6 : Prononciation IPA + doc audit contraste manuel (2026-08-29)
 
 ### ✅ Prononciation phonétique dans `<span title>`
 
@@ -409,7 +409,7 @@ footer, header, cardIndex décoratif) avec :
 
 ---
 
-## Passe 5 — Mode récit accessible opt-in + Axe audit (2026-08-29)
+## Passe 5 : Mode récit accessible opt-in + Axe audit (2026-08-29)
 
 ### ✅ Audit Axe automatique
 
@@ -467,7 +467,7 @@ Vérification Playwright :
 - Axe en mode reading : 0 violations, 72 incomplete color-contrast
   (cards fond `rgba(20,16,24,0.95)` semi-transparent, Axe prudent)
 
-## Passe 4 — lang="nah" termes nahuatl inline (2026-08-29)
+## Passe 4 : lang="nah" termes nahuatl inline (2026-08-29)
 
 Helper `src/lib/nahuatl.tsx` : `renderWithNahuatl(text)` retourne un
 tableau de ReactNode (strings + `<span lang="nah">`). Regex avec
@@ -506,7 +506,7 @@ Impact SR :
 - Utilisateur SR entend « Tonatiouh » (proche de /to.na.'tiuw/)
   au lieu de « ton-a-touille » (français par défaut)
 
-Coût : ~2-3% de rendu HTML additionnel (spans) — négligeable.
+Coût : ~2-3% de rendu HTML additionnel (spans) : négligeable.
 
 
 ## Validation manuelle attendue

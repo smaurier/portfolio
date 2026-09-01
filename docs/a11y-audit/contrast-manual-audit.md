@@ -1,4 +1,4 @@
-# Audit contraste manuel — canvas dynamique
+# Audit contraste manuel : canvas dynamique
 
 ## Contexte
 
@@ -7,7 +7,7 @@ page sur nahual.fr. Cause : le background des textes est un canvas
 WebGL 3D dont les couleurs varient avec la scène (fog cardinal,
 climax rim, ambiances Est/Ouest/Sud/Nord). Aucun outil automatique
 ne peut mesurer le ratio réel sans échantillonner le canvas frame
-par frame — d'où "incomplete", pas "fail".
+par frame : d'où "incomplete", pas "fail".
 
 Ce document liste les zones à mesurer manuellement avec l'extension
 Stark (Chrome/Firefox), fournit le worst-case théorique et une
@@ -22,7 +22,7 @@ grille de résultats à remplir.
   Mazātl (p)
 - **Couleur texte** : `#f2ece1` (crème clair) + text-shadow
   `0 0 6px rgba(0,0,0,0.55), 0 0 2px rgba(0,0,0,0.7)`
-- **Background** : canvas WebGL — variations selon phase reveal-arc
+- **Background** : canvas WebGL : variations selon phase reveal-arc
   (noir profond au load → tinte cardinale jade au climax)
 - **Worst-case théorique** : `#f2ece1` sur `#00c078` (jade climax
   pur, non atteint mais borne max) = ratio ~2.4:1 ❌ échec AA
@@ -55,7 +55,7 @@ grille de résultats à remplir.
 - **Texte** : intro + descriptions cards
 - **Couleur texte** : `rgba(242, 236, 225, 0.86)` avec text-shadow
   `0 1px 3px rgba(0, 0, 0, 0.7)`
-- **Background** : `.serviceCard` posé sur canvas — cards ont
+- **Background** : `.serviceCard` posé sur canvas : cards ont
   fond `linear-gradient(135deg, color-mix(direction * 4%, rgba(13,12,17,0.32)),
   color-mix(direction * 1.5%, rgba(13,12,17,0.38)))` + blur 8px
 - **Worst-case théorique** : sur canvas Est/dore climax pur
@@ -163,7 +163,7 @@ grille de résultats à remplir.
 
 - **DevTools Chrome** : Inspect element → Styles → color swatch →
   "Contrast ratio" (mesure basique, pas de mesure sur canvas
-  dynamique — mais utile pour cards fond gradient)
+  dynamique : mais utile pour cards fond gradient)
 - **WebAIM Contrast Checker** : https://webaim.org/resources/contrastchecker/
   (saisir hex manuellement)
 - **Screenshot + éditeur pipette** : GIMP/Photoshop pipette sur

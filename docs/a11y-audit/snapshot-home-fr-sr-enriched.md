@@ -29,7 +29,7 @@
             - /url: /es
             - text: ES
     - generic [ref=e20]:
-      - link "Nahual — Retour à l'accueil" [ref=e21] [cursor=pointer]:
+      - link "Nahual : Retour à l'accueil" [ref=e21] [cursor=pointer]:
         - /url: /fr
         - generic [ref=e22]: Nahual
       - navigation "Navigation principale" [ref=e23]:
@@ -60,16 +60,16 @@
             - list:
               - listitem:
                 - strong: I · L'approche
-                - text: — Il broute dans la pénombre, indifférent au chemin qui mène vers lui.
+                - text: : Il broute dans la pénombre, indifférent au chemin qui mène vers lui.
               - listitem:
                 - strong: II · Le regard
-                - text: — Le cerf t'a remarqué. Il ne fuit pas — il attend.
+                - text: : Le cerf t'a remarqué. Il ne fuit pas : il attend.
               - listitem:
                 - strong: III · Face à face
-                - text: "— Un silence. Trois entités : ton corps, son corps, ce qui passe entre les deux."
+                - text: ": Un silence. Trois entités : ton corps, son corps, ce qui passe entre les deux."
               - listitem:
                 - strong: IV · Les chemins
-                - text: — Quatre directions autour de toi, une cinquième au centre. À toi de choisir.
+                - text: : Quatre directions autour de toi, une cinquième au centre. À toi de choisir.
         - generic [ref=e39]:
           - generic [ref=e40]:
             - heading [level=1] [ref=e41]:
