@@ -11,6 +11,7 @@ import {
   getRimColorBlend,
   type ColorRgb,
 } from "@/lib/reveal-arc";
+import { remapNorthArc } from "@/lib/direction-arc";
 import { approachFog, getFogRange, type FogRange } from "@/lib/direction-fog";
 import { approachRig, getLightRig, type LightRig } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
@@ -69,7 +70,14 @@ export default function RevealLighting({
   const directionalColorScratch = useMemo(() => new Color(), []);
 
   useFrame(() => {
-    const p = progressRef.current;
+    const rawP = progressRef.current;
+    // Arc inverse au Nord (01/09, option A + arrivee, cf direction-arc) :
+    // scroller = descendre le Mictlan, la lumiere baisse au lieu de
+    // s'eveiller ; en toute fin, arrivalGlow porte le moment d'arrivee
+    // violet (la lueur du puits s'intensifie et accueille).
+    const north = direction === "obsidienne" ? remapNorthArc(rawP) : null;
+    const p = north ? north.lightP : rawP;
+    const arrivalGlow = north?.arrivalGlow ?? 0;
     const blend = getRimColorBlend(p);
     // Crossfade du rig lumiere vers la direction courante (etage 2) :
     // snap direct si prefers-reduced-motion, meme convention que le fog.
@@ -91,7 +99,10 @@ export default function RevealLighting({
       ambientRef.current.color.copy(ambientColorScratch);
     }
     if (directionalRef.current) {
-      directionalRef.current.intensity = getDirectionalIntensity(p) * rig.directionalScale;
+      // arrivalGlow : la lueur du puits s'intensifie a l'arrivee au
+      // Chicunamictlan (moment violet de fin, distinct de l'eveil home).
+      directionalRef.current.intensity =
+        getDirectionalIntensity(p) * rig.directionalScale + arrivalGlow * 0.85;
       // Directional 45% (recalibré 28/08 depuis 75%) : la
       // directionnelle porte les hautes lumières : trop teintée elle
       // colore les crêtes cerf+décor uniformément, 45% laisse un
@@ -102,6 +113,8 @@ export default function RevealLighting({
       // couleur de la source diegetique (0 partout sauf Nord : la lueur
       // froide du puits #8a7fb0, contre-jour Mictlampa).
       directionalColorScratch.lerp(rigColorScratch, rig.colorMix);
+      // A l'arrivee, la lueur vire au violet obsidienne franc.
+      if (arrivalGlow > 0) directionalColorScratch.lerp(cardinalColor, arrivalGlow * 0.6);
       directionalRef.current.color.copy(directionalColorScratch);
       directionalRef.current.position.set(rig.position[0], rig.position[1], rig.position[2]);
     }

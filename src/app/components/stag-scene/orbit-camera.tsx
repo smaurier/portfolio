@@ -5,7 +5,9 @@ import { useEffect, useRef, type MutableRefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { PerspectiveCamera } from "three";
 import { getOrbitCameraPosition, getOrbitCameraTarget } from "@/lib/camera-path";
+import { remapNorthArc } from "@/lib/direction-arc";
 import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
+import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
 /**
@@ -89,6 +91,15 @@ export default function OrbitCamera({
   const touchLastRef = useRef<{ x: number; y: number } | null>(null);
   const transition = useCardinalTransition();
   const sceneRefs = useSceneRefs();
+  const direction = useCurrentDirection();
+  // Caméra Mictlampa (01/09, fiche Nord + retour Sylvain "jouer sur la
+  // caméra : parcours ET traitement") : blend 0..1 crossfadé vers 1 au
+  // Nord, qui pilote a la fois le traitement (FOV compressé -5°,
+  // plongée légère, parallax amorti) et le parcours (le progress
+  // caméra passe par remapNorthArc : en scrollant la caméra recule
+  // dans l'obscurité au lieu du dolly d'éveil, puis se rapproche
+  // doucement à l'arrivée).
+  const northBlendRef = useRef(direction === "obsidienne" ? 1 : 0);
 
   useEffect(() => {
     reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -137,10 +148,21 @@ export default function OrbitCamera({
     // le cadre malgre FOV plus large. Recalcule chaque frame (cheap)
     // pour reagir au resize.
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    // Blend Nord crossfadé (même cadence que fog/rig/grade).
+    const northTarget = direction === "obsidienne" ? 1 : 0;
+    northBlendRef.current += (northTarget - northBlendRef.current) * 0.06;
+    const nb = northBlendRef.current;
+    // Parcours : au Nord le progress caméra suit l'arc inversé (descente
+    // puis arrivée), ailleurs le progress brut.
+    const rawP = progressRef.current;
+    const pEff = nb > 0.001 ? rawP + (remapNorthArc(rawP).lightP - rawP) * nb : rawP;
     const position = getOrbitCameraPosition(
-      progressRef.current,
+      pEff,
       isMobile ? { startRadius: 8, endRadius: 4.8, startHeight: 3.2, endHeight: 2.0 } : {}
     );
+    // Plongée légère Mictlampa : la caméra monte un peu, on regarde
+    // vers le bas (on descend au Mictlan).
+    position.y += nb * 0.45;
     const target = getOrbitCameraTarget();
 
     // Parallaxe : décale la position caméra XY selon la souris, la cible
@@ -152,7 +174,9 @@ export default function OrbitCamera({
     const ollinBoost = typeof window !== "undefined"
       ? (window as unknown as { __nahualOllinBoost?: { current: number } }).__nahualOllinBoost?.current ?? 0
       : 0;
-    const parallaxMult = 1 + ollinBoost * OLLIN_PARALLAX_BOOST;
+    // Amorti Mictlampa : au Nord la caméra répond moins vivement (le
+    // temps s'épaissit), parallax réduit de 40%.
+    const parallaxMult = (1 + ollinBoost * OLLIN_PARALLAX_BOOST) * (1 - nb * 0.4);
     const parallaxX = reducedMotionRef.current ? 0 : mouseSmoothRef.current.x * PARALLAX_X * parallaxMult;
     const parallaxY = reducedMotionRef.current ? 0 : -mouseSmoothRef.current.y * PARALLAX_Y * parallaxMult;
 
@@ -209,7 +233,7 @@ export default function OrbitCamera({
       // Base FOV responsive (28/08 retour Sylvain "l'ecran mobile
       // coupait la partie droite de la tete") : mobile <768px : 58° pour
       // capturer cerf entier + bois, sinon 45°.
-      const baseFov = typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45;
+      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5;
       const perspCam = camera as PerspectiveCamera;
       if (perspCam.isPerspectiveCamera) {
         perspCam.fov = baseFov + bell * 6;
@@ -217,7 +241,7 @@ export default function OrbitCamera({
       }
     } else {
       // Retour repos FOV : safety, réévalue le base FOV responsive.
-      const baseFov = typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45;
+      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5;
       const perspCam = camera as PerspectiveCamera;
       if (perspCam.isPerspectiveCamera && Math.abs(perspCam.fov - baseFov) > 0.5) {
         perspCam.fov = baseFov;
