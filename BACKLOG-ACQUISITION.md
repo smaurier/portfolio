@@ -34,6 +34,17 @@
       absentes, design pré-2015. Sources locales : annuaires CCI/CMA Lyon, BODACC créations.
       Sortie : lead scoré à double étiquette (refonte → Nahual, non-conformité → Nuada).
 
+## Offre & pipeline
+
+- [ ] **Productiser la refonte** : 2-3 formules à prix fixe (site vitrine / refonte
+      complète / refonte + conformité livrée avec audit certifié). Prix affichés = filtre
+      naturel des prospects non solvables.
+- [ ] **Outreach semi-automatique** : leads du mode « scanner de refonte » radar-signaux →
+      email personnalisé avec constat concret (site non responsive, perfs, HTTPS). Quota
+      partagé avec Nuada : 5/semaine au total.
+- [ ] **Métrique pipeline mensuelle** commune aux deux sites : leads → RDV → devis →
+      missions.
+
 ## Boucle de cross-sell
 
 - [ ] Toute refonte livrée = livrée conforme RGAA + audit certifié Nuada proposé en option.
