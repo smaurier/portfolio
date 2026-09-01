@@ -9,7 +9,7 @@ import styles from "./custom-cursor.module.css";
  * morph cardinal (dore/turquoise/cendre/obsidienne/jade) au survol
  * des liens nav, magnetic attraction sur CTAs.
  *
- * Actif uniquement sur (hover: hover) and (pointer: fine) — touch/pen
+ * Actif uniquement sur (hover: hover) and (pointer: fine). Touch/pen
  * exclu du check via matchMedia dans useEffect, le body class
  * `nahual-custom-cursor` est posée conditionnellement, le CSS
  * masque le curseur natif seulement dans cette zone.
@@ -39,7 +39,7 @@ const CARDINAL_COLORS: Record<string, string> = {
 export default function CustomCursor() {
   // Enabled = true seulement sur (hover: hover) and (pointer: fine),
   // sans prefers-reduced-motion. Sur tactile/pen ou reduced-motion,
-  // on ne rend RIEN — pas juste "on skip la logique", parce que la
+  // on ne rend RIEN, pas juste "on skip la logique", parce que la
   // div rendue sans handlers laissait une tache figee a sa position
   // initiale (top-left) sur tablette/mobile.
   // false par defaut cote SSR, mis a jour dans l'effet gate.

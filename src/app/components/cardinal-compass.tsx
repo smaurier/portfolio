@@ -142,7 +142,7 @@ export default function CardinalCompass({ locale }: { locale: string }) {
   }
 
   function spawnRipple(x: number, y: number, color: string) {
-    // Ripple click cardinal (28/08 boite outil #5) — onde concentrique
+    // Ripple click cardinal (28/08 boite outil #5) : onde concentrique
     // qui traverse ecran depuis point click, couleur direction.
     // Auto-supprime apres anim CSS via animationend.
     if (typeof document === "undefined") return;
@@ -215,7 +215,7 @@ export default function CardinalCompass({ locale }: { locale: string }) {
         <span className={styles.slotEmpty} aria-hidden="true" />
         {dot(SLOTS.S)}
         <span className={styles.slotEmpty} aria-hidden="true" />
-        {/* Bouton expand (28/08 boite outil C) — ouvre modal detaille
+        {/* Bouton expand (28/08 boite outil C) : ouvre modal detaille
             les 5 directions cardinales avec descriptions mytho. */}
         <button
           type="button"

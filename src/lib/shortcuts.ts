@@ -1,5 +1,5 @@
 // Gestion des raccourcis clavier + manette activables/desactivables
-// (RGAA 12.10 : les raccourcis a caractere unique — comme WASD —
+// (RGAA 12.10 : les raccourcis a caractere unique, comme WASD,
 // doivent etre desactivables OU reassignables OU actifs uniquement
 // sur focus). On implemente l'option desactivation globale.
 //

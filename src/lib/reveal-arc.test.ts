@@ -143,7 +143,7 @@ describe("getFogColor", () => {
 
 describe("getIdleClipName", () => {
   it("se pose et broute (Eating) dès le départ, avant de remarquer le visiteur", () => {
-    // Le temps "Walk" a été retiré le 20/08 (cf reveal-arc.ts) — le cerf
+    // Le temps "Walk" a été retiré le 20/08 (cf reveal-arc.ts). Le cerf
     // apparaît directement à sa position de repos, en train de manger.
     expect(getIdleClipName(0, false)).toBe("Eating");
     expect(getIdleClipName(0.03, false)).toBe("Eating");
@@ -154,7 +154,7 @@ describe("getIdleClipName", () => {
     expect(getIdleClipName(0.1, false)).toBe("Idle_2");
   });
 
-  it("passe à Idle dès qu'il a remarqué le visiteur, quel que soit le scroll ou l'étape de la séquence — jamais de retour en arrière", () => {
+  it("passe à Idle dès qu'il a remarqué le visiteur, quel que soit le scroll ou l'étape de la séquence ; jamais de retour en arrière", () => {
     expect(getIdleClipName(0, true)).toBe("Idle");
     expect(getIdleClipName(0.02, true)).toBe("Idle"); // surprend le cerf en train de manger
     expect(getIdleClipName(0.6, true)).toBe("Idle");

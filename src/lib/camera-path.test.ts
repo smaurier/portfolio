@@ -19,7 +19,7 @@ describe("clampProgress", () => {
   });
 });
 
-describe("getOrbitCameraPosition — azimuth et hauteur (rayon constant)", () => {
+describe("getOrbitCameraPosition : azimuth et hauteur (rayon constant)", () => {
   // Rayon constant (startRadius = endRadius) pour isoler l'azimuth/hauteur
   // du rapprochement testé séparément plus bas.
   const options = { startRadius: 6, endRadius: 6, startHeight: 4, endHeight: 1.4 };
@@ -101,7 +101,7 @@ describe("getOrbitCameraPosition — azimuth et hauteur (rayon constant)", () =>
   });
 });
 
-describe("getOrbitCameraPosition — rapprochement (startRadius -> endRadius)", () => {
+describe("getOrbitCameraPosition : rapprochement (startRadius -> endRadius)", () => {
   // Loin puis proche vers le climax (retour direct de Sylvain, 17/08) :
   // l'inverse (proche puis loin) allait contre le sens de l'arc de reveal.
   const options = { startRadius: 9, endRadius: 4, startHeight: 2.6, endHeight: 1.4, climaxProgress: 0.75 };

@@ -33,7 +33,7 @@ const FADE_SPEED = 0.06; // ~800ms pour aller de 0 à 1 (60fps × 0.06 = 3.6/fra
 
 export default function CardinalAmbience() {
   const direction = useCurrentDirection();
-  // Refs alpha par mood — mutés dans useFrame, lus par les shaders des
+  // Refs alpha par mood, mutés dans useFrame, lus par les shaders des
   // enfants via un objet uniforms partagé.
   const alphaRefs = useMemo(
     () => ({
@@ -56,7 +56,7 @@ export default function CardinalAmbience() {
   const sceneRefs = useSceneRefs();
 
   useFrame(() => {
-    // Freeze crossfade si prefers-reduced-motion (RGAA 13.6) —
+    // Freeze crossfade si prefers-reduced-motion (RGAA 13.6) :
     // snap direction active a 1, autres a 0, sans lerp.
     const active = activeDirectionRef.current;
     if (sceneRefs?.reducedMotionRef.current) {

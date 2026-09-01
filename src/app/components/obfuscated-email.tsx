@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 // Adresse assemblée côté client (useEffect), absente du HTML envoyé par le
-// serveur — les scrapers qui se contentent de parser le HTML statique n'y
+// serveur ; les scrapers qui se contentent de parser le HTML statique n'y
 // voient rien. Ne bloque pas un bot qui exécute du JS, mais arrête la
 // grande majorité des collecteurs d'adresses. Vrai fix (formulaire, sans
 // email exposé du tout) : backlog.
@@ -22,7 +22,7 @@ export default function ObfuscatedEmail({
   useEffect(() => {
     // set-state-in-effect volontaire : c'est tout le principe du composant
     // (adresse absente du HTML serveur, peuplée seulement après hydratation
-    // côté client, cf. commentaire en tête de fichier) — pas une synchro
+    // côté client, cf. commentaire en tête de fichier), pas une synchro
     // ratée avec un système externe.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAddress(`${USER}@${DOMAIN}`);

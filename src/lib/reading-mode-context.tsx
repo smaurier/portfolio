@@ -10,7 +10,7 @@ import {
 } from "react";
 
 /**
- * Mode "recit accessible" — opt-in (29/08 chantier a11y). Signature
+ * Mode "recit accessible", opt-in (29/08 chantier a11y). Signature
  * "l'accessibilite comme UX a part entiere" : un mode calme, lisible,
  * sans surcharge visuelle ni animation, active depuis un bouton
  * header. Utile pour :
@@ -44,7 +44,7 @@ export function ReadingModeProvider({ children }: { children: ReactNode }) {
   const [active, setActive] = useState(false);
 
   // Hydrate depuis localStorage au mount (SSR-safe : default false, sync
-  // apres l'hydratation, un flash tres bref possible mais accepte —
+  // apres l'hydratation, un flash tres bref possible mais accepte :
   // mieux qu'une mismatch React).
   useEffect(() => {
     if (typeof window === "undefined") return;

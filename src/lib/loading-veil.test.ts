@@ -30,7 +30,7 @@ describe("computeMinVeilDuration (31/08 : calcul dynamique)", () => {
 
   it("respecte le plancher MIN_VEIL_DURATION_MS pour un texte tres court", () => {
     // Un texte pathologiquement court pourrait donner une duree sous le
-    // plancher raisonnable — la fonction doit forcer le minimum.
+    // plancher raisonnable ; la fonction doit forcer le minimum.
     const total = computeMinVeilDuration("A", "B");
     expect(total).toBeGreaterThanOrEqual(MIN_VEIL_DURATION_MS);
   });
@@ -39,7 +39,7 @@ describe("computeMinVeilDuration (31/08 : calcul dynamique)", () => {
     const short = computeMinVeilDuration("Ollin", "Mouvement");
     const long = computeMinVeilDuration(
       "In xochitl in cuicatl in tlacatl in yelli",
-      "Fleur et chant, homme et coeur — quatre voies pour une seule verite",
+      "Fleur et chant, homme et coeur, quatre voies pour une seule verite",
     );
     expect(long).toBeGreaterThan(short);
   });

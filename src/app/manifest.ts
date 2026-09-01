@@ -18,7 +18,7 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#0a0710",
     theme_color: "#0a0710",
     icons: [
-      // SVG carre (fond obsidienne + cerf) — safe zone 78.7% centre,
+      // SVG carre (fond obsidienne + cerf), safe zone 78.7% centre,
       // compatible any + maskable. Le typage Next n'accepte qu'une
       // seule valeur par entree (le spec Web App Manifest autorise
       // "any maskable" separe par espace, mais TS restreint), donc

@@ -34,7 +34,7 @@ export default function SmoothScroll() {
     });
 
     // Lenis rAF loop autonome (28/08 retour Sylvain "molette sur cerf
-    // glitche" — coordination gsap ticker + ScrollTrigger creait
+    // glitche" : coordination gsap ticker + ScrollTrigger creait
     // feedback loop avec FaceAFacePin desactive). Retour raf standalone.
     let rafId = 0;
     function raf(time: number) {
