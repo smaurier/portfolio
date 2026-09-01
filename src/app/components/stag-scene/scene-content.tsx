@@ -13,6 +13,7 @@ import Ocotillo from "./ocotillo";
 import OrbitCamera from "./orbit-camera";
 import PiedraGround from "./piedra-ground";
 import RevealLighting from "./reveal-lighting";
+import StagMirror from "./stag-mirror";
 import StagModel from "./stag-model";
 import Vines from "./vines";
 
@@ -88,6 +89,13 @@ export default function SceneContent({
       </CursorRevealScene>
       <OrbitCamera progressRef={progressRef} />
       <CardinalAmbience />
+      {/* Reflet menteur du tezcatl (01/09 etage 4, Nord uniquement :
+       * fade interne par direction). Hors CursorRevealScene : le miroir
+       * de Tezcatlipoca ne repond pas au tonalli du visiteur, il ment
+       * de lui-meme. */}
+      <Suspense fallback={null}>
+        <StagMirror />
+      </Suspense>
     </>
   );
 }

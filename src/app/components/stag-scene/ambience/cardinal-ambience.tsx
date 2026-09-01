@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/immutability, react-hooks/refs -- pattern gamedev r3f useFrame : mutations de refs 60 fps sont legitimes en 3D. */
 "use client";
 
-import { useMemo, useRef, type MutableRefObject } from "react";
+import { Suspense, useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import type { DirectionKey } from "../direction-colors";
 import { useCurrentDirection } from "../use-current-direction";
@@ -85,7 +85,10 @@ export default function CardinalAmbience() {
       <EastTonatiuh alphaRef={alphaRefs.dore} />
       <SouthHuitzilopochtli alphaRef={alphaRefs.turquoise} />
       <WestEhecatl alphaRef={alphaRefs.cendre} />
-      <NorthMictlantecuhtli alphaRef={alphaRefs.obsidienne} />
+      {/* Suspense : North charge le sprite de volute via useTexture. */}
+      <Suspense fallback={null}>
+        <NorthMictlantecuhtli alphaRef={alphaRefs.obsidienne} />
+      </Suspense>
       <CenterXiuhtecuhtli alphaRef={alphaRefs.jade} />
     </>
   );

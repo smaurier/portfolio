@@ -1,8 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
-import { DoubleSide, PlaneGeometry, RepeatWrapping } from "three";
+import { DoubleSide, PlaneGeometry, RepeatWrapping, type MeshStandardMaterial } from "three";
+import { useCurrentDirection } from "./use-current-direction";
+import { useSceneRefs } from "./scene-refs-context";
 
 /**
  * PiedraGround (30/08). Gravure de la Piedra del Sol au sol, sous le
@@ -43,8 +46,28 @@ const GROUND_SEGMENTS = 256;
 const DISPLACEMENT_SCALE = 0.03;
 const DISPLACEMENT_BIAS = -0.015;
 
+/**
+ * Tezcatl (01/09, etage 4 sprint identites : LEAD de la fiche
+ * Mictlampa). Au Nord, la Piedra gravee devient le miroir fumant de
+ * Tezcatlipoca : un disque d'obsidienne POLI (roughness bas, metalness
+ * haut : la top light froide du puits y accroche un sheen speculaire)
+ * et plus present (opacite montee). La fumee de l'ambiance Nord nait
+ * sur ses bords (cf north-mictlantecuhtli). Ailleurs : matiere gravure
+ * historique inchangee. Crossfade ~800ms, meme convention que fog/rig/
+ * grade, snap si prefers-reduced-motion.
+ *
+ * Note craft : morph one-off de materiau, pilote en local plutot qu'en
+ * lib testee (contrairement a direction-fog/light/grade qui sont de la
+ * logique partagee) : trois scalaires lerpes, pas de logique metier.
+ */
+const PIEDRA_NEUTRAL = { roughness: 0.85, metalness: 0.05, opacity: 0.1 };
+const PIEDRA_TEZCATL = { roughness: 0.22, metalness: 0.55, opacity: 0.24 };
+
 export default function PiedraGround() {
   const [colorMap, heightMap] = useTexture([PIEDRA_MAP, PIEDRA_HEIGHTMAP]);
+  const materialRef = useRef<MeshStandardMaterial>(null);
+  const direction = useCurrentDirection();
+  const sceneRefs = useSceneRefs();
 
   // PlaneGeometry subdivise finement + rotate a plat, memoize.
   const geometry = useMemo(() => {
@@ -63,9 +86,20 @@ export default function PiedraGround() {
     }
   }, [colorMap, heightMap]);
 
+  useFrame(() => {
+    const mat = materialRef.current;
+    if (!mat) return;
+    const target = direction === "obsidienne" ? PIEDRA_TEZCATL : PIEDRA_NEUTRAL;
+    const alpha = sceneRefs?.reducedMotionRef.current ? 1 : 0.06;
+    mat.roughness += (target.roughness - mat.roughness) * alpha;
+    mat.metalness += (target.metalness - mat.metalness) * alpha;
+    mat.opacity += (target.opacity - mat.opacity) * alpha;
+  });
+
   return (
     <mesh geometry={geometry} position={[0, 0.005, 0]} receiveShadow>
       <meshStandardMaterial
+        ref={materialRef}
         map={colorMap}
         displacementMap={heightMap}
         displacementScale={DISPLACEMENT_SCALE}
