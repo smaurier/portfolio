@@ -31,6 +31,13 @@ import { useSceneRefs } from "./scene-refs-context";
  * suivis en position monde, un sabot qui glisse dans l'eau ou qui y
  * entre depose une goutte (regle pure hoofDrop, testee).
  *
+ * Et le reflet menteur du tonalli (element D, 02/09) : la souris a un
+ * double, symetrique par rapport au cerf, qui marche sur l'eau de
+ * l'autre cote et y fait ses propres ondes (un peu plus faibles). Le
+ * halo de revelation miroir du shader cursor-reveal existe aussi, mais
+ * le Nord etant expose il ne se voit presque pas : c'est l'eau qui rend
+ * le double visible ("je ne vois pas le second halo", retour Sylvain).
+ *
  * Nord seulement, meme gate que le reflet. Reduced-motion : eau plate
  * (pas de gouttes), toujours visible. Mobile : grille divisee par deux.
  */
@@ -50,6 +57,9 @@ const WATER_PLANE = new Plane(new Vector3(0, 1, 0), -WATER_LEVEL);
 /** Amplitude des gouttes en fonction de la vitesse de la souris. */
 const DROP_GAIN = 0.3;
 const DROP_MAX = 0.12;
+/** Le double du visiteur (reflet menteur) fait des ondes un peu plus
+ * faibles, symetriques par rapport au cerf (origine). */
+const MIRROR_DROP_SCALE = 0.75;
 /** Pente de la surface par unite de gradient de hauteur (plus haut :
  * les ondes fines restent lisibles malgre leur faible amplitude). */
 const NORMAL_GAIN = 7.0;
@@ -177,7 +187,14 @@ export default function TezcatlWater() {
         const uv = { u, v };
         if (inside && prevPointerRef.current) {
           const s = pointerSplat(prevPointerRef.current, uv, dt);
-          if (s) drops.push({ u, v, amount: Math.min(DROP_MAX, Math.hypot(s.du, s.dv) * DROP_GAIN) });
+          if (s) {
+            const amount = Math.min(DROP_MAX, Math.hypot(s.du, s.dv) * DROP_GAIN);
+            drops.push({ u, v, amount });
+            // Le reflet menteur du tonalli : le double marche de l'autre
+            // cote du cerf (symetrie centrale en espace sol).
+            const m = worldToSimUv(-hit.x, -hit.z, EXTENT);
+            if (m.inside) drops.push({ u: m.u, v: m.v, amount: amount * MIRROR_DROP_SCALE });
+          }
         }
         prevPointerRef.current = uv;
       }

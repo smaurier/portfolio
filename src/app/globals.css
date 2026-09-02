@@ -1568,15 +1568,17 @@ body.nahual-lab-reveal .memoireCard {
 }
 body.nahual-lab-reveal .cardReflection {
   display: block;
-  margin-top: 0.9rem;
-  font-size: 0.72rem;
+  margin-top: 1rem;
+  font-size: 0.95rem;
   font-style: italic;
-  letter-spacing: 0.12em;
-  color: color-mix(in srgb, var(--direction-color, rgba(242, 236, 225, 0.45)) 55%, transparent);
+  letter-spacing: 0.14em;
+  /* Retour Sylvain 02/09 "on ne voit rien des epitaphes" : base claire
+     (creme) teintee par la direction, plus de masque qui efface tout. */
+  color: color-mix(in srgb, var(--direction-color, #f2ece1) 35%, rgba(242, 236, 225, 0.85));
   transform: scaleY(-1);
   transform-origin: center;
-  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 90%);
-  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 90%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.35));
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.35));
   pointer-events: none;
   user-select: none;
 }
@@ -1586,6 +1588,6 @@ body.nahual-lab-reveal .cardReflection {
   }
 }
 @keyframes reflectionBreath {
-  0%, 100% { opacity: 0.55; }
+  0%, 100% { opacity: 0.75; }
   50% { opacity: 1; }
 }
