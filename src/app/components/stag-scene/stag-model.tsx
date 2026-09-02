@@ -13,7 +13,9 @@ import {
 } from "@/lib/reveal-arc";
 import { centerAndScale } from "./center-model";
 import { applyHeadLook } from "./head-look";
-import { applyRimLight, setBodyTintAmount, setEdgeIntensity, setEdgePulse, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
+import { applyRimLight, setBodyTintAmount, setEdgeIntensity, setEdgePulse, setNorthDark, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
+import { useCurrentDirection } from "./use-current-direction";
+import { pickNorthClip } from "@/lib/north-clips";
 import StagAura from "./stag-aura";
 import SpiritParticles from "./spirit-particles";
 import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
@@ -105,6 +107,10 @@ export default function StagModel({
   // ci-dessous mute juste leurs `.value`, le seul moyen d'animer un uniform
   // Three.js par frame.
   const rimUniforms: RimLightUniforms[] = useMemo(() => applyRimLight(scene), [scene]);
+  // Nord (02/09) : cerf noir (crossfade) + gestes varies (clips alternes
+  // par segments deterministes, cf lib/north-clips.ts).
+  const direction = useCurrentDirection();
+  const northDarkRef = useRef(direction === "obsidienne" ? 1 : 0);
 
   // Reset explicite des uniforms au mount (ou quand la couleur de la
   // direction change). Sans ce reset, les valeurs sont celles laissées
@@ -158,7 +164,10 @@ export default function StagModel({
       noticedRef.current = true;
     }
 
-    const wantClip = getIdleClipName(progressRef.current, noticedRef.current);
+    const wantClip =
+      direction === "obsidienne" && noticedRef.current
+        ? pickNorthClip(performance.now() / 1000).clip
+        : getIdleClipName(progressRef.current, noticedRef.current);
     if (wantClip === currentClipRef.current) return;
 
     actions[currentClipRef.current ?? ""]?.fadeOut(0.4);
@@ -209,6 +218,12 @@ export default function StagModel({
     const hitEnv = hit ? hit.strength * Math.exp(-(state.clock.elapsedTime - hit.at) * 6) : 0;
     setEdgeIntensity(rimUniforms, rimBlend * 0.6 + hitEnv * 1.5);
     setEdgePulse(rimUniforms, Math.max(pulse, hitEnv));
+    // Cerf noir du Nord : crossfade ~800 ms, snap en reduced-motion.
+    const darkTarget = direction === "obsidienne" ? 1 : 0;
+    northDarkRef.current = sceneRefs?.reducedMotionRef.current
+      ? darkTarget
+      : northDarkRef.current + (darkTarget - northDarkRef.current) * 0.06;
+    setNorthDark(rimUniforms, northDarkRef.current);
   });
 
   const transition = useCardinalTransition();

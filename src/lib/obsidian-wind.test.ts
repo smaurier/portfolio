@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arrowVolley, bladeHit, bladeState, DEER_VOLUME } from "./obsidian-wind";
+import { arrowVolley, bladeHit, bladeState, BLADE_AVOID_RADIUS, DEER_VOLUME } from "./obsidian-wind";
 
 describe("bladeState (Itzehecayan : le vent porte les lames a l'horizontale, Est -> Ouest)", () => {
   it("traverse le disque de +x vers -x, jamais en tombant : y reste dans sa bande", () => {
@@ -24,6 +24,18 @@ describe("bladeState (Itzehecayan : le vent porte les lames a l'horizontale, Est
 
   it("tourne en vol (le roulis avance avec le temps)", () => {
     expect(bladeState(1, 0.5, 12).roll).not.toBeCloseTo(bladeState(2, 0.5, 12).roll, 3);
+  });
+
+  it("contourne le cerf : aucune lame ne passe a moins du rayon d'evitement (retour Sylvain 02/09)", () => {
+    for (let i = 0; i < 40; i++) {
+      const seed = (i + 0.5) / 40;
+      for (let t = 0; t < 30; t += 0.05) {
+        const s = bladeState(t, seed, 12);
+        if (Math.abs(s.x) < 0.6) {
+          expect(Math.hypot(s.x, s.z)).toBeGreaterThan(BLADE_AVOID_RADIUS * 0.9);
+        }
+      }
+    }
   });
 
   it("boucle : la lame reapparait a l'Est apres la traversee (position continue modulo)", () => {

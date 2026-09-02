@@ -33,12 +33,24 @@ function hash(seed: number, k: number): number {
  * lame traverse `span` unites de +x vers -x en boucle, a sa propre hauteur,
  * sur sa propre voie (z), a sa propre vitesse, en tournant sur elle-meme.
  */
+/** Rayon (xz) autour du cerf que les lames contournent (retour Sylvain
+ * 02/09 "je ne souhaite pas qu'elles touchent le cerf"). */
+export const BLADE_AVOID_RADIUS = 1.6;
+
 export function bladeState(time: number, seed: number, span: number): BladeState {
   const speed = 0.9 + hash(seed, 1) * 1.4;
   const x = span / 2 - ((time * speed + seed * span) % span + span) % span;
   const baseY = 0.5 + hash(seed, 2) * 1.8;
-  const y = baseY + Math.sin(time * 0.7 + seed * 6.28) * 0.12;
-  const z = (hash(seed, 3) - 0.5) * 5 + Math.cos(time * 0.4 + seed * 4.1) * 0.15;
+  let y = baseY + Math.sin(time * 0.7 + seed * 6.28) * 0.12;
+  let z = (hash(seed, 3) - 0.5) * 5 + Math.cos(time * 0.4 + seed * 4.1) * 0.15;
+  // Contournement du cerf : a l'approche (x proche de 0), la lame
+  // s'ecarte lateralement de sa voie et monte un peu, comme un vent qui
+  // se separe autour d'un obstacle. Deflexion douce (gaussienne en x),
+  // jamais un virage sec.
+  const near = Math.exp(-(x * x) / 2.2);
+  const lateral = Math.max(0, BLADE_AVOID_RADIUS + 0.3 - Math.abs(z));
+  z += (z >= 0 ? 1 : -1) * lateral * near;
+  y += 0.35 * near;
   const roll = seed * 6.28 + time * (1.5 + hash(seed, 4) * 2.5);
   const pitch = Math.sin(time * 1.1 + seed * 9.0) * 0.18;
   return { x, y, z, speed, roll, pitch };

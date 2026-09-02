@@ -13,9 +13,8 @@ import {
   Quaternion,
   Vector3,
 } from "three";
-import { bladeHit, bladeState } from "@/lib/obsidian-wind";
+import { bladeState } from "@/lib/obsidian-wind";
 import { getMictlanSky } from "./mictlan-sky";
-import { tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -29,9 +28,9 @@ import { useSceneRefs } from "./scene-refs-context";
  *
  * Le plus efficace possible : UN eclat facette (12 triangles, normales
  * plates), UN InstancedMesh (un seul draw call), matrices composees en
- * CPU (80 instances, negligeable) ce qui permet aussi de tester l'entaille
- * du cerf au passage (bladeHit) et de la publier dans tezcatlStore pour
- * que le cerf reagisse (StagModel).
+ * CPU (80 instances, negligeable). Les lames CONTOURNENT le cerf (retour
+ * Sylvain 02/09 "je ne souhaite pas qu'elles touchent le cerf") : la
+ * deflexion est dans bladeState (lib testee), il n'y a plus d'entaille.
  *
  * Matiere : obsidienne noire, metal, clearcoat, envMap "ciel du Mictlan"
  * (le meme que le tezcatl) : les aretes accrochent le violet.
@@ -92,11 +91,11 @@ export default function ObsidianBlades() {
   useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
 
   const seeds = useMemo(() => Array.from({ length: COUNT }, (_, i) => (i + 0.5) / COUNT), []);
-  const scales = useMemo(() => seeds.map((s) => 0.35 + ((s * 7.3) % 1) * 0.35), [seeds]);
-  const prevRef = useRef(seeds.map(() => ({ x: 99, y: 0, z: 0 })));
+  // 0.35..0.7 -> 0.2..0.42 (02/09, "peut-etre plus petites").
+  const scales = useMemo(() => seeds.map((s) => 0.2 + ((s * 7.3) % 1) * 0.22), [seeds]);
   const scratch = useMemo(() => ({ m: new Matrix4(), q: new Quaternion(), e: new Euler(), p: new Vector3(), s: new Vector3() }), []);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     const mesh = meshRef.current;
     if (!mesh) return;
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
@@ -118,15 +117,6 @@ export default function ObsidianBlades() {
       s.setScalar(scales[i] * fade);
       m.compose(p, q, s);
       mesh.setMatrixAt(i, m);
-      // Entaille : la lame entre dans le volume du cerf.
-      const prev = prevRef.current[i];
-      if (fade > 0.5) {
-        const hit = bladeHit(prev, b);
-        if (hit) tezcatlStore.stagHit = { at: state.clock.elapsedTime, strength: hit.strength, side: hit.side };
-      }
-      prev.x = b.x;
-      prev.y = b.y;
-      prev.z = b.z;
     }
     mesh.instanceMatrix.needsUpdate = true;
   });

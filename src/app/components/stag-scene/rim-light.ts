@@ -50,6 +50,9 @@ export type RimLightUniforms = {
   // venir sur le cerf"). Partage uRimColor comme cible ; amount séparé du
   // rim (le rim est un effet de bord net, le body tint est un fondu global).
   uBodyTintAmount: { value: number };
+  /** Cerf noir du Nord (02/09) : 0..1, le corps vire a l'obsidienne
+   * velours (base ecrasee, sheen violet en fresnel, grain de poil). */
+  uNorthDark: { value: number };
   // Intensité des lignes claires sur les angles du modèle low-poly
   // (26/08, retour Sylvain "lignes claires sur tous les angles qui
   // pulsent en cadence avec notre battement"). Détectées via fwidth
@@ -120,6 +123,7 @@ export function applyRimLight(
         uRimIntensity: { value: intensity },
         uRimPower: { value: power },
         uBodyTintAmount: { value: 0 },
+        uNorthDark: { value: 0 },
         uEdgeIntensity: { value: 0 },
         uEdgePulse: { value: 0.65 },
       };
@@ -131,6 +135,12 @@ export function applyRimLight(
         shader.uniforms.uRimIntensity = uniforms.uRimIntensity;
         shader.uniforms.uRimPower = uniforms.uRimPower;
         shader.uniforms.uBodyTintAmount = uniforms.uBodyTintAmount;
+        shader.uniforms.uNorthDark = uniforms.uNorthDark;
+        // Position en bind pose vers le fragment : grain de poil stable
+        // sur la peau (ne glisse ni avec la camera ni avec l'animation).
+        shader.vertexShader = shader.vertexShader
+          .replace("#include <common>", "#include <common>\nvarying vec3 vFurPos;")
+          .replace("#include <begin_vertex>", "#include <begin_vertex>\nvFurPos = position * length(modelMatrix[0].xyz);");
         shader.uniforms.uEdgeIntensity = uniforms.uEdgeIntensity;
         shader.uniforms.uEdgePulse = uniforms.uEdgePulse;
 
@@ -143,7 +153,14 @@ export function applyRimLight(
             uniform float uRimPower;
             uniform float uBodyTintAmount;
             uniform float uEdgeIntensity;
-            uniform float uEdgePulse;`,
+            uniform float uEdgePulse;
+            uniform float uNorthDark;
+            varying vec3 vFurPos;
+            float furHash(vec3 p) {
+              p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
+              p *= 17.0;
+              return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+            }`,
           )
           .replace(
             "#include <dithering_fragment>",
@@ -173,6 +190,18 @@ export function applyRimLight(
             // éléments de son corps") : le multiply saturait tellement
             // les tons foncés qu'il écrasait la modulation PBR.
             float rimFresnel = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), uRimPower);
+            // Cerf noir du Nord (02/09, demande Sylvain "un cerf noir
+            // texture avec le poil que l'on sentirait") : obsidienne
+            // velours. Base ecrasee (on garde 6 % du PBR pour le relief),
+            // sheen violet qui monte en fresnel (le velours), grain de
+            // poil : deux echelles de bruit ancre en bind pose modulent le
+            // sheen. Les coques de poil (fur-shells.tsx) font la
+            // silhouette duveteuse par-dessus.
+            float furGrain = 0.7 + 0.3 * furHash(floor(vFurPos * 260.0)) ;
+            float furGrain2 = 0.85 + 0.15 * furHash(floor(vFurPos * 60.0 + 3.0));
+            float velvet = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), 1.6);
+            vec3 darkBody = gl_FragColor.rgb * 0.16 + uRimColor * velvet * 0.6 * furGrain * furGrain2 + vec3(0.014, 0.01, 0.024);
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, darkBody, uNorthDark);
             gl_FragColor.rgb += uRimColor * rimFresnel * uRimIntensity;
             // Lignes claires sur les angles low-poly (26/08, retour
             // Sylvain : lignes qui respirent, jouent sur le colori et
@@ -251,6 +280,14 @@ export function setEdgeIntensity(uniformsList: RimLightUniforms[], value: number
 export function setEdgePulse(uniformsList: RimLightUniforms[], value: number) {
   for (const uniforms of uniformsList) {
     uniforms.uEdgePulse.value = value;
+  }
+}
+
+/** Cerf noir du Nord (02/09) : 0 = cerf brun mystique, 1 = obsidienne
+ * velours. Crossfade par StagModel selon la direction. */
+export function setNorthDark(uniformsList: RimLightUniforms[], value: number) {
+  for (const uniforms of uniformsList) {
+    uniforms.uNorthDark.value = value;
   }
 }
 

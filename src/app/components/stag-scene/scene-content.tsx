@@ -18,6 +18,7 @@ import TezcatlWater from "./tezcatl-water";
 import ObsidianBlades from "./obsidian-blades";
 import ObsidianArrows from "./obsidian-arrows";
 import AmateStrips from "./amate-strips";
+import FurShells from "./fur-shells";
 import StagModel from "./stag-model";
 import Vines from "./vines";
 
@@ -114,6 +115,9 @@ export default function SceneContent({
        * vent d'obsidienne, aux bois et sur le dos, simulateur Verlet.
        * Nord uniquement. */}
       <AmateStrips />
+      {/* Le poil du cerf noir (02/09) : coques extrudees sur le maillage
+       * skinne, Nord uniquement, desktop seulement. */}
+      <FurShells />
     </>
   );
 }
