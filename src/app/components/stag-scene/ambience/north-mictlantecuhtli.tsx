@@ -44,7 +44,11 @@ const SMOKE_SPRITE = "/img/particles/smoke_07.png";
 // (arbitrage Sylvain "oui redondants, tu peux les retirer"). La famille
 // reste cablee (shader, sprite) pour un eventuel retour, a cout nul.
 const SMOKE_COUNT = 0;
-const SHARD_COUNT = 55;
+// 55 -> 70 (02/09, retour Sylvain "je ne vois pas les lames d'obsidienne
+// volantes, pourtant tres importantes pour le Mictlan") : plus de lames,
+// plus longues, plus claires (en additif sur un Nord desormais expose,
+// le violet vif se noyait).
+const SHARD_COUNT = 70;
 const MIST_COUNT = 36;
 const TOTAL = SMOKE_COUNT + SHARD_COUNT + MIST_COUNT;
 
@@ -105,7 +109,7 @@ export default function NorthMictlantecuhtli({ alphaRef }: { alphaRef: MutableRe
         uAlpha: { value: 0 },
         uTime: { value: 0 },
         uSmokeColor: { value: new Color("#3a2f4a") }, // gris violet dense
-        uShardColor: { value: new Color("#6b3fa8") }, // obsidien violet vif
+        uShardColor: { value: new Color("#cfc2ff") }, // eclat froid de l'obsidienne (02/09, ex #6b3fa8 noye)
         uMistColor: { value: new Color("#4a4060") }, // brume un ton au-dessus de la fumee
         uGlintColor: { value: new Color("#ffb400") }, // cempasuchil (accent documente)
         uSmokeTex: { value: null as unknown },
@@ -194,7 +198,7 @@ export default function NorthMictlantecuhtli({ alphaRef }: { alphaRef: MutableRe
             gl_Position = projectionMatrix * mv;
             // Fumee : volute qui s'etale en montant (200 -> 380), lame
             // nette agrandie, brume tres large
-            float sz = aKind < 0.5 ? mix(200.0, 380.0, vLife) : (aKind < 1.5 ? 42.0 : 340.0);
+            float sz = aKind < 0.5 ? mix(200.0, 380.0, vLife) : (aKind < 1.5 ? 120.0 : 340.0);
             gl_PointSize = sz / -mv.z;
           }
         `}
@@ -232,12 +236,13 @@ export default function NorthMictlantecuhtli({ alphaRef }: { alphaRef: MutableRe
               // arete dure du site.
               float c = cos(-0.12), s = sin(-0.12);
               vec2 ruv = vec2(uv.x * c - uv.y * s, uv.x * s + uv.y * c);
-              float sd = length(vec2(ruv.x, ruv.y * 4.5));
-              shape = 1.0 - smoothstep(0.06, 0.4, sd);
-              // Cœur plus dense au centre de la lame
-              shape += pow(max(shape, 0.0), 3.0) * 0.5;
+              // Lame plus longue et plus fine (02/09) : ecrasement x7,
+              // arete nette, coeur brillant.
+              float sd = length(vec2(ruv.x, ruv.y * 7.0));
+              shape = 1.0 - smoothstep(0.04, 0.42, sd);
+              shape += pow(max(shape, 0.0), 3.0) * 0.9;
               col = mix(uShardColor, uGlintColor, vGlint);
-              aMul = 1.0 + vGlint * 1.6;
+              aMul = 1.4 + vGlint * 1.6;
             } else {
               // Brume : meme sprite de volute, quasi immobile, tres
               // dilue : la nappe du fleuve

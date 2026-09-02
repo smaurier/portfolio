@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Color, DoubleSide, Plane, ShaderMaterial, Vector3, type Mesh, type Object3D } from "three";
+import { Color, DoubleSide, Plane, ShaderMaterial, Vector2, Vector3, type Mesh, type Object3D } from "three";
 import { hoofDrop, pointerSplat, smokeGate, worldToSimUv, type SimUv } from "@/lib/tezcatl-fluid";
 import { TezcatlRippleSim } from "./tezcatl-ripple-sim";
 import { TEZCATL_EXTENT, WATER_LEVEL, ZERO_TEXTURE, tezcatlStore } from "./tezcatl-store";
@@ -55,8 +55,10 @@ const RIM_COLOR = new Color("#5a4a8a");
 const LIGHT_DIR = new Vector3(0.25, 1, 0.35).normalize(); // la top light froide du puits
 const WATER_PLANE = new Plane(new Vector3(0, 1, 0), -WATER_LEVEL);
 /** Amplitude des gouttes en fonction de la vitesse de la souris. */
-const DROP_GAIN = 0.3;
-const DROP_MAX = 0.12;
+// 0.3/0.12 -> 0.45/0.18 (02/09, retour Sylvain "je ne le vois pas") :
+// plus lisible en live, toujours fin.
+const DROP_GAIN = 0.45;
+const DROP_MAX = 0.18;
 /** Le double du visiteur (reflet menteur) fait des ondes un peu plus
  * faibles, symetriques par rapport au cerf (origine). */
 const MIRROR_DROP_SCALE = 0.75;
@@ -85,6 +87,22 @@ export default function TezcatlWater() {
   const hitRef = useRef(new Vector3());
   const accRef = useRef(0);
   const hoovesRef = useRef<{ bone: Object3D; prev: Vector3 | null }[] | null>(null);
+  // Souris lue au niveau FENETRE (02/09, retour Sylvain "je ne vois ces
+  // ondes que lorsque je tourne la camera") : le contenu de la page
+  // recouvre le canvas et lui vole les pointermove, state.pointer de r3f
+  // ne bougeait que dans les trous. Meme approche que cursor-reveal.
+  const pointerNdcRef = useRef<Vector2 | null>(null);
+  useEffect(() => {
+    function onPointerMove(event: PointerEvent) {
+      if (!pointerNdcRef.current) pointerNdcRef.current = new Vector2();
+      pointerNdcRef.current.set(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1,
+      );
+    }
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onPointerMove);
+  }, []);
   const hoofLookupRef = useRef(0);
   const hoofPosRef = useRef(new Vector3());
 
@@ -179,8 +197,8 @@ export default function TezcatlWater() {
     // vitesse. Pas de gouttes en reduced-motion (eau plate).
     const drops: { u: number; v: number; amount: number }[] = [];
     const dt = Math.min(delta, 1 / 30);
-    if (!reduced) {
-      state.raycaster.setFromCamera(state.pointer, state.camera);
+    if (!reduced && pointerNdcRef.current) {
+      state.raycaster.setFromCamera(pointerNdcRef.current, state.camera);
       const hit = state.raycaster.ray.intersectPlane(WATER_PLANE, hitRef.current);
       if (hit) {
         const { u, v, inside } = worldToSimUv(hit.x, hit.z, EXTENT);

@@ -835,12 +835,14 @@ body.nahual-lab-reveal .creditNote {
 
 body.nahual-lab-reveal .cardIndex {
   position: absolute;
-  top: 20px;
+  top: 16px;
   right: 20px;
-  font-size: 0.75rem;
+  /* 0.75rem / 65 % -> 1.15rem / plein (02/09, retour Sylvain "les numeros
+     sur les cartes, a augmenter") */
+  font-size: 1.15rem;
   font-style: italic;
-  font-weight: 500;
-  color: color-mix(in srgb, var(--direction-color, rgba(242, 236, 225, 0.45)) 65%, transparent);
+  font-weight: 600;
+  color: color-mix(in srgb, var(--direction-color, #f2ece1) 45%, rgba(242, 236, 225, 0.95));
   font-variant-numeric: oldstyle-nums;
   letter-spacing: 0.05em;
   pointer-events: none;
@@ -1568,17 +1570,15 @@ body.nahual-lab-reveal .memoireCard {
 }
 body.nahual-lab-reveal .cardReflection {
   display: block;
-  margin-top: 1rem;
-  font-size: 0.95rem;
+  margin-top: 1.1rem;
+  font-size: 1.1rem;
   font-style: italic;
   letter-spacing: 0.14em;
-  /* Retour Sylvain 02/09 "on ne voit rien des epitaphes" : base claire
-     (creme) teintee par la direction, plus de masque qui efface tout. */
-  color: color-mix(in srgb, var(--direction-color, #f2ece1) 35%, rgba(242, 236, 225, 0.85));
+  /* Retour Sylvain 02/09 x2 ("on ne voit rien", puis "encore plus
+     fort") : creme quasi pleine, teintee direction, sans masque. */
+  color: color-mix(in srgb, var(--direction-color, #f2ece1) 25%, rgba(242, 236, 225, 0.95));
   transform: scaleY(-1);
   transform-origin: center;
-  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.35));
-  mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.35));
   pointer-events: none;
   user-select: none;
 }
@@ -1588,6 +1588,6 @@ body.nahual-lab-reveal .cardReflection {
   }
 }
 @keyframes reflectionBreath {
-  0%, 100% { opacity: 0.75; }
+  0%, 100% { opacity: 0.85; }
   50% { opacity: 1; }
 }
