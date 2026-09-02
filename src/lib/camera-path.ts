@@ -34,6 +34,11 @@ export type OrbitCameraOptions = {
    * point opposé", arbitrage Sylvain 01/09). Même rayon, même hauteur,
    * même rythme : seul le point de départ tourne. Défaut 0. */
   azimuthOffset?: number;
+  /** Hélice MIROIR (02/09, Nord, option 1 validée par Sylvain) : même
+   * départ face au cerf, même rayon, même hauteur, même rythme, mais
+   * l'orbite tourne dans l'autre sens et finit sur la vue 3/4 symétrique.
+   * Le monde des morts tourne à l'envers, comme le reflet menteur. */
+  mirror?: boolean;
 };
 
 const DEFAULT_OPTIONS: OrbitCameraOptions = {
@@ -114,7 +119,7 @@ export function getOrbitCameraPosition(
   progress: number,
   options: Partial<OrbitCameraOptions> = {},
 ): Vec3 {
-  const { startRadius, endRadius, startHeight, endHeight, turns, climaxProgress, finalDrift, azimuthOffset } = {
+  const { startRadius, endRadius, startHeight, endHeight, turns, climaxProgress, finalDrift, azimuthOffset, mirror } = {
     ...DEFAULT_OPTIONS,
     ...options,
   };
@@ -123,7 +128,7 @@ export function getOrbitCameraPosition(
   const baseAzimuth = settledP * Math.PI * 2 * (turns ?? 1);
   const driftT =
     climaxProgress < 1 ? Math.min(1, Math.max(0, (p - climaxProgress) / (1 - climaxProgress))) : 0;
-  const azimuth = baseAzimuth + ease(driftT) * finalDrift + (azimuthOffset ?? 0);
+  const azimuth = (baseAzimuth + ease(driftT) * finalDrift + (azimuthOffset ?? 0)) * (mirror ? -1 : 1);
 
   const climaxT = climaxProgress > 0 ? ease(Math.min(1, p / climaxProgress)) : 1;
   const radius = lerp(startRadius, endRadius, climaxT);

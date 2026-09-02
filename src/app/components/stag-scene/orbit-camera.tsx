@@ -95,11 +95,12 @@ export default function OrbitCamera({
   // caméra : parcours ET traitement") : blend 0..1 crossfadé vers 1 au
   // Nord, qui pilote a la fois le traitement (FOV compressé -5°,
   // plongée légère, parallax amorti) et le parcours. Parcours retravaillé
-  // le 02/09 (retour Sylvain "la caméra tourne en hélice, l'inverse c'est
-  // juste commencer à un point opposé, sinon c'est incohérent") : la
-  // même hélice que partout, décalée d'un demi-tour. Avant, le progress
-  // caméra suivait l'arc de lumière remappé et la caméra reculait puis
-  // revenait : incohérent.
+  // le 02/09 : d'abord la même hélice décalée d'un demi-tour ("point
+  // opposé"), mais on partait de dos (retour Sylvain "la caméra ne me
+  // plaît pas trop"), puis HÉLICE MIROIR (option 1 validée) : même départ
+  // face au cerf, l'orbite tourne dans l'autre sens et finit sur la vue
+  // 3/4 symétrique. Avant le 02/09, le progress caméra suivait l'arc de
+  // lumière remappé et la caméra reculait puis revenait : incohérent.
   const northBlendRef = useRef(direction === "obsidienne" ? 1 : 0);
 
   useEffect(() => {
@@ -153,15 +154,25 @@ export default function OrbitCamera({
     const northTarget = direction === "obsidienne" ? 1 : 0;
     northBlendRef.current += (northTarget - northBlendRef.current) * 0.06;
     const nb = northBlendRef.current;
-    // Parcours : la même hélice partout ; au Nord, décalée d'un demi-tour
-    // (le crossfade nb fait pivoter la caméra autour du cerf en ~800 ms au
-    // changement de direction, un whip pan qui se marie au burst).
+    // Parcours : la même hélice partout ; au Nord, en miroir. Crossfade
+    // par le blend nb : interpolation entre la position normale et la
+    // position miroir (même rayon, même hauteur, seul l'azimuth diffère :
+    // la caméra pivote autour du cerf au changement de direction).
     const rawP = progressRef.current;
     const northEase = nb * nb * (3 - 2 * nb);
-    const position = getOrbitCameraPosition(rawP, {
-      ...(isMobile ? { startRadius: 8, endRadius: 4.8, startHeight: 3.2, endHeight: 2.0 } : {}),
-      azimuthOffset: Math.PI * northEase,
-    });
+    const pathOpts = isMobile ? { startRadius: 8, endRadius: 4.8, startHeight: 3.2, endHeight: 2.0 } : {};
+    const normal = getOrbitCameraPosition(rawP, pathOpts);
+    const mirrored = getOrbitCameraPosition(rawP, { ...pathOpts, mirror: true });
+    const position =
+      northEase <= 0.001
+        ? normal
+        : northEase >= 0.999
+          ? mirrored
+          : {
+              x: normal.x + (mirrored.x - normal.x) * northEase,
+              y: normal.y,
+              z: normal.z + (mirrored.z - normal.z) * northEase,
+            };
     // Plongée légère Mictlampa : la caméra monte un peu, on regarde
     // vers le bas (on descend au Mictlan).
     position.y += nb * 0.45;

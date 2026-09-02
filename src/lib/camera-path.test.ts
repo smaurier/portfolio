@@ -159,3 +159,29 @@ describe("getOrbitCameraPosition : azimuthOffset (le Nord part du point oppose, 
     expect(b).toEqual(a);
   });
 });
+
+describe("getOrbitCameraPosition : mirror (le Nord tourne a l'envers, 02/09)", () => {
+  it("part du meme point que l'helice normale (face au cerf)", () => {
+    const a = getOrbitCameraPosition(0);
+    const b = getOrbitCameraPosition(0, { mirror: true });
+    expect(b.x).toBeCloseTo(a.x, 6);
+    expect(b.z).toBeCloseTo(a.z, 6);
+  });
+
+  it("tourne dans l'autre sens : x oppose, z identique, meme rayon et meme hauteur", () => {
+    for (const p of [0.1, 0.25, 0.5, 0.75, 1]) {
+      const a = getOrbitCameraPosition(p);
+      const b = getOrbitCameraPosition(p, { mirror: true });
+      expect(b.x).toBeCloseTo(-a.x, 6);
+      expect(b.z).toBeCloseTo(a.z, 6);
+      expect(b.y).toBeCloseTo(a.y, 6);
+    }
+  });
+
+  it("se combine avec azimuthOffset (le decalage est lui aussi miroite)", () => {
+    const a = getOrbitCameraPosition(0.3, { azimuthOffset: 0.4 });
+    const b = getOrbitCameraPosition(0.3, { azimuthOffset: 0.4, mirror: true });
+    expect(b.x).toBeCloseTo(-a.x, 6);
+    expect(b.z).toBeCloseTo(a.z, 6);
+  });
+});
