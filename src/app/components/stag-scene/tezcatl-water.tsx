@@ -5,35 +5,29 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Color, DoubleSide, Plane, ShaderMaterial, Vector3, type Mesh } from "three";
 import { pointerSplat, smokeGate, worldToSimUv, type SimUv } from "@/lib/tezcatl-fluid";
-import { DEFAULT_FLUID_PARAMS, TezcatlFluidSim, type FluidParams } from "./tezcatl-fluid-sim";
+import { TezcatlRippleSim } from "./tezcatl-ripple-sim";
 import { TEZCATL_EXTENT, WATER_LEVEL, ZERO_TEXTURE, tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
 /**
  * TezcatlWater (02/09, Nord). Une nappe d'eau CALME de ~20 cm sur toute la
- * surface, geree par le simulateur de fluide (Navier-Stokes,
- * tezcatl-fluid-sim.ts). Arbitrages Sylvain 02/09 dans l'ordre : "20 cm
- * d'eau, des ondes a la souris", "utilise le simulateur de fluide pour
- * tout cela", "enleve la fumee, ne met qu'une nappe d'eau", "l'eau est
- * geree par le simulateur de fluide cela dit. Mais elle doit etre calme".
- * Le fleuve Chiconahuapan de la fiche Mictlampa : le cerf a les pattes
- * dedans, son reflet est dessous.
- *
- * CALME : rien n'injecte d'energie au repos (plus d'emetteurs, ils
- * faisaient les tourbillons "qu'on ne sait pas pourquoi" avec le
- * confinement de vorticite), vorticite a zero, dissipation forte : le
- * fluide est immobile jusqu'a ce que la souris le pousse, et la
- * perturbation s'eteint en une ou deux secondes.
+ * surface, sur un simulateur d'EAU (equation des ondes,
+ * tezcatl-ripple-sim.ts). Arbitrages Sylvain 02/09 : "20 cm d'eau et
+ * lorsqu'on bougerait la souris, ca ferait des ondes dedans", "l'eau doit
+ * etre calme", "moi je voulais un simulateur d'eau". Le fleuve
+ * Chiconahuapan de la fiche Mictlampa : le cerf a les pattes dedans, son
+ * reflet est dessous.
  *
  * Rendu : plan translucide sombre, miroir noir au repos, normale inclinee
- * par le gradient de PRESSION (les fronts autour de la poussee) et par la
- * VITESSE (le courant tire la surface). Lisible par le speculaire de la
- * top light froide du puits et le Fresnel. Le reflet menteur, sous l'eau,
- * est refracte par la meme pression (via tezcatlStore).
+ * par le gradient du champ de hauteur : des ANNEAUX qui partent de la
+ * souris, se propagent et s'amortissent. Lisible par le speculaire de la
+ * top light froide du puits sur les cretes et le Fresnel. Le reflet
+ * menteur, sous l'eau, est refracte par les memes ondes (via
+ * tezcatlStore).
  *
  * Nord seulement, meme gate que le reflet. Reduced-motion : eau plate
- * (pas de poussee), toujours visible. Mobile : grille divisee par deux.
+ * (pas de gouttes), toujours visible. Mobile : grille divisee par deux.
  */
 
 const EXTENT = TEZCATL_EXTENT;
@@ -43,24 +37,11 @@ const SPEC_COLOR = new Color("#cfc6f2");
 const RIM_COLOR = new Color("#5a4a8a");
 const LIGHT_DIR = new Vector3(0.25, 1, 0.35).normalize(); // la top light froide du puits
 const WATER_PLANE = new Plane(new Vector3(0, 1, 0), -WATER_LEVEL);
-/** Pente de la surface par unite de gradient de pression. */
-const PRESSURE_GAIN = 10.0;
-/** Inclinaison de la surface par unite de vitesse (le courant tire la
- * surface). */
-const VELOCITY_TILT = 0.8;
-
-/** Fluide de l'eau calme : pas d'encre, pas d'emetteurs, pas de
- * vorticite, dissipation rapide. Seule la souris pousse. */
-const WATER_FLUID_PARAMS: FluidParams = {
-  ...DEFAULT_FLUID_PARAMS,
-  curl: 0,
-  velocityDissipation: 1.4,
-  pressureIterations: 20,
-  pointerRadius: 0.004,
-  pointerPush: 1.0,
-  emitterDye: 0,
-  emitterPush: 0,
-};
+/** Amplitude des gouttes en fonction de la vitesse de la souris. */
+const DROP_GAIN = 0.5;
+const DROP_MAX = 0.25;
+/** Pente de la surface par unite de gradient de hauteur. */
+const NORMAL_GAIN = 4.0;
 
 export default function TezcatlWater() {
   const meshRef = useRef<Mesh>(null);
@@ -70,16 +51,15 @@ export default function TezcatlWater() {
   const opacityRef = useRef(0);
   const prevPointerRef = useRef<SimUv | null>(null);
   const hitRef = useRef(new Vector3());
+  const accRef = useRef(0);
 
   const lowPerf = sceneRefs ? !sceneRefs.perfProfile.postFx : false;
-  // Grille d'encre minimale : l'eau n'a pas d'encre, inutile de la payer.
-  const sim = useMemo(() => new TezcatlFluidSim(gl, lowPerf ? 96 : 192, 8, WATER_FLUID_PARAMS), [gl, lowPerf]);
+  const sim = useMemo(() => new TezcatlRippleSim(gl, lowPerf ? 128 : 256), [gl, lowPerf]);
   useEffect(
     () => () => {
       sim.dispose();
-      tezcatlStore.velocity = ZERO_TEXTURE;
-      tezcatlStore.pressure = ZERO_TEXTURE;
-      tezcatlStore.texel = 1;
+      tezcatlStore.ripple = ZERO_TEXTURE;
+      tezcatlStore.rippleTexel = 1;
     },
     [sim]
   );
@@ -88,16 +68,14 @@ export default function TezcatlWater() {
     () =>
       new ShaderMaterial({
         uniforms: {
-          uVelocity: { value: sim.velocityTexture },
-          uPressure: { value: sim.pressureTexture },
+          uHeight: { value: sim.heightTexture },
           uTexel: { value: sim.texel },
           uOpacity: { value: 0 },
           uColor: { value: WATER_COLOR },
           uSpec: { value: SPEC_COLOR },
           uRim: { value: RIM_COLOR },
           uLightDir: { value: LIGHT_DIR },
-          uPressureGain: { value: PRESSURE_GAIN },
-          uVelocityTilt: { value: VELOCITY_TILT },
+          uNormalGain: { value: NORMAL_GAIN },
         },
         transparent: true,
         depthWrite: false,
@@ -111,33 +89,28 @@ export default function TezcatlWater() {
           }
         `,
         fragmentShader: `
-          uniform sampler2D uVelocity;
-          uniform sampler2D uPressure;
+          uniform sampler2D uHeight;
           uniform float uTexel;
           uniform float uOpacity;
           uniform vec3 uColor;
           uniform vec3 uSpec;
           uniform vec3 uRim;
           uniform vec3 uLightDir;
-          uniform float uPressureGain;
-          uniform float uVelocityTilt;
+          uniform float uNormalGain;
           varying vec3 vWorldPos;
           const float EXTENT = ${EXTENT.toFixed(1)};
           void main() {
             vec2 uv = vWorldPos.xz / (2.0 * EXTENT) + 0.5;
-            float pL = texture2D(uPressure, uv - vec2(uTexel, 0.0)).x;
-            float pR = texture2D(uPressure, uv + vec2(uTexel, 0.0)).x;
-            float pB = texture2D(uPressure, uv - vec2(0.0, uTexel)).x;
-            float pT = texture2D(uPressure, uv + vec2(0.0, uTexel)).x;
-            vec2 grad = vec2(pR - pL, pT - pB) * uPressureGain;
-            vec2 vel = texture2D(uVelocity, uv).xy * uVelocityTilt;
-            vec2 tilt = grad + vel;
-            vec3 n = normalize(vec3(-tilt.x, 1.0, -tilt.y));
+            float hL = texture2D(uHeight, uv - vec2(uTexel, 0.0)).x;
+            float hR = texture2D(uHeight, uv + vec2(uTexel, 0.0)).x;
+            float hB = texture2D(uHeight, uv - vec2(0.0, uTexel)).x;
+            float hT = texture2D(uHeight, uv + vec2(0.0, uTexel)).x;
+            vec3 n = normalize(vec3(-(hR - hL) * uNormalGain, 1.0, -(hT - hB) * uNormalGain));
             vec3 view = normalize(cameraPosition - vWorldPos);
             float fresnel = pow(1.0 - max(dot(n, view), 0.0), 3.0);
             vec3 h = normalize(uLightDir + view);
             float spec = pow(max(dot(n, h), 0.0), 90.0);
-            // Les pentes accrochent un peu de lumiere diffuse : le sillage
+            // Les cretes accrochent un peu de lumiere diffuse : l'anneau
             // reste lisible hors du reflet speculaire, sans white-out.
             float slope = clamp((1.0 - n.y) * 4.0, 0.0, 1.0);
             float d = max(abs(vWorldPos.x), abs(vWorldPos.z)) / EXTENT;
@@ -165,28 +138,33 @@ export default function TezcatlWater() {
       return;
     }
 
-    // La souris projetee sur la nappe pousse le fluide. Pas de poussee en
-    // reduced-motion (eau plate), la sim tourne quand meme (elle s'eteint).
+    // Gouttes : la souris projetee sur la nappe, amplitude selon sa
+    // vitesse. Pas de gouttes en reduced-motion (eau plate).
+    const drops: { u: number; v: number; amount: number }[] = [];
     const dt = Math.min(delta, 1 / 30);
-    let pointer = null;
     if (!reduced) {
       state.raycaster.setFromCamera(state.pointer, state.camera);
       const hit = state.raycaster.ray.intersectPlane(WATER_PLANE, hitRef.current);
       if (hit) {
         const { u, v, inside } = worldToSimUv(hit.x, hit.z, EXTENT);
         const uv = { u, v };
-        if (inside && prevPointerRef.current) pointer = pointerSplat(prevPointerRef.current, uv, dt);
+        if (inside && prevPointerRef.current) {
+          const s = pointerSplat(prevPointerRef.current, uv, dt);
+          if (s) drops.push({ u, v, amount: Math.min(DROP_MAX, Math.hypot(s.du, s.dv) * DROP_GAIN) });
+        }
         prevPointerRef.current = uv;
       }
     }
-    sim.step(dt, [], pointer);
+    // Pas de temps fixe (schema calibre 60 fps) : on accumule le temps
+    // reel et on joue autant de sous-pas que necessaire, plafonne.
+    accRef.current += dt;
+    const substeps = Math.min(3, Math.floor(accRef.current * 60));
+    accRef.current -= substeps / 60;
+    sim.step(drops, substeps);
 
-    tezcatlStore.velocity = sim.velocityTexture;
-    tezcatlStore.pressure = sim.pressureTexture;
-    tezcatlStore.texel = sim.texel;
-    material.uniforms.uVelocity.value = sim.velocityTexture;
-    material.uniforms.uPressure.value = sim.pressureTexture;
-    material.uniforms.uTexel.value = sim.texel;
+    tezcatlStore.ripple = sim.heightTexture;
+    tezcatlStore.rippleTexel = sim.texel;
+    material.uniforms.uHeight.value = sim.heightTexture;
     material.uniforms.uOpacity.value = opacityRef.current;
   });
 

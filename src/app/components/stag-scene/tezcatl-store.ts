@@ -2,16 +2,17 @@ import { DataTexture, FloatType, RGBAFormat, type Texture } from "three";
 
 /**
  * Etat partage de la nappe d'eau du Nord (02/09). TezcatlWater fait
- * tourner le simulateur de fluide (tezcatl-fluid-sim.ts, Navier-Stokes,
- * arbitrage Sylvain "l'eau est geree par le simulateur de fluide") et
- * publie ici ses champs ; le reflet menteur (StagMirror) les LIT pour se
- * refracter sous la surface. Un singleton de scene plutot qu'un contexte
- * React : textures ping-pong qui changent a 60 fps hors du cycle React,
- * tout le monde les lit dans useFrame.
+ * tourner le simulateur d'eau (tezcatl-ripple-sim.ts, equation des ondes)
+ * et publie ici son champ de hauteur ; le reflet menteur (StagMirror) le
+ * LIT pour se refracter sous les ondes. Un singleton de scene plutot qu'un
+ * contexte React : texture ping-pong qui change a 60 fps hors du cycle
+ * React, tout le monde la lit dans useFrame.
  *
- * Historique : la scene a d'abord eu une fumee sur le meme simulateur,
- * retiree le 02/09 ("enleve la fumee, ne met qu'une nappe d'eau").
- * lib/tezcatl-fluid.ts garde les emetteurs (testes), debranches.
+ * Historique 02/09 : la scene a d'abord eu une fumee puis une eau sur
+ * simulateur de fluide (Navier-Stokes, tezcatl-fluid-sim.ts), retirees
+ * ("mais c'est de la fumee en bas ? moi je voulais un simulateur d'eau").
+ * Le simulateur de fluide et lib/tezcatl-fluid.ts restent dans le repo,
+ * testes, debranches.
  *
  * Le placeholder 1x1 a zero evite un sampler nul le temps que la sim
  * monte (un sampler nul rend noir ou log un warning selon les drivers).
@@ -35,14 +36,11 @@ export const TEZCATL_EXTENT = 7;
 export const WATER_LEVEL = 0.25;
 
 export const tezcatlStore: {
-  /** Champ de vitesse du fluide (xy, unites de grille/s). */
-  velocity: Texture;
-  /** Champ de pression du fluide (x) : ses fronts dessinent la surface. */
-  pressure: Texture;
-  /** 1/resolution de la grille vitesse/pression (pour les gradients). */
-  texel: number;
+  /** Champ de hauteur des ondes (x = hauteur courante). */
+  ripple: Texture;
+  /** 1/resolution de la grille des ondes (pour les gradients). */
+  rippleTexel: number;
 } = {
-  velocity: ZERO_TEXTURE,
-  pressure: ZERO_TEXTURE,
-  texel: 1,
+  ripple: ZERO_TEXTURE,
+  rippleTexel: 1,
 };

@@ -82,12 +82,11 @@ const MIRROR_DEPTH_SCALE = 0.5;
  * (retour Sylvain 02/09 "le reflet est fusionne avec le cerf au niveau
  * des jambes"). */
 const MIRROR_PLANE_Y = -0.2; // 02/09 "tu peux encore decaler" : un vrai ecart entre pieds et reflet
-/** Refraction par la surface de l'eau (tezcatl-water, simulateur de
- * fluide via tezcatlStore) : le gradient de PRESSION decale chaque vertex
- * du reflet dans le plan, en unites monde par unite de gradient. Eau calme
- * = pression nulle = reflet immobile. (La deformation "air chaud" par la
- * fumee a ete retiree avec la fumee le 02/09.) */
-const PRESSURE_REFRACT = 1.2;
+/** Refraction par les ondes de la nappe d'eau (tezcatl-water, simulateur
+ * d'eau via tezcatlStore) : le gradient de HAUTEUR decale chaque vertex du
+ * reflet dans le plan, en unites monde par unite de gradient. Eau calme =
+ * hauteur nulle = reflet immobile. */
+const RIPPLE_REFRACT = 0.4;
 /** Bande du fade de contact, en unites de cerf non compresse (jambes
  * inversees noyees dans la fumee du plan de contact). */
 const CONTACT_FADE_DEPTH = 0.9;
@@ -197,30 +196,30 @@ export default function StagMirror() {
           uContactY: { value: MIRROR_PLANE_Y }, // = position Y du groupe (plan du miroir)
           uFadeDepth: { value: CONTACT_FADE_DEPTH * MIRROR_DEPTH_SCALE },
           uFadeEdge: { value: CONTACT_FADE_EDGE * MIRROR_DEPTH_SCALE },
-          uPressure: { value: tezcatlStore.pressure },
-          uTexel: { value: tezcatlStore.texel },
+          uRipple: { value: tezcatlStore.ripple },
+          uTexel: { value: tezcatlStore.rippleTexel },
           uExtent: { value: TEZCATL_EXTENT },
-          uRefract: { value: PRESSURE_REFRACT },
+          uRefract: { value: RIPPLE_REFRACT },
         },
         transparent: true,
         depthWrite: false,
         depthTest: false,
         side: DoubleSide,
         vertexShader: `
-          uniform sampler2D uPressure;
+          uniform sampler2D uRipple;
           uniform float uTexel;
           uniform float uExtent;
           uniform float uRefract;
           varying vec3 vWorldPos;
           void main() {
             vec4 world = modelMatrix * vec4(position, 1.0);
-            // Surface de l'eau : le gradient de pression du fluide refracte
-            // le reflet (echantillonne en espace sol). Eau calme = immobile.
+            // Ondes de la nappe : le gradient de hauteur refracte le reflet
+            // (echantillonne en espace sol). Eau calme = reflet immobile.
             vec2 suv = world.xz / (2.0 * uExtent) + 0.5;
-            float hL = texture2D(uPressure, suv - vec2(uTexel, 0.0)).x;
-            float hR = texture2D(uPressure, suv + vec2(uTexel, 0.0)).x;
-            float hB = texture2D(uPressure, suv - vec2(0.0, uTexel)).x;
-            float hT = texture2D(uPressure, suv + vec2(0.0, uTexel)).x;
+            float hL = texture2D(uRipple, suv - vec2(uTexel, 0.0)).x;
+            float hR = texture2D(uRipple, suv + vec2(uTexel, 0.0)).x;
+            float hB = texture2D(uRipple, suv - vec2(0.0, uTexel)).x;
+            float hT = texture2D(uRipple, suv + vec2(0.0, uTexel)).x;
             world.xz += vec2(hR - hL, hT - hB) * uRefract;
             vWorldPos = world.xyz;
             gl_Position = projectionMatrix * viewMatrix * world;
@@ -274,8 +273,8 @@ export default function StagMirror() {
     material.uniforms.uOpacity.value = opacityRef.current * pulse;
     // Champ publie par TezcatlWater (texture ping-pong : la reference
     // change a chaque frame).
-    material.uniforms.uPressure.value = tezcatlStore.pressure;
-    material.uniforms.uTexel.value = tezcatlStore.texel;
+    material.uniforms.uRipple.value = tezcatlStore.ripple;
+    material.uniforms.uTexel.value = tezcatlStore.rippleTexel;
   });
 
   return (

@@ -98,9 +98,8 @@ export default function SceneContent({
         <StagMirror />
       </Suspense>
       {/* La nappe d'eau (02/09) : ~20 cm d'eau calme sur toute la surface,
-       * ondes a la souris, par-dessus le reflet. Nord uniquement (gate
-       * interne). La fumee sur simulateur de fluide a ete retiree le meme
-       * jour (arbitrage Sylvain), le simulateur reste dans le repo. */}
+       * simulateur d'eau (equation des ondes), anneaux a la souris,
+       * par-dessus le reflet. Nord uniquement (gate interne). */}
       <TezcatlWater />
     </>
   );
