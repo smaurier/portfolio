@@ -80,7 +80,7 @@ const MIRROR_DEPTH_SCALE = 0.5;
  * corrigee, les jambes inversees remontaient DANS les vraies jambes
  * (retour Sylvain 02/09 "le reflet est fusionne avec le cerf au niveau
  * des jambes"). */
-const MIRROR_PLANE_Y = 0;
+const MIRROR_PLANE_Y = -0.2; // 02/09 "tu peux encore decaler" : un vrai ecart entre pieds et reflet
 /** Bande du fade de contact, en unites de cerf non compresse (jambes
  * inversees noyees dans la fumee du plan de contact). */
 const CONTACT_FADE_DEPTH = 0.9;
