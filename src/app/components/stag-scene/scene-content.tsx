@@ -14,7 +14,6 @@ import OrbitCamera from "./orbit-camera";
 import PiedraGround from "./piedra-ground";
 import RevealLighting from "./reveal-lighting";
 import StagMirror from "./stag-mirror";
-import TezcatlSmoke from "./tezcatl-smoke";
 import TezcatlWater from "./tezcatl-water";
 import StagModel from "./stag-model";
 import Vines from "./vines";
@@ -98,11 +97,10 @@ export default function SceneContent({
       <Suspense fallback={null}>
         <StagMirror />
       </Suspense>
-      {/* La fumee du tezcatl (02/09) : simulateur de fluide GPU confine au
-       * disque, par-dessus le reflet. Nord uniquement (gate interne). */}
-      <TezcatlSmoke />
-      {/* La nappe d'eau (02/09) : ~20 cm sur toute la surface, ondes a la
-       * souris, par-dessus la fumee et le reflet. Nord uniquement. */}
+      {/* La nappe d'eau (02/09) : ~20 cm d'eau calme sur toute la surface,
+       * ondes a la souris, par-dessus le reflet. Nord uniquement (gate
+       * interne). La fumee sur simulateur de fluide a ete retiree le meme
+       * jour (arbitrage Sylvain), le simulateur reste dans le repo. */}
       <TezcatlWater />
     </>
   );

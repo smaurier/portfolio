@@ -82,14 +82,11 @@ const MIRROR_DEPTH_SCALE = 0.5;
  * (retour Sylvain 02/09 "le reflet est fusionne avec le cerf au niveau
  * des jambes"). */
 const MIRROR_PLANE_Y = -0.2; // 02/09 "tu peux encore decaler" : un vrai ecart entre pieds et reflet
-/** Deformation "air chaud" (02/09, idee notee le 01/09 "comme l'air au
- * dessus de l'asphalte en ete") : chaque vertex du reflet est decale dans
- * le plan par le champ de vitesse de la fumee (tezcatl-fluid-sim, via
- * tezcatlStore), en unites monde par unite de vitesse de grille. */
-const HAZE_STRENGTH = 0.18;
-/** Refraction par la surface de l'eau : le gradient de PRESSION du meme
- * fluide (un seul simulateur pour tout, arbitrage Sylvain 02/09) decale
- * le reflet, en unites monde par unite de gradient. */
+/** Refraction par la surface de l'eau (tezcatl-water, simulateur de
+ * fluide via tezcatlStore) : le gradient de PRESSION decale chaque vertex
+ * du reflet dans le plan, en unites monde par unite de gradient. Eau calme
+ * = pression nulle = reflet immobile. (La deformation "air chaud" par la
+ * fumee a ete retiree avec la fumee le 02/09.) */
 const PRESSURE_REFRACT = 1.2;
 /** Bande du fade de contact, en unites de cerf non compresse (jambes
  * inversees noyees dans la fumee du plan de contact). */
@@ -200,11 +197,9 @@ export default function StagMirror() {
           uContactY: { value: MIRROR_PLANE_Y }, // = position Y du groupe (plan du miroir)
           uFadeDepth: { value: CONTACT_FADE_DEPTH * MIRROR_DEPTH_SCALE },
           uFadeEdge: { value: CONTACT_FADE_EDGE * MIRROR_DEPTH_SCALE },
-          uVelocity: { value: tezcatlStore.velocity },
           uPressure: { value: tezcatlStore.pressure },
           uTexel: { value: tezcatlStore.texel },
           uExtent: { value: TEZCATL_EXTENT },
-          uHaze: { value: HAZE_STRENGTH },
           uRefract: { value: PRESSURE_REFRACT },
         },
         transparent: true,
@@ -212,28 +207,21 @@ export default function StagMirror() {
         depthTest: false,
         side: DoubleSide,
         vertexShader: `
-          uniform sampler2D uVelocity;
           uniform sampler2D uPressure;
           uniform float uTexel;
           uniform float uExtent;
-          uniform float uHaze;
           uniform float uRefract;
           varying vec3 vWorldPos;
           void main() {
             vec4 world = modelMatrix * vec4(position, 1.0);
-            // Air chaud : la fumee qui passe deforme le reflet (champ de
-            // vitesse du fluide, echantillonne en espace sol).
+            // Surface de l'eau : le gradient de pression du fluide refracte
+            // le reflet (echantillonne en espace sol). Eau calme = immobile.
             vec2 suv = world.xz / (2.0 * uExtent) + 0.5;
-            vec2 vel = texture2D(uVelocity, suv).xy;
-            // Surface de l'eau : le gradient de pression refracte le reflet.
             float hL = texture2D(uPressure, suv - vec2(uTexel, 0.0)).x;
             float hR = texture2D(uPressure, suv + vec2(uTexel, 0.0)).x;
             float hB = texture2D(uPressure, suv - vec2(0.0, uTexel)).x;
             float hT = texture2D(uPressure, suv + vec2(0.0, uTexel)).x;
-            // Eau calme (02/09) : la refraction par la pression ne joue que
-            // dans le sillage de la souris, meme seuil que tezcatl-water.
-            float wake = smoothstep(0.35, 0.7, length(vel));
-            world.xz += vel * uHaze + vec2(hR - hL, hT - hB) * uRefract * wake;
+            world.xz += vec2(hR - hL, hT - hB) * uRefract;
             vWorldPos = world.xyz;
             gl_Position = projectionMatrix * viewMatrix * world;
           }
@@ -284,9 +272,8 @@ export default function StagMirror() {
     // reduced-motion : reflet statique lisible.
     const pulse = reduced ? 1 : 0.8 + 0.2 * Math.sin(state.clock.elapsedTime * 0.25);
     material.uniforms.uOpacity.value = opacityRef.current * pulse;
-    // Champs publies par TezcatlSmoke / TezcatlWater (textures ping-pong :
-    // la reference change a chaque frame).
-    material.uniforms.uVelocity.value = tezcatlStore.velocity;
+    // Champ publie par TezcatlWater (texture ping-pong : la reference
+    // change a chaque frame).
     material.uniforms.uPressure.value = tezcatlStore.pressure;
     material.uniforms.uTexel.value = tezcatlStore.texel;
   });
