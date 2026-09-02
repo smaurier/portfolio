@@ -46,8 +46,12 @@ export const tezcatlStore: {
   rippleTexel: number;
   /** Derniere entaille (temps de l'horloge de scene), null au repos. */
   stagHit: StagHit | null;
+  /** Impacts a faire onduler dans l'eau (monde x/z), pousses par
+   * ObsidianArrows, consommes par TezcatlWater a chaque frame. */
+  impacts: { x: number; z: number; amount: number }[];
 } = {
   ripple: ZERO_TEXTURE,
   rippleTexel: 1,
   stagHit: null,
+  impacts: [],
 };

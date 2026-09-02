@@ -240,6 +240,14 @@ export default function TezcatlWater() {
         }
       }
     }
+    // Impacts externes (fleches de Temiminaloyan) : une goutte par impact.
+    if (tezcatlStore.impacts.length > 0) {
+      for (const imp of tezcatlStore.impacts) {
+        const { u, v, inside } = worldToSimUv(imp.x, imp.z, EXTENT);
+        if (inside) drops.push({ u, v, amount: imp.amount });
+      }
+      tezcatlStore.impacts.length = 0;
+    }
     // Pas de temps fixe (schema calibre 60 fps) : on accumule le temps
     // reel et on joue autant de sous-pas que necessaire, plafonne.
     accRef.current += dt;

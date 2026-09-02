@@ -16,6 +16,8 @@ import RevealLighting from "./reveal-lighting";
 import StagMirror from "./stag-mirror";
 import TezcatlWater from "./tezcatl-water";
 import ObsidianBlades from "./obsidian-blades";
+import ObsidianArrows from "./obsidian-arrows";
+import AmateStrips from "./amate-strips";
 import StagModel from "./stag-model";
 import Vines from "./vines";
 
@@ -105,6 +107,13 @@ export default function SceneContent({
       {/* Le vent d'Itzehecayan (02/09) : lames d'obsidienne en modeles,
        * un InstancedMesh, Nord uniquement (fondu interne). */}
       <ObsidianBlades />
+      {/* Temiminaloyan (02/09) : volees de fleches en profondeur de
+       * scroll, impacts dans l'eau. Nord uniquement. */}
+      <ObsidianArrows />
+      {/* Bandelettes d'amate (02/09) : la protection de papier contre le
+       * vent d'obsidienne, aux bois et sur le dos, simulateur Verlet.
+       * Nord uniquement. */}
+      <AmateStrips />
     </>
   );
 }
