@@ -64,6 +64,20 @@ const MIRROR_OPACITY = 0.15;
 const SCROLL_GATE_FLOOR = 0.3;
 const MIRROR_COLOR = new Color("#8a7fb0"); // la lueur froide du puits
 const MIRROR_RADIUS = 3.0; // = GROUND_RADIUS de PiedraGround
+/** Compression de la profondeur du reflet (02/09, retour Sylvain "le
+ * reflet n'a pas ses bois, on doit les voir"). A l'echelle 1, le cerf
+ * inverse s'enfonce de 2 unites sous le plan du miroir : avec la camera
+ * du site, la tete et les bois du reflet sortaient sous le bord bas du
+ * viewport (constate a la capture, seul le corps se lisait). Le
+ * tezcatl ment, il n'est pas tenu a l'optique : on tasse la profondeur
+ * pour que le cerf inverse ENTIER, bois compris, tienne dans le disque
+ * visible. Le fade de contact suit la meme echelle (sinon il mangeait
+ * tout le corps compresse). */
+const MIRROR_DEPTH_SCALE = 0.6;
+/** Bande du fade de contact, en unites de cerf non compresse (jambes
+ * inversees noyees dans la fumee du plan de contact). */
+const CONTACT_FADE_DEPTH = 0.9;
+const CONTACT_FADE_EDGE = 0.08;
 
 export default function StagMirror() {
   const groupRef = useRef<Group>(null);
@@ -112,8 +126,28 @@ export default function StagMirror() {
         if (src.index) geo.setIndex(src.index.clone());
         baked.push(geo);
       } else if (obj instanceof Mesh) {
-        const geo = (obj.geometry as BufferGeometry).clone();
-        geo.applyMatrix4(obj.matrixWorld);
+        // Bois (Stag_Horns : Mesh rigide, enfant de l'os Head). Meme
+        // chemin que le corps : lecture vertex par vertex vers un
+        // Float32 NEUF, jamais applyMatrix4 sur l'attribut source. Ce
+        // GLB est quantifie (KHR_mesh_quantization : positions Int16
+        // normalisees, d'ou le scale 0.0127 du noeud) : ecrire une
+        // coordonnee monde (y=1.7) dans un Int16 normalise deborde et
+        // boucle (1.708 -> -0.292, soit exactement -2.0 = 65536/32767).
+        // Constate le 02/09 : les bois du reflet atterrissaient sous
+        // les pieds, noyes par le fade de contact, et faussaient la
+        // normalisation de tout le reflet (corps tasse a 1.47).
+        const src = obj.geometry as BufferGeometry;
+        const pos = src.attributes.position;
+        const arr = new Float32Array(pos.count * 3);
+        for (let i = 0; i < pos.count; i++) {
+          v.fromBufferAttribute(pos, i).applyMatrix4(obj.matrixWorld);
+          arr[i * 3] = v.x;
+          arr[i * 3 + 1] = v.y;
+          arr[i * 3 + 2] = v.z;
+        }
+        const geo = new BufferGeometry();
+        geo.setAttribute("position", new BufferAttribute(arr, 3));
+        if (src.index) geo.setIndex(src.index.clone());
         baked.push(geo);
       }
     });
@@ -147,6 +181,8 @@ export default function StagMirror() {
           uRadiusInner: { value: MIRROR_RADIUS * 0.55 },
           uRadiusOuter: { value: MIRROR_RADIUS },
           uContactY: { value: 0.38 }, // = position Y du groupe (plan du miroir)
+          uFadeDepth: { value: CONTACT_FADE_DEPTH * MIRROR_DEPTH_SCALE },
+          uFadeEdge: { value: CONTACT_FADE_EDGE * MIRROR_DEPTH_SCALE },
         },
         transparent: true,
         depthWrite: false,
@@ -166,14 +202,17 @@ export default function StagMirror() {
           uniform float uRadiusInner;
           uniform float uRadiusOuter;
           uniform float uContactY;
+          uniform float uFadeDepth;
+          uniform float uFadeEdge;
           varying vec3 vWorldPos;
           void main() {
             float mask = 1.0 - smoothstep(uRadiusInner, uRadiusOuter, length(vWorldPos.xz));
             // Fade de contact (retour Sylvain 01/09) : pres du plan du
             // miroir, les jambes inversees se lisaient comme des bois
             // incoherents. La fumee du tezcatl brouille la ligne de
-            // contact : le reflet emerge en s'eloignant du plan.
-            float contactFade = 1.0 - smoothstep(uContactY - 0.9, uContactY - 0.08, vWorldPos.y);
+            // contact : le reflet emerge en s'eloignant du plan. Bande
+            // exprimee a l'echelle compressee (MIRROR_DEPTH_SCALE).
+            float contactFade = 1.0 - smoothstep(uContactY - uFadeDepth, uContactY - uFadeEdge, vWorldPos.y);
             float a = uOpacity * mask * contactFade;
             if (a < 0.002) discard;
             gl_FragColor = vec4(uColor, a);
@@ -206,12 +245,11 @@ export default function StagMirror() {
   });
 
   return (
-    // Reflet plan classique : flip vertical sous le miroir (scale Y=-1,
-    // sur sans squelette : geometrie cuite). Avec la camera quasi
-    // horizontale du site, on ne voit que le bas du reflet (jambes
-    // inversees sous les pieds du vrai cerf), clippe au disque par le
-    // masque radial : c'est exactement la lecture "reflet" attendue.
-    <group ref={groupRef} position={[0, 0.38, 0]} scale={[1, -1, 1]} visible={false}>
+    // Reflet plan : flip vertical sous le miroir (scale Y negatif, sur
+    // sans squelette : geometrie cuite), profondeur tassee par
+    // MIRROR_DEPTH_SCALE pour que les bois inverses restent dans le
+    // cadre (02/09). Clippe au disque par le masque radial.
+    <group ref={groupRef} position={[0, 0.38, 0]} scale={[1, -MIRROR_DEPTH_SCALE, 1]} visible={false}>
       {geometries.map((geo, i) => (
         <mesh key={i} geometry={geo} material={material} renderOrder={998} frustumCulled={false} raycast={() => null} />
       ))}
