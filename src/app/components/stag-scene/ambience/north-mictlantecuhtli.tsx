@@ -48,7 +48,9 @@ const SMOKE_COUNT = 0;
 // volantes, pourtant tres importantes pour le Mictlan") : plus de lames,
 // plus longues, plus claires (en additif sur un Nord desormais expose,
 // le violet vif se noyait).
-const SHARD_COUNT = 70;
+// 70 -> 0 (02/09 soir) : les lames sont desormais de vrais modeles
+// (obsidian-blades.tsx, InstancedMesh). La famille sprite reste cablee.
+const SHARD_COUNT = 0;
 const MIST_COUNT = 36;
 const TOTAL = SMOKE_COUNT + SHARD_COUNT + MIST_COUNT;
 

@@ -15,6 +15,7 @@ import PiedraGround from "./piedra-ground";
 import RevealLighting from "./reveal-lighting";
 import StagMirror from "./stag-mirror";
 import TezcatlWater from "./tezcatl-water";
+import ObsidianBlades from "./obsidian-blades";
 import StagModel from "./stag-model";
 import Vines from "./vines";
 
@@ -101,6 +102,9 @@ export default function SceneContent({
        * simulateur d'eau (equation des ondes), anneaux a la souris,
        * par-dessus le reflet. Nord uniquement (gate interne). */}
       <TezcatlWater />
+      {/* Le vent d'Itzehecayan (02/09) : lames d'obsidienne en modeles,
+       * un InstancedMesh, Nord uniquement (fondu interne). */}
+      <ObsidianBlades />
     </>
   );
 }

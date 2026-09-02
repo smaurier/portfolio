@@ -18,6 +18,7 @@ import StagAura from "./stag-aura";
 import SpiritParticles from "./spirit-particles";
 import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
 import { useSceneRefs } from "./scene-refs-context";
+import { tezcatlStore } from "./tezcatl-store";
 
 // Nom de l'os tête dans le rig Quaternius (GLB inspecté le 21/08, cf memory
 // project-nahual-da : chaîne Neck1→Neck2→Neck3→Head→Stag_Horns/Head_end).
@@ -200,8 +201,14 @@ export default function StagModel({
     // + colori (le shader multiplie les deux ensuite pour l'intensité
     // finale). Ligne fine + cardinal en valley, ligne épaisse + flash
     // blanc en peak → la ligne respire au lieu de juste s'atténuer.
-    setEdgeIntensity(rimUniforms, rimBlend * 0.6);
-    setEdgePulse(rimUniforms, pulse);
+    // Entaille par une lame d'obsidienne (02/09, Nord, mythologie
+    // Itzehecayan : le vent coupe les ames) : eclair FROID du liseret,
+    // ligne epaisse + flash blanc pendant ~0.5 s, puis retour. Publie par
+    // ObsidianBlades dans tezcatlStore.
+    const hit = tezcatlStore.stagHit;
+    const hitEnv = hit ? hit.strength * Math.exp(-(state.clock.elapsedTime - hit.at) * 6) : 0;
+    setEdgeIntensity(rimUniforms, rimBlend * 0.6 + hitEnv * 1.5);
+    setEdgePulse(rimUniforms, Math.max(pulse, hitEnv));
   });
 
   const transition = useCardinalTransition();
@@ -240,6 +247,15 @@ export default function StagModel({
         ? 1
         : 1 + Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.003;
       breathGroupRef.current.scale.setScalar(breath);
+      // Recul a l'entaille (02/09) : le corps se derobe du cote oppose a
+      // la lame, petit pivot + pas de cote, retour exponentiel. Pas de
+      // head-look (cou casse, cf ci-dessous) : c'est tout le corps.
+      const hit = tezcatlStore.stagHit;
+      const env = hit && !sceneRefs?.reducedMotionRef.current
+        ? hit.strength * Math.exp(-(state.clock.elapsedTime - hit.at) * 4)
+        : 0;
+      breathGroupRef.current.rotation.y = -(hit?.side ?? 0) * env * 0.1;
+      breathGroupRef.current.position.z = -(hit?.side ?? 0) * env * 0.08;
     }
     // Head-look COUPE le 30/08 (retour Sylvain "on dirait qu'il a le
     // cou casse" apres tentative de reduction MAX_HEAD_TURN_BLEND

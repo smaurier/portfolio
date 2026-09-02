@@ -35,12 +35,19 @@ export const TEZCATL_EXTENT = 7;
  * unite, c'est a peu pres 20 cm d'eau (demande Sylvain 02/09). */
 export const WATER_LEVEL = 0.25;
 
+/** Entaille du cerf par une lame d'obsidienne (02/09, publiee par
+ * ObsidianBlades, lue par StagModel qui reagit : recul + eclair froid). */
+export type StagHit = { at: number; strength: number; side: 1 | -1 };
+
 export const tezcatlStore: {
   /** Champ de hauteur des ondes (x = hauteur courante). */
   ripple: Texture;
   /** 1/resolution de la grille des ondes (pour les gradients). */
   rippleTexel: number;
+  /** Derniere entaille (temps de l'horloge de scene), null au repos. */
+  stagHit: StagHit | null;
 } = {
   ripple: ZERO_TEXTURE,
   rippleTexel: 1,
+  stagHit: null,
 };

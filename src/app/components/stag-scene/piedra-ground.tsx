@@ -3,7 +3,8 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
-import { CanvasTexture, DoubleSide, EquirectangularReflectionMapping, PlaneGeometry, RepeatWrapping, SRGBColorSpace, type MeshPhysicalMaterial } from "three";
+import { DoubleSide, PlaneGeometry, RepeatWrapping, type MeshPhysicalMaterial } from "three";
+import { getMictlanSky } from "./mictlan-sky";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -67,32 +68,10 @@ const PIEDRA_NEUTRAL = { roughness: 0.85, metalness: 0.05, opacity: 0.1, clearco
 // polie reflete le ciel du Mictlan.
 const PIEDRA_TEZCATL = { roughness: 0.12, metalness: 0.7, opacity: 0.42, clearcoat: 1, envMapIntensity: 1.6 };
 
-/** Ciel du Mictlan en equirect procedurale (256x128) : violet froid au
- * zenith, horizon pourpre, sol noir. Reflete par le tezcatl seulement
- * (envMap du materiau, pas de l'environnement de scene). */
-function makeMictlanSky(): CanvasTexture {
-  const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 128;
-  const ctx = canvas.getContext("2d")!;
-  const grad = ctx.createLinearGradient(0, 0, 0, 128);
-  grad.addColorStop(0, "#6a55b8");
-  grad.addColorStop(0.42, "#2a1d4a");
-  grad.addColorStop(0.5, "#4a2f6e");
-  grad.addColorStop(0.56, "#120b1e");
-  grad.addColorStop(1, "#030207");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 256, 128);
-  const tex = new CanvasTexture(canvas);
-  tex.mapping = EquirectangularReflectionMapping;
-  tex.colorSpace = SRGBColorSpace;
-  return tex;
-}
-
 export default function PiedraGround() {
   const [colorMap, heightMap] = useTexture([PIEDRA_MAP, PIEDRA_HEIGHTMAP]);
   const materialRef = useRef<MeshPhysicalMaterial>(null);
-  const skyMap = useMemo(() => (typeof document === "undefined" ? null : makeMictlanSky()), []);
+  const skyMap = useMemo(() => getMictlanSky(), []);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
 
