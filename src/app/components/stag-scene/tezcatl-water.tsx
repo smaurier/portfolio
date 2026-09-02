@@ -37,6 +37,11 @@ import { useSceneRefs } from "./scene-refs-context";
 
 const EXTENT = TEZCATL_EXTENT;
 const WATER_OPACITY = 0.22; // 0.3 -> 0.22 (02/09, sous-exposition : la nappe ne doit pas boucher le sol)
+/** La nappe est un BASSIN circulaire (retour Sylvain 02/09 "bizarre
+ * d'avoir une surface carree, plutot une sorte de cercle") : rayon monde
+ * du bassin, bord doux sur les derniers 12%. La grille de simulation
+ * reste carree (EXTENT), seul l'affichage est rond. */
+const WATER_RADIUS = 6.4;
 const WATER_COLOR = new Color("#0b0714");
 const SPEC_COLOR = new Color("#cfc6f2");
 const RIM_COLOR = new Color("#5a4a8a");
@@ -119,6 +124,7 @@ export default function TezcatlWater() {
           uniform float uNormalGain;
           varying vec3 vWorldPos;
           const float EXTENT = ${EXTENT.toFixed(1)};
+          const float RADIUS = ${WATER_RADIUS.toFixed(1)};
           void main() {
             vec2 uv = vWorldPos.xz / (2.0 * EXTENT) + 0.5;
             float hL = texture2D(uHeight, uv - vec2(uTexel, 0.0)).x;
@@ -133,8 +139,9 @@ export default function TezcatlWater() {
             // Les cretes accrochent un peu de lumiere diffuse : l'anneau
             // reste lisible hors du reflet speculaire, sans white-out.
             float slope = clamp((1.0 - n.y) * 4.0, 0.0, 1.0);
-            float d = max(abs(vWorldPos.x), abs(vWorldPos.z)) / EXTENT;
-            float mask = 1.0 - smoothstep(0.8, 0.98, d);
+            // Bassin rond : masque radial, bord doux.
+            float d = length(vWorldPos.xz) / RADIUS;
+            float mask = 1.0 - smoothstep(0.88, 1.0, d);
             vec3 col = uColor + uRim * fresnel * 0.35 + uSpec * (spec * 0.5 + slope * 0.18);
             float a = (uOpacity + fresnel * 0.15 + spec * 0.3 + slope * 0.15) * mask;
             gl_FragColor = vec4(col, clamp(a, 0.0, 0.9));
