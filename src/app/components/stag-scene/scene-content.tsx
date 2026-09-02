@@ -19,6 +19,7 @@ import ObsidianBlades from "./obsidian-blades";
 import ObsidianArrows from "./obsidian-arrows";
 import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
+import CempasuchilPath from "./cempasuchil-path";
 import StagModel from "./stag-model";
 import Vines from "./vines";
 
@@ -118,6 +119,12 @@ export default function SceneContent({
       {/* Le poil du cerf noir (02/09) : coques extrudees sur le maillage
        * skinne, Nord uniquement, desktop seulement. */}
       <FurShells />
+      {/* Chemin de cempasuchil (02/09) : la fleur qui guide les ames, en
+       * vrais modeles (Quaternius CC0), flottant sur la nappe depuis le
+       * cerf vers le Nord, s'allonge en descendant. Nord uniquement. */}
+      <Suspense fallback={null}>
+        <CempasuchilPath />
+      </Suspense>
     </>
   );
 }
