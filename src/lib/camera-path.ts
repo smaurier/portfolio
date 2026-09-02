@@ -29,6 +29,11 @@ export type OrbitCameraOptions = {
    * : ajuste l'angle de repos final sans changer le rythme de l'orbite
    * avant le climax. */
   finalDrift: number;
+  /** Décalage d'azimuth (radians) appliqué à toute l'hélice (02/09, Nord :
+   * "la caméra tourne en hélice, l'inverse c'est juste commencer à un
+   * point opposé", arbitrage Sylvain 01/09). Même rayon, même hauteur,
+   * même rythme : seul le point de départ tourne. Défaut 0. */
+  azimuthOffset?: number;
 };
 
 const DEFAULT_OPTIONS: OrbitCameraOptions = {
@@ -109,7 +114,7 @@ export function getOrbitCameraPosition(
   progress: number,
   options: Partial<OrbitCameraOptions> = {},
 ): Vec3 {
-  const { startRadius, endRadius, startHeight, endHeight, turns, climaxProgress, finalDrift } = {
+  const { startRadius, endRadius, startHeight, endHeight, turns, climaxProgress, finalDrift, azimuthOffset } = {
     ...DEFAULT_OPTIONS,
     ...options,
   };
@@ -118,7 +123,7 @@ export function getOrbitCameraPosition(
   const baseAzimuth = settledP * Math.PI * 2 * (turns ?? 1);
   const driftT =
     climaxProgress < 1 ? Math.min(1, Math.max(0, (p - climaxProgress) / (1 - climaxProgress))) : 0;
-  const azimuth = baseAzimuth + ease(driftT) * finalDrift;
+  const azimuth = baseAzimuth + ease(driftT) * finalDrift + (azimuthOffset ?? 0);
 
   const climaxT = climaxProgress > 0 ? ease(Math.min(1, p / climaxProgress)) : 1;
   const radius = lerp(startRadius, endRadius, climaxT);

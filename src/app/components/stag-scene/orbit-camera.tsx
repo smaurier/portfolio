@@ -5,7 +5,6 @@ import { useEffect, useRef, type MutableRefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { PerspectiveCamera } from "three";
 import { getOrbitCameraPosition, getOrbitCameraTarget } from "@/lib/camera-path";
-import { remapNorthArc } from "@/lib/direction-arc";
 import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -95,10 +94,12 @@ export default function OrbitCamera({
   // Caméra Mictlampa (01/09, fiche Nord + retour Sylvain "jouer sur la
   // caméra : parcours ET traitement") : blend 0..1 crossfadé vers 1 au
   // Nord, qui pilote a la fois le traitement (FOV compressé -5°,
-  // plongée légère, parallax amorti) et le parcours (le progress
-  // caméra passe par remapNorthArc : en scrollant la caméra recule
-  // dans l'obscurité au lieu du dolly d'éveil, puis se rapproche
-  // doucement à l'arrivée).
+  // plongée légère, parallax amorti) et le parcours. Parcours retravaillé
+  // le 02/09 (retour Sylvain "la caméra tourne en hélice, l'inverse c'est
+  // juste commencer à un point opposé, sinon c'est incohérent") : la
+  // même hélice que partout, décalée d'un demi-tour. Avant, le progress
+  // caméra suivait l'arc de lumière remappé et la caméra reculait puis
+  // revenait : incohérent.
   const northBlendRef = useRef(direction === "obsidienne" ? 1 : 0);
 
   useEffect(() => {
@@ -152,14 +153,15 @@ export default function OrbitCamera({
     const northTarget = direction === "obsidienne" ? 1 : 0;
     northBlendRef.current += (northTarget - northBlendRef.current) * 0.06;
     const nb = northBlendRef.current;
-    // Parcours : au Nord le progress caméra suit l'arc inversé (descente
-    // puis arrivée), ailleurs le progress brut.
+    // Parcours : la même hélice partout ; au Nord, décalée d'un demi-tour
+    // (le crossfade nb fait pivoter la caméra autour du cerf en ~800 ms au
+    // changement de direction, un whip pan qui se marie au burst).
     const rawP = progressRef.current;
-    const pEff = nb > 0.001 ? rawP + (remapNorthArc(rawP).lightP - rawP) * nb : rawP;
-    const position = getOrbitCameraPosition(
-      pEff,
-      isMobile ? { startRadius: 8, endRadius: 4.8, startHeight: 3.2, endHeight: 2.0 } : {}
-    );
+    const northEase = nb * nb * (3 - 2 * nb);
+    const position = getOrbitCameraPosition(rawP, {
+      ...(isMobile ? { startRadius: 8, endRadius: 4.8, startHeight: 3.2, endHeight: 2.0 } : {}),
+      azimuthOffset: Math.PI * northEase,
+    });
     // Plongée légère Mictlampa : la caméra monte un peu, on regarde
     // vers le bas (on descend au Mictlan).
     position.y += nb * 0.45;

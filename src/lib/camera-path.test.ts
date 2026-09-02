@@ -134,3 +134,28 @@ describe("getOrbitCameraTarget", () => {
     expect(getOrbitCameraTarget()).toEqual({ x: 0, y: 1, z: 0 });
   });
 });
+
+describe("getOrbitCameraPosition : azimuthOffset (le Nord part du point oppose, 02/09)", () => {
+  it("avec un decalage de pi, part exactement a l'oppose du depart par defaut", () => {
+    const base = getOrbitCameraPosition(0);
+    const opposite = getOrbitCameraPosition(0, { azimuthOffset: Math.PI });
+    expect(opposite.x).toBeCloseTo(-base.x, 6);
+    expect(opposite.z).toBeCloseTo(-base.z, 6);
+    expect(opposite.y).toBeCloseTo(base.y, 6);
+  });
+
+  it("reste une helice : meme rayon et meme hauteur que sans decalage, azimuth simplement tourne", () => {
+    for (const p of [0, 0.25, 0.5, 0.75, 1]) {
+      const a = getOrbitCameraPosition(p);
+      const b = getOrbitCameraPosition(p, { azimuthOffset: Math.PI });
+      expect(Math.hypot(b.x, b.z)).toBeCloseTo(Math.hypot(a.x, a.z), 6);
+      expect(b.y).toBeCloseTo(a.y, 6);
+    }
+  });
+
+  it("sans decalage, rien ne change (defaut 0)", () => {
+    const a = getOrbitCameraPosition(0.4);
+    const b = getOrbitCameraPosition(0.4, { azimuthOffset: 0 });
+    expect(b).toEqual(a);
+  });
+});
