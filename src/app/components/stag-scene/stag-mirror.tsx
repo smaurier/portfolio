@@ -73,7 +73,14 @@ const MIRROR_RADIUS = 3.0; // = GROUND_RADIUS de PiedraGround
  * pour que le cerf inverse ENTIER, bois compris, tienne dans le disque
  * visible. Le fade de contact suit la meme echelle (sinon il mangeait
  * tout le corps compresse). */
-const MIRROR_DEPTH_SCALE = 0.6;
+const MIRROR_DEPTH_SCALE = 0.5;
+/** Plan du miroir = le sol (Ground/PiedraGround a y~0, cerf normalise
+ * pieds a y=0 par centerAndScale). L'ancien 0.38 compensait la
+ * normalisation faussee par les bois debordes : une fois la cuisson
+ * corrigee, les jambes inversees remontaient DANS les vraies jambes
+ * (retour Sylvain 02/09 "le reflet est fusionne avec le cerf au niveau
+ * des jambes"). */
+const MIRROR_PLANE_Y = 0;
 /** Bande du fade de contact, en unites de cerf non compresse (jambes
  * inversees noyees dans la fumee du plan de contact). */
 const CONTACT_FADE_DEPTH = 0.9;
@@ -180,7 +187,7 @@ export default function StagMirror() {
           uOpacity: { value: 0 },
           uRadiusInner: { value: MIRROR_RADIUS * 0.55 },
           uRadiusOuter: { value: MIRROR_RADIUS },
-          uContactY: { value: 0.38 }, // = position Y du groupe (plan du miroir)
+          uContactY: { value: MIRROR_PLANE_Y }, // = position Y du groupe (plan du miroir)
           uFadeDepth: { value: CONTACT_FADE_DEPTH * MIRROR_DEPTH_SCALE },
           uFadeEdge: { value: CONTACT_FADE_EDGE * MIRROR_DEPTH_SCALE },
         },
@@ -249,7 +256,7 @@ export default function StagMirror() {
     // sans squelette : geometrie cuite), profondeur tassee par
     // MIRROR_DEPTH_SCALE pour que les bois inverses restent dans le
     // cadre (02/09). Clippe au disque par le masque radial.
-    <group ref={groupRef} position={[0, 0.38, 0]} scale={[1, -MIRROR_DEPTH_SCALE, 1]} visible={false}>
+    <group ref={groupRef} position={[0, MIRROR_PLANE_Y, 0]} scale={[1, -MIRROR_DEPTH_SCALE, 1]} visible={false}>
       {geometries.map((geo, i) => (
         <mesh key={i} geometry={geo} material={material} renderOrder={998} frustumCulled={false} raycast={() => null} />
       ))}
