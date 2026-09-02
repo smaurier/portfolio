@@ -1,12 +1,13 @@
-// Logique pure de la fumee du tezcatl (02/09, Nord, sprint identites :
-// "faire comme sur igloo.inc, des volutes, avec un vrai simulateur de
-// fluide"). La simulation elle-meme (Navier-Stokes sur GPU, ping-pong de
-// render targets) vit dans tezcatl-fluid-sim.ts, non testable sans WebGL.
-// Ici : tout ce qui se decide sans GPU, testable comme camera-path.ts ou
-// direction-arc.ts : projection disque -> grille, emetteurs, souris, gate.
+// Logique pure de la nappe d'eau du Nord (02/09, sprint identites). La
+// simulation elle-meme (equation des ondes sur GPU, ping-pong de render
+// targets) vit dans tezcatl-ripple-sim.ts, non testable sans GPU. Ici :
+// tout ce qui se decide sans GPU, testable comme camera-path.ts ou
+// direction-arc.ts : projection sol -> grille, souris, sabots, gate.
+// (Le nom "fluid" date de la fumee sur Navier-Stokes, retiree le 02/09 ;
+// le simulateur et ses emetteurs ont ete retires avec elle, cf git.)
 
 export type SimUv = { u: number; v: number };
-export type Splat = SimUv & { du: number; dv: number; dye?: number };
+export type Splat = SimUv & { du: number; dv: number };
 
 /** Projette un point du sol (x, z monde) sur la grille de simulation, un
  * carre de demi-cote `extent` centre sur le cerf. D'abord le disque du
@@ -16,57 +17,6 @@ export function worldToSimUv(x: number, z: number, extent: number): SimUv & { in
   const u = x / (2 * extent) + 0.5;
   const v = z / (2 * extent) + 0.5;
   return { u, v, inside: Math.abs(x) <= extent && Math.abs(z) <= extent };
-}
-
-/** Emetteurs lointains (02/09, toute la surface) : une nappe de fumee qui
- * respire sur tout le sol, loin du cerf, entre rMin et rMax. Derive douce
- * en orbite tres lente, pas de poussee franche : c'est le fleuve
- * Chiconahuapan qui fume, pas une cheminee. */
-export function farEmitterSplats(time: number, count: number, rMin: number, rMax: number, extent: number): Splat[] {
-  const out: Splat[] = [];
-  for (let i = 0; i < count; i++) {
-    const seed = i * 2.399963;
-    const t = (i + 0.5) / count;
-    const r = rMin + (rMax - rMin) * (0.5 + 0.5 * Math.sin(seed * 7.3 + t * 3.1));
-    const angle = seed + time * 0.02 * (i % 2 === 0 ? 1 : -1);
-    const x = Math.cos(angle) * r;
-    const z = Math.sin(angle) * r;
-    const { u, v } = worldToSimUv(x, z, extent);
-    // Derive tangentielle lente, sens alterne : des cellules qui tournent
-    // en sens contraire, la surface entiere s'anime sans direction dominante.
-    const dir = i % 2 === 0 ? 1 : -1;
-    const du = -Math.sin(angle) * dir * 0.03;
-    const dv = Math.cos(angle) * dir * 0.03;
-    // Un tiers d'encre : au loin, un voile qui respire, pas des volutes.
-    out.push({ u, v, du, dv, dye: 0.25 });
-  }
-  return out;
-}
-
-/** Emetteurs de fumee : nes de la ligne de contact du reflet, autour du
- * cerf, jamais au bord. Chacun derive lentement en orbite (le tezcatl
- * respire) et pousse vers l'EXTERIEUR : la fumee s'ecarte du cerf et
- * remplit le disque en filets. Vitesses en unites de grille (0..1/s). */
-export function emitterSplats(time: number, count: number, ringRadius: number, radius: number): Splat[] {
-  const out: Splat[] = [];
-  for (let i = 0; i < count; i++) {
-    const seed = i * 2.399963; // angle d'or : repartition sans motif
-    const angle = seed + time * (0.05 + 0.02 * Math.sin(seed));
-    const wobble = 1 + 0.25 * Math.sin(time * 0.37 + seed * 3.1);
-    const r = ringRadius * wobble;
-    const x = Math.cos(angle) * r;
-    const z = Math.sin(angle) * r;
-    const { u, v } = worldToSimUv(x, z, radius);
-    // Poussee radiale + une composante tangente qui tourne dans le temps
-    // (les volutes s'enroulent au lieu de partir en rayons droits).
-    const tangent = 0.35 * Math.sin(time * 0.5 + seed);
-    const nx = Math.cos(angle);
-    const nz = Math.sin(angle);
-    const du = (nx - nz * tangent) * 0.08;
-    const dv = (nz + nx * tangent) * 0.08;
-    out.push({ u, v, du, dv });
-  }
-  return out;
 }
 
 const POINTER_MAX_SPEED = 1; // unites de grille / s

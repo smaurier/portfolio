@@ -47,6 +47,11 @@ const MIN_SATURATION_START = 0.15;
 
 export type CursorRevealUniforms = {
   uMouse: { value: Vector2 };
+  /** Second halo (02/09, Nord, element D de la fiche Mictlampa) : le
+   * reflet menteur du tonalli du visiteur, symetrique de la souris par
+   * rapport au cerf (en espace ecran). uMirror 0..1 crossfade, 1 au Nord. */
+  uMouse2: { value: Vector2 };
+  uMirror: { value: number };
   uResolution: { value: Vector2 };
   uRevealRadius: { value: number };
   uMinOpacity: { value: number };
@@ -77,6 +82,8 @@ export function createCursorRevealUniforms(): CursorRevealUniforms {
     // Hors-écran tant qu'aucun mouvement n'a eu lieu : reveal=0 partout,
     // l'état voulu par Sylvain au chargement : pas une valeur à corriger.
     uMouse: { value: new Vector2(-9999, -9999) },
+    uMouse2: { value: new Vector2(-9999, -9999) },
+    uMirror: { value: 0 },
     uResolution: { value: new Vector2(1, 1) },
     uRevealRadius: { value: 260 },
     uMinOpacity: { value: MIN_OPACITY_START },
@@ -110,6 +117,8 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
 
       addShaderModifier(material, (shader) => {
         shader.uniforms.uMouse = uniforms.uMouse;
+        shader.uniforms.uMouse2 = uniforms.uMouse2;
+        shader.uniforms.uMirror = uniforms.uMirror;
         shader.uniforms.uResolution = uniforms.uResolution;
         shader.uniforms.uRevealRadius = uniforms.uRevealRadius;
         shader.uniforms.uMinOpacity = uniforms.uMinOpacity;
@@ -120,6 +129,8 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             "#include <common>",
             `#include <common>
             uniform vec2 uMouse;
+            uniform vec2 uMouse2;
+            uniform float uMirror;
             uniform vec2 uResolution;
             uniform float uRevealRadius;
             uniform float uMinOpacity;
@@ -129,6 +140,11 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             "#include <dithering_fragment>",
             `float distToCursor = distance(gl_FragCoord.xy, uMouse);
             float reveal = 1.0 - smoothstep(0.0, uRevealRadius, distToCursor);
+            // Second halo : le reflet menteur du tonalli (Nord), au point
+            // symetrique de la souris par rapport au cerf.
+            float distToMirror = distance(gl_FragCoord.xy, uMouse2);
+            float reveal2 = (1.0 - smoothstep(0.0, uRevealRadius, distToMirror)) * uMirror;
+            reveal = max(reveal, reveal2);
             float cursorGrey = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
             vec3 flooredColor = mix(vec3(cursorGrey), gl_FragColor.rgb, uMinSaturation);
             gl_FragColor.rgb = mix(flooredColor, gl_FragColor.rgb, reveal);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emitterSplats, farEmitterSplats, hoofDrop, pointerSplat, smokeGate, worldToSimUv } from "./tezcatl-fluid";
+import { hoofDrop, pointerSplat, smokeGate, worldToSimUv } from "./tezcatl-fluid";
 
 describe("worldToSimUv (disque du tezcatl -> grille de simulation)", () => {
   it("le centre du disque est le centre de la grille", () => {
@@ -11,55 +11,6 @@ describe("worldToSimUv (disque du tezcatl -> grille de simulation)", () => {
     expect(worldToSimUv(-3, 0, 3)).toMatchObject({ u: 0, inside: true });
     expect(worldToSimUv(2.5, 2.5, 3).inside).toBe(true);
     expect(worldToSimUv(3.5, 0, 3).inside).toBe(false);
-  });
-});
-
-describe("emitterSplats (filets de fumee nes au contact du reflet)", () => {
-  it("place N emetteurs dans le disque, pres du centre, jamais au bord", () => {
-    const splats = emitterSplats(12.3, 5, 0.6, 3);
-    expect(splats).toHaveLength(5);
-    for (const s of splats) {
-      const d = Math.hypot(s.u - 0.5, s.v - 0.5);
-      expect(d).toBeGreaterThan(0.03);
-      expect(d).toBeLessThan(0.2);
-    }
-  });
-
-  it("chaque emetteur pousse vers l'exterieur (la fumee s'ecarte du cerf)", () => {
-    for (const s of emitterSplats(4.2, 6, 0.6, 3)) {
-      const radial = (s.u - 0.5) * s.du + (s.v - 0.5) * s.dv;
-      expect(radial).toBeGreaterThan(0);
-    }
-  });
-
-  it("derive avec le temps : deux instants donnent des positions differentes", () => {
-    const a = emitterSplats(0, 3, 0.6, 3);
-    const b = emitterSplats(5, 3, 0.6, 3);
-    expect(a[0].u !== b[0].u || a[0].v !== b[0].v).toBe(true);
-  });
-});
-
-describe("farEmitterSplats (la fumee sur toute la surface, 02/09)", () => {
-  it("place N emetteurs entre rMin et rMax du cerf, dans la grille", () => {
-    const splats = farEmitterSplats(7.5, 10, 2, 5.5, 7);
-    expect(splats).toHaveLength(10);
-    for (const s of splats) {
-      const dx = (s.u - 0.5) * 14;
-      const dz = (s.v - 0.5) * 14;
-      const r = Math.hypot(dx, dz);
-      expect(r).toBeGreaterThanOrEqual(2 - 1e-9);
-      expect(r).toBeLessThanOrEqual(5.5 + 1e-9);
-      expect(s.u).toBeGreaterThan(0);
-      expect(s.u).toBeLessThan(1);
-      expect(s.v).toBeGreaterThan(0);
-      expect(s.v).toBeLessThan(1);
-    }
-  });
-
-  it("derive douce : vitesse faible, jamais une poussee franche", () => {
-    for (const s of farEmitterSplats(3, 10, 2, 5.5, 7)) {
-      expect(Math.hypot(s.du, s.dv)).toBeLessThan(0.05);
-    }
   });
 });
 

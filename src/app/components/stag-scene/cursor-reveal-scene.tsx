@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import type { Group } from "three";
+import { Vector3, type Group } from "three";
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { remapNorthArc } from "@/lib/direction-arc";
 import { useCurrentDirection } from "./use-current-direction";
@@ -43,8 +43,12 @@ export default function CursorRevealScene({
   progressRef: MutableRefObject<number>;
 }) {
   const groupRef = useRef<Group>(null);
-  const { gl } = useThree();
+  const { gl, camera } = useThree();
   const direction = useCurrentDirection();
+  // Second halo (02/09, element D) : blend crossfade vers 1 au Nord, et
+  // le point du cerf projete en espace ecran (centre de symetrie).
+  const mirrorBlendRef = useRef(direction === "obsidienne" ? 1 : 0);
+  const centerRef = useRef(new Vector3());
   const uniformsRef = useRef(createCursorRevealUniforms());
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -80,6 +84,19 @@ export default function CursorRevealScene({
         pointerRef.current.x * dpr,
         canvas.height - pointerRef.current.y * dpr,
       );
+    }
+
+    // Reflet menteur du tonalli : la souris miroitee par rapport au cerf
+    // (cible camera, y=1) projete a l'ecran. Meme convention que uMouse
+    // (origine en bas a gauche, pixels du framebuffer).
+    const mirrorTarget = direction === "obsidienne" ? 1 : 0;
+    mirrorBlendRef.current += (mirrorTarget - mirrorBlendRef.current) * 0.06;
+    uniforms.uMirror.value = mirrorBlendRef.current;
+    if (mirrorBlendRef.current > 0.001 && pointerRef.current) {
+      const c = centerRef.current.set(0, 1, 0).project(camera);
+      const cx = (c.x * 0.5 + 0.5) * canvas.width;
+      const cy = (c.y * 0.5 + 0.5) * canvas.height;
+      uniforms.uMouse2.value.set(2 * cx - uniforms.uMouse.value.x, 2 * cy - uniforms.uMouse.value.y);
     }
 
     if (groupRef.current) applyCursorReveal(groupRef.current, uniforms);

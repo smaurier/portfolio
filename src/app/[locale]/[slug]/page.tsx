@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { toNahuatlNumeral } from "@/lib/nahuatl-numerals";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ObfuscatedEmail from "../../components/obfuscated-email";
@@ -403,10 +404,19 @@ function MemoirePage({ dict }: { dict: Dictionary["memoire"] }) {
       <p>{renderWithNahuatl(dict.intro)}</p>
 
       {dict.entries.map((entry, i) => (
-        <div className="serviceCard" key={entry.title}>
+        <div className="serviceCard memoireCard" key={entry.title}>
           <span className="cardIndex" aria-hidden>{toRoman(i + 1)}</span>
           <h2>{renderWithNahuatl(entry.title)}</h2>
           <p>{renderWithNahuatl(entry.text)}</p>
+          {/* Epitaphe refletee (02/09, element C de la fiche Mictlampa) :
+            * le reflet menteur de la carte dans le tezcatl. Inverse
+            * verticalement, masque, et le miroir compte dans la langue
+            * des morts (numeral nahuatl atteste, jamais une traduction
+            * inventee). Decoratif : aria-hidden, rien de perdu pour les
+            * lecteurs d'ecran. */}
+          <span className="cardReflection" aria-hidden>
+            {toNahuatlNumeral(i + 1)} · {entry.title}
+          </span>
         </div>
       ))}
 

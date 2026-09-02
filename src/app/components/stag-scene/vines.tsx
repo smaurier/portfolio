@@ -11,6 +11,7 @@ import {
   getVineFlowerStartThreshold,
 } from "@/lib/vine-shapes";
 import { getMilpaGrowth } from "@/lib/reveal-arc";
+import { useCurrentDirection } from "./use-current-direction";
 
 const VINE_COLOR = "#3f6b2f";
 const FLOWER_MODEL_PATH = "/models/vine-flower.glb";
@@ -168,15 +169,27 @@ function Vine({
 
   const groupRef = useRef<Group>(null);
   const tubeRef = useRef<Mesh>(null);
+  // Pas de lianes au Nord (02/09, retour Sylvain "retrait des lianes
+  // seulement au nord") : rien ne grimpe sur le cerf au Mictlan. Fondu
+  // par la pousse (la liane se retracte) plutot qu'un demontage sec,
+  // meme cadence que les crossfades de direction.
+  const direction = useCurrentDirection();
+  const northFadeRef = useRef(direction === "obsidienne" ? 0 : 1);
 
   useFrame(() => {
     if (!groupRef.current) return;
+    const fadeTarget = direction === "obsidienne" ? 0 : 1;
+    northFadeRef.current += (fadeTarget - northFadeRef.current) * 0.06;
     // Même mécanique que le maïs (getMilpaGrowth), avec un stagger propre à
     // chaque liane : la vie s'éveille pendant la prise de conscience, mais
     // pas exactement au même instant d'une plante à l'autre.
-    const growth = getMilpaGrowth(progressRef.current, config.stagger);
+    const growth = getMilpaGrowth(progressRef.current, config.stagger) * northFadeRef.current;
     const visible = growth > HIDDEN_THRESHOLD;
     if (tubeRef.current) tubeRef.current.visible = visible;
+    // Au Nord, le groupe entier disparait (tube ET fleurs) : les fleurs
+    // calculent leur eclosion seules, sinon elles restaient ecrasees au sol
+    // une fois la liane retractee (constate a la capture 02/09).
+    groupRef.current.visible = northFadeRef.current > 0.02;
     groupRef.current.scale.set(1, Math.max(0.001, growth), 1);
   });
 

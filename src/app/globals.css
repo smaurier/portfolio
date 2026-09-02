@@ -1558,3 +1558,34 @@ body.nahual-lab-reveal .serviceCard {
   background: rgba(0, 192, 120, 0.15);
   border-color: rgba(0, 192, 120, 0.6);
 }
+
+/* Epitaphes refletees (02/09, Nord, element C de la fiche Mictlampa) :
+   sous chaque carte du cimetiere, son reflet menteur dans le tezcatl.
+   Inverse verticalement, fondu vers le bas (masque), lettres espacees,
+   le miroir compte en nahuatl. aria-hidden : purement decoratif. */
+body.nahual-lab-reveal .memoireCard {
+  overflow: visible;
+}
+body.nahual-lab-reveal .cardReflection {
+  display: block;
+  margin-top: 0.9rem;
+  font-size: 0.72rem;
+  font-style: italic;
+  letter-spacing: 0.12em;
+  color: color-mix(in srgb, var(--direction-color, rgba(242, 236, 225, 0.45)) 55%, transparent);
+  transform: scaleY(-1);
+  transform-origin: center;
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 90%);
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 90%);
+  pointer-events: none;
+  user-select: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  body.nahual-lab-reveal .cardReflection {
+    animation: reflectionBreath 9s ease-in-out infinite;
+  }
+}
+@keyframes reflectionBreath {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
