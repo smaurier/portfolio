@@ -100,3 +100,31 @@ export function smokeGate(input: { direction: string; scrollDepth: number; reduc
   const depth = Math.min(1, Math.max(0, input.scrollDepth));
   return GATE_FLOOR + (1 - GATE_FLOOR) * depth;
 }
+
+export type WorldPoint = { x: number; y: number; z: number };
+
+const HOOF_SPEED_MIN = 0.05; // monde/s : sous ce seuil, bruit d'animation
+// Calibre a la capture 02/09 : le sabot avant qui gratte (vitesse max
+// ~1.7 monde/s, ~8 gouttes/s pendant le geste) : gain bas, sinon un disque
+// blanc sous le sabot ; les anneaux fins se lisent tres bien a ce niveau.
+const HOOF_DROP_GAIN = 0.04;
+const HOOF_DROP_MAX = 0.06;
+const HOOF_SPLASH = 0.06;
+/** Marge au-dessus du niveau d'eau ou le sabot compte encore comme
+ * "dedans" (le bout du sabot est sous l'os de la patte). */
+const HOOF_WET_MARGIN = 0.1;
+
+/** Le sabot du cerf qui bouge fait une onde (demande Sylvain 02/09).
+ * Amplitude de goutte pour un sabot passe de `prev` a `next` en `dt` :
+ * 0 s'il est en l'air ou immobile, proportionnelle a sa vitesse
+ * horizontale s'il glisse dans l'eau (plafonnee), eclaboussure s'il
+ * traverse le niveau d'eau vers le bas. */
+export function hoofDrop(prev: WorldPoint, next: WorldPoint, dt: number, waterLevel: number): number {
+  if (dt <= 0) return 0;
+  const wet = next.y <= waterLevel + HOOF_WET_MARGIN;
+  const entering = prev.y > waterLevel + HOOF_WET_MARGIN && wet;
+  if (!wet) return 0;
+  const speed = Math.hypot(next.x - prev.x, next.z - prev.z) / dt;
+  const glide = speed >= HOOF_SPEED_MIN ? Math.min(HOOF_DROP_MAX, speed * HOOF_DROP_GAIN) : 0;
+  return Math.min(HOOF_DROP_MAX, glide + (entering ? HOOF_SPLASH : 0));
+}

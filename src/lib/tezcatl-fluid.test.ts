@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emitterSplats, farEmitterSplats, pointerSplat, smokeGate, worldToSimUv } from "./tezcatl-fluid";
+import { emitterSplats, farEmitterSplats, hoofDrop, pointerSplat, smokeGate, worldToSimUv } from "./tezcatl-fluid";
 
 describe("worldToSimUv (disque du tezcatl -> grille de simulation)", () => {
   it("le centre du disque est le centre de la grille", () => {
@@ -95,5 +95,34 @@ describe("smokeGate (Nord seulement, se revele en descendant)", () => {
   it("prefers-reduced-motion : fumee figee mais presente (0 = rien a voir, pas ca)", () => {
     const g = smokeGate({ direction: "obsidienne", scrollDepth: 0.5, reducedMotion: true });
     expect(g).toBeGreaterThan(0);
+  });
+});
+
+describe("hoofDrop (le sabot du cerf qui bouge fait une onde, 02/09)", () => {
+  const level = 0.25;
+  it("un sabot immobile ne fait rien", () => {
+    expect(hoofDrop({ x: 0.3, y: 0.02, z: 0.1 }, { x: 0.3, y: 0.02, z: 0.1 }, 1 / 60, level)).toBe(0);
+  });
+
+  it("un tremblement infime (bruit d'animation) ne fait rien", () => {
+    expect(hoofDrop({ x: 0.3, y: 0.02, z: 0.1 }, { x: 0.3002, y: 0.02, z: 0.1 }, 1 / 60, level)).toBe(0);
+  });
+
+  it("un sabot qui glisse dans l'eau fait une onde proportionnelle a sa vitesse, plafonnee", () => {
+    const slow = hoofDrop({ x: 0, y: 0.05, z: 0 }, { x: 0.004, y: 0.05, z: 0 }, 1 / 60, level);
+    const fast = hoofDrop({ x: 0, y: 0.05, z: 0 }, { x: 0.02, y: 0.05, z: 0 }, 1 / 60, level);
+    const huge = hoofDrop({ x: 0, y: 0.05, z: 0 }, { x: 0.5, y: 0.05, z: 0 }, 1 / 60, level);
+    expect(slow).toBeGreaterThan(0);
+    expect(fast).toBeGreaterThan(slow);
+    expect(huge).toBeLessThanOrEqual(0.3);
+  });
+
+  it("un sabot qui entre dans l'eau (traverse le niveau vers le bas) fait une eclaboussure", () => {
+    const splash = hoofDrop({ x: 0, y: 0.4, z: 0 }, { x: 0, y: 0.2, z: 0 }, 1 / 60, level);
+    expect(splash).toBeGreaterThan(0.03);
+  });
+
+  it("un sabot en l'air (au-dessus du niveau) ne touche pas l'eau", () => {
+    expect(hoofDrop({ x: 0, y: 0.6, z: 0 }, { x: 0.02, y: 0.6, z: 0 }, 1 / 60, level)).toBe(0);
   });
 });

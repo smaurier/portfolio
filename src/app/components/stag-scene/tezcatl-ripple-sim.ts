@@ -100,9 +100,12 @@ export type RippleParams = {
 };
 
 export const DEFAULT_RIPPLE_PARAMS: RippleParams = {
-  speed: 0.2,
+  // Retour Sylvain 02/09 "l'onde est trop grosse, bien plus fin" :
+  // gouttes trois fois plus etroites, propagation plus lente (anneaux
+  // resserres), grille doublee (512) pour les resoudre.
+  speed: 0.14,
   damping: 0.985,
-  dropRadius: 0.0003,
+  dropRadius: 0.0001,
 };
 
 export class TezcatlRippleSim {

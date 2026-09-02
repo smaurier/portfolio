@@ -3,8 +3,8 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Color, DoubleSide, Plane, ShaderMaterial, Vector3, type Mesh } from "three";
-import { pointerSplat, smokeGate, worldToSimUv, type SimUv } from "@/lib/tezcatl-fluid";
+import { Color, DoubleSide, Plane, ShaderMaterial, Vector3, type Mesh, type Object3D } from "three";
+import { hoofDrop, pointerSplat, smokeGate, worldToSimUv, type SimUv } from "@/lib/tezcatl-fluid";
 import { TezcatlRippleSim } from "./tezcatl-ripple-sim";
 import { TEZCATL_EXTENT, WATER_LEVEL, ZERO_TEXTURE, tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -26,6 +26,11 @@ import { useSceneRefs } from "./scene-refs-context";
  * menteur, sous l'eau, est refracte par les memes ondes (via
  * tezcatlStore).
  *
+ * Les sabots du cerf aussi (retour Sylvain 02/09 "lorsque le cerf bouge
+ * la patte ca doit faire une onde") : les os du bas des pattes sont
+ * suivis en position monde, un sabot qui glisse dans l'eau ou qui y
+ * entre depose une goutte (regle pure hoofDrop, testee).
+ *
  * Nord seulement, meme gate que le reflet. Reduced-motion : eau plate
  * (pas de gouttes), toujours visible. Mobile : grille divisee par deux.
  */
@@ -38,10 +43,22 @@ const RIM_COLOR = new Color("#5a4a8a");
 const LIGHT_DIR = new Vector3(0.25, 1, 0.35).normalize(); // la top light froide du puits
 const WATER_PLANE = new Plane(new Vector3(0, 1, 0), -WATER_LEVEL);
 /** Amplitude des gouttes en fonction de la vitesse de la souris. */
-const DROP_GAIN = 0.5;
-const DROP_MAX = 0.25;
-/** Pente de la surface par unite de gradient de hauteur. */
-const NORMAL_GAIN = 4.0;
+const DROP_GAIN = 0.3;
+const DROP_MAX = 0.12;
+/** Pente de la surface par unite de gradient de hauteur (plus haut :
+ * les ondes fines restent lisibles malgre leur faible amplitude). */
+const NORMAL_GAIN = 7.0;
+/** Os du bas des pattes du stag Quaternius (cf inspection GLB 02/09,
+ * "FrontLowerLeg.L" etc.) : leur position monde vaut pour le sabot.
+ * GLTFLoader retire les points des noms (PropertyBinding.sanitizeNodeName),
+ * d'ou les noms sans point ici. */
+const HOOF_BONES = ["FrontLowerLegL", "FrontLowerLegR", "BackLowerLegL", "BackLowerLegR"];
+/** Le cerf arrive par Suspense : on recherche ses os toutes les N frames
+ * tant qu'ils ne sont pas la, jamais a chaque frame. */
+const HOOF_LOOKUP_EVERY = 60;
+/** Le bout du sabot est sous l'os du bas de patte (mesure 02/09 : os avant
+ * a y=0.42, arriere a y=0.52 pour des sabots au sol a y~0). */
+const HOOF_TIP_OFFSET = 0.45;
 
 export default function TezcatlWater() {
   const meshRef = useRef<Mesh>(null);
@@ -52,9 +69,12 @@ export default function TezcatlWater() {
   const prevPointerRef = useRef<SimUv | null>(null);
   const hitRef = useRef(new Vector3());
   const accRef = useRef(0);
+  const hoovesRef = useRef<{ bone: Object3D; prev: Vector3 | null }[] | null>(null);
+  const hoofLookupRef = useRef(0);
+  const hoofPosRef = useRef(new Vector3());
 
   const lowPerf = sceneRefs ? !sceneRefs.perfProfile.postFx : false;
-  const sim = useMemo(() => new TezcatlRippleSim(gl, lowPerf ? 128 : 256), [gl, lowPerf]);
+  const sim = useMemo(() => new TezcatlRippleSim(gl, lowPerf ? 256 : 512), [gl, lowPerf]);
   useEffect(
     () => () => {
       sim.dispose();
@@ -153,6 +173,29 @@ export default function TezcatlWater() {
           if (s) drops.push({ u, v, amount: Math.min(DROP_MAX, Math.hypot(s.du, s.dv) * DROP_GAIN) });
         }
         prevPointerRef.current = uv;
+      }
+
+      // Sabots : chaque os de patte qui bouge dans l'eau fait une onde.
+      if (!hoovesRef.current && hoofLookupRef.current++ % HOOF_LOOKUP_EVERY === 0) {
+        const found = HOOF_BONES.map((name) => state.scene.getObjectByName(name)).filter((b): b is Object3D => !!b);
+        if (found.length === HOOF_BONES.length) hoovesRef.current = found.map((bone) => ({ bone, prev: null }));
+      }
+      if (hoovesRef.current) {
+        const pos = hoofPosRef.current;
+        for (const hoof of hoovesRef.current) {
+          hoof.bone.getWorldPosition(pos);
+          pos.y -= HOOF_TIP_OFFSET;
+          if (hoof.prev) {
+            const amount = hoofDrop(hoof.prev, pos, dt, WATER_LEVEL);
+            if (amount > 0) {
+              const { u, v, inside } = worldToSimUv(pos.x, pos.z, EXTENT);
+              if (inside) drops.push({ u, v, amount });
+            }
+            hoof.prev.copy(pos);
+          } else {
+            hoof.prev = pos.clone();
+          }
+        }
       }
     }
     // Pas de temps fixe (schema calibre 60 fps) : on accumule le temps
