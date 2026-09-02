@@ -36,7 +36,7 @@ import { useSceneRefs } from "./scene-refs-context";
  */
 
 const EXTENT = TEZCATL_EXTENT;
-const WATER_OPACITY = 0.3;
+const WATER_OPACITY = 0.22; // 0.3 -> 0.22 (02/09, sous-exposition : la nappe ne doit pas boucher le sol)
 const WATER_COLOR = new Color("#0b0714");
 const SPEC_COLOR = new Color("#cfc6f2");
 const RIM_COLOR = new Color("#5a4a8a");

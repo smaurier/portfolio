@@ -48,8 +48,10 @@ export const DIRECTION_LIGHT_RIG: Record<DirectionKey, LightRig> = {
   obsidienne: {
     position: [0, 8, 0],
     color: "#8a7fb0",
-    ambientScale: 0.4,
-    directionalScale: 0.55,
+    // 0.4/0.55 -> 0.7/0.8 (02/09, "sous-exposee, on ne voit rien") :
+    // toujours sous le neutre, mais on lit la scene.
+    ambientScale: 0.7,
+    directionalScale: 0.8,
     colorMix: 0.8,
   },
 };

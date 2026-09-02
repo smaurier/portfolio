@@ -35,7 +35,8 @@ export const DIRECTION_GRADE: Record<DirectionKey, GradeRig> = {
   turquoise: NEUTRAL_GRADE,
   cendre: NEUTRAL_GRADE,
   obsidienne: {
-    vignetteAdd: 0.2,
+    // 0.2 -> 0.1 (02/09, sous-exposition) : cadre ferme, pas bouche.
+    vignetteAdd: 0.1,
     bloomScale: 0.7,
     saturation: -0.15,
   },

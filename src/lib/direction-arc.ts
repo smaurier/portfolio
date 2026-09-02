@@ -15,11 +15,19 @@
 
 const DESCENT_START = 0.06;
 const DESCENT_END = 0.8;
-/** Plancher de la descente : plus sombre que le haut de page. */
-const DEPTH_FLOOR = 0.04;
+/** Depart de la descente : le Nord commence ECLAIRE (02/09, retour
+ * Sylvain "on a l'arc inverse, mais justement cela signifie qu'il doit y
+ * avoir plus de lumiere au depart"). Avant, le haut de page reprenait la
+ * penombre de la home et l'arc descendait d'un noir vers un noir. */
+const TOP_LIGHT = 0.6; // 0.85 delavait le cerf en gris sous la top light (capture 02/09)
+/** Plancher de la descente : plus sombre que le haut de page, mais
+ * LISIBLE. 0.04 -> 0.32 (02/09, retour Sylvain "la scene est globalement
+ * sous-exposee, meme si c'est le Mictlan on peut baisser l'exposition mais
+ * pas autant, on ne voit rien"). */
+const DEPTH_FLOOR = 0.32;
 const ARRIVAL_START = 0.82;
 /** La lumiere remonte a l'arrivee, mais reste loin de l'eveil complet. */
-const ARRIVAL_LIFT = 0.24;
+const ARRIVAL_LIFT = 0.28;
 
 function smoothstep(edge0: number, edge1: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
@@ -28,10 +36,9 @@ function smoothstep(edge0: number, edge1: number, x: number): number {
 
 export function remapNorthArc(progress: number): { lightP: number; arrivalGlow: number } {
   const p = Math.min(1, Math.max(0, progress));
-  // Descente : interpole du comportement neutre (haut de page intact)
-  // vers le plancher sombre.
+  // Descente : de la lumiere du depart vers le plancher sombre.
   const descent = smoothstep(DESCENT_START, DESCENT_END, p);
-  let lightP = p * (1 - descent) + DEPTH_FLOOR * descent;
+  let lightP = TOP_LIGHT * (1 - descent) + DEPTH_FLOOR * descent;
   // Arrivee : remontee douce portee par le glow.
   const arrivalGlow = smoothstep(ARRIVAL_START, 1, p);
   lightP += arrivalGlow * ARRIVAL_LIFT;

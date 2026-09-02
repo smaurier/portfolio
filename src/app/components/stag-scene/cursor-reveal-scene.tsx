@@ -4,6 +4,8 @@ import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react"
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
 import { getRevealFloor } from "@/lib/reveal-arc";
+import { remapNorthArc } from "@/lib/direction-arc";
+import { useCurrentDirection } from "./use-current-direction";
 import { applyCursorReveal, createCursorRevealUniforms, setCursorRevealFloor } from "./cursor-reveal";
 
 /**
@@ -42,6 +44,7 @@ export default function CursorRevealScene({
 }) {
   const groupRef = useRef<Group>(null);
   const { gl } = useThree();
+  const direction = useCurrentDirection();
   const uniformsRef = useRef(createCursorRevealUniforms());
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -80,7 +83,12 @@ export default function CursorRevealScene({
     }
 
     if (groupRef.current) applyCursorReveal(groupRef.current, uniforms);
-    setCursorRevealFloor(uniforms, getRevealFloor(progressRef.current));
+    // Au Nord, le plancher de revelation suit l'arc INVERSE (02/09, retour
+    // Sylvain "plus de lumiere au depart") : sans ca, le haut de page
+    // restait noir hors du halo du curseur, quelle que soit la lumiere.
+    const rawP = progressRef.current;
+    const p = direction === "obsidienne" ? remapNorthArc(rawP).lightP : rawP;
+    setCursorRevealFloor(uniforms, getRevealFloor(p));
   });
 
   return <group ref={groupRef}>{children}</group>;
