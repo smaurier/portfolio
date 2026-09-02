@@ -14,6 +14,7 @@ import OrbitCamera from "./orbit-camera";
 import PiedraGround from "./piedra-ground";
 import RevealLighting from "./reveal-lighting";
 import StagMirror from "./stag-mirror";
+import TezcatlSmoke from "./tezcatl-smoke";
 import StagModel from "./stag-model";
 import Vines from "./vines";
 
@@ -96,6 +97,9 @@ export default function SceneContent({
       <Suspense fallback={null}>
         <StagMirror />
       </Suspense>
+      {/* La fumee du tezcatl (02/09) : simulateur de fluide GPU confine au
+       * disque, par-dessus le reflet. Nord uniquement (gate interne). */}
+      <TezcatlSmoke />
     </>
   );
 }
