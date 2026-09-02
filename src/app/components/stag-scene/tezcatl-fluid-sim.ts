@@ -230,9 +230,9 @@ export const DEFAULT_FLUID_PARAMS: FluidParams = {
   pointerRadius: 0.003,
   emitterDye: 1.3,
   emitterPush: 4.0,
-  // 0.3 -> 0.7 (02/09) : la souris pousse aussi l'eau, il faut que ca
-  // se voie.
-  pointerPush: 0.7,
+  // 0.3 -> 1.0 (02/09) : la souris pousse aussi l'eau, et l'eau calme ne
+  // repond qu'au-dessus d'un seuil de vitesse (tezcatl-water WAKE_MIN).
+  pointerPush: 1.0,
 };
 
 export class TezcatlFluidSim {

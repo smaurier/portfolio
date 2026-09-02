@@ -27,8 +27,13 @@ import { useSceneRefs } from "./scene-refs-context";
  * menteur, fumee) est refracte par la meme pression, chacun dans son
  * shader.
  *
+ * L'eau est CALME (retour Sylvain 02/09 "l'eau doit etre calme !") : le
+ * flux ambiant des emetteurs de fumee (lent, ~0.3 de grille/s) ne la
+ * ride pas, seul le sillage de la souris (poussee > seuil) la souleve.
+ * Seuil de vitesse en douceur (smoothstep) : au repos, un miroir noir.
+ *
  * Nord seulement, meme gate que le reflet et la fumee. Reduced-motion : la
- * sim est figee par TezcatlSmoke, l'eau reste visible et calme.
+ * sim est figee par TezcatlSmoke, l'eau reste visible et plate.
  */
 
 const EXTENT = TEZCATL_EXTENT;
@@ -41,7 +46,12 @@ const LIGHT_DIR = new Vector3(0.25, 1, 0.35).normalize(); // la top light froide
 const PRESSURE_GAIN = 6.0;
 /** Inclinaison de la surface par unite de vitesse (le courant tire la
  * surface). */
-const VELOCITY_TILT = 0.35;
+const VELOCITY_TILT = 0.5;
+/** Seuil de sillage : en dessous de WAKE_MIN (grille/s) la surface reste
+ * plate (flux ambiant des emetteurs), pleine reponse a partir de
+ * WAKE_MAX (poussee de la souris). */
+const WAKE_MIN = 0.35;
+const WAKE_MAX = 0.7;
 
 export default function TezcatlWater() {
   const meshRef = useRef<Mesh>(null);
@@ -63,6 +73,8 @@ export default function TezcatlWater() {
           uLightDir: { value: LIGHT_DIR },
           uPressureGain: { value: PRESSURE_GAIN },
           uVelocityTilt: { value: VELOCITY_TILT },
+          uWakeMin: { value: WAKE_MIN },
+          uWakeMax: { value: WAKE_MAX },
         },
         transparent: true,
         depthWrite: false,
@@ -86,6 +98,8 @@ export default function TezcatlWater() {
           uniform vec3 uLightDir;
           uniform float uPressureGain;
           uniform float uVelocityTilt;
+          uniform float uWakeMin;
+          uniform float uWakeMax;
           varying vec3 vWorldPos;
           const float EXTENT = ${EXTENT.toFixed(1)};
           void main() {
@@ -95,8 +109,11 @@ export default function TezcatlWater() {
             float pB = texture2D(uPressure, uv - vec2(0.0, uTexel)).x;
             float pT = texture2D(uPressure, uv + vec2(0.0, uTexel)).x;
             vec2 grad = vec2(pR - pL, pT - pB) * uPressureGain;
-            vec2 vel = texture2D(uVelocity, uv).xy * uVelocityTilt;
-            vec2 tilt = grad + vel;
+            vec2 velRaw = texture2D(uVelocity, uv).xy;
+            // Eau calme : seul le sillage (vitesse au-dessus du flux
+            // ambiant) souleve la surface.
+            float wake = smoothstep(uWakeMin, uWakeMax, length(velRaw));
+            vec2 tilt = (grad + velRaw * uVelocityTilt) * wake;
             vec3 n = normalize(vec3(-tilt.x, 1.0, -tilt.y));
             vec3 view = normalize(cameraPosition - vWorldPos);
             float fresnel = pow(1.0 - max(dot(n, view), 0.0), 3.0);

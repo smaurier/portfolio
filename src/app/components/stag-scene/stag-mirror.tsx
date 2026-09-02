@@ -230,7 +230,10 @@ export default function StagMirror() {
             float hR = texture2D(uPressure, suv + vec2(uTexel, 0.0)).x;
             float hB = texture2D(uPressure, suv - vec2(0.0, uTexel)).x;
             float hT = texture2D(uPressure, suv + vec2(0.0, uTexel)).x;
-            world.xz += vel * uHaze + vec2(hR - hL, hT - hB) * uRefract;
+            // Eau calme (02/09) : la refraction par la pression ne joue que
+            // dans le sillage de la souris, meme seuil que tezcatl-water.
+            float wake = smoothstep(0.35, 0.7, length(vel));
+            world.xz += vel * uHaze + vec2(hR - hL, hT - hB) * uRefract * wake;
             vWorldPos = world.xyz;
             gl_Position = projectionMatrix * viewMatrix * world;
           }

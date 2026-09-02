@@ -28,9 +28,12 @@ import { useSceneRefs } from "./scene-refs-context";
  *
  * UN SEUL simulateur pour tout (arbitrage Sylvain 02/09) : ce composant
  * fait tourner la sim et publie vitesse + pression dans tezcatlStore. La
- * nappe d'eau (tezcatl-water.tsx, par-dessus) y lit sa surface, le reflet
- * menteur sa deformation "air chaud" et sa refraction. La souris est
- * projetee sur le plan d'eau (c'est elle que le visiteur croit toucher).
+ * nappe d'eau (tezcatl-water.tsx) y lit son sillage, le reflet menteur sa
+ * deformation "air chaud" et sa refraction. La souris est projetee sur le
+ * plan d'eau (c'est elle que le visiteur croit toucher). La fumee flotte
+ * AU-DESSUS de l'eau (retour Sylvain 02/09 "la fumee doit etre au dessus
+ * de l'eau normalement") : plan juste au-dessus de la nappe, pas de
+ * refraction.
  *
  * Accessibilite : prefers-reduced-motion -> la sim tourne ~3 s pour
  * poser un voile puis se fige (fumee immobile lisible, jamais absente).
@@ -49,9 +52,6 @@ const REDUCED_WARMUP_SECONDS = 3;
 const SMOKE_COLOR = new Color("#9d92c9"); // lueur froide du puits, a peine plus claire que le reflet
 const SMOKE_SHADOW = new Color("#201533");
 const WATER_PLANE = new Plane(new Vector3(0, 1, 0), -WATER_LEVEL);
-/** Decalage d'echantillonnage de la fumee par la surface de l'eau (uv de
- * grille par unite de gradient de pression). */
-const PRESSURE_REFRACT = 0.25;
 
 export default function TezcatlSmoke() {
   const meshRef = useRef<Mesh>(null);
@@ -72,8 +72,6 @@ export default function TezcatlSmoke() {
       new ShaderMaterial({
         uniforms: {
           uDye: { value: sim.dyeTexture },
-          uPressure: { value: tezcatlStore.pressure },
-          uTexel: { value: tezcatlStore.texel },
           uOpacity: { value: 0 },
           uColor: { value: SMOKE_COLOR },
           uShadow: { value: SMOKE_SHADOW },
@@ -91,23 +89,13 @@ export default function TezcatlSmoke() {
         `,
         fragmentShader: `
           uniform sampler2D uDye;
-          uniform sampler2D uPressure;
-          uniform float uTexel;
           uniform float uOpacity;
           uniform vec3 uColor;
           uniform vec3 uShadow;
           varying vec3 vWorldPos;
           const float EXTENT = ${EXTENT.toFixed(1)};
-          const float REFRACT = ${PRESSURE_REFRACT.toFixed(3)};
           void main() {
             vec2 uv = vWorldPos.xz / (2.0 * EXTENT) + 0.5;
-            // Refraction par la surface de l'eau au-dessus : le gradient
-            // de pression du fluide decale la lecture de la fumee.
-            float hL = texture2D(uPressure, uv - vec2(uTexel, 0.0)).x;
-            float hR = texture2D(uPressure, uv + vec2(uTexel, 0.0)).x;
-            float hB = texture2D(uPressure, uv - vec2(0.0, uTexel)).x;
-            float hT = texture2D(uPressure, uv + vec2(0.0, uTexel)).x;
-            uv += vec2(hR - hL, hT - hB) * REFRACT;
             float dens = texture2D(uDye, uv).r;
             // Filets fins : courbe de contraste, le coeur des volutes
             // est clair, leurs franges s'evanouissent vite.
@@ -167,22 +155,19 @@ export default function TezcatlSmoke() {
     tezcatlStore.pressure = sim.pressureTexture;
     tezcatlStore.texel = sim.texel;
     material.uniforms.uDye.value = sim.dyeTexture;
-    material.uniforms.uPressure.value = sim.pressureTexture;
-    material.uniforms.uTexel.value = sim.texel;
     material.uniforms.uOpacity.value = opacityRef.current;
   });
 
   return (
-    // Juste au-dessus du relief de la Piedra (0.005 + displacement
-    // ~0.015) : la fumee couvre le reflet (renderOrder au-dessus de
-    // StagMirror 998) sans passer sous la gravure. La nappe d'eau
-    // (renderOrder 1000) est au-dessus.
+    // Juste au-dessus de la nappe d'eau (WATER_LEVEL) : la fumee flotte
+    // sur l'eau, elle couvre l'eau (renderOrder 1000) et le reflet
+    // (998) dessous.
     <mesh
       ref={meshRef}
       material={material}
-      position={[0, 0.03, 0]}
+      position={[0, WATER_LEVEL + 0.03, 0]}
       rotation={[-Math.PI / 2, 0, 0]}
-      renderOrder={999}
+      renderOrder={1001}
       frustumCulled={false}
       raycast={() => null}
       visible={false}
