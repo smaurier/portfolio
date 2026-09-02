@@ -148,8 +148,8 @@ const GRADIENT_SUBTRACT = /* glsl */ `
     // Contention dans le disque : la fumee du tezcatl ne sort pas du
     // miroir. Amortissement doux vers le bord (jamais de smoothstep
     // inverse, comportement indefini GLSL).
-    float d = length(vUv - 0.5) * 2.0;
-    vel *= 1.0 - smoothstep(0.82, 1.0, d);
+    float d = max(abs(vUv.x - 0.5), abs(vUv.y - 0.5)) * 2.0;
+    vel *= 1.0 - smoothstep(0.86, 1.0, d);
     gl_FragColor = vec4(vel, 0.0, 1.0);
   }
 `;
@@ -197,7 +197,9 @@ class DoubleFBO {
   }
 }
 
-export type FluidSplat = { u: number; v: number; du: number; dv: number };
+/** `dye` : multiplicateur d'encre du splat (1 par defaut ; les emetteurs
+ * lointains en mettent moins, la nappe du fond reste un voile). */
+export type FluidSplat = { u: number; v: number; du: number; dv: number; dye?: number };
 
 export type FluidParams = {
   /** Confinement de vorticite : force des tourbillons (les volutes). */
@@ -225,10 +227,12 @@ export const DEFAULT_FLUID_PARAMS: FluidParams = {
   dyeDissipation: 0.3,
   pressureIterations: 14,
   emitterRadius: 0.0005,
-  pointerRadius: 0.002,
+  pointerRadius: 0.003,
   emitterDye: 1.3,
   emitterPush: 4.0,
-  pointerPush: 0.3,
+  // 0.3 -> 0.7 (02/09) : la souris pousse aussi l'eau, il faut que ca
+  // se voie.
+  pointerPush: 0.7,
 };
 
 export class TezcatlFluidSim {
@@ -275,6 +279,23 @@ export class TezcatlFluidSim {
     return this.dye.read.texture;
   }
 
+  /** Le champ de vitesse (xy), publie pour la deformation "air chaud" du
+   * reflet menteur (tezcatl-store.ts). */
+  get velocityTexture(): Texture {
+    return this.velocity.read.texture;
+  }
+
+  /** Le champ de pression (x) : ses fronts dessinent la surface de l'eau
+   * et refractent le reflet (tezcatl-store.ts). */
+  get pressureTexture(): Texture {
+    return this.pressure.read.texture;
+  }
+
+  /** 1/resolution de la grille vitesse/pression. */
+  get texel(): number {
+    return this.velocity.texel.x;
+  }
+
   private blit(target: WebGLRenderTarget, material: ShaderMaterial) {
     this.quad.material = material;
     this.gl.setRenderTarget(target);
@@ -306,7 +327,7 @@ export class TezcatlFluidSim {
     // Forces : emetteurs + souris.
     for (const s of emitters) {
       this.splat(this.velocity, s.u, s.v, s.du * p.emitterPush, s.dv * p.emitterPush, p.emitterRadius);
-      this.splat(this.dye, s.u, s.v, p.emitterDye * dt, 0, p.emitterRadius);
+      this.splat(this.dye, s.u, s.v, p.emitterDye * (s.dye ?? 1) * dt, 0, p.emitterRadius);
     }
     if (pointer) {
       this.splat(this.velocity, pointer.u, pointer.v, pointer.du * p.pointerPush, pointer.dv * p.pointerPush, p.pointerRadius);

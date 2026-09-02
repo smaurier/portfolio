@@ -6,14 +6,41 @@
 // direction-arc.ts : projection disque -> grille, emetteurs, souris, gate.
 
 export type SimUv = { u: number; v: number };
-export type Splat = SimUv & { du: number; dv: number };
+export type Splat = SimUv & { du: number; dv: number; dye?: number };
 
-/** Projette un point du sol (x, z monde) sur la grille de simulation qui
- * couvre le carre circonscrit au disque (rayon = PiedraGround). */
-export function worldToSimUv(x: number, z: number, radius: number): SimUv & { inside: boolean } {
-  const u = x / (2 * radius) + 0.5;
-  const v = z / (2 * radius) + 0.5;
-  return { u, v, inside: Math.hypot(x, z) <= radius };
+/** Projette un point du sol (x, z monde) sur la grille de simulation, un
+ * carre de demi-cote `extent` centre sur le cerf. D'abord le disque du
+ * tezcatl (rayon 3), puis toute la surface (02/09, "on va etendre la fumee
+ * a toute la surface") : la grille est carree, `inside` aussi. */
+export function worldToSimUv(x: number, z: number, extent: number): SimUv & { inside: boolean } {
+  const u = x / (2 * extent) + 0.5;
+  const v = z / (2 * extent) + 0.5;
+  return { u, v, inside: Math.abs(x) <= extent && Math.abs(z) <= extent };
+}
+
+/** Emetteurs lointains (02/09, toute la surface) : une nappe de fumee qui
+ * respire sur tout le sol, loin du cerf, entre rMin et rMax. Derive douce
+ * en orbite tres lente, pas de poussee franche : c'est le fleuve
+ * Chiconahuapan qui fume, pas une cheminee. */
+export function farEmitterSplats(time: number, count: number, rMin: number, rMax: number, extent: number): Splat[] {
+  const out: Splat[] = [];
+  for (let i = 0; i < count; i++) {
+    const seed = i * 2.399963;
+    const t = (i + 0.5) / count;
+    const r = rMin + (rMax - rMin) * (0.5 + 0.5 * Math.sin(seed * 7.3 + t * 3.1));
+    const angle = seed + time * 0.02 * (i % 2 === 0 ? 1 : -1);
+    const x = Math.cos(angle) * r;
+    const z = Math.sin(angle) * r;
+    const { u, v } = worldToSimUv(x, z, extent);
+    // Derive tangentielle lente, sens alterne : des cellules qui tournent
+    // en sens contraire, la surface entiere s'anime sans direction dominante.
+    const dir = i % 2 === 0 ? 1 : -1;
+    const du = -Math.sin(angle) * dir * 0.03;
+    const dv = Math.cos(angle) * dir * 0.03;
+    // Un tiers d'encre : au loin, un voile qui respire, pas des volutes.
+    out.push({ u, v, du, dv, dye: 0.25 });
+  }
+  return out;
 }
 
 /** Emetteurs de fumee : nes de la ligne de contact du reflet, autour du

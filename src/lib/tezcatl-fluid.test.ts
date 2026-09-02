@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { emitterSplats, pointerSplat, smokeGate, worldToSimUv } from "./tezcatl-fluid";
+import { emitterSplats, farEmitterSplats, pointerSplat, smokeGate, worldToSimUv } from "./tezcatl-fluid";
 
 describe("worldToSimUv (disque du tezcatl -> grille de simulation)", () => {
   it("le centre du disque est le centre de la grille", () => {
     expect(worldToSimUv(0, 0, 3)).toEqual({ u: 0.5, v: 0.5, inside: true });
   });
 
-  it("le bord du disque touche le bord de la grille, au-dela = dehors", () => {
+  it("la grille est CARREE (toute la surface, 02/09) : dedans jusqu'aux coins, dehors au-dela", () => {
     expect(worldToSimUv(3, 0, 3)).toMatchObject({ u: 1, v: 0.5, inside: true });
     expect(worldToSimUv(-3, 0, 3)).toMatchObject({ u: 0, inside: true });
-    expect(worldToSimUv(2.5, 2.5, 3).inside).toBe(false);
+    expect(worldToSimUv(2.5, 2.5, 3).inside).toBe(true);
+    expect(worldToSimUv(3.5, 0, 3).inside).toBe(false);
   });
 });
 
@@ -35,6 +36,30 @@ describe("emitterSplats (filets de fumee nes au contact du reflet)", () => {
     const a = emitterSplats(0, 3, 0.6, 3);
     const b = emitterSplats(5, 3, 0.6, 3);
     expect(a[0].u !== b[0].u || a[0].v !== b[0].v).toBe(true);
+  });
+});
+
+describe("farEmitterSplats (la fumee sur toute la surface, 02/09)", () => {
+  it("place N emetteurs entre rMin et rMax du cerf, dans la grille", () => {
+    const splats = farEmitterSplats(7.5, 10, 2, 5.5, 7);
+    expect(splats).toHaveLength(10);
+    for (const s of splats) {
+      const dx = (s.u - 0.5) * 14;
+      const dz = (s.v - 0.5) * 14;
+      const r = Math.hypot(dx, dz);
+      expect(r).toBeGreaterThanOrEqual(2 - 1e-9);
+      expect(r).toBeLessThanOrEqual(5.5 + 1e-9);
+      expect(s.u).toBeGreaterThan(0);
+      expect(s.u).toBeLessThan(1);
+      expect(s.v).toBeGreaterThan(0);
+      expect(s.v).toBeLessThan(1);
+    }
+  });
+
+  it("derive douce : vitesse faible, jamais une poussee franche", () => {
+    for (const s of farEmitterSplats(3, 10, 2, 5.5, 7)) {
+      expect(Math.hypot(s.du, s.dv)).toBeLessThan(0.05);
+    }
   });
 });
 

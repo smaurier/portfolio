@@ -39,7 +39,11 @@ const SMOKE_SPRITE = "/img/particles/smoke_07.png";
 // 60 -> 40 fumees (retour Sylvain 01/09 "c'est quoi ces flocons" : en
 // points ronds separes la fumee se lisait comme de la neige : moins de
 // points, beaucoup plus gros et plus faibles, qui fusionnent en volutes)
-const SMOKE_COUNT = 40;
+// 40 -> 0 (02/09) : la fumee du tezcatl est desormais une vraie simulation
+// de fluide (tezcatl-smoke.tsx), les sprites de fumee etaient redondants
+// (arbitrage Sylvain "oui redondants, tu peux les retirer"). La famille
+// reste cablee (shader, sprite) pour un eventuel retour, a cout nul.
+const SMOKE_COUNT = 0;
 const SHARD_COUNT = 55;
 const MIST_COUNT = 36;
 const TOTAL = SMOKE_COUNT + SHARD_COUNT + MIST_COUNT;
