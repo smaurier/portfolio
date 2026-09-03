@@ -217,12 +217,6 @@ main:focus {
   display: flex;
   align-items: center;
   gap: 10px;
-  /* Shared element pour View Transitions API (28/08). Chrome/Edge/Safari
-     18.2+ interpolent position + taille du logo pendant le swap de page,
-     signature "élément qui persiste visuellement" plutôt que juste
-     glissement uniforme. Nom unique dans le document — header persiste
-     dans layout, donc un seul owner par frame, jamais de conflit. */
-  view-transition-name: nahual-logo;
 }
 
 /* mini-logo.svg est en blanc plein (fill="#fff" en dur dans le fichier) :
@@ -449,169 +443,22 @@ body.nahual-lab-reveal main {
   gap: 32px;
   position: relative;
   isolation: isolate;
-  /* Fade rapide pendant la transition cardinale "cerf mène" (28/08) —
-     opacity 1→0.15 sur 500ms cubic-bezier. Combiné au cerf qui pivote
-     tête et à la caméra qui dérive vers direction cardinale, le
-     content HTML s'estompe pour laisser la scène 3D porter la
-     transition. Retour à 1 après remount de la nouvelle page. */
-  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Passage cardinal Nepantla (03/09) : l'opacite et le transform du
+   contenu sont pilotes par GSAP (cardinal-transition-context +
+   nepantla-frame), plus par le CSS. Le body class ne sert plus qu'a
+   couper les interactions le temps du voyage. */
 body.nahual-transitioning main {
-  opacity: 0.15;
   pointer-events: none;
-  transition:
-    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Slide léger du content HTML dans la direction cardinale cible pendant
-   le burst (28/08). Amplitude 40px : subtile, signature "codex qui
-   glisse vers la nouvelle direction" sans nausée ni perte de repère.
-   Convention data-transition-direction posée par le Provider. */
-body.nahual-transitioning[data-transition-direction="dore"] main {
-  transform: translateX(40px);
-}
-body.nahual-transitioning[data-transition-direction="turquoise"] main {
-  transform: translateY(40px);
-}
-body.nahual-transitioning[data-transition-direction="cendre"] main {
-  transform: translateX(-40px);
-}
-body.nahual-transitioning[data-transition-direction="obsidienne"] main {
-  transform: translateY(-40px);
-}
-body.nahual-transitioning[data-transition-direction="jade"] main {
-  transform: scale(0.98);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body.nahual-lab-reveal main,
-  body.nahual-transitioning main {
-    transition: none;
-    opacity: 1;
-  }
-}
-
-/* View Transitions API (28/08 retour Sylvain "faudrait vraiment que
-   les pages coulissent et soient remplacées, en fonction des points
-   cardinaux"). Chrome/Edge/Safari 18.2+ supportent nativement — le
-   browser capture snapshot old + new au router.push, anime entre les
-   2 via ::view-transition-old(root) et ::view-transition-new(root).
-   Firefox fallback = nav standard sans anim. Attribut data-cardinal-
-   nav posé sur <html> avant startViewTransition, retiré à la fin. */
-
-::view-transition-group(root) {
-  animation-duration: 0.8s;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Shared element logo (28/08). .logoLink porte view-transition-name:
-   nahual-logo — le browser sort le logo de la snapshot root et l'anime
-   séparément (position + taille interpolées). Même easing que root
-   pour rester cohérent avec le slide cardinal. Le logo "flotte" et
-   reste ancré au coin gauche pendant que la scène glisse dessous. */
-::view-transition-group(nahual-logo) {
-  animation-duration: 0.8s;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-::view-transition-old(root) {
-  mix-blend-mode: normal;
-}
-
-::view-transition-new(root) {
-  mix-blend-mode: normal;
-}
-
-/* Est (dore) — nouvelle page arrive de droite, ancienne sort à gauche */
-html[data-cardinal-nav="dore"]::view-transition-old(root) {
-  animation-name: nahual-slide-out-left;
-}
-html[data-cardinal-nav="dore"]::view-transition-new(root) {
-  animation-name: nahual-slide-in-right;
-}
-
-/* Sud (turquoise) — nouvelle arrive du bas */
-html[data-cardinal-nav="turquoise"]::view-transition-old(root) {
-  animation-name: nahual-slide-out-up;
-}
-html[data-cardinal-nav="turquoise"]::view-transition-new(root) {
-  animation-name: nahual-slide-in-down;
-}
-
-/* Ouest (cendre) — nouvelle arrive de gauche */
-html[data-cardinal-nav="cendre"]::view-transition-old(root) {
-  animation-name: nahual-slide-out-right;
-}
-html[data-cardinal-nav="cendre"]::view-transition-new(root) {
-  animation-name: nahual-slide-in-left;
-}
-
-/* Nord (obsidienne) — nouvelle arrive du haut */
-html[data-cardinal-nav="obsidienne"]::view-transition-old(root) {
-  animation-name: nahual-slide-out-down;
-}
-html[data-cardinal-nav="obsidienne"]::view-transition-new(root) {
-  animation-name: nahual-slide-in-up;
-}
-
-/* Centre (jade) — cross-fade avec léger zoom (implosion vers centre) */
-html[data-cardinal-nav="jade"]::view-transition-old(root) {
-  animation-name: nahual-zoom-out;
-}
-html[data-cardinal-nav="jade"]::view-transition-new(root) {
-  animation-name: nahual-zoom-in;
-}
-
-@keyframes nahual-slide-out-left {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(-100%); opacity: 0.4; }
-}
-@keyframes nahual-slide-in-right {
-  from { transform: translateX(100%); opacity: 0.4; }
-  to { transform: translateX(0); opacity: 1; }
-}
-@keyframes nahual-slide-out-right {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(100%); opacity: 0.4; }
-}
-@keyframes nahual-slide-in-left {
-  from { transform: translateX(-100%); opacity: 0.4; }
-  to { transform: translateX(0); opacity: 1; }
-}
-@keyframes nahual-slide-out-up {
-  from { transform: translateY(0); opacity: 1; }
-  to { transform: translateY(-100%); opacity: 0.4; }
-}
-@keyframes nahual-slide-in-down {
-  from { transform: translateY(100%); opacity: 0.4; }
-  to { transform: translateY(0); opacity: 1; }
-}
-@keyframes nahual-slide-out-down {
-  from { transform: translateY(0); opacity: 1; }
-  to { transform: translateY(100%); opacity: 0.4; }
-}
-@keyframes nahual-slide-in-up {
-  from { transform: translateY(-100%); opacity: 0.4; }
-  to { transform: translateY(0); opacity: 1; }
-}
-@keyframes nahual-zoom-out {
-  from { transform: scale(1); opacity: 1; }
-  to { transform: scale(0.9); opacity: 0; }
-}
-@keyframes nahual-zoom-in {
-  from { transform: scale(1.08); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(root),
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none !important;
-  }
-}
+/* View Transitions API DEPOSEE (03/09 chantier Nepantla). Elle
+   snapshotait la page ENTIERE : le canvas 3D vivant etait fige en
+   screenshot et glissait en double pendant le passage = le "hache".
+   Le glissement cardinal du contenu est desormais joue par GSAP sur
+   la NepantlaFrame seule (cf lib/nepantla.ts pour offsets et tempo),
+   le monde 3D reste un plan-sequence permanent. */
 
 /* Grain film organique (27/08 Codex S2) — SVG turbulence en data-uri
    posé une seule fois via ::before sur main, opacity 3%. Contrairement
@@ -1165,12 +1012,9 @@ body.reading-mode *::after {
   transition: none !important;
 }
 
-/* View Transitions API : coupe le slide cardinal, nav sec. */
-body.reading-mode ::view-transition-group(root),
-body.reading-mode ::view-transition-old(root),
-body.reading-mode ::view-transition-new(root) {
-  animation: none !important;
-}
+/* Nav cardinale en mode recit : le contexte Nepantla detecte
+   body.reading-mode et navigue sec, sans tween GSAP (le CSS
+   animation:none ne peut pas couper des styles inline GSAP). */
 
 /* Contenu centre lisible, plus de padding-top 90vh qui reserve
    l'espace pour le cerf 3D absent. */

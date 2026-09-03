@@ -3,7 +3,6 @@
 import Link, { type LinkProps } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { forwardRef, type MouseEvent, type ReactNode } from "react";
-import { flushSync } from "react-dom";
 import { pageKeys, slugs, type PageKey } from "@/lib/routes";
 import { useCardinalTransition, type CardinalDirection } from "./cardinal-transition-context";
 
@@ -109,52 +108,15 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
       onClick?.(e);
       return;
     }
-    // Intercepte : burst 3D (cerf/camera/bloom) puis navigation via
-    // View Transitions API si supportée : la page ENTIÈRE glisse
-    // dans la direction cardinale, ancienne sort, nouvelle arrive.
-    // Signature "vraie transition de page" (retour Sylvain 28/08
-    // "faudrait vraiment que les pages coulissent et soient
-    // remplacées"). Fallback nav sec si browser sans support.
+    // Intercepte : la timeline Nepantla (contexte) orchestre burst 3D
+    // + sortie du contenu + navigation au coeur du mouvement. L'entree
+    // du nouveau contenu est jouee par NepantlaFrame au changement de
+    // pathname. Plus de View Transitions API (03/09) : elle snapshotait
+    // le canvas 3D vivant en screenshot fige = le "hache".
     e.preventDefault();
     onClick?.(e);
     transition.startTransition(direction, () => {
-      // Pose l'attribut sur <html> pour que les @keyframes CSS
-      // ::view-transition-old/new sélectionnent la bonne animation
-      // cardinale (défini dans globals.css).
-      document.documentElement.setAttribute("data-cardinal-nav", direction);
-      // Callback ASYNC (28/08 fix) : router.push est sync mais React
-      // commit le nouveau DOM au tick suivant. Browser capture le new
-      // snapshot dès que le callback retourne : sync = new === old =
-      // pas d'anim visible. Attendre 2 rAF garantit que React a
-      // commité + peint la nouvelle route avant snapshot new, donc les
-      // @keyframes slide cardinales jouent vraiment (retour Sylvain
-      // 28/08 "on a perdu les keyframes").
-      const doNav = () => {
-        // Pattern officiel Next 16 + View Transitions API : flushSync
-        // force React a commit le router.push SYNCHRONEMENT dans le
-        // callback startViewTransition. Sans flushSync le commit se
-        // fait apres cb resolve, snapshot new === old, keyframes
-        // slide invisibles. Cb sync avec flushSync = snapshot new
-        // capture la nouvelle page directement.
-        flushSync(() => {
-          router.push(href);
-        });
-      };
-      // Chrome/Edge/Safari 18.2+ supportent. Firefox pas encore.
-      // Fallback gracieux = nav standard sans view transition.
-      type ViewTransitionDocument = Document & {
-        startViewTransition?: (cb: () => void) => { finished: Promise<void> };
-      };
-      const doc = document as ViewTransitionDocument;
-      if (typeof doc.startViewTransition === "function") {
-        const vt = doc.startViewTransition(doNav);
-        vt.finished.finally(() => {
-          document.documentElement.removeAttribute("data-cardinal-nav");
-        });
-      } else {
-        router.push(href);
-        setTimeout(() => document.documentElement.removeAttribute("data-cardinal-nav"), 500);
-      }
+      router.push(href);
     });
   }
 

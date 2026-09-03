@@ -24,6 +24,7 @@ import { renderWithNahuatl } from "../../lib/nahuatl";
 import { ReadingModeProvider } from "../../lib/reading-mode-context";
 import PiedraSkeleton from "../components/stag-scene/piedra-skeleton";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
+import NepantlaFrame from "../components/stag-scene/nepantla-frame";
 import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
@@ -298,7 +299,12 @@ export default async function LocaleLayout({
               usePathname côté PersistentScene, palette anime en
               douceur au changement d'URL. */}
           <PersistentScene />
-          {children}
+          {/* NepantlaFrame (03/09 chantier transitions) : seul le
+              contenu de page voyage pendant un passage cardinal
+              (tweens GSAP pilotes par le contexte). Le canvas, le
+              header et le footer restent en place : le monde 3D est
+              un plan-sequence permanent, jamais snapshotte. */}
+          <NepantlaFrame>{children}</NepantlaFrame>
           {/* Footer exhaustif (28/08 retour Sylvain) : 4 colonnes :
               Navigation, Ressources, Légal, Contact. Bottom row : ©
               + baseline localisée. */}

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { flushSync } from "react-dom";
 import { pageKeys, slugs, getPath, type PageKey } from "@/lib/routes";
 import type { Locale } from "@/dictionaries";
 import { isShortcutsEnabled, subscribeShortcuts } from "@/lib/shortcuts";
@@ -178,25 +177,10 @@ export default function KeyboardNav() {
         router.push(href);
         return;
       }
+      // Timeline Nepantla (03/09) : le contexte orchestre sortie du
+      // contenu + nav, NepantlaFrame joue l'entree. Plus de VT API.
       transition.startTransition(direction, () => {
-        document.documentElement.setAttribute("data-cardinal-nav", direction);
-        type ViewTransitionDocument = Document & {
-          startViewTransition?: (cb: () => void) => { finished: Promise<void> };
-        };
-        const doc = document as ViewTransitionDocument;
-        if (typeof doc.startViewTransition === "function") {
-          const vt = doc.startViewTransition(() => {
-            flushSync(() => {
-              router.push(href);
-            });
-          });
-          vt.finished.finally(() => {
-            document.documentElement.removeAttribute("data-cardinal-nav");
-          });
-        } else {
-          router.push(href);
-          setTimeout(() => document.documentElement.removeAttribute("data-cardinal-nav"), 500);
-        }
+        router.push(href);
       });
     }
 
