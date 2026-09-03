@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { Box3, BufferGeometry, Color, Euler, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3 } from "three";
 import { cempasuchilFlowers, CEMPASUCHIL_COUNT } from "@/lib/cempasuchil-path";
-import { WATER_LEVEL } from "./tezcatl-store";
+import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -28,6 +28,18 @@ const FLOWER_HEIGHT = 0.1; // hauteur de la TETE seule (03/09)
 /** La tige plonge sous la nappe : seule la tete flotte. */
 const SINK = 0.02; // la tete flotte, a peine enfoncee (plus de tige)
 const CEMPASUCHIL = new Color("#ff8a1a");
+/** Convergence vers Xolotl (03/09, retour Sylvain "les fleurs
+ * convergeraient vers lui, jusqu'a ce qu'il sorte du bassin, et
+ * retrouvent leur place lentement") : quand il traverse le bassin, les
+ * fleurs glissent vers lui (nuage autour, jamais empilees), puis
+ * reviennent doucement a la couronne une fois sorti. */
+const POOL_RADIUS = 6.4;
+const PULL_RISE = 0.9; // /s
+const PULL_FALL = 0.22; // /s : le retour est lent
+const FOLLOW_RATE = 1.4; // /s vers la cible quand elles convergent
+const RETURN_RATE = 0.45; // /s vers la couronne quand elles reviennent
+const CLOUD_MIN = 0.5;
+const CLOUD_MAX = 1.6;
 /** Fraction de la hauteur du modele en dessous de laquelle on coupe (la
  * tige) : 0.55 garde la corolle et les feuilles hautes. */
 const HEAD_CUT = 0.55;
@@ -106,8 +118,22 @@ export default function CempasuchilPath() {
   useEffect(() => () => { geometry?.dispose(); material?.dispose(); }, [geometry, material]);
 
   const scratch = useMemo(() => ({ m: new Matrix4(), q: new Quaternion(), e: new Euler(), p: new Vector3(), s: new Vector3() }), []);
+  // Etat par fleur : position courante (elle glisse vers sa cible) et son
+  // decalage propre dans le nuage autour de Xolotl.
+  const currentRef = useRef<Float32Array | null>(null);
+  const cloudRef = useMemo(() => {
+    const arr = new Float32Array(CEMPASUCHIL_COUNT * 2);
+    for (let i = 0; i < CEMPASUCHIL_COUNT; i++) {
+      const a = ((i * 2.399963) % (Math.PI * 2));
+      const r = CLOUD_MIN + ((i * 0.618034) % 1) * (CLOUD_MAX - CLOUD_MIN);
+      arr[i * 2] = Math.cos(a) * r;
+      arr[i * 2 + 1] = Math.sin(a) * r;
+    }
+    return arr;
+  }, []);
+  const pullRef = useRef(0);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const mesh = meshRef.current;
     if (!mesh) return;
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
@@ -120,13 +146,36 @@ export default function CempasuchilPath() {
     const denom = doc ? doc.scrollHeight - window.innerHeight : 0;
     const depth = denom > 0 ? Math.min(1, window.scrollY / denom) : 1;
     const t = reduced ? 0 : state.clock.elapsedTime;
+    const dt = Math.min(delta, 1 / 30);
     const flowers = cempasuchilFlowers(depth, t);
     const { m, q, e, p, s } = scratch;
+    // Xolotl dans le bassin ? La traction monte vite, redescend lentement.
+    const xo = tezcatlStore.xolotl;
+    const xoInPool = !!xo && Math.hypot(xo.x, xo.z) < POOL_RADIUS && !reduced;
+    const pullTarget = xoInPool ? 1 : 0;
+    pullRef.current += (pullTarget - pullRef.current) * (1 - Math.exp(-(xoInPool ? PULL_RISE : PULL_FALL) * dt));
+    const pull = pullRef.current;
+    const anchorX = xo ? xo.x : 0;
+    const anchorZ = xo ? xo.z : 0;
+    if (!currentRef.current) {
+      currentRef.current = new Float32Array(CEMPASUCHIL_COUNT * 2);
+      for (let i = 0; i < CEMPASUCHIL_COUNT; i++) {
+        currentRef.current[i * 2] = flowers[i].x;
+        currentRef.current[i * 2 + 1] = flowers[i].z;
+      }
+    }
+    const cur = currentRef.current;
+    const rate = 1 - Math.exp(-(xoInPool ? FOLLOW_RATE : RETURN_RATE) * dt);
     for (let i = 0; i < CEMPASUCHIL_COUNT; i++) {
       const f = flowers[i];
       const bob = reduced ? 0 : Math.sin(t * 1.3 + f.phase) * 0.012;
       const visible = f.visible ? 1 : 0;
-      p.set(f.x, WATER_LEVEL - SINK + bob, f.z);
+      // Cible : la couronne, tiree vers le nuage autour de Xolotl.
+      const tx = f.x + (anchorX + cloudRef[i * 2] - f.x) * pull;
+      const tz = f.z + (anchorZ + cloudRef[i * 2 + 1] - f.z) * pull;
+      cur[i * 2] += (tx - cur[i * 2]) * rate;
+      cur[i * 2 + 1] += (tz - cur[i * 2 + 1]) * rate;
+      p.set(cur[i * 2], WATER_LEVEL - SINK + bob, cur[i * 2 + 1]);
       // Inclinaison faible (03/09, "on dirait des poissons") : la fleur
       // reste a plat sur l'eau.
       e.set(reduced ? 0 : Math.sin(t * 0.8 + f.phase) * 0.03, f.yaw, reduced ? 0 : Math.cos(t * 0.7 + f.phase) * 0.03);

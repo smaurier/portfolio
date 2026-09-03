@@ -10,6 +10,7 @@ import { getTerrainHeight } from "@/lib/terrain-height";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import type { DirectionKey } from "./direction-colors";
 import { useCurrentDirection } from "./use-current-direction";
+import { tezcatlStore } from "./tezcatl-store";
 
 /**
  * XolotlCompanion (29/08). Xolotl, chien-frère jumeau de Quetzalcoatl,
@@ -74,6 +75,11 @@ const END_X = 9;
 // a distance constante. Disparition naturelle par fade in/out
 // uniquement, plus par occlusion terrain.
 const Z_DEPTH = -10;
+/** Au Nord (03/09, retour Sylvain "passer encore plus proche de la
+ * margelle, voire dans l'eau juste derriere le cerf") : Xolotl traverse
+ * le bassin, les pattes dans l'eau, juste derriere le cerf. Le passeur
+ * du Chiconahuapan traverse le fleuve, c'est litteralement son role. */
+const Z_DEPTH_NORTH = -1.5;
 
 // Peak opacity fresnel : 1.0 sur edges via shader (bord opaque),
 // centre transparent. C'est la variable qui module la globale
@@ -399,6 +405,7 @@ export default function XolotlCompanion() {
     if (!g) return;
     if (startedAt === null) {
       g.visible = false;
+      tezcatlStore.xolotl = null;
       const cloneG = cloneGroupRef.current;
       if (cloneG) cloneG.visible = false;
       return;
@@ -417,6 +424,7 @@ export default function XolotlCompanion() {
         } catch {}
       }
       g.visible = false;
+      tezcatlStore.xolotl = null;
       const walk = actions[WALK_ANIM];
       if (walk) walk.stop();
       setStartedAt(null);
@@ -430,9 +438,16 @@ export default function XolotlCompanion() {
     // 29/08 iter 7 "pas partir derriere colline, laisse le marcher
     // droit et disparaitre naturellement").
     const t = elapsed / TOTAL_MS;
+    const zDepth = direction === "obsidienne" ? Z_DEPTH_NORTH : Z_DEPTH;
     const x = START_X + (END_X - START_X) * t;
-    const y = getTerrainHeight(x, Z_DEPTH) + Y_FOOT_OFFSET;
-    g.position.set(x, y, Z_DEPTH);
+    const y = getTerrainHeight(x, zDepth) + Y_FOOT_OFFSET;
+    g.position.set(x, y, zDepth);
+    // Publie la position pour la couronne de cempasuchil (Nord).
+    if (!tezcatlStore.xolotl) tezcatlStore.xolotl = { x, z: zDepth };
+    else {
+      tezcatlStore.xolotl.x = x;
+      tezcatlStore.xolotl.z = zDepth;
+    }
 
     // Enveloppe fade in/out
     let opacity = PEAK_OPACITY;
@@ -478,7 +493,7 @@ export default function XolotlCompanion() {
     // heriter du scale/rotation), positionne manuellement ici.
     const halo = haloRef.current;
     if (halo) {
-      halo.position.set(x, y + 0.02, Z_DEPTH);
+      halo.position.set(x, y + 0.02, zDepth);
       halo.visible = g.visible;
       setHaloUniforms(haloUniforms, opacity * 0.7, pulseVal);
     }
@@ -493,7 +508,7 @@ export default function XolotlCompanion() {
         const dt = delayedElapsed / TOTAL_MS;
         const dx = START_X + (END_X - START_X) * dt;
         const dy = getTerrainHeight(dx, Z_DEPTH) + Y_FOOT_OFFSET;
-        cloneG.position.set(dx, dy, Z_DEPTH);
+        cloneG.position.set(dx, dy, zDepth);
         cloneG.visible = true;
         // Fade envelope pour la clone : meme forme que primaire mais
         // decale de delayMs → la clone fade in un poil apres et fade

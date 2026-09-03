@@ -49,9 +49,14 @@ export const tezcatlStore: {
   /** Impacts a faire onduler dans l'eau (monde x/z), pousses par
    * ObsidianArrows, consommes par TezcatlWater a chaque frame. */
   impacts: { x: number; z: number; amount: number }[];
+  /** Xolotl en train de traverser (monde x/z), null sinon. Publie par
+   * XolotlCompanion, lu par la couronne de cempasuchil qui converge vers
+   * lui quand il est dans le bassin (03/09). */
+  xolotl: { x: number; z: number } | null;
 } = {
   ripple: ZERO_TEXTURE,
   rippleTexel: 1,
   stagHit: null,
   impacts: [],
+  xolotl: null,
 };
