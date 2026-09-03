@@ -94,8 +94,12 @@ const Z_DEPTH_NORTH = -1.5;
 const EMBER_COLOR = "#ff8a1a";
 const EMBER_INTENSITY = 9;
 const EMBER_DISTANCE = 7;
-const EMBER_RIPPLE_EVERY_S = 0.22;
-const EMBER_RIPPLE_AMOUNT = 0.05;
+// Pas dans l'eau (03/09 bis, retour Sylvain "on ne voit pas son sillage
+// ni l'impact de ses pas, beaucoup trop timide") : une vraie empreinte
+// par pas, cadence de marche, pattes alternees gauche/droite.
+const STEP_EVERY_S = 0.32;
+const STEP_AMOUNT = 0.22;
+const STEP_SIDE = 0.18;
 const POOL_RADIUS = 6.4;
 
 // Peak opacity fresnel : 1.0 sur edges via shader (bord opaque),
@@ -366,6 +370,7 @@ export default function XolotlCompanion() {
   const obsidianUniformsRef = useRef<RimLightUniforms[]>([]);
   const emberRef = useRef<PointLight>(null);
   const lastRippleRef = useRef(0);
+  const stepRef = useRef(0);
   const afterimageMaterial = useMemo(
     () => createFresnelMaterial(afterimageUniforms),
     [afterimageUniforms],
@@ -540,9 +545,11 @@ export default function XolotlCompanion() {
       setEdgePulse(obsidianUniformsRef.current, 0.65 + 0.35 * Math.pow(Math.sin(nowSec * Math.PI * 0.25), 4));
     }
     if (emberRef.current) emberRef.current.intensity = north ? EMBER_INTENSITY * opacity : 0;
-    if (north && Math.hypot(x, zDepth) < POOL_RADIUS && nowSec - lastRippleRef.current > EMBER_RIPPLE_EVERY_S) {
+    if (north && Math.hypot(x, zDepth) < POOL_RADIUS && nowSec - lastRippleRef.current > STEP_EVERY_S) {
       lastRippleRef.current = nowSec;
-      tezcatlStore.impacts.push({ x, z: zDepth, amount: EMBER_RIPPLE_AMOUNT * opacity });
+      stepRef.current += 1;
+      const side = stepRef.current % 2 === 0 ? STEP_SIDE : -STEP_SIDE;
+      tezcatlStore.impacts.push({ x: x - 0.25, z: zDepth + side, amount: STEP_AMOUNT * opacity });
     }
 
     // Pulse partage entre fresnel silhouette + noyau + halo (30 bpm,
@@ -590,7 +597,9 @@ export default function XolotlCompanion() {
         const dx = START_X + (END_X - START_X) * dt;
         const dy = getTerrainHeight(dx, Z_DEPTH) + Y_FOOT_OFFSET;
         cloneG.position.set(dx, dy, zDepth);
-        cloneG.visible = true;
+        // Pas de double au Nord (03/09, retour Sylvain) : le corps
+        // d'obsidienne se suffit, la trainee etait pour le fantome.
+        cloneG.visible = !north;
         // Fade envelope pour la clone : meme forme que primaire mais
         // decale de delayMs → la clone fade in un poil apres et fade
         // out un poil apres aussi, silhouette qui "traine".
