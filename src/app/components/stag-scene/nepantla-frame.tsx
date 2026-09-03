@@ -1,7 +1,9 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
+import { getPath } from "@/lib/routes";
+import { isLocale } from "@/dictionaries";
 import { useCardinalTransition } from "./cardinal-transition-context";
 
 /**
@@ -19,9 +21,24 @@ import { useCardinalTransition } from "./cardinal-transition-context";
  */
 export default function NepantlaFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const transition = useCardinalTransition();
   const ref = useRef<HTMLDivElement>(null);
   const previousPathnameRef = useRef(pathname);
+
+  // Prechargement des 5 destinations cardinales au boot (03/09,
+  // retour Sylvain "tout charger des le chargement de depart") : le
+  // passage Nepantla ne doit jamais attendre le reseau. En prod les
+  // pages sont SSG, ce prefetch met le RSC payload en cache avant le
+  // premier voyage. (En dev, Next compile quand meme a la volee.)
+  useEffect(() => {
+    const match = pathname?.match(/^\/([a-z]{2})(?:\/|$)/);
+    const locale = match && isLocale(match[1]) ? match[1] : "fr";
+    router.prefetch(`/${locale}`);
+    for (const key of ["services", "projets", "contact", "memoire"] as const) {
+      router.prefetch(getPath(locale, key));
+    }
+  }, [pathname, router]);
 
   useEffect(() => {
     transition?.registerFrame(ref.current);

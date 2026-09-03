@@ -3,6 +3,8 @@ import {
   NEPANTLA_TIMING,
   enterOffset,
   exitOffset,
+  swingAzimuth,
+  swingSpeed,
   type NepantlaDirection,
 } from "./nepantla";
 
@@ -62,11 +64,66 @@ describe("nepantla : offsets du contenu pendant le passage", () => {
   });
 });
 
+describe("nepantla : orbite continue de la camera (etage 2, plan-sequence)", () => {
+  it("part du repos et finit au repos exact : un tour complet (2π), position periodique identique", () => {
+    for (const direction of SLIDE_DIRECTIONS) {
+      expect(swingAzimuth(0, direction)).toBeCloseTo(0, 10);
+      expect(Math.abs(swingAzimuth(1, direction))).toBeCloseTo(Math.PI * 2, 10);
+    }
+  });
+
+  it("ne revient JAMAIS en arriere : azimut monotone dans le sens de la direction", () => {
+    for (const direction of SLIDE_DIRECTIONS) {
+      const sign = Math.sign(swingAzimuth(1, direction));
+      let previous = 0;
+      for (let i = 1; i <= 100; i++) {
+        const az = swingAzimuth(i / 100, direction);
+        expect(az * sign).toBeGreaterThanOrEqual(previous * sign);
+        previous = az;
+      }
+    }
+  });
+
+  it("Est et Ouest orbitent en sens opposes (on voyage VERS la direction)", () => {
+    expect(Math.sign(swingAzimuth(1, "dore"))).toBe(-Math.sign(swingAzimuth(1, "cendre")));
+  });
+
+  it("Centre (jade) : pas d'orbite, retour au foyer par l'axe", () => {
+    for (const t of [0, 0.25, 0.5, 0.75, 1]) {
+      expect(swingAzimuth(t, "jade")).toBe(0);
+    }
+  });
+
+  it("changement de vitesse : lent aux bornes, vitesse max au coeur du passage (la ou la nav se fait)", () => {
+    expect(swingSpeed(0)).toBeCloseTo(0, 5);
+    expect(swingSpeed(1)).toBeCloseTo(0, 5);
+    expect(swingSpeed(0.5)).toBeCloseTo(1, 5);
+    expect(swingSpeed(0.2)).toBeGreaterThan(0);
+    expect(swingSpeed(0.2)).toBeLessThan(swingSpeed(0.35));
+    // Symetrique : on accelere comme on decelere.
+    expect(swingSpeed(0.25)).toBeCloseTo(swingSpeed(0.75), 10);
+  });
+
+  it("hors bornes : clampe (le progress GSAP peut deborder d'un epsilon)", () => {
+    expect(swingAzimuth(-0.1, "dore")).toBe(0);
+    expect(Math.abs(swingAzimuth(1.1, "dore"))).toBeCloseTo(Math.PI * 2, 10);
+    expect(swingSpeed(-0.1)).toBe(0);
+    expect(swingSpeed(1.1)).toBe(0);
+  });
+});
+
 describe("nepantla : tempo partage du passage", () => {
   it("la sortie commence apres un temps de latence et finit avant la fin du progress (la nav se fait au coeur du mouvement)", () => {
     const exitEnd = NEPANTLA_TIMING.exitDelay + NEPANTLA_TIMING.exitDuration;
     expect(NEPANTLA_TIMING.exitDelay).toBeGreaterThan(0);
     expect(exitEnd).toBeLessThan(NEPANTLA_TIMING.progressDuration);
+  });
+
+  it("la navigation (fin de sortie) tombe dans la fenetre de vitesse max de l'orbite", () => {
+    const navMoment = (NEPANTLA_TIMING.exitDelay + NEPANTLA_TIMING.exitDuration) / NEPANTLA_TIMING.progressDuration;
+    expect(navMoment).toBeGreaterThanOrEqual(0.4);
+    expect(navMoment).toBeLessThanOrEqual(0.6);
+    expect(swingSpeed(navMoment)).toBeGreaterThan(0.9);
   });
 
   it("l'entree decelere plus longtemps que la sortie n'accelere (arrivee posee)", () => {

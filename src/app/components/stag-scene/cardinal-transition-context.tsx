@@ -146,12 +146,25 @@ export function CardinalTransitionProvider({ children }: { children: ReactNode }
     if (!direction) return; // nav directe (back/forward, URL) : rien a jouer.
     const frame = frameRef.current;
 
-    const finish = () => {
-      timelineRef.current?.kill();
+    const reset = () => {
       timelineRef.current = null;
       transitionProgressRef.current = 0;
       directionRef.current = null;
       setTransitionDirection(null);
+    };
+    // L'entree du contenu peut finir AVANT la fin du tour de camera
+    // (progressDuration) : couper la timeline ici ferait sauter
+    // l'orbite en plein vol. On laisse le voyage s'achever (il retombe
+    // exactement sur la position de repos, 2π periodique) et on reset
+    // a son terme.
+    const finish = () => {
+      const tl = timelineRef.current;
+      if (tl && tl.isActive()) {
+        tl.eventCallback("onComplete", reset);
+      } else {
+        tl?.kill();
+        reset();
+      }
     };
 
     if (!frame) {
