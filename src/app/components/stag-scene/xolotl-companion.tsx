@@ -351,7 +351,7 @@ export default function XolotlCompanion() {
       action.stop();
       cloneMixer.uncacheClip(walkClip);
     };
-  }, [cloneMixer, animations]);
+  }, [cloneMixer, animations, walkTimeScale]);
 
   // Décide spawn une fois par session/direction. sessionStorage évite
   // re-random au re-mount SPA (nav retour sur même page).
