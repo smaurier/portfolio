@@ -97,8 +97,16 @@ const EMBER_DISTANCE = 7;
 // Pas dans l'eau (03/09 bis, retour Sylvain "on ne voit pas son sillage
 // ni l'impact de ses pas, beaucoup trop timide") : une vraie empreinte
 // par pas, cadence de marche, pattes alternees gauche/droite.
+// 03/09 ter, retour Sylvain "pas une diffusion en anneaux, un vrai
+// sillage qui vient de l'avant" : source CONTINUE a l'avant du museau
+// (une petite goutte par frame). Le simulateur d'ondes fait le reste :
+// Xolotl (0.72 u/s au Nord) va plus vite que l'onde (~0.6 u/s), la
+// superposition des fronts forme un V de proue, un vrai sillage. Les
+// pas restent, plus discrets, pour la texture.
+const BOW_AMOUNT = 0.028;
+const BOW_AHEAD = 0.45;
 const STEP_EVERY_S = 0.32;
-const STEP_AMOUNT = 0.22;
+const STEP_AMOUNT = 0.07;
 const STEP_SIDE = 0.18;
 const POOL_RADIUS = 6.4;
 
@@ -364,7 +372,9 @@ export default function XolotlCompanion() {
   const obsidianMaterial = useMemo(
     // Hors des lumieres (couche 2), le corps se lit par une base EMISSIVE
     // violet obsidienne (independante des lumieres), pas par le PBR.
-    () => new MeshStandardMaterial({ color: new Color("#0a0812"), emissive: new Color("#100b20"), emissiveIntensity: 1.0, roughness: 0.9, metalness: 0.05, transparent: true, opacity: 0 }),
+    // fog: false (03/09, "la margelle et le fog le cachent") : l'obsidienne
+    // n'est pas fondue dans le brouillard, seul le cerf peut le masquer.
+    () => new MeshStandardMaterial({ color: new Color("#0a0812"), emissive: new Color("#100b20"), emissiveIntensity: 1.0, roughness: 0.9, metalness: 0.05, transparent: true, opacity: 0, fog: false }),
     []
   );
   const obsidianUniformsRef = useRef<RimLightUniforms[]>([]);
@@ -540,16 +550,26 @@ export default function XolotlCompanion() {
     // Nord : corps d'obsidienne (opacite = enveloppe), aretes qui
     // respirent, braise portee, ondes a ses pattes dans le bassin.
     const north = direction === "obsidienne";
-    setMaterialOpacity(obsidianMaterial, north ? opacity : 0);
+    // Totalement opaque hors des fondus d'entree/sortie (03/09).
+    setMaterialOpacity(obsidianMaterial, north ? Math.min(1, opacity / PEAK_OPACITY) : 0);
     if (north && obsidianUniformsRef.current.length > 0) {
       setEdgePulse(obsidianUniformsRef.current, 0.65 + 0.35 * Math.pow(Math.sin(nowSec * Math.PI * 0.25), 4));
     }
     if (emberRef.current) emberRef.current.intensity = north ? EMBER_INTENSITY * opacity : 0;
-    if (north && Math.hypot(x, zDepth) < POOL_RADIUS && nowSec - lastRippleRef.current > STEP_EVERY_S) {
-      lastRippleRef.current = nowSec;
-      stepRef.current += 1;
-      const side = stepRef.current % 2 === 0 ? STEP_SIDE : -STEP_SIDE;
-      tezcatlStore.impacts.push({ x: x - 0.25, z: zDepth + side, amount: STEP_AMOUNT * opacity });
+    // La braise publiee pour son reflet dans l'eau (tezcatl-water).
+    tezcatlStore.ember.x = x;
+    tezcatlStore.ember.y = y + 0.7 * XOLOTL_SCALE;
+    tezcatlStore.ember.z = zDepth;
+    tezcatlStore.ember.intensity = north ? opacity : 0;
+    if (north && Math.hypot(x, zDepth) < POOL_RADIUS) {
+      // Sillage de proue : source continue juste devant le museau.
+      tezcatlStore.impacts.push({ x: x + BOW_AHEAD, z: zDepth, amount: BOW_AMOUNT * opacity });
+      if (nowSec - lastRippleRef.current > STEP_EVERY_S) {
+        lastRippleRef.current = nowSec;
+        stepRef.current += 1;
+        const side = stepRef.current % 2 === 0 ? STEP_SIDE : -STEP_SIDE;
+        tezcatlStore.impacts.push({ x: x - 0.25, z: zDepth + side, amount: STEP_AMOUNT * opacity });
+      }
     }
 
     // Pulse partage entre fresnel silhouette + noyau + halo (30 bpm,

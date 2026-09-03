@@ -158,6 +158,10 @@ export default function TezcatlWater() {
           uRim: { value: RIM_COLOR },
           uLightDir: { value: LIGHT_DIR },
           uNormalGain: { value: NORMAL_GAIN },
+          // Reflet de la braise de Xolotl (03/09) : position monde + force.
+          uEmberPos: { value: new Vector3(0, 0, 0) },
+          uEmberStrength: { value: 0 },
+          uEmberColor: { value: new Color("#ff8a1a") },
         },
         transparent: true,
         depthWrite: false,
@@ -179,6 +183,9 @@ export default function TezcatlWater() {
           uniform vec3 uRim;
           uniform vec3 uLightDir;
           uniform float uNormalGain;
+          uniform vec3 uEmberPos;
+          uniform float uEmberStrength;
+          uniform vec3 uEmberColor;
           varying vec3 vWorldPos;
           const float EXTENT = ${EXTENT.toFixed(1)};
           const float RADIUS = ${WATER_RADIUS.toFixed(1)};
@@ -202,8 +209,16 @@ export default function TezcatlWater() {
             // plus opaque longe le bord : la limite de l'eau se lit.
             float mask = 1.0 - smoothstep(0.985, 1.0, d);
             float shore = smoothstep(0.9, 0.985, d);
-            vec3 col = uColor + uRim * fresnel * 0.35 + uSpec * (spec * 0.5 + slope * 0.18) + uRim * shore * 0.55;
-            float a = (uOpacity + fresnel * 0.15 + spec * 0.3 + slope * 0.15 + shore * 0.35) * mask;
+            // Reflet de la braise (03/09, retour Sylvain "un reflet de
+            // braises") : speculaire chaud de la lumiere portee par Xolotl,
+            // deforme par les ondes, plus une lueur qui tombe a ses pieds.
+            vec3 toEmber = uEmberPos - vWorldPos;
+            float emberDist = length(toEmber);
+            vec3 hEmber = normalize(normalize(toEmber) + view);
+            float emberSpec = pow(max(dot(n, hEmber), 0.0), 40.0) * uEmberStrength * 3.0 / (1.0 + emberDist * emberDist * 0.15);
+            float emberGlow = uEmberStrength * 0.35 / (1.0 + emberDist * emberDist * 0.6);
+            vec3 col = uColor + uRim * fresnel * 0.35 + uSpec * (spec * 0.5 + slope * 0.18) + uRim * shore * 0.55 + uEmberColor * (emberSpec + emberGlow);
+            float a = (uOpacity + fresnel * 0.15 + spec * 0.3 + slope * 0.15 + shore * 0.35 + emberSpec * 0.8 + emberGlow * 0.6) * mask;
             gl_FragColor = vec4(col, clamp(a, 0.0, 0.9));
           }
         `,
@@ -294,6 +309,9 @@ export default function TezcatlWater() {
     tezcatlStore.rippleTexel = sim.texel;
     material.uniforms.uHeight.value = sim.heightTexture;
     material.uniforms.uOpacity.value = opacityRef.current;
+    const ember = tezcatlStore.ember;
+    (material.uniforms.uEmberPos.value as Vector3).set(ember.x, ember.y, ember.z);
+    material.uniforms.uEmberStrength.value = ember.intensity;
   });
 
   return (

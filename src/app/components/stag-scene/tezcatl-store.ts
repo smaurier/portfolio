@@ -53,10 +53,13 @@ export const tezcatlStore: {
    * XolotlCompanion, lu par la couronne de cempasuchil qui converge vers
    * lui quand il est dans le bassin (03/09). */
   xolotl: { x: number; z: number } | null;
+  /** La braise de Xolotl (monde) : reflet chaud sur l'eau (03/09). */
+  ember: { x: number; y: number; z: number; intensity: number };
 } = {
   ripple: ZERO_TEXTURE,
   rippleTexel: 1,
   stagHit: null,
   impacts: [],
   xolotl: null,
+  ember: { x: 0, y: 0, z: 0, intensity: 0 },
 };
