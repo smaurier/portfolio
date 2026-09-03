@@ -6,6 +6,7 @@ import { useAnimations, useGLTF } from "@react-three/drei";
 import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type PointLight } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { rimCrossing, rimHop } from "@/lib/xolotl-rim";
+import { twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isBot } from "@/lib/is-bot";
 import { getTerrainHeight } from "@/lib/terrain-height";
@@ -114,6 +115,92 @@ const POOL_RADIUS = 6.4;
  * l'enjambe et l'eau eclabousse a l'entree et a la sortie (03/09). */
 const RIM_SPEC = { inner: 6.28, outer: 6.78, top: WATER_LEVEL + 0.09, reach: 0.5, hop: 0.18 };
 const SPLASH_AMOUNT = 0.3;
+
+/** ---- POSE DES PATTES PAR CINEMATIQUE INVERSE (03/09, piste choisie par
+ * Sylvain apres l'echec du modele analytique : "on va tester sur la 1").
+ *
+ * On ne calcule plus l'attitude du corps, on POSE les quatre pattes sur
+ * leur appui reel et le reste suit. Chaque membre du rig est une chaine
+ * hanche > genou > cheville > coussinet, donc DEUX segments, resolus en
+ * forme fermee par `twoBoneIK`. Consequence : sur la margelle, les pattes
+ * qui sont au-dessus de la pierre s'y posent, celles qui sont encore
+ * dehors restent au sol, et l'attitude du corps devient une consequence
+ * de la geometrie au lieu d'une valeur a regler.
+ *
+ * Noms d'os : inspection du GLB (rig Maya, chaine ROOT > Spine). Le
+ * membre arriere a un genou de plus (Knee2), traite comme faisant partie
+ * du segment bas : la longueur est mesuree a chaque frame sur les
+ * positions monde, pas au repos, donc cela reste juste. */
+type LegSpec = { hip: string; knee: string; ankle: string; ball: string };
+const LEGS: LegSpec[] = [
+  { hip: "Wolf_l_FrontLeg_HipSHJnt_4", knee: "Wolf_l_FrontLeg_KneeSHJnt_3", ankle: "Wolf_l_FrontLeg_AnkleSHJnt_2", ball: "Wolf_l_FrontLeg_BallSHJnt_1" },
+  { hip: "Wolf_r_FrontLeg_HipSHJnt_10", knee: "Wolf_r_FrontLeg_KneeSHJnt_9", ankle: "Wolf_r_FrontLeg_AnkleSHJnt_8", ball: "Wolf_r_FrontLeg_BallSHJnt_7" },
+  { hip: "Wolf_l_HindLeg_HipSHJnt_32", knee: "Wolf_l_HindLeg_Knee1SHJnt_31", ankle: "Wolf_l_HindLeg_AnkleSHJnt_29", ball: "Wolf_l_HindLeg_BallSHJnt_28" },
+  { hip: "Wolf_r_HindLeg_HipSHJnt_38", knee: "Wolf_r_HindLeg_Knee1SHJnt_37", ankle: "Wolf_r_HindLeg_AnkleSHJnt_35", ball: "Wolf_r_HindLeg_BallSHJnt_34" },
+];
+
+type Leg = {
+  hip: Object3D;
+  knee: Object3D;
+  ankle: Object3D;
+  ball: Object3D;
+  /** Les memes os sur le clone (reflet de braise) : il doit se poser pareil. */
+  twinHip: Object3D | null;
+  twinKnee: Object3D | null;
+};
+
+function collectLegs(root: Group, twinRoot: Group | null): Leg[] {
+  const out: Leg[] = [];
+  for (const spec of LEGS) {
+    const hip = root.getObjectByName(spec.hip);
+    const knee = root.getObjectByName(spec.knee);
+    const ankle = root.getObjectByName(spec.ankle);
+    const ball = root.getObjectByName(spec.ball);
+    if (!hip || !knee || !ankle || !ball) continue;
+    out.push({
+      hip,
+      knee,
+      ankle,
+      ball,
+      twinHip: twinRoot?.getObjectByName(spec.hip) ?? null,
+      twinKnee: twinRoot?.getObjectByName(spec.knee) ?? null,
+    });
+  }
+  return out;
+}
+
+/** Hauteur d'appui sous un point du monde : le sol, plus l'enjambement de
+ * la margelle. C'est ce que la patte doit toucher. */
+function supportHeight(px: number, pz: number, north: boolean): number {
+  const ground = getTerrainHeight(px, pz) + Y_FOOT_OFFSET;
+  return ground + (north ? rimHop(Math.hypot(px, pz), ground, RIM_SPEC) : 0);
+}
+
+/** Applique a un os une rotation exprimee en MONDE. Un os ne connait que
+ * son repere local : local' = Qp⁻¹ * delta * Qp * local, ou Qp est
+ * l'orientation monde du parent. Sans cette conversion, chaque os du rig
+ * (dont les orientations de repos diffèrent) partirait dans sa direction. */
+function applyWorldDelta(
+  bone: Object3D,
+  axis: Vec3,
+  angle: number,
+  delta: Quaternion,
+  parentQuat: Quaternion,
+  axisVec: Vector3
+) {
+  if (!Number.isFinite(angle) || Math.abs(angle) < 1e-5) return;
+  axisVec.set(axis.x, axis.y, axis.z);
+  delta.setFromAxisAngle(axisVec, angle);
+  const parent = bone.parent;
+  if (parent) {
+    parent.getWorldQuaternion(parentQuat);
+    delta.multiply(parentQuat);
+    parentQuat.invert();
+    delta.premultiply(parentQuat);
+  }
+  bone.quaternion.premultiply(delta);
+}
+
 /** Axe de tangage : la marche est le long de +X, le corps bascule donc
  * autour de l'axe Z du monde. Le tangage doit s'appliquer PAR-DESSUS le
  * cap (Rz * Ry), d'ou la composition de quaternions plutot qu'un Euler
@@ -473,6 +560,19 @@ export default function XolotlCompanion() {
     return m;
   }, []);
   const prevRadiusRef = useRef<number | null>(null);
+  const legsRef = useRef<Leg[] | null>(null);
+  const ikScratch = useMemo(
+    () => ({
+      hip: new Vector3(),
+      knee: new Vector3(),
+      ankle: new Vector3(),
+      ball: new Vector3(),
+      delta: new Quaternion(),
+      parentQuat: new Quaternion(),
+      axis: new Vector3(),
+    }),
+    []
+  );
   const emberRef = useRef<PointLight>(null);
   const lastRippleRef = useRef(0);
   const stepRef = useRef(0);
@@ -631,6 +731,47 @@ export default function XolotlCompanion() {
     // eclabousse quand il y entre et quand il en sort (03/09).
     const y = groundY + (inNorth ? rimHop(radius, groundY, RIM_SPEC) : 0);
     g.position.set(x, y, zDepth);
+    // ---- Pose des pattes : chaque coussinet va sur SON appui, en gardant
+    // le lever du cycle de marche (mesure par rapport a la base du corps).
+    // Nord seulement pour l'instant : c'est la que se trouve la margelle.
+    if (inNorth) {
+      if (!legsRef.current) {
+        const found = collectLegs(scene as Group, clonedScene as Group);
+        if (found.length > 0) legsRef.current = found;
+      }
+      const sc = ikScratch;
+      for (const leg of legsRef.current ?? []) {
+        leg.hip.getWorldPosition(sc.hip);
+        leg.knee.getWorldPosition(sc.knee);
+        leg.ankle.getWorldPosition(sc.ankle);
+        leg.ball.getWorldPosition(sc.ball);
+        const support = supportHeight(sc.ball.x, sc.ball.z, true);
+        // Lever de la patte au-dessus de la base du corps : on le conserve,
+        // c'est lui qui porte la foulee. Seul l'appui change.
+        const lift = Math.max(0, sc.ball.y - y);
+        const targetBallY = support + lift;
+        // La cheville est l'effecteur ; le coussinet est sous elle, on
+        // reporte donc l'ecart tel quel.
+        const targetAnkleY = targetBallY + (sc.ankle.y - sc.ball.y);
+        if (Math.abs(targetAnkleY - sc.ankle.y) < 1e-4) continue;
+        const solution = twoBoneIK(
+          { x: sc.hip.x, y: sc.hip.y, z: sc.hip.z },
+          { x: sc.knee.x, y: sc.knee.y, z: sc.knee.z },
+          { x: sc.ankle.x, y: sc.ankle.y, z: sc.ankle.z },
+          { x: sc.ankle.x, y: targetAnkleY, z: sc.ankle.z }
+        );
+        // Ordre impose par la construction de la solution : la hanche
+        // plie, puis le genou plie autour du MEME axe, puis la hanche
+        // vise. Inverser les deux derniers fausse l'axe du genou.
+        applyWorldDelta(leg.hip, solution.bendAxis, solution.hipBend, sc.delta, sc.parentQuat, sc.axis);
+        applyWorldDelta(leg.knee, solution.bendAxis, solution.kneeBend, sc.delta, sc.parentQuat, sc.axis);
+        applyWorldDelta(leg.hip, solution.aimAxis, solution.aimAngle, sc.delta, sc.parentQuat, sc.axis);
+        // Le reflet de braise se pose exactement pareil : meme rig, meme
+        // phase, donc les rotations locales se recopient telles quelles.
+        if (leg.twinHip) leg.twinHip.quaternion.copy(leg.hip.quaternion);
+        if (leg.twinKnee) leg.twinKnee.quaternion.copy(leg.knee.quaternion);
+      }
+    }
     if (inNorth) {
       const prevRadius = prevRadiusRef.current;
       if (prevRadius !== null) {
