@@ -215,7 +215,9 @@ export default function TezcatlWater() {
             vec3 toEmber = uEmberPos - vWorldPos;
             float emberDist = length(toEmber);
             vec3 hEmber = normalize(normalize(toEmber) + view);
-            float emberSpec = pow(max(dot(n, hEmber), 0.0), 40.0) * uEmberStrength * 3.0 / (1.0 + emberDist * emberDist * 0.15);
+            // 3.0 -> 1.0 (03/09) : le reflet de Xolotl est desormais un corps de
+            // braise (xolotl-companion), la trainee speculaire ne fait que l'accompagner.
+            float emberSpec = pow(max(dot(n, hEmber), 0.0), 40.0) * uEmberStrength * 1.0 / (1.0 + emberDist * emberDist * 0.15);
             float emberGlow = uEmberStrength * 0.35 / (1.0 + emberDist * emberDist * 0.6);
             vec3 col = uColor + uRim * fresnel * 0.35 + uSpec * (spec * 0.5 + slope * 0.18) + uRim * shore * 0.55 + uEmberColor * (emberSpec + emberGlow);
             float a = (uOpacity + fresnel * 0.15 + spec * 0.3 + slope * 0.15 + shore * 0.35 + emberSpec * 0.8 + emberGlow * 0.6) * mask;

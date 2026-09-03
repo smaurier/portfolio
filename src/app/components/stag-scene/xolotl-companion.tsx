@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { AdditiveBlending, AnimationMixer, Color, MeshBasicMaterial, MeshStandardMaterial, type Group, type Mesh, type PointLight } from "three";
+import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshStandardMaterial, ShaderMaterial, type Group, type Mesh, type PointLight, type Texture } from "three";
 import { applyRimLight, setBodyTintAmount, setEdgeIntensity, setEdgePulse, setNorthDark, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isBot } from "@/lib/is-bot";
@@ -11,7 +11,7 @@ import { getTerrainHeight } from "@/lib/terrain-height";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import type { DirectionKey } from "./direction-colors";
 import { useCurrentDirection } from "./use-current-direction";
-import { tezcatlStore } from "./tezcatl-store";
+import { TEZCATL_EXTENT, tezcatlStore } from "./tezcatl-store";
 
 /**
  * XolotlCompanion (29/08). Xolotl, chien-frère jumeau de Quetzalcoatl,
@@ -294,6 +294,132 @@ function createFresnelMaterial(uniforms: FresnelUniforms): MeshBasicMaterial {
 // Delai temporel de l'afterimage (ms). Court : ~150 ms = ~1/6 de cycle
 // walk, silhouette qui "traine" juste derriere la primaire. Trop long
 // (>500ms) = deux chiens distincts au lieu d'un afterimage.
+
+/** Le REFLET DE BRAISE de Xolotl (03/09, Sylvain : "le reflet de Xolotl
+ * est un Xolotl de braise, ca renforce que le reflet n'est pas fidele au
+ * Mictlan"). Meme mensonge que le reflet du cerf : la nappe ne rend pas
+ * ce qui la surplombe. Le vivant est d'obsidienne froide, son reflet
+ * brule : le Soleil qu'il escorte dans la nuit se voit dans l'eau, pas
+ * sur lui.
+ *
+ * Implementation : le clone anime (SkeletonUtils) suit Xolotl a la meme
+ * place et le miroir se fait DANS LE VERTEX SHADER (Y du monde replie
+ * sous le plan), jamais par un scale negatif d'ancetre : le skinning ne
+ * survit pas au flip de hierarchie (genese du 01/09 dans stag-mirror).
+ * Profondeur tassee (MIRROR_DEPTH_SCALE) et plan comme le cerf, pour que
+ * les deux reflets partagent la meme eau. */
+const EMBER_MIRROR_PLANE_Y = -0.2;
+const EMBER_MIRROR_DEPTH_SCALE = 0.7; // moins tasse que le cerf (0.5) : un chien est bas, il faut que la silhouette se lise
+const EMBER_MIRROR_RADIUS = 6.4; // WATER_RADIUS : le reflet vit dans le bassin
+const EMBER_MIRROR_CONTACT_DEPTH = 0.35 * EMBER_MIRROR_DEPTH_SCALE;
+const EMBER_MIRROR_REFRACT = 0.4; // meme dose que le reflet du cerf (3.0 : le sillage de proue l'etirait en flaque, capture 03/09)
+
+type EmberMirrorUniforms = {
+  uOpacity: { value: number };
+  uTime: { value: number };
+  uRipple: { value: Texture };
+  uTexel: { value: number };
+};
+
+function setEmberMirror(uniforms: EmberMirrorUniforms, opacity: number, time: number) {
+  uniforms.uOpacity.value = opacity;
+  uniforms.uTime.value = time;
+  uniforms.uRipple.value = tezcatlStore.ripple;
+  uniforms.uTexel.value = tezcatlStore.rippleTexel;
+}
+
+function createEmberMirrorMaterial(uniforms: EmberMirrorUniforms): ShaderMaterial {
+  return new ShaderMaterial({
+    uniforms: {
+      ...uniforms,
+      uPlaneY: { value: EMBER_MIRROR_PLANE_Y },
+      uDepthScale: { value: EMBER_MIRROR_DEPTH_SCALE },
+      uRadius: { value: EMBER_MIRROR_RADIUS },
+      uContactDepth: { value: EMBER_MIRROR_CONTACT_DEPTH },
+      uExtent: { value: TEZCATL_EXTENT },
+      uRefract: { value: EMBER_MIRROR_REFRACT },
+    },
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+    side: DoubleSide,
+    vertexShader: `
+      #include <common>
+      #include <skinning_pars_vertex>
+      uniform sampler2D uRipple;
+      uniform float uTexel;
+      uniform float uExtent;
+      uniform float uRefract;
+      uniform float uPlaneY;
+      uniform float uDepthScale;
+      varying vec3 vWorldPos;
+      varying vec3 vLocal;
+      void main() {
+        #include <skinbase_vertex>
+        #include <begin_vertex>
+        #include <skinning_vertex>
+        vLocal = transformed;
+        vec4 world = modelMatrix * vec4(transformed, 1.0);
+        // Miroir sous le plan de l'eau, profondeur tassee.
+        world.y = uPlaneY - (world.y - uPlaneY) * uDepthScale;
+        // Les ondes de la nappe refractent le reflet (gradient de hauteur).
+        vec2 suv = world.xz / (2.0 * uExtent) + 0.5;
+        float hL = texture2D(uRipple, suv - vec2(uTexel, 0.0)).x;
+        float hR = texture2D(uRipple, suv + vec2(uTexel, 0.0)).x;
+        float hB = texture2D(uRipple, suv - vec2(0.0, uTexel)).x;
+        float hT = texture2D(uRipple, suv + vec2(0.0, uTexel)).x;
+        world.xz += vec2(hR - hL, hT - hB) * uRefract;
+        vWorldPos = world.xyz;
+        gl_Position = projectionMatrix * viewMatrix * world;
+      }
+    `,
+    fragmentShader: `
+      uniform float uOpacity;
+      uniform float uTime;
+      uniform float uPlaneY;
+      uniform float uRadius;
+      uniform float uContactDepth;
+      varying vec3 vWorldPos;
+      varying vec3 vLocal;
+      float hash3(vec3 p) {
+        p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
+        p *= 17.0;
+        return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+      }
+      float vnoise(vec3 p) {
+        vec3 i = floor(p);
+        vec3 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        return mix(
+          mix(mix(hash3(i), hash3(i + vec3(1, 0, 0)), f.x), mix(hash3(i + vec3(0, 1, 0)), hash3(i + vec3(1, 1, 0)), f.x), f.y),
+          mix(mix(hash3(i + vec3(0, 0, 1)), hash3(i + vec3(1, 0, 1)), f.x), mix(hash3(i + vec3(0, 1, 1)), hash3(i + vec3(1, 1, 1)), f.x), f.y),
+          f.z);
+      }
+      void main() {
+        // Dans le bassin seulement, bord doux.
+        float mask = 1.0 - smoothstep(uRadius - 0.6, uRadius, length(vWorldPos.xz));
+        // Ligne de contact brouillee : le reflet emerge en s'eloignant du plan.
+        float contact = smoothstep(uPlaneY, uPlaneY - uContactDepth, vWorldPos.y);
+        // Braise : veines chaudes qui montent lentement dans le corps (espace
+        // local, la braise suit la marche), crepitement fin par-dessus.
+        float veins = vnoise(vLocal * 5.0 + vec3(0.0, -uTime * 0.5, 0.0));
+        float crackle = vnoise(vLocal * 16.0 + vec3(uTime * 0.35, 0.0, -uTime * 0.2));
+        float glow = smoothstep(0.42, 0.88, veins * 0.65 + crackle * 0.35);
+        float flicker = 0.85 + 0.15 * sin(uTime * 6.0 + veins * 25.0);
+        // Charbon sombre veine de braise : le bloom ne doit embraser que
+        // les veines, jamais la silhouette entiere (flaque jaune, capture 03/09).
+        // Base rouge sombre LISIBLE sur l'eau noire (0.14 : seules les veines
+        // restaient, tache, capture 03/09), veines orange, pointes chaudes rares.
+        vec3 col = mix(vec3(0.5, 0.09, 0.01), vec3(0.9, 0.38, 0.05), glow) * flicker;
+        col += vec3(1.0, 0.72, 0.35) * pow(glow, 5.0) * 0.25;
+        float a = uOpacity * mask * contact * (0.7 + 0.3 * glow);
+        if (a < 0.002) discard;
+        gl_FragColor = vec4(col, a);
+      }
+    `,
+  });
+}
+
 const AFTERIMAGE_DELAY_MS = 180;
 // Multiplier d'opacite pour l'afterimage vs primaire (fantome plus
 // tenu, moins present). 0.35 = discret mais visible.
@@ -385,6 +511,13 @@ export default function XolotlCompanion() {
     () => createFresnelMaterial(afterimageUniforms),
     [afterimageUniforms],
   );
+  // Reflet de braise (Nord) : le clone anime porte ce materiau, miroir
+  // fait dans le shader.
+  const emberMirrorUniforms = useMemo<EmberMirrorUniforms>(
+    () => ({ uOpacity: { value: 0 }, uTime: { value: 0 }, uRipple: { value: tezcatlStore.ripple }, uTexel: { value: tezcatlStore.rippleTexel } }),
+    []
+  );
+  const emberMirrorMaterial = useMemo(() => createEmberMirrorMaterial(emberMirrorUniforms), [emberMirrorUniforms]);
 
   useEffect(() => {
     obsidianUniformsRef.current = dressXolotl(scene as Group, direction === "obsidienne", obsidianMaterial, fresnelMaterial);
@@ -399,6 +532,7 @@ export default function XolotlCompanion() {
   // (SkeletonUtils.clone partage la geometry mais chaque mesh a sa
   // propre reference material apres reassignation).
   useEffect(() => {
+    const north = direction === "obsidienne";
     clonedScene.traverse((child) => {
       const mesh = child as Mesh;
       if (mesh.isMesh) {
@@ -406,11 +540,14 @@ export default function XolotlCompanion() {
           mesh.visible = false;
           return;
         }
-        mesh.material = afterimageMaterial;
+        // Au Nord le clone n'est plus l'afterimage : c'est le reflet de
+        // braise sous la nappe (miroir dans le vertex shader).
+        mesh.material = north ? emberMirrorMaterial : afterimageMaterial;
         mesh.renderOrder = 998;
+        mesh.frustumCulled = false;
       }
     });
-  }, [clonedScene, afterimageMaterial]);
+  }, [clonedScene, afterimageMaterial, emberMirrorMaterial, direction]);
 
   // Deuxieme mixer pour la clone : joue Walk independamment du mixer
   // primaire, avec un offset temporel initial (clone en arriere-phase
@@ -423,12 +560,12 @@ export default function XolotlCompanion() {
     action.play();
     // Decale la phase de la clone : depart a t = duration - delayInSec
     // → clone est ~180 ms en retard dans le cycle walk.
-    action.time = Math.max(0, walkClip.duration - AFTERIMAGE_DELAY_MS / 1000);
+    action.time = direction === "obsidienne" ? 0 : Math.max(0, walkClip.duration - AFTERIMAGE_DELAY_MS / 1000);
     return () => {
       action.stop();
       cloneMixer.uncacheClip(walkClip);
     };
-  }, [cloneMixer, animations, walkTimeScale]);
+  }, [cloneMixer, animations, walkTimeScale, direction]);
 
   // Décide spawn une fois par session/direction. sessionStorage évite
   // re-random au re-mount SPA (nav retour sur même page).
@@ -610,16 +747,20 @@ export default function XolotlCompanion() {
     // (la clone est "en retard" spatialement aussi, pas juste dans la
     // pose walk). Opacite reduite (fantome moins present que primaire).
     const cloneG = cloneGroupRef.current;
-    if (cloneG) {
+    if (cloneG && north) {
+      // Reflet de braise : meme place, meme pose, le shader replie sous
+      // l'eau. Opacite = celle du corps (fondus d'entree et de sortie).
+      cloneG.position.set(x, y, zDepth);
+      cloneG.visible = g.visible;
+      setEmberMirror(emberMirrorUniforms, Math.min(1, opacity / PEAK_OPACITY), nowSec);
+    } else if (cloneG) {
       const delayedElapsed = elapsed - AFTERIMAGE_DELAY_MS;
       if (delayedElapsed > 0) {
         const dt = delayedElapsed / totalMs;
         const dx = START_X + (END_X - START_X) * dt;
         const dy = getTerrainHeight(dx, Z_DEPTH) + Y_FOOT_OFFSET;
         cloneG.position.set(dx, dy, zDepth);
-        // Pas de double au Nord (03/09, retour Sylvain) : le corps
-        // d'obsidienne se suffit, la trainee etait pour le fantome.
-        cloneG.visible = !north;
+        cloneG.visible = true;
         // Fade envelope pour la clone : meme forme que primaire mais
         // decale de delayMs → la clone fade in un poil apres et fade
         // out un poil apres aussi, silhouette qui "traine".
