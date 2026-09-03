@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { twoBoneIK, type Vec3 } from "./two-bone-ik";
+import { DOG_LEG_LIMITS, twoBoneIK, type LegLimits, type Vec3 } from "./two-bone-ik";
 
 /** Rotation de Rodrigues : sert a verifier qu'appliquer la solution amene
  * bien la cheville sur la cible (le test refait le travail du composant). */
@@ -25,9 +25,11 @@ const HIP: Vec3 = { x: 0, y: 0, z: 0 };
 const KNEE: Vec3 = { x: 1, y: 0, z: 0 };
 const ANKLE: Vec3 = { x: 1, y: 1, z: 0 };
 
-/** Rejoue la solution comme le fait le composant : on plie, puis on vise. */
-function apply(target: Vec3) {
-  const s = twoBoneIK(HIP, KNEE, ANKLE, target);
+/** Rejoue la solution comme le fait le composant : on plie, puis on vise.
+ * Rend aussi l'angle INTERIEUR obtenu au genou, celui que les butees
+ * doivent contraindre. */
+function apply(target: Vec3, limits?: LegLimits) {
+  const s = twoBoneIK(HIP, KNEE, ANKLE, target, limits);
   // Pliage : la hanche tourne le membre entier, le genou tourne le bas.
   let upper = rotate({ x: KNEE.x - HIP.x, y: KNEE.y - HIP.y, z: KNEE.z - HIP.z }, s.bendAxis, s.hipBend);
   const lowerStart = { x: ANKLE.x - KNEE.x, y: ANKLE.y - KNEE.y, z: ANKLE.z - KNEE.z };
@@ -35,7 +37,14 @@ function apply(target: Vec3) {
   // Visee : le membre entier pivote autour de l'axe de visee.
   upper = rotate(upper, s.aimAxis, s.aimAngle);
   lower = rotate(lower, s.aimAxis, s.aimAngle);
-  return { solution: s, ankle: { x: upper.x + lower.x, y: upper.y + lower.y, z: upper.z + lower.z } };
+  // Angle interieur au genou : entre (hanche - genou) et (cheville - genou).
+  const back = { x: -upper.x, y: -upper.y, z: -upper.z };
+  const cos = (back.x * lower.x + back.y * lower.y + back.z * lower.z) / (len(back) * len(lower));
+  return {
+    solution: s,
+    ankle: { x: upper.x + lower.x, y: upper.y + lower.y, z: upper.z + lower.z },
+    kneeAngle: Math.acos(Math.max(-1, Math.min(1, cos))),
+  };
 }
 
 describe("twoBoneIK (poser la patte sur son appui)", () => {
@@ -108,5 +117,43 @@ describe("twoBoneIK (poser la patte sur son appui)", () => {
   it("deterministe", () => {
     const t = { x: 1.2, y: 0.4, z: -0.3 };
     expect(twoBoneIK(HIP, KNEE, ANKLE, t)).toEqual(twoBoneIK(HIP, KNEE, ANKLE, t));
+  });
+
+  describe("butees articulaires", () => {
+    it("le jarret ne se replie jamais plus que sa butee", () => {
+      const { solution, kneeAngle } = apply({ x: 0.25, y: 0.25, z: 0 }, DOG_LEG_LIMITS);
+      expect(solution.reachable).toBe(false);
+      expect(kneeAngle).toBeCloseTo(DOG_LEG_LIMITS.kneeMin, 6);
+    });
+
+    it("le jarret ne se verrouille jamais tendu", () => {
+      const { solution, kneeAngle } = apply({ x: 1.45, y: 1.45, z: 0 }, DOG_LEG_LIMITS);
+      expect(solution.reachable).toBe(false);
+      expect(kneeAngle).toBeCloseTo(DOG_LEG_LIMITS.kneeMax, 6);
+      expect(kneeAngle).toBeLessThan(Math.PI - 0.08);
+    });
+
+    it("la visee ne depasse jamais l'ecart autorise a la pose animee", () => {
+      const s = twoBoneIK(HIP, KNEE, ANKLE, { x: -1, y: 0.5, z: 0 }, DOG_LEG_LIMITS);
+      expect(s.aimAngle).toBeCloseTo(DOG_LEG_LIMITS.maxAim, 10);
+      expect(s.reachable).toBe(false);
+    });
+
+    it("dans la plage autorisee, les butees ne changent rien", () => {
+      const target = { x: 1.06, y: 1.06, z: 0 };
+      const limited = twoBoneIK(HIP, KNEE, ANKLE, target, DOG_LEG_LIMITS);
+      expect(limited.reachable).toBe(true);
+      expect(limited).toEqual(twoBoneIK(HIP, KNEE, ANKLE, target));
+    });
+
+    it("quelle que soit la cible, le genou reste dans sa plage anatomique", () => {
+      for (let i = 0; i < 200; i++) {
+        const a = (i / 200) * Math.PI * 2;
+        const r = 0.05 + (i % 40) * 0.12;
+        const { kneeAngle } = apply({ x: Math.cos(a) * r, y: Math.sin(a) * r, z: Math.sin(a * 3) * r * 0.5 }, DOG_LEG_LIMITS);
+        expect(kneeAngle).toBeGreaterThanOrEqual(DOG_LEG_LIMITS.kneeMin - 1e-6);
+        expect(kneeAngle).toBeLessThanOrEqual(DOG_LEG_LIMITS.kneeMax + 1e-6);
+      }
+    });
   });
 });

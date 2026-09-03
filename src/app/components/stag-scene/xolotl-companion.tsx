@@ -6,7 +6,7 @@ import { useAnimations, useGLTF } from "@react-three/drei";
 import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type PointLight } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { rimCrossing, rimHop } from "@/lib/xolotl-rim";
-import { twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
+import { DOG_LEG_LIMITS, twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isBot } from "@/lib/is-bot";
 import { getTerrainHeight } from "@/lib/terrain-height";
@@ -758,7 +758,8 @@ export default function XolotlCompanion() {
           { x: sc.hip.x, y: sc.hip.y, z: sc.hip.z },
           { x: sc.knee.x, y: sc.knee.y, z: sc.knee.z },
           { x: sc.ankle.x, y: sc.ankle.y, z: sc.ankle.z },
-          { x: sc.ankle.x, y: targetAnkleY, z: sc.ankle.z }
+          { x: sc.ankle.x, y: targetAnkleY, z: sc.ankle.z },
+          DOG_LEG_LIMITS
         );
         // Ordre impose par la construction de la solution : la hanche
         // plie, puis le genou plie autour du MEME axe, puis la hanche

@@ -56,6 +56,49 @@ function angleBetween(a: Vec3, b: Vec3): number {
   return Math.acos(clamp(dot(a, b) / (la * lb), -1, 1));
 }
 
+/** Butees articulaires (03/09, retour Sylvain : "il serait bon de bloquer
+ * les articulations pour eviter certains angles impossibles").
+ *
+ * Un solveur en forme fermee permet de les exprimer en ANATOMIE plutot
+ * qu'en bornes d'Euler par os (ce que propose le CCDIKSolver de three.js,
+ * moins lisible et dependant de l'orientation de repos du rig) :
+ *
+ *  - l'angle interieur du genou est directement borne. Comme la distance
+ *    hanche-cheville en decoule par la loi des cosinus, borner l'angle
+ *    borne exactement l'allonge : le membre ne peut ni se replier plus
+ *    qu'un vrai jarret, ni s'hyperextendre au-dela de la butee ;
+ *  - la visee de la hanche est bornee par rapport a la POSE ANIMEE. La
+ *    limite ne contraint donc pas l'amplitude de la foulee (qui vient du
+ *    clip), seulement l'ecart que la correction peut y ajouter. */
+export type LegLimits = {
+  /** Angle interieur minimal au genou, en radians : repli maximal. */
+  kneeMin: number;
+  /** Angle interieur maximal : PI = tendu. En dessous, le membre garde
+   * toujours une legere flexion, comme un vrai membre porteur. */
+  kneeMax: number;
+  /** Ecart de visee maximal par rapport a la pose animee, en radians. */
+  maxAim: number;
+};
+
+/** Butees d'un membre de canide, calees sur une MESURE du clip de marche
+ * du modele (trace instrumentee 03/09 : le genou anime va de 88 a 173
+ * degres selon la patte). Les butees encadrent cette plage sans la
+ * mordre, sinon la correction se battrait avec l'animation a chaque
+ * frame, y compris sur terrain plat :
+ *  - 70 degres de repli minimal (l'anime descend a 88) : empeche la
+ *    correction de replier la patte dans le corps quand un coussinet
+ *    doit se hisser haut sur la pierre ;
+ *  - 174 degres d'extension maximale (l'anime monte a 173) : la patte ne
+ *    se verrouille jamais tendue et le genou ne peut pas s'inverser. */
+export const DOG_LEG_LIMITS: LegLimits = {
+  kneeMin: 1.22,
+  kneeMax: 3.04,
+  maxAim: 0.45,
+};
+
+/** Aucune butee : le solveur nu, utile pour tester la geometrie seule. */
+export const NO_LEG_LIMITS: LegLimits = { kneeMin: 0, kneeMax: Math.PI, maxAim: Math.PI };
+
 export type TwoBoneSolution = {
   /** Axe de FLEXION (monde, unitaire) : la normale au plan du membre.
    * Les deux rotations de pliage tournent autour de lui, ce qui garantit
@@ -70,10 +113,17 @@ export type TwoBoneSolution = {
   aimAxis: Vec3;
   /** Angle de visee (radians). */
   aimAngle: number;
-  /** Faux si la cible etait hors d'allonge : le membre s'y tend au
-   * maximum sans jamais s'hyperextendre ni s'inverser. */
+  /** Faux si une butee a mordu : la cible etait hors d'allonge, ou
+   * demandait un repli ou une visee interdits. Le membre va alors aussi
+   * loin que ses butees l'autorisent, jamais au-dela. */
   reachable: boolean;
 };
+
+/** Distance hanche-cheville pour un angle de genou donne (loi des
+ * cosinus). Croissante : borner l'angle borne donc l'allonge. */
+function reachAtKneeAngle(lab: number, lcb: number, kneeAngle: number): number {
+  return Math.sqrt(Math.max(0, lab * lab + lcb * lcb - 2 * lab * lcb * Math.cos(kneeAngle)));
+}
 
 /**
  * Resout le membre pour amener `ankle` sur `target`.
@@ -83,7 +133,13 @@ export type TwoBoneSolution = {
  * @param ankle position monde de la cheville (effecteur)
  * @param target position monde visee pour la cheville
  */
-export function twoBoneIK(hip: Vec3, knee: Vec3, ankle: Vec3, target: Vec3): TwoBoneSolution {
+export function twoBoneIK(
+  hip: Vec3,
+  knee: Vec3,
+  ankle: Vec3,
+  target: Vec3,
+  limits: LegLimits = NO_LEG_LIMITS
+): TwoBoneSolution {
   const upper = sub(knee, hip);
   const lower = sub(ankle, knee);
   const lab = length(upper);
@@ -94,10 +150,11 @@ export function twoBoneIK(hip: Vec3, knee: Vec3, ankle: Vec3, target: Vec3): Two
   const reach = lab + lcb;
   const folded = Math.abs(lab - lcb);
   const wanted = length(toTarget);
-  // Distance realisable : ni au-dela de l'allonge (jambe hyperextendue),
-  // ni en dessous du repliement maximal (le genou se retournerait).
-  const dist = clamp(wanted, folded + EPS, reach - EPS);
-  const reachable = wanted <= reach - EPS && wanted >= folded + EPS;
+  // Allonge autorisee : bornee par la geometrie (jamais d'inversion du
+  // genou, jamais d'hyperextension) ET par les butees articulaires.
+  const distMin = Math.max(folded + EPS, reachAtKneeAngle(lab, lcb, limits.kneeMin));
+  const distMax = Math.max(distMin, Math.min(reach - EPS, reachAtKneeAngle(lab, lcb, limits.kneeMax)));
+  const dist = clamp(wanted, distMin, distMax);
 
   // Angles actuels du triangle hanche-genou-cheville.
   const hipAngleNow = angleBetween(toAnkle, upper);
@@ -115,10 +172,14 @@ export function twoBoneIK(hip: Vec3, knee: Vec3, ankle: Vec3, target: Vec3): Two
     bendAxis = cross(upper, seed);
   }
 
-  // Visee : amener la direction hanche-cheville sur hanche-cible.
-  const aimAngle = angleBetween(toAnkle, toTarget);
+  // Visee : amener la direction hanche-cheville sur hanche-cible, dans la
+  // limite de l'ecart autorise a la pose animee.
+  const aimWanted = angleBetween(toAnkle, toTarget);
+  const aimAngle = Math.min(aimWanted, limits.maxAim);
   let aimAxis = cross(toAnkle, toTarget);
   if (length(aimAxis) < 1e-6) aimAxis = bendAxis;
+
+  const reachable = wanted >= distMin && wanted <= distMax && aimWanted <= limits.maxAim;
 
   return {
     bendAxis: normalize(bendAxis),
