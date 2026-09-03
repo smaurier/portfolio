@@ -1,5 +1,6 @@
 "use client";
 
+import { useCurrentDirection } from "./use-current-direction";
 import { useMemo } from "react";
 import { generateRingPlacements } from "@/lib/flora-placement";
 import { getTerrainHeight } from "@/lib/terrain-height";
@@ -84,6 +85,9 @@ function GrassTuft({
   );
 }
 
+/** Rayon de la margelle du bassin du Nord (cf tezcatl-water WATER_RADIUS + margelle). */
+const POOL_RADIUS = 6.9;
+
 export default function Grass() {
   const placements = useMemo(
     () =>
@@ -102,18 +106,21 @@ export default function Grass() {
     [],
   );
 
+  // Au Nord, les touffes DANS le bassin (r < rayon de la margelle)
+  // disparaissent (03/09, retour Sylvain "on va sortir les plantes du
+  // bassin") ; celles du dehors restent.
+  const direction = useCurrentDirection();
+  const north = direction === "obsidienne";
   return (
     <>
-      {placements.map((p, i) => (
-        <GrassTuft
-          key={i}
-          x={p.x}
-          z={p.z}
-          rotationY={p.rotationY}
-          scale={p.scale}
-          seed={i * 1.7}
-        />
-      ))}
+      {placements.map((p, i) => {
+        const inPool = Math.hypot(p.x, p.z) < POOL_RADIUS;
+        return (
+          <group key={i} visible={!(north && inPool)}>
+            <GrassTuft x={p.x} z={p.z} rotationY={p.rotationY} scale={p.scale} seed={i * 1.7} />
+          </group>
+        );
+      })}
     </>
   );
 }

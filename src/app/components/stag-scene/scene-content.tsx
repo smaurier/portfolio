@@ -20,6 +20,7 @@ import ObsidianArrows from "./obsidian-arrows";
 import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
 import CempasuchilPath from "./cempasuchil-path";
+import MictlanMist from "./mictlan-mist";
 import StagModel from "./stag-model";
 import Vines from "./vines";
 
@@ -125,6 +126,10 @@ export default function SceneContent({
       <Suspense fallback={null}>
         <CempasuchilPath />
       </Suspense>
+      {/* Nappes de brouillard (03/09) : simulateur de fluide aux bords du
+       * bassin, trois nappes empilees qui voilent la margelle. Nord
+       * uniquement. */}
+      <MictlanMist />
     </>
   );
 }

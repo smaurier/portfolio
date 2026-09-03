@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
+import { useCurrentDirection } from "./use-current-direction";
 import { useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Group } from "three";
 import { getMilpaGrowth } from "@/lib/reveal-arc";
@@ -102,8 +103,22 @@ function MilpaStalk({
  * de premier plan qui se dégage naturellement avec l'orbite de la caméra.
  */
 export default function Milpa({ progressRef }: { progressRef: MutableRefObject<number> }) {
+  // Pas de mais dans le bassin du Nord (03/09, retour Sylvain "on va sortir
+  // les plantes du bassin") : la milpa se retracte au Nord (fondu par
+  // l'echelle), reste partout ailleurs.
+  const direction = useCurrentDirection();
+  const northFadeRef = useRef(direction === "obsidienne" ? 0 : 1);
+  const rootRef = useRef<Group>(null);
+  useFrame(() => {
+    const target = direction === "obsidienne" ? 0 : 1;
+    northFadeRef.current += (target - northFadeRef.current) * 0.06;
+    if (rootRef.current) {
+      rootRef.current.visible = northFadeRef.current > 0.02;
+      rootRef.current.scale.set(1, Math.max(0.001, northFadeRef.current), 1);
+    }
+  });
   return (
-    <>
+    <group ref={rootRef}>
       {MIDGROUND_POSITIONS.map(([x, z], i) => (
         <MilpaStalk
           key={`mid-${i}`}
@@ -124,7 +139,7 @@ export default function Milpa({ progressRef }: { progressRef: MutableRefObject<n
           progressRef={progressRef}
         />
       ))}
-    </>
+    </group>
   );
 }
 

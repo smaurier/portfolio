@@ -51,7 +51,9 @@ const DIRECTION_SPAWN_PROBABILITY: Record<DirectionKey, number> = {
   dore: 0.15,
   turquoise: 0.15,
   cendre: 0.15,
-  obsidienne: 0.4,
+  // 0.4 -> 1 (03/09, retour Sylvain "cela fait tres longtemps que je n'ai
+  // pas vu Xolotl") : le Mictlan est son royaume, il y passe toujours.
+  obsidienne: 1,
 };
 
 const APPEAR_DELAY_FIRST_MS = 10_000;
@@ -346,7 +348,8 @@ export default function XolotlCompanion() {
     if (isBot() || readingMode.active) return void setSpawn(false);
      
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return void setSpawn(false);
-    const key = `nahual-xolotl-spawn-${direction}`;
+    // v2 (03/09) : invalide les tirages "non" caches avant le passage a 1 au Nord.
+    const key = `nahual-xolotl-spawn-v2-${direction}`;
     const cached = sessionStorage.getItem(key);
     let shouldSpawn: boolean;
     if (cached !== null) {

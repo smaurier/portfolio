@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
-import { Box3, Color, Euler, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry } from "three";
+import { Box3, BufferGeometry, Color, Euler, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3 } from "three";
 import { cempasuchilFlowers, CEMPASUCHIL_COUNT } from "@/lib/cempasuchil-path";
 import { WATER_LEVEL } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -24,10 +24,44 @@ import { useSceneRefs } from "./scene-refs-context";
 const MODEL_PATH = "/models/flowers-quaternius.glb";
 const FLOWER_NODE = "Flower_1";
 /** Hauteur cible d'une fleur (monde) : ~15 cm pour un cerf de 2 unites. */
-const FLOWER_HEIGHT = 0.11; // 0.2 -> 0.13 -> 0.11 (captures 02/09 et 03/09)
+const FLOWER_HEIGHT = 0.1; // hauteur de la TETE seule (03/09)
 /** La tige plonge sous la nappe : seule la tete flotte. */
-const SINK = 0.075;
+const SINK = 0.02; // la tete flotte, a peine enfoncee (plus de tige)
 const CEMPASUCHIL = new Color("#ff8a1a");
+/** Fraction de la hauteur du modele en dessous de laquelle on coupe (la
+ * tige) : 0.55 garde la corolle et les feuilles hautes. */
+const HEAD_CUT = 0.55;
+
+/** Ne garde que les triangles dont les trois sommets sont au-dessus de
+ * `fraction` de la hauteur totale. Geometrie non indexee en sortie. */
+function keepAbove(src: BufferGeometry, fraction: number): BufferGeometry {
+  const g = src.index ? src.toNonIndexed() : src;
+  g.computeBoundingBox();
+  const bb = g.boundingBox ?? new Box3();
+  const cut = bb.min.y + (bb.max.y - bb.min.y) * fraction;
+  const pos = g.attributes.position;
+  const uv = g.attributes.uv;
+  const nor = g.attributes.normal;
+  const outPos: number[] = [];
+  const outUv: number[] = [];
+  const outNor: number[] = [];
+  for (let t = 0; t < pos.count; t += 3) {
+    const ys = [pos.getY(t), pos.getY(t + 1), pos.getY(t + 2)];
+    if (Math.min(...ys) < cut) continue;
+    for (let k = 0; k < 3; k++) {
+      outPos.push(pos.getX(t + k), pos.getY(t + k), pos.getZ(t + k));
+      if (uv) outUv.push(uv.getX(t + k), uv.getY(t + k));
+      if (nor) outNor.push(nor.getX(t + k), nor.getY(t + k), nor.getZ(t + k));
+    }
+  }
+  const out = new BufferGeometry();
+  out.setAttribute("position", new Float32BufferAttribute(outPos, 3));
+  if (uv) out.setAttribute("uv", new Float32BufferAttribute(outUv, 2));
+  if (nor) out.setAttribute("normal", new Float32BufferAttribute(outNor, 3));
+  else out.computeVertexNormals();
+  if (g !== src) g.dispose();
+  return out;
+}
 
 export default function CempasuchilPath() {
   const meshRef = useRef<InstancedMesh>(null);
@@ -43,9 +77,14 @@ export default function CempasuchilPath() {
     // normalisee : hauteur FLOWER_HEIGHT, pied a y=0, centree en xz. Le
     // pack a la fleur debout selon +z local : on la redresse selon +y.
     src.updateWorldMatrix(true, false);
-    const geo = src.geometry.clone();
-    geo.applyMatrix4(src.matrixWorld);
-    geo.rotateX(-Math.PI / 2);
+    const whole = src.geometry.clone();
+    whole.applyMatrix4(src.matrixWorld);
+    whole.rotateX(-Math.PI / 2);
+    // TETE SEULE (03/09, retour Sylvain "ne garder que les fleurs, pas
+    // leurs tiges") : on ne garde que les triangles du haut du modele
+    // (au-dessus de HEAD_CUT de la hauteur), la tige est jetee.
+    const geo = keepAbove(whole, HEAD_CUT);
+    whole.dispose();
     geo.computeBoundingBox();
     const box = geo.boundingBox ?? new Box3();
     const size = box.getSize(new Vector3());
