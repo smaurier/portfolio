@@ -231,6 +231,13 @@ const AFTERIMAGE_OPACITY_MULT = 0.35;
 
 export default function XolotlCompanion() {
   const direction = useCurrentDirection();
+  // Au Nord (03/09, retour Sylvain "il marche peut-etre trop vite") : il
+  // passe pres de la camera, la meme vitesse parait double. Traversee
+  // x1.8 et cadence de marche divisee d'autant (sinon les pattes glissent).
+  const northSlow = direction === "obsidienne" ? 1.8 : 1;
+  const traverseMs = TRAVERSE_MS * northSlow;
+  const totalMs = FADE_MS * 2 + traverseMs;
+  const walkTimeScale = WALK_TIME_SCALE / northSlow;
   const readingMode = useReadingMode();
   const groupRef = useRef<Group>(null);
   const coreRef = useRef<Mesh>(null);
@@ -335,7 +342,7 @@ export default function XolotlCompanion() {
     const walkClip = animations.find((a) => a.name === WALK_ANIM);
     if (!walkClip) return;
     const action = cloneMixer.clipAction(walkClip);
-    action.timeScale = WALK_TIME_SCALE;
+    action.timeScale = walkTimeScale;
     action.play();
     // Decale la phase de la clone : depart a t = duration - delayInSec
     // → clone est ~180 ms en retard dans le cycle walk.
@@ -377,7 +384,7 @@ export default function XolotlCompanion() {
       setStartedAt(performance.now());
       const walk = actions[WALK_ANIM];
       if (walk) {
-        walk.timeScale = WALK_TIME_SCALE;
+        walk.timeScale = walkTimeScale;
         walk.reset().play();
       }
       // Reset flag "codex deja lu pour ce cycle" (retour Sylvain 30/08 :
@@ -398,7 +405,7 @@ export default function XolotlCompanion() {
       window.dispatchEvent(new CustomEvent("nahual-xolotl-state"));
     }, delay);
     return () => window.clearTimeout(timer);
-  }, [spawn, alreadyWitnessed, actions]);
+  }, [spawn, alreadyWitnessed, actions, walkTimeScale]);
 
   useFrame((_state, delta) => {
     const g = groupRef.current;
@@ -414,7 +421,7 @@ export default function XolotlCompanion() {
     // Update mixer clone (le mixer primaire est gere par useAnimations).
     cloneMixer.update(delta);
     const elapsed = performance.now() - startedAt;
-    if (elapsed > TOTAL_MS) {
+    if (elapsed > totalMs) {
       // Anim complète : marque témoignage si tab visible
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         try {
@@ -437,7 +444,7 @@ export default function XolotlCompanion() {
     // Disparition organique via fade in/out uniquement (retour user
     // 29/08 iter 7 "pas partir derriere colline, laisse le marcher
     // droit et disparaitre naturellement").
-    const t = elapsed / TOTAL_MS;
+    const t = elapsed / totalMs;
     const zDepth = direction === "obsidienne" ? Z_DEPTH_NORTH : Z_DEPTH;
     const x = START_X + (END_X - START_X) * t;
     const y = getTerrainHeight(x, zDepth) + Y_FOOT_OFFSET;
@@ -453,8 +460,8 @@ export default function XolotlCompanion() {
     let opacity = PEAK_OPACITY;
     if (elapsed < FADE_MS) {
       opacity *= elapsed / FADE_MS;
-    } else if (elapsed > FADE_MS + TRAVERSE_MS) {
-      const fadeOutT = (elapsed - FADE_MS - TRAVERSE_MS) / FADE_MS;
+    } else if (elapsed > FADE_MS + traverseMs) {
+      const fadeOutT = (elapsed - FADE_MS - traverseMs) / FADE_MS;
       opacity *= 1 - fadeOutT;
     }
     // Update uniforms fresnel via helpers (react-hooks/immutability :
@@ -505,7 +512,7 @@ export default function XolotlCompanion() {
     if (cloneG) {
       const delayedElapsed = elapsed - AFTERIMAGE_DELAY_MS;
       if (delayedElapsed > 0) {
-        const dt = delayedElapsed / TOTAL_MS;
+        const dt = delayedElapsed / totalMs;
         const dx = START_X + (END_X - START_X) * dt;
         const dy = getTerrainHeight(dx, Z_DEPTH) + Y_FOOT_OFFSET;
         cloneG.position.set(dx, dy, zDepth);
@@ -516,8 +523,8 @@ export default function XolotlCompanion() {
         let cloneOpacity = PEAK_OPACITY;
         if (delayedElapsed < FADE_MS) {
           cloneOpacity *= delayedElapsed / FADE_MS;
-        } else if (delayedElapsed > FADE_MS + TRAVERSE_MS) {
-          const foT = (delayedElapsed - FADE_MS - TRAVERSE_MS) / FADE_MS;
+        } else if (delayedElapsed > FADE_MS + traverseMs) {
+          const foT = (delayedElapsed - FADE_MS - traverseMs) / FADE_MS;
           cloneOpacity *= 1 - foT;
         }
         setFresnelUniform(afterimageUniforms, "uOpacity", cloneOpacity * AFTERIMAGE_OPACITY_MULT);

@@ -34,10 +34,15 @@ const CEMPASUCHIL = new Color("#ff8a1a");
  * fleurs glissent vers lui (nuage autour, jamais empilees), puis
  * reviennent doucement a la couronne une fois sorti. */
 const POOL_RADIUS = 6.4;
-const PULL_RISE = 0.9; // /s
-const PULL_FALL = 0.22; // /s : le retour est lent
-const FOLLOW_RATE = 1.4; // /s vers la cible quand elles convergent
-const RETURN_RATE = 0.45; // /s vers la couronne quand elles reviennent
+// 03/09 bis, retour Sylvain "elles convergent trop vite, on dirait des
+// piranhas, attirees mais vraiment tres doucement" : tout divise par 4
+// a 5, et l'attraction ne va jamais au bout (PULL_MAX) : elles penchent
+// vers lui, elles ne l'assiegent pas.
+const PULL_RISE = 0.2; // /s
+const PULL_FALL = 0.1; // /s : le retour est encore plus lent
+const PULL_MAX = 0.7;
+const FOLLOW_RATE = 0.3; // /s vers la cible quand elles convergent
+const RETURN_RATE = 0.18; // /s vers la couronne quand elles reviennent
 const CLOUD_MIN = 0.5;
 const CLOUD_MAX = 1.6;
 /** Fraction de la hauteur du modele en dessous de laquelle on coupe (la
@@ -152,7 +157,7 @@ export default function CempasuchilPath() {
     // Xolotl dans le bassin ? La traction monte vite, redescend lentement.
     const xo = tezcatlStore.xolotl;
     const xoInPool = !!xo && Math.hypot(xo.x, xo.z) < POOL_RADIUS && !reduced;
-    const pullTarget = xoInPool ? 1 : 0;
+    const pullTarget = xoInPool ? PULL_MAX : 0;
     pullRef.current += (pullTarget - pullRef.current) * (1 - Math.exp(-(xoInPool ? PULL_RISE : PULL_FALL) * dt));
     const pull = pullRef.current;
     const anchorX = xo ? xo.x : 0;
