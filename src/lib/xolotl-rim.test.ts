@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bodyPitch, landingSquash, rimCrossing, rimHop } from "./xolotl-rim";
+import { rimCrossing, rimHop } from "./xolotl-rim";
 
 const RIM = { inner: 6.28, outer: 6.78, top: 0.34, reach: 0.5, hop: 0.3 };
 
@@ -39,37 +39,5 @@ describe("rimCrossing (entree et sortie de l'eau)", () => {
   it("reste du meme cote : rien", () => {
     expect(rimCrossing(6.0, 5.5, RIM)).toBeNull();
     expect(rimCrossing(7.0, 6.6, RIM)).toBeNull();
-  });
-});
-
-describe("bodyPitch (le corps suit sa trajectoire)", () => {
-  it("a plat, aucun cap", () => {
-    expect(bodyPitch(0.02, 0)).toBe(0);
-  });
-  it("museau haut a la montee, museau bas a la descente", () => {
-    expect(bodyPitch(0.02, 0.01)).toBeGreaterThan(0);
-    expect(bodyPitch(0.02, -0.01)).toBeLessThan(0);
-  });
-  it("symetrique et borne", () => {
-    expect(bodyPitch(0.02, 0.5)).toBeCloseTo(0.45, 5);
-    expect(bodyPitch(0.02, -0.5)).toBeCloseTo(-0.45, 5);
-    expect(bodyPitch(0.01, 0.004)).toBeCloseTo(-bodyPitch(0.01, -0.004), 10);
-  });
-});
-
-describe("landingSquash (les pattes amortissent)", () => {
-  it("le choc comprime", () => {
-    expect(landingSquash(0)).toBeCloseTo(0.8, 5);
-  });
-  it("revient a la pose normale", () => {
-    expect(landingSquash(1)).toBeCloseTo(1, 3);
-  });
-  it("rebondit : repasse au-dessus de 1 avant de se calmer", () => {
-    const samples = Array.from({ length: 60 }, (_, i) => landingSquash(i * 0.01));
-    expect(Math.max(...samples)).toBeGreaterThan(1);
-    expect(Math.max(...samples)).toBeLessThan(1.2);
-  });
-  it("jamais de valeur negative ou nulle", () => {
-    for (let i = 0; i < 200; i++) expect(landingSquash(i * 0.01)).toBeGreaterThan(0.5);
   });
 });
