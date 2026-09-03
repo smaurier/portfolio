@@ -47,3 +47,29 @@ export function bodyFromFeet(
     pitch: Math.max(-maxPitch, Math.min(maxPitch, angle)),
   };
 }
+
+/**
+ * Le ROULIS, deduit des appuis lateraux (03/09, suite : quand une seule
+ * patte arriere est sur la pierre, l'autre demande plus que son allonge).
+ * Meme raisonnement que l'assiette, applique a l'autre axe : si les deux
+ * cotes n'ont pas le meme appui, un corps qui reste a plat oblige un cote
+ * a s'etirer de toute la difference ; en s'inclinant de l'angle du devers,
+ * chaque cote n'en prend que la moitie.
+ *
+ * Le resultat est directement l'angle a appliquer AUTOUR DE L'AXE DE
+ * MARCHE avec la convention de three.js : une rotation positive autour de
+ * +X abaisse le cote +Z et remonte le cote -Z. Le signe est donc porte
+ * ici, teste, et non laisse au composant.
+ */
+export function rollFromFeet(
+  supportPlusZ: number,
+  supportMinusZ: number,
+  track: number,
+  maxRoll = 0.4
+): number {
+  const devers = supportPlusZ - supportMinusZ;
+  if (devers === 0 || track <= 0) return 0;
+  // Signe negatif : pour REMONTER le cote +Z, il faut tourner negativement.
+  const angle = -Math.atan2(devers, track);
+  return Math.max(-maxRoll, Math.min(maxRoll, angle));
+}

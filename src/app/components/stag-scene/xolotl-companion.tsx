@@ -6,7 +6,7 @@ import { useAnimations, useGLTF } from "@react-three/drei";
 import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type PointLight } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { rimCrossing, rimSurface } from "@/lib/xolotl-rim";
-import { bodyFromFeet } from "@/lib/quadruped-stance";
+import { bodyFromFeet, rollFromFeet } from "@/lib/quadruped-stance";
 import { DOG_LEG_LIMITS, twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isBot } from "@/lib/is-bot";
@@ -135,7 +135,12 @@ const STANCE_FOLLOW_RATE = 12;
  * quaternions : un Euler XYZ composerait dans l'autre sens et ne donnerait
  * qu'un roulis autour de l'axe de marche. */
 const PITCH_AXIS = new Vector3(0, 0, 1);
+/** Le roulis bascule autour de l'axe de marche (+X). */
+const ROLL_AXIS = new Vector3(1, 0, 0);
 const YAW_QUATERNION = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI / 2);
+/** Garde-fou de roulis : plus serre que l'assiette, un chien qui bancale
+ * trop se lit comme une chute. */
+const MAX_ROLL = 0.35;
 
 /** ---- POSE DES PATTES PAR CINEMATIQUE INVERSE (03/09, piste choisie par
  * Sylvain apres l'echec du modele analytique : "on va tester sur la 1").
@@ -586,8 +591,14 @@ export default function XolotlCompanion() {
   }, []);
   const prevRadiusRef = useRef<number | null>(null);
   const legsRef = useRef<Leg[] | null>(null);
-  const stanceRef = useRef<{ y: number; pitch: number } | null>(null);
+  const stanceRef = useRef<{ y: number; pitch: number; roll: number } | null>(null);
+  /** Les appuis viennent-ils des vraies pattes, ou du repli a l'aveugle ?
+   * Au changement de source la valeur saute : il faut se recaler d'un coup
+   * plutot que de filtrer, sinon l'assiette arrive avec un tour de retard
+   * (mesure : 35 cm d'ecart sur les premieres frames apres l'apparition). */
+  const stanceFromFeetRef = useRef(false);
   const quatScratch = useMemo(() => new Quaternion(), []);
+  const rollScratch = useMemo(() => new Quaternion(), []);
   const ikScratch = useMemo(
     () => ({
       hip: new Vector3(),
@@ -789,6 +800,17 @@ export default function XolotlCompanion() {
     let rearN = 0;
     let frontX = 0;
     let rearX = 0;
+    // Meme raisonnement lateralement : les deux cotes n'abordent pas la
+    // pierre en meme temps (la margelle est courbe et les pattes sont
+    // ecartees), et sans roulis le cote le plus haut devait s'etirer de
+    // TOUT le devers. Mesure avant correction : jusqu'a 11 cm au-dela de
+    // l'allonge sur une patte arriere.
+    let plusZSum = 0;
+    let minusZSum = 0;
+    let plusZN = 0;
+    let minusZN = 0;
+    let plusZPos = 0;
+    let minusZPos = 0;
     if (inNorth && legsRef.current) {
       const all = legsRef.current;
       for (let i = 0; i < all.length; i++) {
@@ -803,26 +825,63 @@ export default function XolotlCompanion() {
           rearX += sc.ball.x;
           rearN += 1;
         }
+        if (sc.ball.z >= zDepth) {
+          plusZSum += sup;
+          plusZPos += sc.ball.z;
+          plusZN += 1;
+        } else {
+          minusZSum += sup;
+          minusZPos += sc.ball.z;
+          minusZN += 1;
+        }
       }
     }
-    const frontSupport = frontN > 0 ? frontSum / frontN : supportHeight(x + HALF_BASE, zDepth, inNorth);
-    const rearSupport = rearN > 0 ? rearSum / rearN : supportHeight(x - HALF_BASE, zDepth, inNorth);
+    // Les positions lues datent de la frame precedente. A la toute
+    // premiere frame apres le reperage des os, elles sont encore celles du
+    // groupe avant placement : l'empattement mesure valait alors 1.96 au
+    // lieu de 0.6, l'assiette sortait a 7 degres au lieu de 22 et une
+    // patte manquait son appui de 41 cm (mesure 03/09). On ne fait donc
+    // confiance aux coussinets que s'ils sont VRAISEMBLABLEMENT sous le
+    // corps ; sinon on retombe sur l'echantillonnage fixe le temps d'une
+    // frame.
+    const plausible =
+      frontN > 0 &&
+      rearN > 0 &&
+      Math.abs(frontX / frontN - x) < 1.2 &&
+      Math.abs(rearX / rearN - x) < 1.2;
+    const frontSupport = plausible ? frontSum / frontN : supportHeight(x + HALF_BASE, zDepth, inNorth);
+    const rearSupport = plausible ? rearSum / rearN : supportHeight(x - HALF_BASE, zDepth, inNorth);
     // Empattement REEL entre les appuis, mesure lui aussi.
-    const wheelbase =
-      frontN > 0 && rearN > 0 ? Math.max(0.2, Math.abs(frontX / frontN - rearX / rearN)) : 2 * HALF_BASE;
+    const wheelbase = plausible ? Math.max(0.2, Math.abs(frontX / frontN - rearX / rearN)) : 2 * HALF_BASE;
     const stance = bodyFromFeet(frontSupport, rearSupport, wheelbase, MAX_PITCH);
+    // Voie reelle entre les deux cotes, mesuree elle aussi.
+    const track =
+      plausible && plusZN > 0 && minusZN > 0
+        ? Math.max(0.15, Math.abs(plusZPos / plusZN - minusZPos / minusZN))
+        : 0;
+    const rollTarget = track > 0 ? rollFromFeet(plusZSum / plusZN, minusZSum / minusZN, track, MAX_ROLL) : 0;
     const follow = 1 - Math.exp(-STANCE_FOLLOW_RATE * Math.min(delta, 1 / 30));
-    const prevStance = stanceRef.current;
+    const fromFeet = plausible;
+    const sourceChanged = fromFeet !== stanceFromFeetRef.current;
+    stanceFromFeetRef.current = fromFeet;
+    const prevStance = sourceChanged ? null : stanceRef.current;
     stanceRef.current = prevStance
       ? {
           y: prevStance.y + (stance.y - prevStance.y) * follow,
           pitch: prevStance.pitch + (stance.pitch - prevStance.pitch) * follow,
+          roll: prevStance.roll + (rollTarget - prevStance.roll) * follow,
         }
-      : { y: stance.y, pitch: stance.pitch };
+      : { y: stance.y, pitch: stance.pitch, roll: rollTarget };
     const y = stanceRef.current.y;
     const pitch = stanceRef.current.pitch;
+    const roll = stanceRef.current.roll;
     g.position.set(x, y, zDepth);
-    g.quaternion.copy(quatScratch.setFromAxisAngle(PITCH_AXIS, pitch)).multiply(YAW_QUATERNION);
+    // Cap, puis roulis autour de l'axe de marche, puis assiette : chaque
+    // rotation doit composer par-dessus la precedente, d'ou l'ordre.
+    quatScratch.setFromAxisAngle(PITCH_AXIS, pitch);
+    quatScratch.multiply(rollScratch.setFromAxisAngle(ROLL_AXIS, roll));
+    quatScratch.multiply(YAW_QUATERNION);
+    g.quaternion.copy(quatScratch);
     // ---- Pose des pattes : chaque coussinet va sur SON appui, en gardant
     // le lever du cycle de marche (mesure par rapport a la base du corps).
     // Nord seulement pour l'instant : c'est la que se trouve la margelle.
@@ -837,7 +896,9 @@ export default function XolotlCompanion() {
         // centre) : le corps etant incline, une patte avant est plus haute
         // que le centre sans etre levee pour autant. C'est ce plan-la qui
         // dit si la patte est posee ou en l'air.
-        const planeY = y + Math.tan(pitch) * (sc.ball.x - x);
+        // Le plan du corps porte aussi le roulis : une patte du cote bas
+        // est plus basse que le centre sans etre posee pour autant.
+        const planeY = y + Math.tan(pitch) * (sc.ball.x - x) - Math.tan(roll) * (sc.ball.z - zDepth);
         const lift = Math.max(0, sc.ball.y - planeY);
         const targetBallY = support + lift;
         // La cheville est l'effecteur ; le coussinet est sous elle, on

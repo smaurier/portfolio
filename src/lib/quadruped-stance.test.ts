@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bodyFromFeet } from "./quadruped-stance";
+import { bodyFromFeet, rollFromFeet } from "./quadruped-stance";
 
 const WHEELBASE = 0.9;
 
@@ -45,5 +45,43 @@ describe("bodyFromFeet (l'assiette se deduit des appuis)", () => {
     const s = bodyFromFeet(0.3, 0, 0);
     expect(s.pitch).toBe(0);
     expect(Number.isFinite(s.y)).toBe(true);
+  });
+});
+
+/** Rotation autour de +X, convention three.js : sert a verifier que le
+ * signe rendu remonte bien le cote qui a l'appui le plus haut. */
+function rotateAboutX(y: number, z: number, angle: number) {
+  return { y: y * Math.cos(angle) - z * Math.sin(angle), z: y * Math.sin(angle) + z * Math.cos(angle) };
+}
+
+describe("rollFromFeet (le roulis se deduit du devers)", () => {
+  it("appuis lateraux identiques : pas de roulis", () => {
+    expect(rollFromFeet(0.2, 0.2, 0.4)).toBe(0);
+  });
+
+  it("le cote dont l'appui est le plus haut est bien celui qui remonte", () => {
+    // Appui plus haut du cote +Z : un point du corps a +Z doit monter.
+    const roll = rollFromFeet(0.3, 0, 0.4);
+    expect(rotateAboutX(0, 1, roll).y).toBeGreaterThan(0);
+    // Et symetriquement de l'autre cote.
+    const other = rollFromFeet(0, 0.3, 0.4);
+    expect(rotateAboutX(0, -1, other).y).toBeGreaterThan(0);
+  });
+
+  it("le corps s'incline de l'angle du devers", () => {
+    expect(Math.abs(rollFromFeet(0.4, 0, 0.4, Math.PI))).toBeCloseTo(Math.PI / 4, 12);
+  });
+
+  it("devers trop fort pour ce corps : le roulis est borne", () => {
+    expect(rollFromFeet(5, 0, 0.4, 0.4)).toBeCloseTo(-0.4, 12);
+    expect(rollFromFeet(0, 5, 0.4, 0.4)).toBeCloseTo(0.4, 12);
+  });
+
+  it("voie nulle : pas de division par zero", () => {
+    expect(rollFromFeet(0.3, 0, 0)).toBe(0);
+  });
+
+  it("symetrique : inverser les deux cotes inverse le roulis", () => {
+    expect(rollFromFeet(0.25, 0.05, 0.4)).toBeCloseTo(-rollFromFeet(0.05, 0.25, 0.4), 12);
   });
 });
