@@ -39,10 +39,18 @@ const POOL_RADIUS = 6.4;
 // a 5, et l'attraction ne va jamais au bout (PULL_MAX) : elles penchent
 // vers lui, elles ne l'assiegent pas.
 const PULL_RISE = 0.2; // /s
-const PULL_FALL = 0.1; // /s : le retour est encore plus lent
 const PULL_MAX = 0.7;
 const FOLLOW_RATE = 0.3; // /s vers la cible quand elles convergent
-const RETURN_RATE = 0.18; // /s vers la couronne quand elles reviennent
+// Retour (03/09 ter, retour Sylvain "moins brutal, une autre courbe,
+// elles se deplacent toutes en meme temps, gros tas qui se replace") :
+// CHAQUE fleur a son delai (0..RETURN_STAGGER_S apres la sortie de
+// Xolotl) et sa propre lenteur ; sa traction descend en ease-in-out
+// (cosinus) sur sa propre duree, pas d'exponentielle commune. Le
+// surnaturel converge d'un bloc, le retour est une dispersion.
+const RETURN_STAGGER_S = 14;
+const RETURN_MIN_S = 10;
+const RETURN_MAX_S = 26;
+const RETURN_RATE = 0.35; // /s : suivi de la cible (qui, elle, bouge lentement)
 const CLOUD_MIN = 0.5;
 const CLOUD_MAX = 1.6;
 /** Fraction de la hauteur du modele en dessous de laquelle on coupe (la
@@ -137,6 +145,19 @@ export default function CempasuchilPath() {
     return arr;
   }, []);
   const pullRef = useRef(0);
+  // Retour individuel : delai et duree par fleur, instant de sortie.
+  const returnPlanRef = useMemo(() => {
+    const arr = new Float32Array(CEMPASUCHIL_COUNT * 2);
+    for (let i = 0; i < CEMPASUCHIL_COUNT; i++) {
+      arr[i * 2] = ((i * 0.618034) % 1) * RETURN_STAGGER_S;
+      arr[i * 2 + 1] = RETURN_MIN_S + ((i * 0.381966 + 0.2) % 1) * (RETURN_MAX_S - RETURN_MIN_S);
+    }
+    return arr;
+  }, []);
+  const leftAtRef = useRef<number | null>(null);
+  const lastAnchorRef = useRef<[number, number]>([0, 0]);
+  const wasInPoolRef = useRef(false);
+  const pullsRef = useRef(new Float32Array(CEMPASUCHIL_COUNT));
 
   useFrame((state, delta) => {
     const mesh = meshRef.current;
@@ -157,11 +178,37 @@ export default function CempasuchilPath() {
     // Xolotl dans le bassin ? La traction monte vite, redescend lentement.
     const xo = tezcatlStore.xolotl;
     const xoInPool = !!xo && Math.hypot(xo.x, xo.z) < POOL_RADIUS && !reduced;
-    const pullTarget = xoInPool ? PULL_MAX : 0;
-    pullRef.current += (pullTarget - pullRef.current) * (1 - Math.exp(-(xoInPool ? PULL_RISE : PULL_FALL) * dt));
-    const pull = pullRef.current;
-    const anchorX = xo ? xo.x : 0;
-    const anchorZ = xo ? xo.z : 0;
+    if (xoInPool && !wasInPoolRef.current) leftAtRef.current = null;
+    if (!xoInPool && wasInPoolRef.current) leftAtRef.current = t;
+    wasInPoolRef.current = xoInPool;
+    // Traction commune a la montee (le surnaturel), individuelle au retour.
+    if (xoInPool) pullRef.current += (PULL_MAX - pullRef.current) * (1 - Math.exp(-PULL_RISE * dt));
+    const pulls = pullsRef.current;
+    for (let i = 0; i < CEMPASUCHIL_COUNT; i++) {
+      if (xoInPool) {
+        pulls[i] = pullRef.current;
+      } else if (leftAtRef.current !== null) {
+        const since = t - leftAtRef.current - returnPlanRef[i * 2];
+        const duration = returnPlanRef[i * 2 + 1];
+        const start = pulls[i];
+        if (since > 0 && start > 0.0005) {
+          // Ease-in-out cosinus sur la duree propre : part sans a-coup,
+          // arrive sans a-coup.
+          const k = Math.min(1, since / duration);
+          const eased = 0.5 - 0.5 * Math.cos(k * Math.PI);
+          pulls[i] = Math.min(start, PULL_MAX * (1 - eased));
+        }
+      } else {
+        pulls[i] = 0;
+      }
+    }
+    if (!xoInPool) pullRef.current = 0;
+    if (xo) {
+      lastAnchorRef.current[0] = xo.x;
+      lastAnchorRef.current[1] = xo.z;
+    }
+    const anchorX = lastAnchorRef.current[0];
+    const anchorZ = lastAnchorRef.current[1];
     if (!currentRef.current) {
       currentRef.current = new Float32Array(CEMPASUCHIL_COUNT * 2);
       for (let i = 0; i < CEMPASUCHIL_COUNT; i++) {
@@ -175,7 +222,9 @@ export default function CempasuchilPath() {
       const f = flowers[i];
       const bob = reduced ? 0 : Math.sin(t * 1.3 + f.phase) * 0.012;
       const visible = f.visible ? 1 : 0;
-      // Cible : la couronne, tiree vers le nuage autour de Xolotl.
+      const pull = pulls[i];
+      // Cible : la couronne, tiree vers le nuage autour de Xolotl (dernier
+      // point connu une fois parti : les fleurs s'en detachent).
       const tx = f.x + (anchorX + cloudRef[i * 2] - f.x) * pull;
       const tz = f.z + (anchorZ + cloudRef[i * 2 + 1] - f.z) * pull;
       cur[i * 2] += (tx - cur[i * 2]) * rate;

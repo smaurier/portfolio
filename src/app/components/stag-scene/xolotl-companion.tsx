@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { AdditiveBlending, AnimationMixer, Color, MeshBasicMaterial, type Group, type Mesh } from "three";
+import { AdditiveBlending, AnimationMixer, Color, MeshBasicMaterial, MeshStandardMaterial, type Group, type Mesh, type PointLight } from "three";
+import { applyRimLight, setBodyTintAmount, setEdgeIntensity, setEdgePulse, setNorthDark, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isBot } from "@/lib/is-bot";
 import { getTerrainHeight } from "@/lib/terrain-height";
@@ -80,6 +81,22 @@ const Z_DEPTH = -10;
  * le bassin, les pattes dans l'eau, juste derriere le cerf. Le passeur
  * du Chiconahuapan traverse le fleuve, c'est litteralement son role. */
 const Z_DEPTH_NORTH = -1.5;
+/** Traitement du Nord (03/09, go Sylvain, fidele a la mythologie : Xolotl,
+ * jumeau de Quetzalcoatl et etoile du soir, guide le Soleil a travers
+ * l'inframonde chaque nuit) :
+ *  1. corps d'OBSIDIENNE opaque, le meme velours noir a sheen violet que
+ *     le cerf noir (rim-light uNorthDark), fini le fantome de fresnel
+ *     ("bien trop transparent par rapport a la scene") ;
+ *  2. la BRAISE qu'il porte : une lumiere chaude cempasuchil attachee a
+ *     lui, qui eclaire l'eau, la margelle et les fleurs a son passage,
+ *     le Soleil escorte dans la nuit ;
+ *  3. les ONDES a ses pattes : il traverse le fleuve, l'eau reagit. */
+const EMBER_COLOR = "#ff8a1a";
+const EMBER_INTENSITY = 9;
+const EMBER_DISTANCE = 7;
+const EMBER_RIPPLE_EVERY_S = 0.22;
+const EMBER_RIPPLE_AMOUNT = 0.05;
+const POOL_RADIUS = 6.4;
 
 // Peak opacity fresnel : 1.0 sur edges via shader (bord opaque),
 // centre transparent. C'est la variable qui module la globale
@@ -134,6 +151,48 @@ type HaloUniforms = {
 function setHaloUniforms(uniforms: HaloUniforms, opacity: number, pulse: number) {
   uniforms.uOpacity.value = opacity;
   uniforms.uPulse.value = pulse;
+}
+
+/** Opacite du corps d'obsidienne (Nord) : mutation isolee dans une
+ * fonction (react-hooks/immutability), meme pattern que setCoreOpacity. */
+function setMaterialOpacity(mat: MeshStandardMaterial, opacity: number) {
+  mat.opacity = opacity;
+}
+
+/** Habille les meshes de Xolotl : fresnel fantome partout, obsidienne
+ * velours au Nord (rim-light uNorthDark). Retourne les uniforms rim du
+ * Nord (vides ailleurs). Fonction hors composant : c'est elle qui mute
+ * la scene, pas l'effet. */
+function dressXolotl(root: Group, north: boolean, obsidian: MeshStandardMaterial, fresnel: MeshBasicMaterial): RimLightUniforms[] {
+  root.traverse((child) => {
+    const mesh = child as Mesh;
+    if (!mesh.isMesh) return;
+    // Object_8 (138 verts, seule sous-mesh interne du GLB Xolo Fab) =
+    // dents/langue/gencives : invisible, sinon le fresnel les eclaire
+    // comme des aretes dans la gueule ouverte pendant le walk cycle.
+    if (mesh.name === "Object_8") {
+      mesh.visible = false;
+      return;
+    }
+    mesh.material = north ? obsidian : fresnel;
+    mesh.renderOrder = 999;
+    // Au Nord, hors de portee des lumieres (couche 2, les lumieres sont
+    // sur la couche 0) : la braise qu'il porte ne l'eclaire pas lui-meme
+    // (sinon il ressortait pale, capture 03/09). Corps noir pur, seul le
+    // liseret fresnel (calcule dans le shader, sans lumiere) le dessine.
+    if (north) mesh.layers.set(2);
+    else mesh.layers.set(0);
+  });
+  if (!north) return [];
+  // Liseret violet SOMBRE et serre (03/09 : en "#8a7fb0" large il ressortait
+  // blanc-lavande, capture) : corps d'obsidienne, bord discret.
+  const uniforms = applyRimLight(root, { color: "#4a3a78", power: 4.5, intensity: 0.6 });
+  setNorthDark(uniforms, 1);
+  setRimLightColor(uniforms, 1, "#4a3a78");
+  setRimLightIntensity(uniforms, 0.75);
+  setBodyTintAmount(uniforms, 0);
+  setEdgeIntensity(uniforms, 0.45);
+  return uniforms;
 }
 
 function setCoreOpacity(core: Mesh, opacity: number) {
@@ -295,28 +354,31 @@ export default function XolotlCompanion() {
     [],
   );
   const fresnelMaterial = useMemo(() => createFresnelMaterial(shaderUniforms), [shaderUniforms]);
+  // Corps d'obsidienne du Nord : MeshStandardMaterial patche par rim-light
+  // (velours noir uNorthDark, sheen violet, aretes), opacite pilotee par
+  // l'enveloppe de fade comme le fresnel.
+  const obsidianMaterial = useMemo(
+    // Hors des lumieres (couche 2), le corps se lit par une base EMISSIVE
+    // violet obsidienne (independante des lumieres), pas par le PBR.
+    () => new MeshStandardMaterial({ color: new Color("#0a0812"), emissive: new Color("#100b20"), emissiveIntensity: 1.0, roughness: 0.9, metalness: 0.05, transparent: true, opacity: 0 }),
+    []
+  );
+  const obsidianUniformsRef = useRef<RimLightUniforms[]>([]);
+  const emberRef = useRef<PointLight>(null);
+  const lastRippleRef = useRef(0);
   const afterimageMaterial = useMemo(
     () => createFresnelMaterial(afterimageUniforms),
     [afterimageUniforms],
   );
 
   useEffect(() => {
-    scene.traverse((child) => {
-      const mesh = child as Mesh;
-      if (mesh.isMesh) {
-        // Object_8 (138 verts, seule sous-mesh interne du GLB Xolo Fab)
-        // = dents/langue/gencives. Rendu invisible pour eviter que le
-        // fresnel les eclaire comme des aretes de silhouette dans la
-        // gueule ouverte pendant le walk cycle.
-        if (mesh.name === "Object_8") {
-          mesh.visible = false;
-          return;
-        }
-        mesh.material = fresnelMaterial;
-        mesh.renderOrder = 999;
-      }
-    });
-  }, [scene, fresnelMaterial]);
+    obsidianUniformsRef.current = dressXolotl(scene as Group, direction === "obsidienne", obsidianMaterial, fresnelMaterial);
+  }, [scene, fresnelMaterial, obsidianMaterial, direction]);
+  // La camera doit voir la couche 2 (Xolotl du Nord).
+  const { camera } = useThree();
+  useEffect(() => {
+    camera.layers.enable(2);
+  }, [camera]);
 
   // Applique le material afterimage + cache Object_8 sur la clone
   // (SkeletonUtils.clone partage la geometry mais chaque mesh a sa
@@ -470,6 +532,18 @@ export default function XolotlCompanion() {
     setFresnelUniform(shaderUniforms, "uOpacity", opacity);
     const nowSec = performance.now() / 1000;
     setFresnelUniform(shaderUniforms, "uTime", nowSec);
+    // Nord : corps d'obsidienne (opacite = enveloppe), aretes qui
+    // respirent, braise portee, ondes a ses pattes dans le bassin.
+    const north = direction === "obsidienne";
+    setMaterialOpacity(obsidianMaterial, north ? opacity : 0);
+    if (north && obsidianUniformsRef.current.length > 0) {
+      setEdgePulse(obsidianUniformsRef.current, 0.65 + 0.35 * Math.pow(Math.sin(nowSec * Math.PI * 0.25), 4));
+    }
+    if (emberRef.current) emberRef.current.intensity = north ? EMBER_INTENSITY * opacity : 0;
+    if (north && Math.hypot(x, zDepth) < POOL_RADIUS && nowSec - lastRippleRef.current > EMBER_RIPPLE_EVERY_S) {
+      lastRippleRef.current = nowSec;
+      tezcatlStore.impacts.push({ x, z: zDepth, amount: EMBER_RIPPLE_AMOUNT * opacity });
+    }
 
     // Pulse partage entre fresnel silhouette + noyau + halo (30 bpm,
     // meme phase → tout respire ensemble). Calcul identique au shader
@@ -549,6 +623,8 @@ export default function XolotlCompanion() {
     <>
       <group ref={groupRef} scale={XOLOTL_SCALE} rotation={[0, Math.PI / 2, 0]} visible={false}>
         <primitive object={scene} />
+        {/* La braise (Nord) : le Soleil qu'il escorte dans la nuit. */}
+        <pointLight ref={emberRef} color={EMBER_COLOR} intensity={0} distance={EMBER_DISTANCE} decay={2} position={[0, 0.7, 0]} />
         {/* Noyau emissif "myocarde" : ellipsoide asymetrique place au
             thorax du chien (Y=0.55 local avant scale 0.85). Base
             IcosahedronGeometry (low-poly, aspect organique irregulier
