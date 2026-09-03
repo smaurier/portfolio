@@ -16,12 +16,22 @@ import { generateMountainRangePlacements } from "./mountain-range";
 /** Rayon autour du centre où le sol reste parfaitement plat : le cerf, le
  * maïs et les lianes sont tous ancrés à y=0 sans connaître ce relief,
  * sculpter sous leurs pieds les ferait flotter ou s'enfoncer. */
-const FLAT_RADIUS = 4;
+/** 4 -> 7.2 (03/09) : le bassin du Nord (margelle jusqu'au rayon 6.78) est
+ * une VASQUE DE PIERRE, elle ne peut pas reposer sur un sol qui monte et
+ * descend. Mesure avant correction : a rayon 6.5 le sol variait de -0.59 a
+ * +0.36 alors que la margelle est un anneau horizontal a 0.34. Xolotl y
+ * trouvait donc des marches de 0.67 a franchir, au-dela de l'allonge de
+ * ses pattes : elles decollaient (retour Sylvain "les pattes avant doivent
+ * toucher le sol"). Le sol est desormais de niveau sous le bassin et sur
+ * un petit parvis autour, et l'eau y a une profondeur constante. */
+const FLAT_RADIUS = 7.2;
 /** Au-delà de ce rayon, l'ondulation de dunes est à pleine amplitude :
  * entre FLAT_RADIUS et ce rayon, une transition progressive. Les bosses de
  * montagne (bien plus loin) ne sont pas concernées par cette transition,
  * seul le bruit de dunes proche l'est. */
-const BLEND_RADIUS = 9;
+// 9 -> 11 : le parvis etant plus large, la montee vers les dunes garde la
+// meme douceur (pas de talus a la sortie du plat).
+const BLEND_RADIUS = 11;
 /** Amplitude maximale de l'ondulation de dunes, en unités de scène. */
 const DUNE_AMPLITUDE = 1.6;
 

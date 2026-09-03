@@ -5,7 +5,8 @@ import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type PointLight } from "three";
 import { getMictlanSky } from "./mictlan-sky";
-import { rimCrossing, rimHop } from "@/lib/xolotl-rim";
+import { rimCrossing, rimSurface } from "@/lib/xolotl-rim";
+import { bodyFromFeet } from "@/lib/quadruped-stance";
 import { DOG_LEG_LIMITS, twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isBot } from "@/lib/is-bot";
@@ -111,10 +112,30 @@ const STEP_EVERY_S = 0.32;
 const STEP_AMOUNT = 0.05;
 const STEP_SIDE = 0.18;
 const POOL_RADIUS = 6.4;
-/** La margelle (cf tezcatl-water RIM_INNER/RIM_OUTER/RIM_HEIGHT) : Xolotl
- * l'enjambe et l'eau eclabousse a l'entree et a la sortie (03/09). */
-const RIM_SPEC = { inner: 6.28, outer: 6.78, top: WATER_LEVEL + 0.09, reach: 0.5, hop: 0.18 };
+/** La margelle (cf tezcatl-water RIM_INNER/RIM_OUTER/RIM_HEIGHT) : un
+ * relief sur lequel les pattes se posent, et l'eau eclabousse a l'entree
+ * et a la sortie du bassin (03/09). */
+const RIM_SPEC = { inner: 6.28, outer: 6.78, top: WATER_LEVEL + 0.09 };
 const SPLASH_AMOUNT = 0.3;
+/** Demi-empattement : ou l'on echantillonne le sol devant et derriere pour
+ * en deduire l'assiette. */
+const HALF_BASE = 0.45;
+/** Garde-fou d'assiette : au-dela, la marche est trop haute pour ce corps
+ * et on prefere une patte qui s'etire a un chien a la verticale. 0.5 ->
+ * 0.6 : la marche de la margelle demande 28.7 degres (mesure 03/09), le
+ * garde-fou mordait donc pile dessus. C'est la geometrie qui doit decider,
+ * pas la borne. */
+const MAX_PITCH = 0.6;
+/** Suivi de l'assiette, en 1/s. Simple filtre du premier ordre : il lisse
+ * l'arete de la pierre sans jamais depasser sa cible (pas de ressort ici,
+ * un depassement se lirait comme un rebond parasite). */
+const STANCE_FOLLOW_RATE = 12;
+/** L'assiette bascule autour de l'axe Z du monde (la marche est le long de
+ * +X) et doit composer PAR-DESSUS le cap, d'ou la composition de
+ * quaternions : un Euler XYZ composerait dans l'autre sens et ne donnerait
+ * qu'un roulis autour de l'axe de marche. */
+const PITCH_AXIS = new Vector3(0, 0, 1);
+const YAW_QUATERNION = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI / 2);
 
 /** ---- POSE DES PATTES PAR CINEMATIQUE INVERSE (03/09, piste choisie par
  * Sylvain apres l'echec du modele analytique : "on va tester sur la 1").
@@ -132,6 +153,10 @@ const SPLASH_AMOUNT = 0.3;
  * du segment bas : la longueur est mesuree a chaque frame sur les
  * positions monde, pas au repos, donc cela reste juste. */
 type LegSpec = { hip: string; knee: string; ankle: string; ball: string };
+/** ORDRE SIGNIFIANT : les deux membres avant, puis les deux arriere.
+ * L'assiette du corps se deduit de la moyenne des appuis avant contre la
+ * moyenne des appuis arriere. */
+const FRONT_LEG_COUNT = 2;
 const LEGS: LegSpec[] = [
   { hip: "Wolf_l_FrontLeg_HipSHJnt_4", knee: "Wolf_l_FrontLeg_KneeSHJnt_3", ankle: "Wolf_l_FrontLeg_AnkleSHJnt_2", ball: "Wolf_l_FrontLeg_BallSHJnt_1" },
   { hip: "Wolf_r_FrontLeg_HipSHJnt_10", knee: "Wolf_r_FrontLeg_KneeSHJnt_9", ankle: "Wolf_r_FrontLeg_AnkleSHJnt_8", ball: "Wolf_r_FrontLeg_BallSHJnt_7" },
@@ -173,7 +198,7 @@ function collectLegs(root: Group, twinRoot: Group | null): Leg[] {
  * la margelle. C'est ce que la patte doit toucher. */
 function supportHeight(px: number, pz: number, north: boolean): number {
   const ground = getTerrainHeight(px, pz) + Y_FOOT_OFFSET;
-  return ground + (north ? rimHop(Math.hypot(px, pz), ground, RIM_SPEC) : 0);
+  return north ? rimSurface(Math.hypot(px, pz), ground, RIM_SPEC) : ground;
 }
 
 /** Applique a un os une rotation exprimee en MONDE. Un os ne connait que
@@ -561,6 +586,8 @@ export default function XolotlCompanion() {
   }, []);
   const prevRadiusRef = useRef<number | null>(null);
   const legsRef = useRef<Leg[] | null>(null);
+  const stanceRef = useRef<{ y: number; pitch: number } | null>(null);
+  const quatScratch = useMemo(() => new Quaternion(), []);
   const ikScratch = useMemo(
     () => ({
       hip: new Vector3(),
@@ -729,26 +756,89 @@ export default function XolotlCompanion() {
     const groundY = getTerrainHeight(x, zDepth) + Y_FOOT_OFFSET;
     // Au Nord il ENJAMBE la margelle (arc au-dessus de la pierre) et l'eau
     // eclabousse quand il y entre et quand il en sort (03/09).
-    const y = groundY + (inNorth ? rimHop(radius, groundY, RIM_SPEC) : 0);
+    // ---- Assiette DEDUITE des appuis (03/09, retour Sylvain : "en
+    // descendant la margelle les pattes avant doivent toucher le sol, et
+    // en la montant les pattes arriere doivent encore toucher").
+    //
+    // A cheval sur la marche, les appuis avant et arriere sont a des
+    // hauteurs differentes. Corps horizontal, une des deux paires devrait
+    // s'etirer de TOUTE la hauteur de la pierre, ce qui depasse l'allonge
+    // d'un membre : la patte decolle. En basculant le corps de l'angle de
+    // la marche, chaque paire ne s'ecarte que de la moitie et les quatre
+    // pattes touchent. Ce basculement n'est pas un effet ajoute, c'est la
+    // condition geometrique pour que les pattes atteignent le sol.
+    //
+    // Les appuis sont echantillonnes SOUS LES COUSSINETS EUX-MEMES, pas
+    // sous un point fixe du corps : le premier essai prenait le sol a
+    // 0.45 devant le centre, alors que les pattes sont ailleurs et
+    // avancent au rythme de la foulee. L'assiette arrivait donc en retard
+    // sur ce que les pattes touchaient, et il restait des ecarts de 3 cm
+    // et des butees en mordant l'arete (trace 03/09).
+    //
+    // Les positions lues sont celles de la frame precedente : un coussinet
+    // ne bouge que de quelques millimetres par frame, et cela rompt la
+    // circularite (le corps depend des pattes, les pattes du corps).
+    if (inNorth && !legsRef.current) {
+      const found = collectLegs(scene as Group, clonedScene as Group);
+      if (found.length > 0) legsRef.current = found;
+    }
+    const sc = ikScratch;
+    let frontSum = 0;
+    let rearSum = 0;
+    let frontN = 0;
+    let rearN = 0;
+    let frontX = 0;
+    let rearX = 0;
+    if (inNorth && legsRef.current) {
+      const all = legsRef.current;
+      for (let i = 0; i < all.length; i++) {
+        all[i].ball.getWorldPosition(sc.ball);
+        const sup = supportHeight(sc.ball.x, sc.ball.z, true);
+        if (i < FRONT_LEG_COUNT) {
+          frontSum += sup;
+          frontX += sc.ball.x;
+          frontN += 1;
+        } else {
+          rearSum += sup;
+          rearX += sc.ball.x;
+          rearN += 1;
+        }
+      }
+    }
+    const frontSupport = frontN > 0 ? frontSum / frontN : supportHeight(x + HALF_BASE, zDepth, inNorth);
+    const rearSupport = rearN > 0 ? rearSum / rearN : supportHeight(x - HALF_BASE, zDepth, inNorth);
+    // Empattement REEL entre les appuis, mesure lui aussi.
+    const wheelbase =
+      frontN > 0 && rearN > 0 ? Math.max(0.2, Math.abs(frontX / frontN - rearX / rearN)) : 2 * HALF_BASE;
+    const stance = bodyFromFeet(frontSupport, rearSupport, wheelbase, MAX_PITCH);
+    const follow = 1 - Math.exp(-STANCE_FOLLOW_RATE * Math.min(delta, 1 / 30));
+    const prevStance = stanceRef.current;
+    stanceRef.current = prevStance
+      ? {
+          y: prevStance.y + (stance.y - prevStance.y) * follow,
+          pitch: prevStance.pitch + (stance.pitch - prevStance.pitch) * follow,
+        }
+      : { y: stance.y, pitch: stance.pitch };
+    const y = stanceRef.current.y;
+    const pitch = stanceRef.current.pitch;
     g.position.set(x, y, zDepth);
+    g.quaternion.copy(quatScratch.setFromAxisAngle(PITCH_AXIS, pitch)).multiply(YAW_QUATERNION);
     // ---- Pose des pattes : chaque coussinet va sur SON appui, en gardant
     // le lever du cycle de marche (mesure par rapport a la base du corps).
     // Nord seulement pour l'instant : c'est la que se trouve la margelle.
     if (inNorth) {
-      if (!legsRef.current) {
-        const found = collectLegs(scene as Group, clonedScene as Group);
-        if (found.length > 0) legsRef.current = found;
-      }
-      const sc = ikScratch;
       for (const leg of legsRef.current ?? []) {
         leg.hip.getWorldPosition(sc.hip);
         leg.knee.getWorldPosition(sc.knee);
         leg.ankle.getWorldPosition(sc.ankle);
         leg.ball.getWorldPosition(sc.ball);
         const support = supportHeight(sc.ball.x, sc.ball.z, true);
-        // Lever de la patte au-dessus de la base du corps : on le conserve,
-        // c'est lui qui porte la foulee. Seul l'appui change.
-        const lift = Math.max(0, sc.ball.y - y);
+        // Lever de la patte au-dessus du PLAN du corps (et non de son
+        // centre) : le corps etant incline, une patte avant est plus haute
+        // que le centre sans etre levee pour autant. C'est ce plan-la qui
+        // dit si la patte est posee ou en l'air.
+        const planeY = y + Math.tan(pitch) * (sc.ball.x - x);
+        const lift = Math.max(0, sc.ball.y - planeY);
         const targetBallY = support + lift;
         // La cheville est l'effecteur ; le coussinet est sous elle, on
         // reporte donc l'ecart tel quel.
@@ -868,6 +958,7 @@ export default function XolotlCompanion() {
       // Xolotl de braise : meme place, meme pose (couche 3, vu par la
       // camera miroir de la nappe). Opacite = celle du corps.
       cloneG.position.set(x, y, zDepth);
+      cloneG.quaternion.copy(g.quaternion);
       cloneG.visible = g.visible;
       setEmberMirror(emberMirrorUniforms, Math.min(1, opacity / PEAK_OPACITY), nowSec);
     } else if (cloneG) {
@@ -908,7 +999,9 @@ export default function XolotlCompanion() {
 
   return (
     <>
-      <group ref={groupRef} scale={XOLOTL_SCALE} rotation={[0, Math.PI / 2, 0]} visible={false}>
+      {/* Cap et assiette sont poses dans useFrame (quaternion : l'assiette
+          doit composer par-dessus le cap). */}
+      <group ref={groupRef} scale={XOLOTL_SCALE} visible={false}>
         <primitive object={scene} />
         {/* La braise (Nord) : le Soleil qu'il escorte dans la nuit. */}
         <pointLight ref={emberRef} color={EMBER_COLOR} intensity={0} distance={EMBER_DISTANCE} decay={2} position={[0, 0.7, 0]} />

@@ -1,31 +1,40 @@
 import { describe, expect, it } from "vitest";
-import { rimCrossing, rimHop } from "./xolotl-rim";
+import { rimCrossing, rimSurface } from "./xolotl-rim";
 
-const RIM = { inner: 6.28, outer: 6.78, top: 0.34, reach: 0.5, hop: 0.3 };
+const RIM = { inner: 6.28, outer: 6.78, top: 0.34 };
 
-describe("rimHop (Xolotl enjambe la margelle du bassin, 03/09)", () => {
-  it("loin de la margelle, aucune surelevation", () => {
-    expect(rimHop(3, 0, RIM)).toBe(0);
-    expect(rimHop(8, 0, RIM)).toBe(0);
+describe("rimSurface (le relief de la margelle sous les pattes)", () => {
+  it("dans le bassin, loin de la pierre : le sol", () => {
+    expect(rimSurface(3, -0.1, RIM)).toBeCloseTo(-0.1, 12);
   });
 
-  it("sur la pierre, les pattes sont au moins au niveau du dessus de la margelle", () => {
-    const ground = -0.2;
-    const y = ground + rimHop((RIM.inner + RIM.outer) / 2, ground, RIM);
-    expect(y).toBeGreaterThanOrEqual(RIM.top + 0.2);
+  it("dehors, loin de la pierre : le sol", () => {
+    expect(rimSurface(9, -0.1, RIM)).toBeCloseTo(-0.1, 12);
   });
 
-  it("le saut est un arc : plus haut au milieu de la bande qu'a ses bords", () => {
-    const edge = rimHop(RIM.inner - RIM.reach + 0.05, 0, RIM);
-    const mid = rimHop((RIM.inner + RIM.outer) / 2, 0, RIM);
-    expect(mid).toBeGreaterThan(edge);
-    expect(mid).toBeCloseTo(RIM.top + RIM.hop, 2);
+  it("au-dessus de la pierre : le dessus de la pierre, quel que soit le sol", () => {
+    const middle = (RIM.inner + RIM.outer) / 2;
+    expect(rimSurface(middle, 0, RIM)).toBeCloseTo(RIM.top, 12);
+    expect(rimSurface(middle, -0.3, RIM)).toBeCloseTo(RIM.top, 12);
   });
 
-  it("continu : pas de marche aux bords de la bande", () => {
-    const before = rimHop(RIM.inner - RIM.reach - 0.001, 0, RIM);
-    const after = rimHop(RIM.inner - RIM.reach + 0.001, 0, RIM);
-    expect(Math.abs(after - before)).toBeLessThan(0.01);
+  it("continue : pas de saut d'appui d'une frame a l'autre", () => {
+    let prev = rimSurface(5.5, 0, RIM);
+    for (let r = 5.5; r < 7.5; r += 0.01) {
+      const h = rimSurface(r, 0, RIM);
+      expect(Math.abs(h - prev)).toBeLessThan(0.05);
+      prev = h;
+    }
+  });
+
+  it("l'appui monte en abordant la pierre et redescend en la quittant", () => {
+    expect(rimSurface(RIM.inner - 0.2, 0, RIM)).toBeLessThan(rimSurface(RIM.inner + 0.2, 0, RIM));
+    expect(rimSurface(RIM.outer + 0.2, 0, RIM)).toBeLessThan(rimSurface(RIM.outer - 0.2, 0, RIM));
+  });
+
+  it("sol plus haut que la pierre : la pierre ne creuse rien", () => {
+    const middle = (RIM.inner + RIM.outer) / 2;
+    expect(rimSurface(middle, 1, RIM)).toBeCloseTo(1, 12);
   });
 });
 

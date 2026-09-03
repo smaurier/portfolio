@@ -1,9 +1,9 @@
 /**
  * Xolotl et la margelle du bassin (03/09, retour Sylvain "l'entree et la
  * sortie sont catastrophiques, le chien traverse toute la margelle, il n'y
- * a pas d'impact physique"). Il ne traverse plus la pierre : il
- * l'ENJAMBE (petit arc au-dessus du dessus de la margelle), et l'eau
- * reagit quand il y entre et quand il en sort (eclaboussure).
+ * a pas d'impact physique"). Il ne traverse plus la pierre : elle est un
+ * RELIEF sur lequel ses pattes se posent, et l'eau reagit quand il entre
+ * dans le bassin et quand il en sort (eclaboussure).
  *
  * Pur et testable, le composant ne fait que lire.
  */
@@ -15,26 +15,32 @@ export type RimSpec = {
   outer: number;
   /** Hauteur monde du dessus de la margelle. */
   top: number;
-  /** Distance avant/apres la pierre ou le saut commence et finit. */
-  reach: number;
-  /** Hauteur du saut au-dessus du dessus de la pierre. */
-  hop: number;
 };
 
-/** Hauteur minimale des pattes a la distance `radius` du centre, connaissant
- * la hauteur du sol `groundY` : hors de la bande, le sol ; dans la bande,
- * un arc qui passe au-dessus de la pierre, raccorde en douceur au sol. */
-export function rimHop(radius: number, groundY: number, rim: RimSpec): number {
-  const start = rim.inner - rim.reach;
-  const end = rim.outer + rim.reach;
-  if (radius <= start || radius >= end) return 0;
-  const t = (radius - start) / (end - start); // 0..1 a travers la bande
-  const arc = Math.sin(t * Math.PI); // 0 aux bords, 1 au milieu
-  const target = rim.top + rim.hop * arc;
-  // Au milieu de la bande on est au moins a top + hop ; aux bords on
-  // rejoint le sol : la surelevation est la difference, lissee par l'arc.
-  const lift = Math.max(0, target - groundY) * Math.min(1, arc * 3);
-  return lift;
+/** Largeur du chanfrein aux deux aretes de la pierre. Une marche est un
+ * ECHELON, mais un echelon parfait rend la hauteur d'appui discontinue :
+ * le corps, qui en est deduit, sursauterait d'une frame a l'autre. Un
+ * chanfrein court garde l'arete franche tout en restant derivable. */
+const RIM_EDGE = 0.08;
+
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
+/** Hauteur de la SURFACE MARCHABLE a la distance `radius` du centre : le
+ * sol partout, le dessus de la pierre au-dessus de la margelle (03/09).
+ *
+ * Remplace l'ancien `rimHop`, qui soulevait le corps en arc au-dessus de
+ * la pierre. Cet arc etait une invention : il eloignait le corps de ses
+ * appuis et mettait le sol hors de portee des pattes. Ici on ne decrit
+ * que le relief reel, et la pose du corps s'en deduit. */
+export function rimSurface(radius: number, groundY: number, rim: RimSpec): number {
+  const onStone = Math.min(
+    smoothstep(rim.inner - RIM_EDGE, rim.inner + RIM_EDGE, radius),
+    1 - smoothstep(rim.outer - RIM_EDGE, rim.outer + RIM_EDGE, radius)
+  );
+  return groundY + Math.max(0, rim.top - groundY) * onStone;
 }
 
 /** Franchissement du bord de l'eau entre deux frames. */
