@@ -1,23 +1,21 @@
 /**
- * Le chemin de cempasuchil (02/09, Nord). La fleur des morts, celle qui
- * guide les ames par sa couleur et son parfum (tradition du Dia de
- * Muertos, chemins de petales de l'autel a la porte). Ici des fleurs
- * entieres qui flottent sur la nappe du Mictlan, depuis le cerf vers le
- * Nord (-z, la direction des morts), et le chemin s'ALLONGE en
- * descendant la page (axe systemique 3 du Codex). Seule couleur chaude
- * autorisee contre le violet du Nord (cf direction-colors, glint).
+ * Les cempasuchil du Nord (02/09, refonte 03/09). La fleur des morts, celle
+ * qui guide les ames par sa couleur et son parfum (tradition du Dia de
+ * Muertos). D'abord un chemin du cerf vers le Nord ; retour Sylvain 03/09
+ * "etaler encore, suivre tout le contour de la Piedra del Sol, de maniere
+ * irreguliere, en surface de l'eau" : les fleurs ENCERCLENT la Piedra
+ * (rayon 3) en couronne irreguliere qui flotte sur la nappe, et la
+ * couronne se COMPLETE en descendant la page (axe systemique 3 du Codex).
+ * Seule couleur chaude autorisee contre le violet du Nord.
  *
  * Pur et deterministe (pas de Math.random dans le rendu) : testable.
  */
 
-// 64 -> 44 fleurs (03/09, retour Sylvain "les fleurs font encore tout un
-// tas, plus eparpille pour faire un chemin") : espacees regulierement
-// jusqu'a la margelle, peu de dispersion laterale.
-// 44 -> 56 (03/09, "on doit etendre encore les fleurs") : chemin plus
-// long et plus large, jusqu'a la margelle.
-export const CEMPASUCHIL_COUNT = 56;
-const PATH_START_Z = -1.6;
-const PATH_LENGTH = 4.3;
+export const CEMPASUCHIL_COUNT = 72;
+/** Rayon de la Piedra del Sol (PiedraGround GROUND_RADIUS). */
+const PIEDRA_RADIUS = 3;
+const RING_MIN = PIEDRA_RADIUS + 0.15;
+const RING_MAX = PIEDRA_RADIUS + 0.75;
 
 export type CempasuchilFlower = {
   x: number;
@@ -37,33 +35,30 @@ function hash(i: number, k: number): number {
   return v - Math.floor(v);
 }
 
-/** Les fleurs du chemin a la profondeur `depth` (0..1) et au temps `time`
- * (secondes). L'ordre est celui du chemin : index 0 pres du cerf. */
+/** Les fleurs de la couronne a la profondeur `depth` (0..1) et au temps
+ * `time` (secondes). Ordre : angle croissant autour de la Piedra. */
 export function cempasuchilFlowers(depth: number, time: number): CempasuchilFlower[] {
   const d = Math.min(1, Math.max(0, depth));
-  const visibleCount = Math.max(6, Math.round(CEMPASUCHIL_COUNT * (0.25 + 0.75 * d)));
+  const fraction = 0.3 + 0.7 * d;
   const out: CempasuchilFlower[] = [];
   for (let i = 0; i < CEMPASUCHIL_COUNT; i++) {
-    const s = i / (CEMPASUCHIL_COUNT - 1);
-    // Colonne vertebrale du chemin : part a cote du cerf, serpente
-    // doucement vers -z.
-    const spineX = 0.6 + Math.sin(s * 3.2) * 1.0;
-    const spineZ = PATH_START_Z - s * PATH_LENGTH;
-    // Eparpillement autour de la colonne, propre a chaque fleur.
-    // Chemin : dispersion laterale faible, pas de doublons le long.
-    const side = (hash(i, 1) - 0.5) * 0.9;
-    const along = (hash(i, 2) - 0.5) * 0.1;
-    // Derive lente : les fleurs flottent, le vent d'Ouest les pousse et
-    // l'eau les ramene (oscillation), jamais un deplacement net.
-    const drift = 0.16 * Math.sin(time * 0.35 + i * 1.7) + 0.08 * Math.sin(time * 0.9 + i * 0.6);
-    const x = spineX + side - drift;
-    const z = spineZ + along + 0.06 * Math.cos(time * 0.4 + i * 2.1);
+    // Contour irregulier : angle regulier + gigue, rayon qui ondule
+    // (grands lobes) + eparpillement propre a chaque fleur.
+    const baseAngle = (i / CEMPASUCHIL_COUNT) * Math.PI * 2;
+    const angle = baseAngle + (hash(i, 1) - 0.5) * 0.12;
+    const lobes = Math.sin(baseAngle * 5 + 1.3) * 0.16 + Math.sin(baseAngle * 2 + 0.4) * 0.08;
+    const r = RING_MIN + (RING_MAX - RING_MIN) * (0.35 + 0.65 * hash(i, 2)) + lobes;
+    // Derive lente : le vent pousse, l'eau ramene, jamais un deplacement net.
+    const drift = 0.1 * Math.sin(time * 0.35 + i * 1.7) + 0.05 * Math.sin(time * 0.9 + i * 0.6);
+    const x = Math.cos(angle) * r - drift;
+    const z = Math.sin(angle) * r + 0.05 * Math.cos(time * 0.4 + i * 2.1);
     out.push({
       x,
       z,
       yaw: hash(i, 3) * Math.PI * 2 + time * 0.05 * (hash(i, 4) - 0.5),
       scale: 0.7 + hash(i, 5) * 0.5,
-      visible: i < visibleCount,
+      // La couronne se complete en descendant : chaque fleur a son seuil.
+      visible: hash(i, 7) < fraction,
       phase: hash(i, 6) * Math.PI * 2,
     });
   }

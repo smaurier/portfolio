@@ -24,7 +24,9 @@ export const DIRECTION_FOG_RANGE: Record<DirectionKey, FogRange> = {
   /** Nord/minuit : le fog mange l'horizon des le second plan. */
   // 5/18 -> 3.5/13 (03/09, retour Sylvain "desepaissir le fog... on voit
   // trop nettement la margelle au fond pour que ce soit credible").
-  obsidienne: { near: 3.5, far: 13 },
+  // 3.5/13 -> 4.2/15 (03/09 bis, "un peu fort dans le fond, on ne
+  // distingue plus rien, Xolotl se voit a peine").
+  obsidienne: { near: 4.2, far: 15 },
 };
 
 export function getFogRange(direction: DirectionKey): FogRange {

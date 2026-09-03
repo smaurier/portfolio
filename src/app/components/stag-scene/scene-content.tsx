@@ -23,6 +23,7 @@ import CempasuchilPath from "./cempasuchil-path";
 import MictlanMist from "./mictlan-mist";
 import StagModel from "./stag-model";
 import Vines from "./vines";
+import { useCurrentDirection } from "./use-current-direction";
 
 /**
  * Contenu 3D partagé entre la home et les pages écho (Services/Projets/
@@ -50,6 +51,7 @@ export default function SceneContent({
   climaxAccentColor: string;
   fogTint: ColorRgb;
 }) {
+  const north = useCurrentDirection() === "obsidienne";
   return (
     <>
       {/* Le fog vit dans RevealLighting (couleur pilotée par le scroll,
@@ -69,15 +71,21 @@ export default function SceneContent({
           <Suspense fallback={null}>
             <PiedraGround />
           </Suspense>
-          <Suspense fallback={null}>
-            <BackgroundFlora />
-          </Suspense>
-          <Suspense fallback={null}>
-            <Ocotillo />
-          </Suspense>
-          <Suspense fallback={null}>
-            <Grass />
-          </Suspense>
+          {/* Aucune plante au Nord (03/09, retour Sylvain "enlever toutes les
+            * plantes, meme les cactus") : le Mictlan est le lieu sans pousse,
+            * seul le cempasuchil y est depose. Flore de fond, ocotillos,
+            * herbe : caches d'un bloc ; milpa et lianes ont leur propre fondu. */}
+          <group visible={!north}>
+            <Suspense fallback={null}>
+              <BackgroundFlora />
+            </Suspense>
+            <Suspense fallback={null}>
+              <Ocotillo />
+            </Suspense>
+            <Suspense fallback={null}>
+              <Grass />
+            </Suspense>
+          </group>
         </EnvironmentDepthFade>
         <Suspense fallback={null}>
           <StagModel
