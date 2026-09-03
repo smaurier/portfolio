@@ -74,6 +74,34 @@ const DROP = /* glsl */ `
   }
 `;
 
+/** COQUE (03/09, retour Sylvain "un vrai sillage qui vient de l'avant,
+ * pas une diffusion en onde" puis "l'avant du sillage est tres mal fait,
+ * possible de mieux rendre ca avec un simulateur ?") : un corps qui
+ * avance dans l'eau n'est pas une goutte, c'est un champ de pression en
+ * DIPOLE : l'eau monte devant la proue et se creuse derriere la poupe.
+ * On injecte ce dipole a chaque pas, aligne sur la direction de marche ;
+ * l'equation des ondes fabrique le V de proue et le creux de sillage
+ * toute seule (le corps va plus vite que l'onde). */
+const HULL = /* glsl */ `
+  uniform sampler2D uState;
+  uniform vec2 uPoint;
+  uniform vec2 uDir;
+  uniform float uLen;
+  uniform float uWidth;
+  uniform float uAmount;
+  varying vec2 vUv;
+  void main() {
+    vec2 s = texture2D(uState, vUv).xy;
+    vec2 p = vUv - uPoint;
+    float along = dot(p, uDir);
+    float across = p.x * uDir.y - p.y * uDir.x;
+    float g = exp(-(along * along / (uLen * uLen) + across * across / (uWidth * uWidth)));
+    // Dipole : positif devant (along > 0), negatif derriere.
+    float dipole = clamp(along / uLen, -1.0, 1.0);
+    gl_FragColor = vec4(s.x + g * dipole * uAmount, s.y, 0.0, 1.0);
+  }
+`;
+
 function makeTarget(size: number): WebGLRenderTarget {
   return new WebGLRenderTarget(size, size, {
     type: HalfFloatType,
@@ -89,6 +117,9 @@ function makeTarget(size: number): WebGLRenderTarget {
 }
 
 export type RippleDrop = { u: number; v: number; amount: number };
+/** Une coque en mouvement (uv) : centre, direction unitaire, demi-longueur
+ * et demi-largeur (uv), amplitude du dipole par pas. */
+export type RippleHull = { u: number; v: number; du: number; dv: number; len: number; width: number; amount: number };
 
 export type RippleParams = {
   /** c^2 du schema : stable sous 0.5, plus haut = ondes plus rapides. */
@@ -117,6 +148,7 @@ export class TezcatlRippleSim {
   private quad: Mesh;
   private propagate: ShaderMaterial;
   private drop: ShaderMaterial;
+  private hull: ShaderMaterial;
   readonly texel: number;
   params: RippleParams;
 
@@ -141,6 +173,13 @@ export class TezcatlRippleSim {
       depthTest: false,
       depthWrite: false,
     });
+    this.hull = new ShaderMaterial({
+      vertexShader: VERT,
+      fragmentShader: HULL,
+      uniforms: { uState: { value: null }, uPoint: { value: new Vector2() }, uDir: { value: new Vector2(1, 0) }, uLen: { value: 0.03 }, uWidth: { value: 0.01 }, uAmount: { value: 0 } },
+      depthTest: false,
+      depthWrite: false,
+    });
     this.quad = new Mesh(new PlaneGeometry(2, 2), this.propagate);
     this.quad.frustumCulled = false;
     this.scene.add(this.quad);
@@ -161,11 +200,20 @@ export class TezcatlRippleSim {
 
   /** Un pas (pas de temps fixe par frame : le schema est calibre pour
    * ~60 fps, `substeps` permet de rattraper une frame lente). */
-  step(drops: RippleDrop[], substeps = 1) {
+  step(drops: RippleDrop[], substeps = 1, hulls: RippleHull[] = []) {
     const gl = this.gl;
     const prevTarget = gl.getRenderTarget();
     const prevAutoClear = gl.autoClear;
     gl.autoClear = false;
+    for (const h of hulls) {
+      this.hull.uniforms.uState.value = this.read.texture;
+      (this.hull.uniforms.uPoint.value as Vector2).set(h.u, h.v);
+      (this.hull.uniforms.uDir.value as Vector2).set(h.du, h.dv);
+      this.hull.uniforms.uLen.value = h.len;
+      this.hull.uniforms.uWidth.value = h.width;
+      this.hull.uniforms.uAmount.value = h.amount;
+      this.blit(this.hull);
+    }
     for (const d of drops) {
       this.drop.uniforms.uState.value = this.read.texture;
       (this.drop.uniforms.uPoint.value as Vector2).set(d.u, d.v);
@@ -188,6 +236,7 @@ export class TezcatlRippleSim {
     this.write.dispose();
     this.propagate.dispose();
     this.drop.dispose();
+    this.hull.dispose();
     this.quad.geometry.dispose();
   }
 }

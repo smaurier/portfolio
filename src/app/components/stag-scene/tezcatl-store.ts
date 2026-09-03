@@ -53,6 +53,9 @@ export const tezcatlStore: {
    * XolotlCompanion, lu par la couronne de cempasuchil qui converge vers
    * lui quand il est dans le bassin (03/09). */
   xolotl: { x: number; z: number } | null;
+  /** Coque en mouvement dans l'eau (monde) : Xolotl qui traverse. Lue et
+   * remise a null par TezcatlWater a chaque frame (03/09). */
+  hull: { x: number; z: number; dx: number; dz: number; halfLength: number; halfWidth: number; amount: number } | null;
   /** La braise de Xolotl (monde) : reflet chaud sur l'eau (03/09). */
   ember: { x: number; y: number; z: number; intensity: number };
 } = {
@@ -61,5 +64,6 @@ export const tezcatlStore: {
   stagHit: null,
   impacts: [],
   xolotl: null,
+  hull: null,
   ember: { x: 0, y: 0, z: 0, intensity: 0 },
 };

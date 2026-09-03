@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshStandardMaterial, ShaderMaterial, type Group, type Mesh, type PointLight, type Texture } from "three";
-import { applyRimLight, setBodyTintAmount, setEdgeIntensity, setEdgePulse, setNorthDark, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
+import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, ShaderMaterial, type Group, type Mesh, type MeshStandardMaterial, type PointLight } from "three";
+import { getMictlanSky } from "./mictlan-sky";
+import { rimCrossing, rimHop } from "@/lib/xolotl-rim";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isBot } from "@/lib/is-bot";
 import { getTerrainHeight } from "@/lib/terrain-height";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import type { DirectionKey } from "./direction-colors";
 import { useCurrentDirection } from "./use-current-direction";
-import { TEZCATL_EXTENT, tezcatlStore } from "./tezcatl-store";
+import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
 
 /**
  * XolotlCompanion (29/08). Xolotl, chien-frère jumeau de Quetzalcoatl,
@@ -94,21 +95,25 @@ const Z_DEPTH_NORTH = -1.5;
 const EMBER_COLOR = "#ff8a1a";
 const EMBER_INTENSITY = 9;
 const EMBER_DISTANCE = 7;
-// Pas dans l'eau (03/09 bis, retour Sylvain "on ne voit pas son sillage
-// ni l'impact de ses pas, beaucoup trop timide") : une vraie empreinte
-// par pas, cadence de marche, pattes alternees gauche/droite.
-// 03/09 ter, retour Sylvain "pas une diffusion en anneaux, un vrai
-// sillage qui vient de l'avant" : source CONTINUE a l'avant du museau
-// (une petite goutte par frame). Le simulateur d'ondes fait le reste :
-// Xolotl (0.72 u/s au Nord) va plus vite que l'onde (~0.6 u/s), la
-// superposition des fronts forme un V de proue, un vrai sillage. Les
-// pas restent, plus discrets, pour la texture.
-const BOW_AMOUNT = 0.028;
-const BOW_AHEAD = 0.45;
+// Sillage (03/09, trois iterations) : gouttes espacees = anneaux
+// concentriques ; source continue devant le museau = V de proue mais
+// "l'avant du sillage est tres mal fait" (Sylvain). Version retenue :
+// une COQUE injectee dans le simulateur d'ondes (dipole de pression,
+// crete a la proue, creux a la poupe, cf tezcatl-ripple-sim), la
+// physique fabrique le V. Les pas restent pour la texture.
+/** Coque (03/09) : le corps qui avance est un dipole de pression pour le
+ * simulateur d'ondes (crete devant, creux derriere), pas une goutte. */
+const HULL_HALF_LENGTH = 0.45;
+const HULL_HALF_WIDTH = 0.2;
+const HULL_AMOUNT = 0.06; // 0.012 : le sillage restait invisible (capture 03/09)
 const STEP_EVERY_S = 0.32;
-const STEP_AMOUNT = 0.07;
+const STEP_AMOUNT = 0.05;
 const STEP_SIDE = 0.18;
 const POOL_RADIUS = 6.4;
+/** La margelle (cf tezcatl-water RIM_INNER/RIM_OUTER/RIM_HEIGHT) : Xolotl
+ * l'enjambe et l'eau eclabousse a l'entree et a la sortie (03/09). */
+const RIM_SPEC = { inner: 6.28, outer: 6.78, top: WATER_LEVEL + 0.09, reach: 0.5, hop: 0.18 };
+const SPLASH_AMOUNT = 0.3;
 
 // Peak opacity fresnel : 1.0 sur edges via shader (bord opaque),
 // centre transparent. C'est la variable qui module la globale
@@ -171,11 +176,13 @@ function setMaterialOpacity(mat: MeshStandardMaterial, opacity: number) {
   mat.opacity = opacity;
 }
 
-/** Habille les meshes de Xolotl : fresnel fantome partout, obsidienne
- * velours au Nord (rim-light uNorthDark). Retourne les uniforms rim du
- * Nord (vides ailleurs). Fonction hors composant : c'est elle qui mute
- * la scene, pas l'effet. */
-function dressXolotl(root: Group, north: boolean, obsidian: MeshStandardMaterial, fresnel: MeshBasicMaterial): RimLightUniforms[] {
+/** Habille les meshes de Xolotl : fresnel fantome partout, OBSIDIENNE
+ * POLIE au Nord (03/09, Sylvain : "jouer a fond le coup de la texture, le
+ * faire brillant de la meme surface qu'une fleche d'obsidienne") : le
+ * meme materiau que les lames et les fleches, envMap du ciel du Mictlan,
+ * couche 0 pour que la braise qu'il porte accroche des reflets sur lui.
+ * Plus de patch rim-light ni de pulsation (elle le blanchissait). */
+function dressXolotl(root: Group, north: boolean, obsidian: MeshPhysicalMaterial, fresnel: MeshBasicMaterial): void {
   root.traverse((child) => {
     const mesh = child as Mesh;
     if (!mesh.isMesh) return;
@@ -188,23 +195,8 @@ function dressXolotl(root: Group, north: boolean, obsidian: MeshStandardMaterial
     }
     mesh.material = north ? obsidian : fresnel;
     mesh.renderOrder = 999;
-    // Au Nord, hors de portee des lumieres (couche 2, les lumieres sont
-    // sur la couche 0) : la braise qu'il porte ne l'eclaire pas lui-meme
-    // (sinon il ressortait pale, capture 03/09). Corps noir pur, seul le
-    // liseret fresnel (calcule dans le shader, sans lumiere) le dessine.
-    if (north) mesh.layers.set(2);
-    else mesh.layers.set(0);
+    mesh.layers.set(0);
   });
-  if (!north) return [];
-  // Liseret violet SOMBRE et serre (03/09 : en "#8a7fb0" large il ressortait
-  // blanc-lavande, capture) : corps d'obsidienne, bord discret.
-  const uniforms = applyRimLight(root, { color: "#4a3a78", power: 4.5, intensity: 0.6 });
-  setNorthDark(uniforms, 1);
-  setRimLightColor(uniforms, 1, "#4a3a78");
-  setRimLightIntensity(uniforms, 0.75);
-  setBodyTintAmount(uniforms, 0);
-  setEdgeIntensity(uniforms, 0.45);
-  return uniforms;
 }
 
 function setCoreOpacity(core: Mesh, opacity: number) {
@@ -302,84 +294,45 @@ function createFresnelMaterial(uniforms: FresnelUniforms): MeshBasicMaterial {
  * brule : le Soleil qu'il escorte dans la nuit se voit dans l'eau, pas
  * sur lui.
  *
- * Implementation : le clone anime (SkeletonUtils) suit Xolotl a la meme
- * place et le miroir se fait DANS LE VERTEX SHADER (Y du monde replie
- * sous le plan), jamais par un scale negatif d'ancetre : le skinning ne
- * survit pas au flip de hierarchie (genese du 01/09 dans stag-mirror).
- * Profondeur tassee (MIRROR_DEPTH_SCALE) et plan comme le cerf, pour que
- * les deux reflets partagent la meme eau. */
-const EMBER_MIRROR_PLANE_Y = -0.2;
-const EMBER_MIRROR_DEPTH_SCALE = 0.7; // moins tasse que le cerf (0.5) : un chien est bas, il faut que la silhouette se lise
-const EMBER_MIRROR_RADIUS = 6.4; // WATER_RADIUS : le reflet vit dans le bassin
-const EMBER_MIRROR_CONTACT_DEPTH = 0.35 * EMBER_MIRROR_DEPTH_SCALE;
-const EMBER_MIRROR_REFRACT = 0.4; // meme dose que le reflet du cerf (3.0 : le sillage de proue l'etirait en flaque, capture 03/09)
-
+ * Implementation (v2, 03/09 soir) : REFLET PLANAIRE. Le clone anime
+ * (SkeletonUtils) marche debout a la meme place que Xolotl, habille de
+ * braise, sur la COUCHE 3 que la camera principale ne voit pas ;
+ * TezcatlWater le rend chaque frame depuis une camera miroir dans une
+ * texture, que la nappe echantillonne. Consequences justes gratuitement :
+ * le reflet touche les pattes a la ligne d'eau, le cerf l'occulte, les
+ * ondes le deforment (v1 : silhouette repliee sous le sol en depthTest
+ * off, elle passait par-dessus le cerf, retour Sylvain). */
 type EmberMirrorUniforms = {
   uOpacity: { value: number };
   uTime: { value: number };
-  uRipple: { value: Texture };
-  uTexel: { value: number };
 };
 
 function setEmberMirror(uniforms: EmberMirrorUniforms, opacity: number, time: number) {
   uniforms.uOpacity.value = opacity;
   uniforms.uTime.value = time;
-  uniforms.uRipple.value = tezcatlStore.ripple;
-  uniforms.uTexel.value = tezcatlStore.rippleTexel;
 }
 
 function createEmberMirrorMaterial(uniforms: EmberMirrorUniforms): ShaderMaterial {
   return new ShaderMaterial({
-    uniforms: {
-      ...uniforms,
-      uPlaneY: { value: EMBER_MIRROR_PLANE_Y },
-      uDepthScale: { value: EMBER_MIRROR_DEPTH_SCALE },
-      uRadius: { value: EMBER_MIRROR_RADIUS },
-      uContactDepth: { value: EMBER_MIRROR_CONTACT_DEPTH },
-      uExtent: { value: TEZCATL_EXTENT },
-      uRefract: { value: EMBER_MIRROR_REFRACT },
-    },
+    uniforms,
     transparent: true,
     depthWrite: false,
-    depthTest: false,
     side: DoubleSide,
     vertexShader: `
       #include <common>
       #include <skinning_pars_vertex>
-      uniform sampler2D uRipple;
-      uniform float uTexel;
-      uniform float uExtent;
-      uniform float uRefract;
-      uniform float uPlaneY;
-      uniform float uDepthScale;
-      varying vec3 vWorldPos;
       varying vec3 vLocal;
       void main() {
         #include <skinbase_vertex>
         #include <begin_vertex>
         #include <skinning_vertex>
         vLocal = transformed;
-        vec4 world = modelMatrix * vec4(transformed, 1.0);
-        // Miroir sous le plan de l'eau, profondeur tassee.
-        world.y = uPlaneY - (world.y - uPlaneY) * uDepthScale;
-        // Les ondes de la nappe refractent le reflet (gradient de hauteur).
-        vec2 suv = world.xz / (2.0 * uExtent) + 0.5;
-        float hL = texture2D(uRipple, suv - vec2(uTexel, 0.0)).x;
-        float hR = texture2D(uRipple, suv + vec2(uTexel, 0.0)).x;
-        float hB = texture2D(uRipple, suv - vec2(0.0, uTexel)).x;
-        float hT = texture2D(uRipple, suv + vec2(0.0, uTexel)).x;
-        world.xz += vec2(hR - hL, hT - hB) * uRefract;
-        vWorldPos = world.xyz;
-        gl_Position = projectionMatrix * viewMatrix * world;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
       }
     `,
     fragmentShader: `
       uniform float uOpacity;
       uniform float uTime;
-      uniform float uPlaneY;
-      uniform float uRadius;
-      uniform float uContactDepth;
-      varying vec3 vWorldPos;
       varying vec3 vLocal;
       float hash3(vec3 p) {
         p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
@@ -396,23 +349,17 @@ function createEmberMirrorMaterial(uniforms: EmberMirrorUniforms): ShaderMateria
           f.z);
       }
       void main() {
-        // Dans le bassin seulement, bord doux.
-        float mask = 1.0 - smoothstep(uRadius - 0.6, uRadius, length(vWorldPos.xz));
-        // Ligne de contact brouillee : le reflet emerge en s'eloignant du plan.
-        float contact = smoothstep(uPlaneY, uPlaneY - uContactDepth, vWorldPos.y);
         // Braise : veines chaudes qui montent lentement dans le corps (espace
         // local, la braise suit la marche), crepitement fin par-dessus.
         float veins = vnoise(vLocal * 5.0 + vec3(0.0, -uTime * 0.5, 0.0));
         float crackle = vnoise(vLocal * 16.0 + vec3(uTime * 0.35, 0.0, -uTime * 0.2));
         float glow = smoothstep(0.42, 0.88, veins * 0.65 + crackle * 0.35);
         float flicker = 0.85 + 0.15 * sin(uTime * 6.0 + veins * 25.0);
-        // Charbon sombre veine de braise : le bloom ne doit embraser que
-        // les veines, jamais la silhouette entiere (flaque jaune, capture 03/09).
-        // Base rouge sombre LISIBLE sur l'eau noire (0.14 : seules les veines
-        // restaient, tache, capture 03/09), veines orange, pointes chaudes rares.
+        // Base rouge sombre lisible sur l'eau noire, veines orange, pointes
+        // chaudes rares (le bloom ne doit embraser que les veines).
         vec3 col = mix(vec3(0.5, 0.09, 0.01), vec3(0.9, 0.38, 0.05), glow) * flicker;
         col += vec3(1.0, 0.72, 0.35) * pow(glow, 5.0) * 0.25;
-        float a = uOpacity * mask * contact * (0.7 + 0.3 * glow);
+        float a = uOpacity * (0.75 + 0.25 * glow);
         if (a < 0.002) discard;
         gl_FragColor = vec4(col, a);
       }
@@ -492,18 +439,26 @@ export default function XolotlCompanion() {
     [],
   );
   const fresnelMaterial = useMemo(() => createFresnelMaterial(shaderUniforms), [shaderUniforms]);
-  // Corps d'obsidienne du Nord : MeshStandardMaterial patche par rim-light
-  // (velours noir uNorthDark, sheen violet, aretes), opacite pilotee par
-  // l'enveloppe de fade comme le fresnel.
-  const obsidianMaterial = useMemo(
-    // Hors des lumieres (couche 2), le corps se lit par une base EMISSIVE
-    // violet obsidienne (independante des lumieres), pas par le PBR.
-    // fog: false (03/09, "la margelle et le fog le cachent") : l'obsidienne
-    // n'est pas fondue dans le brouillard, seul le cerf peut le masquer.
-    () => new MeshStandardMaterial({ color: new Color("#0a0812"), emissive: new Color("#100b20"), emissiveIntensity: 1.0, roughness: 0.9, metalness: 0.05, transparent: true, opacity: 0, fog: false }),
-    []
-  );
-  const obsidianUniformsRef = useRef<RimLightUniforms[]>([]);
+  // Corps d'obsidienne POLIE du Nord : la recette des lames d'obsidienne
+  // (obsidian-blades), envMap du ciel du Mictlan. fog: false (03/09, "la
+  // margelle et le fog le cachent"). Opacite pilotee par l'enveloppe.
+  const obsidianMaterial = useMemo(() => {
+    const m = new MeshPhysicalMaterial({
+      color: new Color("#0a0712"),
+      metalness: 0.85,
+      roughness: 0.18,
+      clearcoat: 1,
+      clearcoatRoughness: 0.1,
+      envMapIntensity: 1.6,
+      transparent: true,
+      opacity: 0,
+      fog: false,
+    });
+    const sky = getMictlanSky();
+    if (sky) m.envMap = sky;
+    return m;
+  }, []);
+  const prevRadiusRef = useRef<number | null>(null);
   const emberRef = useRef<PointLight>(null);
   const lastRippleRef = useRef(0);
   const stepRef = useRef(0);
@@ -513,20 +468,12 @@ export default function XolotlCompanion() {
   );
   // Reflet de braise (Nord) : le clone anime porte ce materiau, miroir
   // fait dans le shader.
-  const emberMirrorUniforms = useMemo<EmberMirrorUniforms>(
-    () => ({ uOpacity: { value: 0 }, uTime: { value: 0 }, uRipple: { value: tezcatlStore.ripple }, uTexel: { value: tezcatlStore.rippleTexel } }),
-    []
-  );
+  const emberMirrorUniforms = useMemo<EmberMirrorUniforms>(() => ({ uOpacity: { value: 0 }, uTime: { value: 0 } }), []);
   const emberMirrorMaterial = useMemo(() => createEmberMirrorMaterial(emberMirrorUniforms), [emberMirrorUniforms]);
 
   useEffect(() => {
-    obsidianUniformsRef.current = dressXolotl(scene as Group, direction === "obsidienne", obsidianMaterial, fresnelMaterial);
+    dressXolotl(scene as Group, direction === "obsidienne", obsidianMaterial, fresnelMaterial);
   }, [scene, fresnelMaterial, obsidianMaterial, direction]);
-  // La camera doit voir la couche 2 (Xolotl du Nord).
-  const { camera } = useThree();
-  useEffect(() => {
-    camera.layers.enable(2);
-  }, [camera]);
 
   // Applique le material afterimage + cache Object_8 sur la clone
   // (SkeletonUtils.clone partage la geometry mais chaque mesh a sa
@@ -540,11 +487,13 @@ export default function XolotlCompanion() {
           mesh.visible = false;
           return;
         }
-        // Au Nord le clone n'est plus l'afterimage : c'est le reflet de
-        // braise sous la nappe (miroir dans le vertex shader).
+        // Au Nord le clone n'est plus l'afterimage : c'est le Xolotl de
+        // braise, sur la couche 3 que seule la camera miroir de la nappe
+        // voit (reflet planaire, cf TezcatlWater).
         mesh.material = north ? emberMirrorMaterial : afterimageMaterial;
         mesh.renderOrder = 998;
         mesh.frustumCulled = false;
+        mesh.layers.set(north ? 3 : 0);
       }
     });
   }, [clonedScene, afterimageMaterial, emberMirrorMaterial, direction]);
@@ -661,8 +610,22 @@ export default function XolotlCompanion() {
     const t = elapsed / totalMs;
     const zDepth = direction === "obsidienne" ? Z_DEPTH_NORTH : Z_DEPTH;
     const x = START_X + (END_X - START_X) * t;
-    const y = getTerrainHeight(x, zDepth) + Y_FOOT_OFFSET;
+    const inNorth = direction === "obsidienne";
+    const radius = Math.hypot(x, zDepth);
+    const groundY = getTerrainHeight(x, zDepth) + Y_FOOT_OFFSET;
+    // Au Nord il ENJAMBE la margelle (arc au-dessus de la pierre) et l'eau
+    // eclabousse quand il y entre et quand il en sort (03/09).
+    const y = groundY + (inNorth ? rimHop(radius, groundY, RIM_SPEC) : 0);
     g.position.set(x, y, zDepth);
+    if (inNorth) {
+      const prevRadius = prevRadiusRef.current;
+      if (prevRadius !== null) {
+        const crossing = rimCrossing(prevRadius, radius, RIM_SPEC);
+        if (crossing === "enter") tezcatlStore.impacts.push({ x: x + 0.2, z: zDepth, amount: SPLASH_AMOUNT });
+        if (crossing === "exit") tezcatlStore.impacts.push({ x: x - 0.35, z: zDepth, amount: SPLASH_AMOUNT });
+      }
+      prevRadiusRef.current = radius;
+    }
     // Publie la position pour la couronne de cempasuchil (Nord).
     if (!tezcatlStore.xolotl) tezcatlStore.xolotl = { x, z: zDepth };
     else {
@@ -689,18 +652,16 @@ export default function XolotlCompanion() {
     const north = direction === "obsidienne";
     // Totalement opaque hors des fondus d'entree/sortie (03/09).
     setMaterialOpacity(obsidianMaterial, north ? Math.min(1, opacity / PEAK_OPACITY) : 0);
-    if (north && obsidianUniformsRef.current.length > 0) {
-      setEdgePulse(obsidianUniformsRef.current, 0.65 + 0.35 * Math.pow(Math.sin(nowSec * Math.PI * 0.25), 4));
-    }
     if (emberRef.current) emberRef.current.intensity = north ? EMBER_INTENSITY * opacity : 0;
     // La braise publiee pour son reflet dans l'eau (tezcatl-water).
     tezcatlStore.ember.x = x;
     tezcatlStore.ember.y = y + 0.7 * XOLOTL_SCALE;
     tezcatlStore.ember.z = zDepth;
     tezcatlStore.ember.intensity = north ? opacity : 0;
-    if (north && Math.hypot(x, zDepth) < POOL_RADIUS) {
-      // Sillage de proue : source continue juste devant le museau.
-      tezcatlStore.impacts.push({ x: x + BOW_AHEAD, z: zDepth, amount: BOW_AMOUNT * opacity });
+    if (north && radius < POOL_RADIUS) {
+      // Sillage : la coque (dipole mobile) est injectee par TezcatlWater
+      // dans le simulateur d'ondes, direction de marche +X.
+      tezcatlStore.hull = { x, z: zDepth, dx: 1, dz: 0, halfLength: HULL_HALF_LENGTH, halfWidth: HULL_HALF_WIDTH, amount: HULL_AMOUNT * opacity };
       if (nowSec - lastRippleRef.current > STEP_EVERY_S) {
         lastRippleRef.current = nowSec;
         stepRef.current += 1;
@@ -748,8 +709,8 @@ export default function XolotlCompanion() {
     // pose walk). Opacite reduite (fantome moins present que primaire).
     const cloneG = cloneGroupRef.current;
     if (cloneG && north) {
-      // Reflet de braise : meme place, meme pose, le shader replie sous
-      // l'eau. Opacite = celle du corps (fondus d'entree et de sortie).
+      // Xolotl de braise : meme place, meme pose (couche 3, vu par la
+      // camera miroir de la nappe). Opacite = celle du corps.
       cloneG.position.set(x, y, zDepth);
       cloneG.visible = g.visible;
       setEmberMirror(emberMirrorUniforms, Math.min(1, opacity / PEAK_OPACITY), nowSec);

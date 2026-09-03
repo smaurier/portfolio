@@ -3,10 +3,10 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Color, DoubleSide, MeshPhysicalMaterial, Plane, ShaderMaterial, Vector2, Vector3, type Mesh, type Object3D } from "three";
+import { Color, DoubleSide, Matrix4, MeshPhysicalMaterial, PerspectiveCamera, Plane, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderTarget, type Camera, type Mesh, type Object3D, type WebGLRenderer } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { hoofDrop, pointerSplat, smokeGate, worldToSimUv, type SimUv } from "@/lib/tezcatl-fluid";
-import { TezcatlRippleSim } from "./tezcatl-ripple-sim";
+import { TezcatlRippleSim, type RippleHull } from "./tezcatl-ripple-sim";
 import { TEZCATL_EXTENT, WATER_LEVEL, ZERO_TEXTURE, tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -88,11 +88,91 @@ const HOOF_LOOKUP_EVERY = 60;
  * a y=0.42, arriere a y=0.52 pour des sabots au sol a y~0). */
 const HOOF_TIP_OFFSET = 0.45;
 
+/** REFLET PLANAIRE (03/09) : la nappe reflete ce qui vit sur la COUCHE 3
+ * (le Xolotl de braise, cf xolotl-companion). Chaque frame, une camera
+ * miroir de la camera principale (reflechie par le plan de l'eau, meme
+ * recette que three/examples Reflector) rend cette couche dans une
+ * texture, que le shader de la nappe echantillonne en projectif, decalee
+ * par le gradient des ondes. Le cerf occulte le reflet parce que la nappe
+ * est derriere lui au depth test, et le reflet touche les pattes a la
+ * ligne d'eau : c'est un vrai reflet, plus une silhouette repliee. */
+const REFLECTION_LAYER = 3;
+const REFLECTION_SCALE = 0.6;
+const REFLECTION_MAX = 1280;
+// 0.12 * uNormalGain = 0.84 en UV : le reflet partait en trainee de feu
+// (capture 03/09). Le decalage doit rester de l'ordre du pixel.
+const REFLECTION_REFRACT = 0.015;
+const UP = new Vector3(0, 1, 0);
+
+type Reflection = {
+  target: WebGLRenderTarget;
+  camera: PerspectiveCamera;
+  textureMatrix: Matrix4;
+  v: { camPos: Vector3; rot: Matrix4; planePoint: Vector3; view: Vector3; lookAt: Vector3; target: Vector3; color: Color };
+};
+
+function makeReflection(width: number, height: number): Reflection {
+  const camera = new PerspectiveCamera();
+  camera.layers.set(REFLECTION_LAYER);
+  return {
+    target: new WebGLRenderTarget(width, height, { depthBuffer: true, stencilBuffer: false }),
+    camera,
+    textureMatrix: new Matrix4(),
+    v: { camPos: new Vector3(), rot: new Matrix4(), planePoint: new Vector3(), view: new Vector3(), lookAt: new Vector3(), target: new Vector3(), color: new Color() },
+  };
+}
+
+function renderReflection(gl: WebGLRenderer, scene: Scene, mainCamera: Camera, refl: Reflection) {
+  const { camera, target, textureMatrix, v } = refl;
+  const main = mainCamera as PerspectiveCamera;
+  const camPos = v.camPos.setFromMatrixPosition(main.matrixWorld);
+  const planePoint = v.planePoint.set(0, WATER_LEVEL, 0);
+  if (camPos.y <= WATER_LEVEL) return false; // camera sous l'eau : pas de reflet
+  const rot = v.rot.extractRotation(main.matrixWorld);
+  // Position de la camera miroir : reflexion de la camera par le plan de
+  // l'eau, exactement la recette de three/examples Reflector. L'ordre
+  // compte : (plan - camera) puis reflect/negate donne bien (x, 2W-y, z) ;
+  // l'inverse renvoie (-x, y, -z) et le reflet part en trainee (03/09).
+  const view = v.view.subVectors(planePoint, camPos).reflect(UP).negate().add(planePoint);
+  const lookAt = v.lookAt.set(0, 0, -1).applyMatrix4(rot).add(camPos);
+  const target2 = v.target.subVectors(planePoint, lookAt).reflect(UP).negate().add(planePoint);
+  camera.position.copy(view);
+  camera.up.set(0, 1, 0).applyMatrix4(rot).reflect(UP);
+  camera.lookAt(target2);
+  camera.near = main.near;
+  camera.far = main.far;
+  camera.updateMatrixWorld();
+  camera.projectionMatrix.copy(main.projectionMatrix);
+  textureMatrix
+    .set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1)
+    .multiply(camera.projectionMatrix)
+    .multiply(camera.matrixWorldInverse);
+  const prevTarget = gl.getRenderTarget();
+  const prevColor = gl.getClearColor(v.color);
+  const prevAlpha = gl.getClearAlpha();
+  const prevXr = gl.xr.enabled;
+  const prevShadow = gl.shadowMap.autoUpdate;
+  const prevBackground = scene.background;
+  scene.background = null;
+  gl.xr.enabled = false;
+  gl.shadowMap.autoUpdate = false;
+  gl.setRenderTarget(target);
+  gl.setClearColor(0x000000, 0);
+  gl.clear();
+  gl.render(scene, camera);
+  gl.setRenderTarget(prevTarget);
+  gl.setClearColor(prevColor, prevAlpha);
+  gl.xr.enabled = prevXr;
+  gl.shadowMap.autoUpdate = prevShadow;
+  scene.background = prevBackground;
+  return true;
+}
+
 export default function TezcatlWater() {
   const meshRef = useRef<Mesh>(null);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
-  const { gl } = useThree();
+  const { gl, size } = useThree();
   const opacityRef = useRef(0);
   const prevPointerRef = useRef<SimUv | null>(null);
   const hitRef = useRef(new Vector3());
@@ -119,6 +199,11 @@ export default function TezcatlWater() {
 
   const lowPerf = sceneRefs ? !sceneRefs.perfProfile.postFx : false;
   const sim = useMemo(() => new TezcatlRippleSim(gl, lowPerf ? 256 : 512), [gl, lowPerf]);
+  const reflection = useMemo(() => {
+    const k = Math.min(1, REFLECTION_MAX / Math.max(1, size.width));
+    return makeReflection(Math.max(2, Math.round(size.width * REFLECTION_SCALE * k)), Math.max(2, Math.round(size.height * REFLECTION_SCALE * k)));
+  }, [size.width, size.height]);
+  useEffect(() => () => reflection.target.dispose(), [reflection]);
   const rimRef = useRef<Mesh>(null);
   const rimTopRef = useRef<Mesh>(null);
   const rimMaterial = useMemo(() => {
@@ -162,15 +247,23 @@ export default function TezcatlWater() {
           uEmberPos: { value: new Vector3(0, 0, 0) },
           uEmberStrength: { value: 0 },
           uEmberColor: { value: new Color("#ff8a1a") },
+          // Reflet planaire (couche 3) : texture + matrice de projection.
+          uReflection: { value: null },
+          uTextureMatrix: { value: new Matrix4() },
+          uReflStrength: { value: 0 },
+          uReflRefract: { value: REFLECTION_REFRACT },
         },
         transparent: true,
         depthWrite: false,
         side: DoubleSide,
         vertexShader: `
+          uniform mat4 uTextureMatrix;
           varying vec3 vWorldPos;
+          varying vec4 vReflUv;
           void main() {
             vec4 world = modelMatrix * vec4(position, 1.0);
             vWorldPos = world.xyz;
+            vReflUv = uTextureMatrix * world;
             gl_Position = projectionMatrix * viewMatrix * world;
           }
         `,
@@ -186,7 +279,11 @@ export default function TezcatlWater() {
           uniform vec3 uEmberPos;
           uniform float uEmberStrength;
           uniform vec3 uEmberColor;
+          uniform sampler2D uReflection;
+          uniform float uReflStrength;
+          uniform float uReflRefract;
           varying vec3 vWorldPos;
+          varying vec4 vReflUv;
           const float EXTENT = ${EXTENT.toFixed(1)};
           const float RADIUS = ${WATER_RADIUS.toFixed(1)};
           void main() {
@@ -221,6 +318,16 @@ export default function TezcatlWater() {
             float emberGlow = uEmberStrength * 0.35 / (1.0 + emberDist * emberDist * 0.6);
             vec3 col = uColor + uRim * fresnel * 0.35 + uSpec * (spec * 0.5 + slope * 0.18) + uRim * shore * 0.55 + uEmberColor * (emberSpec + emberGlow);
             float a = (uOpacity + fresnel * 0.15 + spec * 0.3 + slope * 0.15 + shore * 0.35 + emberSpec * 0.8 + emberGlow * 0.6) * mask;
+            // Reflet planaire (le Xolotl de braise) : echantillonnage projectif,
+            // decale par la pente des ondes (le sillage deforme le reflet, c'est
+            // aussi ce qui rend le sillage lisible). Couleur premultipliee.
+            if (uReflStrength > 0.0) {
+              vec2 ruv = vReflUv.xy / vReflUv.w + vec2(hR - hL, hT - hB) * uReflRefract;
+              float inside = step(0.0, ruv.x) * step(ruv.x, 1.0) * step(0.0, ruv.y) * step(ruv.y, 1.0);
+              vec4 refl = texture2D(uReflection, ruv) * inside * uReflStrength;
+              col += refl.rgb;
+              a += refl.a * 0.9;
+            }
             gl_FragColor = vec4(col, clamp(a, 0.0, 0.9));
           }
         `,
@@ -292,6 +399,17 @@ export default function TezcatlWater() {
         }
       }
     }
+    // Coque en mouvement (Xolotl qui traverse) : dipole de proue/poupe.
+    const hulls: RippleHull[] = [];
+    const hull = tezcatlStore.hull;
+    if (hull) {
+      if (!reduced) {
+        const { u, v, inside } = worldToSimUv(hull.x, hull.z, EXTENT);
+        const n = Math.hypot(hull.dx, hull.dz) || 1;
+        if (inside) hulls.push({ u, v, du: hull.dx / n, dv: hull.dz / n, len: hull.halfLength / (2 * EXTENT), width: hull.halfWidth / (2 * EXTENT), amount: hull.amount });
+      }
+      tezcatlStore.hull = null;
+    }
     // Impacts externes (fleches de Temiminaloyan) : une goutte par impact.
     if (tezcatlStore.impacts.length > 0) {
       for (const imp of tezcatlStore.impacts) {
@@ -305,7 +423,7 @@ export default function TezcatlWater() {
     accRef.current += dt;
     const substeps = Math.min(3, Math.floor(accRef.current * 60));
     accRef.current -= substeps / 60;
-    sim.step(drops, substeps);
+    sim.step(drops, substeps, hulls);
 
     tezcatlStore.ripple = sim.heightTexture;
     tezcatlStore.rippleTexel = sim.texel;
@@ -314,6 +432,11 @@ export default function TezcatlWater() {
     const ember = tezcatlStore.ember;
     (material.uniforms.uEmberPos.value as Vector3).set(ember.x, ember.y, ember.z);
     material.uniforms.uEmberStrength.value = ember.intensity;
+    // Reflet planaire : seulement quand le Xolotl de braise est la.
+    const reflecting = ember.intensity > 0.001 && renderReflection(gl, state.scene, state.camera, reflection);
+    material.uniforms.uReflection.value = reflecting ? reflection.target.texture : null;
+    (material.uniforms.uTextureMatrix.value as Matrix4).copy(reflection.textureMatrix);
+    material.uniforms.uReflStrength.value = reflecting ? 1 : 0;
   });
 
   return (
