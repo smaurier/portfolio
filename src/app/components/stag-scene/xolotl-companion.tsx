@@ -6,7 +6,6 @@ import { useAnimations, useGLTF } from "@react-three/drei";
 import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type PointLight } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { rimCrossing, rimHop } from "@/lib/xolotl-rim";
-import { bodyPose, headStabilize, legCompression, spineArch, stepSpring, type SpringState } from "@/lib/xolotl-body";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isBot } from "@/lib/is-bot";
 import { getTerrainHeight } from "@/lib/terrain-height";
@@ -119,106 +118,6 @@ const SPLASH_AMOUNT = 0.3;
  * autour de l'axe Z du monde. Le tangage doit s'appliquer PAR-DESSUS le
  * cap (Rz * Ry), d'ou la composition de quaternions plutot qu'un Euler
  * (un Euler XYZ compose dans l'autre sens et ne ferait qu'un roulis). */
-const PITCH_AXIS = new Vector3(0, 0, 1);
-const YAW_QUATERNION = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI / 2);
-/** Demi-empattement : distance du centre du corps a l'appui avant (et
- * arriere). C'est lui qui fixe l'assiette : plus il est court, plus le
- * corps pique fort sur une meme marche. */
-const HALF_BASE = 0.45;
-/** Pattes : ressort SOUS-amorti (damping < 2*sqrt(stiffness) = 29.7),
- * il depasse sa cible et revient. C'est le poids du chien. */
-const LEG_SPRING = { stiffness: 220, damping: 18 };
-/** Assiette : un peu plus raide et plus amortie que les pattes, sinon le
- * corps tangue comme un bateau. */
-const PITCH_SPRING = { stiffness: 300, damping: 26 };
-/** Enfoncement maximal du corps sous sa hauteur d'appui : au-dela, les
- * pattes passeraient sous le sol (pas d'IK sur ce rig). Le reste du
- * tassement se lit sur l'echelle verticale. */
-const MAX_SINK = 0.05;
-/** Vertebres du rig Maya du Xolo (inspection du GLB 03/09 : chaine
- * ROOT > Spine_01..Spine_Top > Neck_01..Neck_Top, chaque os pointe vers
- * son enfant par son axe Y local). Toutes sont animees par le clip Walk,
- * la cambrure se COMPOSE donc par-dessus la marche sans deriver. */
-const SPINE_BONES = [
-  "Wolf_Spine_01SHJnt_26",
-  "Wolf_Spine_02SHJnt_25",
-  "Wolf_Spine_03SHJnt_24",
-  "Wolf_Spine_04SHJnt_23",
-  "Wolf_Spine_TopSHJnt_22",
-];
-const NECK_BONES = ["Wolf_Neck_01SHJnt_21", "Wolf_Neck_02SHJnt_20", "Wolf_Neck_TopSHJnt_19"];
-const TAIL_BONES = [
-  "Wolf_Tail_01_02SHJnt_42",
-  "Wolf_Tail_01_03SHJnt_41",
-  "Wolf_Tail_01_04SHJnt_40",
-  "Wolf_Tail_01_05SHJnt_39",
-];
-/** Repartition de la courbure. L'echine porte toute la cambrure et la
- * queue la prolonge ; la nuque, elle, suit un signal a part
- * (headStabilize) : elle contre l'assiette ET la cambrure pour garder le
- * regard de niveau, comme un animal qui regarde ou il pose les pattes. */
-const SPINE_SHARE = 1 / SPINE_BONES.length;
-const NECK_SHARE = 1 / NECK_BONES.length;
-const TAIL_SHARE = 0.12;
-
-/** Hauteur d'appui sous un point : le sol, plus l'enjambement de la
- * margelle. Echantillonnee sous l'avant ET sous l'arriere du corps :
- * c'est de leur difference que nait l'assiette. */
-function supportHeight(px: number, pz: number, north: boolean): number {
-  const ground = getTerrainHeight(px, pz) + Y_FOOT_OFFSET;
-  return ground + (north ? rimHop(Math.hypot(px, pz), ground, RIM_SPEC) : 0);
-}
-
-type ArchBone = {
-  /** "neck" suit la stabilisation du regard, les autres la cambrure. */
-  kind: "spine" | "neck" | "tail";
-  bone: Object3D;
-  /** Le meme os sur le clone (reflet de braise), pour qu'il se cambre aussi. */
-  twin: Object3D | null;
-  /** Axe de flexion EXPRIME DANS LE REPERE DE L'OS : l'axe lateral du
-   * monde ramene en local. Calcule une fois : les os du rig n'ont pas
-   * tous la meme orientation de repos (Spine_03 est retourne de 180
-   * degres), un signe code en dur cambrerait la moitie du dos a
-   * l'envers. */
-  axis: Vector3;
-  factor: number;
-};
-
-/** Repere les vertebres et leur axe de flexion. A appeler une fois que le
- * groupe porte son cap, sinon l'axe lateral est calcule a 90 degres. */
-function collectArchBones(root: Group, twinRoot: Group | null): ArchBone[] {
-  root.updateWorldMatrix(true, true);
-  const out: ArchBone[] = [];
-  const worldQuat = new Quaternion();
-  const groups: [ArchBone["kind"], string[], number][] = [
-    ["spine", SPINE_BONES, SPINE_SHARE],
-    ["neck", NECK_BONES, NECK_SHARE],
-    ["tail", TAIL_BONES, TAIL_SHARE],
-  ];
-  for (const [kind, names, share] of groups) {
-    for (const name of names) {
-      const bone = root.getObjectByName(name);
-      if (!bone) continue;
-      bone.getWorldQuaternion(worldQuat);
-      const axis = new Vector3(0, 0, 1).applyQuaternion(worldQuat.invert()).normalize();
-      out.push({ kind, bone, twin: twinRoot?.getObjectByName(name) ?? null, axis, factor: share });
-    }
-  }
-  return out;
-}
-
-/** Cambre l'echine PAR-DESSUS la pose de la marche (post-multiplication :
- * la rotation agit dans le repere de l'os). Le mixer reecrit chaque
- * quaternion a chaque frame, il n'y a donc pas d'accumulation. */
-function applyArch(bones: ArchBone[] | null, arch: number, neck: number, scratch: Quaternion) {
-  if (!bones) return;
-  for (const b of bones) {
-    scratch.setFromAxisAngle(b.axis, (b.kind === "neck" ? neck : arch) * b.factor);
-    b.bone.quaternion.multiply(scratch);
-    if (b.twin) b.twin.quaternion.multiply(scratch);
-  }
-}
-
 // Peak opacity fresnel : 1.0 sur edges via shader (bord opaque),
 // centre transparent. C'est la variable qui module la globale
 // d'ensemble (fade in/out uniquement).
@@ -574,11 +473,6 @@ export default function XolotlCompanion() {
     return m;
   }, []);
   const prevRadiusRef = useRef<number | null>(null);
-  const legSpringRef = useRef<SpringState | null>(null);
-  const pitchSpringRef = useRef<SpringState | null>(null);
-  const archBonesRef = useRef<ArchBone[] | null>(null);
-  const quatScratch = useMemo(() => new Quaternion(), []);
-  const archScratch = useMemo(() => new Quaternion(), []);
   const emberRef = useRef<PointLight>(null);
   const lastRippleRef = useRef(0);
   const stepRef = useRef(0);
@@ -735,38 +629,8 @@ export default function XolotlCompanion() {
     const groundY = getTerrainHeight(x, zDepth) + Y_FOOT_OFFSET;
     // Au Nord il ENJAMBE la margelle (arc au-dessus de la pierre) et l'eau
     // eclabousse quand il y entre et quand il en sort (03/09).
-    // ---- Physique du corps (03/09, "il y a une vraie physique du corps
-    // a la descente et a la remontee, on doit le regler tres
-    // profondement", puis "cambrure par exemple"). Trois etages, tous
-    // dans le lib pur xolotl-body :
-    //  1. l'assiette vient des APPUIS (avant contre arriere), pas de la
-    //     vitesse du centre : c'est la pente sous le corps qui leve le
-    //     museau, comme pour un vrai quadrupede ;
-    //  2. les pattes sont un ressort sous-amorti : le corps tombe vers sa
-    //     hauteur d'appui, la depasse, revient. C'est le poids ;
-    //  3. l'echine se cambre, et la nuque contre-cambre.
-    const front = supportHeight(x + HALF_BASE, zDepth, inNorth);
-    const rear = supportHeight(x - HALF_BASE, zDepth, inNorth);
-    const pose = bodyPose(front, rear, 2 * HALF_BASE);
-    const dtBody = Math.min(delta, 1 / 30);
-    if (!legSpringRef.current) legSpringRef.current = { value: pose.y, velocity: 0 };
-    if (!pitchSpringRef.current) pitchSpringRef.current = { value: pose.pitch, velocity: 0 };
-    legSpringRef.current = stepSpring(legSpringRef.current, pose.y, dtBody, LEG_SPRING);
-    pitchSpringRef.current = stepSpring(pitchSpringRef.current, pose.pitch, dtBody, PITCH_SPRING);
-    const squash = legCompression(legSpringRef.current.value, pose.y);
-    const y = Math.max(legSpringRef.current.value, pose.y - MAX_SINK);
+    const y = groundY + (inNorth ? rimHop(radius, groundY, RIM_SPEC) : 0);
     g.position.set(x, y, zDepth);
-    g.quaternion.copy(quatScratch.setFromAxisAngle(PITCH_AXIS, pitchSpringRef.current.value)).multiply(YAW_QUATERNION);
-    // Volume conserve : ce qui se tasse en hauteur s'etale en largeur.
-    g.scale.set(XOLOTL_SCALE / Math.sqrt(squash), XOLOTL_SCALE * squash, XOLOTL_SCALE / Math.sqrt(squash));
-    // Cambrure : reperage des vertebres une fois le cap pose (l'axe
-    // lateral se calcule en monde), puis composition par-dessus la marche.
-    if (!archBonesRef.current) {
-      const found = collectArchBones(scene as Group, clonedScene as Group);
-      if (found.length > 0) archBonesRef.current = found;
-    }
-    const arch = spineArch(pitchSpringRef.current.value, squash);
-    applyArch(archBonesRef.current, arch, headStabilize(pitchSpringRef.current.value, arch), archScratch);
     if (inNorth) {
       const prevRadius = prevRadiusRef.current;
       if (prevRadius !== null) {
@@ -862,8 +726,6 @@ export default function XolotlCompanion() {
       // Xolotl de braise : meme place, meme pose (couche 3, vu par la
       // camera miroir de la nappe). Opacite = celle du corps.
       cloneG.position.set(x, y, zDepth);
-      cloneG.quaternion.copy(g.quaternion);
-      cloneG.scale.copy(g.scale);
       cloneG.visible = g.visible;
       setEmberMirror(emberMirrorUniforms, Math.min(1, opacity / PEAK_OPACITY), nowSec);
     } else if (cloneG) {
@@ -904,9 +766,7 @@ export default function XolotlCompanion() {
 
   return (
     <>
-      {/* Cap, tangage et echelle sont pilotes dans useFrame (quaternion :
-          le tangage doit composer par-dessus le cap). */}
-      <group ref={groupRef} visible={false}>
+      <group ref={groupRef} scale={XOLOTL_SCALE} rotation={[0, Math.PI / 2, 0]} visible={false}>
         <primitive object={scene} />
         {/* La braise (Nord) : le Soleil qu'il escorte dans la nuit. */}
         <pointLight ref={emberRef} color={EMBER_COLOR} intensity={0} distance={EMBER_DISTANCE} decay={2} position={[0, 0.7, 0]} />
