@@ -24,9 +24,9 @@ import { useSceneRefs } from "./scene-refs-context";
 const MODEL_PATH = "/models/flowers-quaternius.glb";
 const FLOWER_NODE = "Flower_1";
 /** Hauteur cible d'une fleur (monde) : ~15 cm pour un cerf de 2 unites. */
-const FLOWER_HEIGHT = 0.13; // 0.2 -> 0.13 (capture 02/09 : trop gros face au cerf)
+const FLOWER_HEIGHT = 0.11; // 0.2 -> 0.13 -> 0.11 (captures 02/09 et 03/09)
 /** La tige plonge sous la nappe : seule la tete flotte. */
-const SINK = 0.085;
+const SINK = 0.075;
 const CEMPASUCHIL = new Color("#ff8a1a");
 
 export default function CempasuchilPath() {
@@ -88,7 +88,9 @@ export default function CempasuchilPath() {
       const bob = reduced ? 0 : Math.sin(t * 1.3 + f.phase) * 0.012;
       const visible = f.visible ? 1 : 0;
       p.set(f.x, WATER_LEVEL - SINK + bob, f.z);
-      e.set(reduced ? 0 : Math.sin(t * 0.8 + f.phase) * 0.08, f.yaw, reduced ? 0 : Math.cos(t * 0.7 + f.phase) * 0.08);
+      // Inclinaison faible (03/09, "on dirait des poissons") : la fleur
+      // reste a plat sur l'eau.
+      e.set(reduced ? 0 : Math.sin(t * 0.8 + f.phase) * 0.03, f.yaw, reduced ? 0 : Math.cos(t * 0.7 + f.phase) * 0.03);
       q.setFromEuler(e);
       s.setScalar(f.scale * fade * visible);
       m.compose(p, q, s);

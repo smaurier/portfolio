@@ -20,7 +20,7 @@ describe("cempasuchilFlowers (le chemin de fleurs qui guide les ames, 02/09)", (
     const flowers = cempasuchilFlowers(1, 3);
     for (const f of flowers) {
       expect(Math.hypot(f.x, f.z)).toBeGreaterThan(1.1);
-      expect(Math.hypot(f.x, f.z)).toBeLessThan(6);
+      expect(Math.hypot(f.x, f.z)).toBeLessThan(6.45);
     }
     const first = flowers[0];
     const last = flowers[flowers.length - 1];

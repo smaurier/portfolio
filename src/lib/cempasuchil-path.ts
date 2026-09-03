@@ -10,9 +10,12 @@
  * Pur et deterministe (pas de Math.random dans le rendu) : testable.
  */
 
-export const CEMPASUCHIL_COUNT = 64;
+// 64 -> 44 fleurs (03/09, retour Sylvain "les fleurs font encore tout un
+// tas, plus eparpille pour faire un chemin") : espacees regulierement
+// jusqu'a la margelle, peu de dispersion laterale.
+export const CEMPASUCHIL_COUNT = 44;
 const PATH_START_Z = -1.6;
-const PATH_LENGTH = 3.6;
+const PATH_LENGTH = 4.4;
 
 export type CempasuchilFlower = {
   x: number;
@@ -42,12 +45,12 @@ export function cempasuchilFlowers(depth: number, time: number): CempasuchilFlow
     const s = i / (CEMPASUCHIL_COUNT - 1);
     // Colonne vertebrale du chemin : part a cote du cerf, serpente
     // doucement vers -z.
-    const spineX = 0.9 + Math.sin(s * 4.2) * 0.6;
+    const spineX = 0.7 + Math.sin(s * 3.6) * 0.8;
     const spineZ = PATH_START_Z - s * PATH_LENGTH;
     // Eparpillement autour de la colonne, propre a chaque fleur.
-    // Eparpillement large (capture 02/09 : trop serre pres du cerf).
-    const side = (hash(i, 1) - 0.5) * 1.4;
-    const along = (hash(i, 2) - 0.5) * 0.8;
+    // Chemin : dispersion laterale faible, pas de doublons le long.
+    const side = (hash(i, 1) - 0.5) * 0.7;
+    const along = (hash(i, 2) - 0.5) * 0.12;
     // Derive lente : les fleurs flottent, le vent d'Ouest les pousse et
     // l'eau les ramene (oscillation), jamais un deplacement net.
     const drift = 0.16 * Math.sin(time * 0.35 + i * 1.7) + 0.08 * Math.sin(time * 0.9 + i * 0.6);

@@ -3,7 +3,8 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Color, DoubleSide, Plane, ShaderMaterial, Vector2, Vector3, type Mesh, type Object3D } from "three";
+import { Color, DoubleSide, MeshPhysicalMaterial, Plane, ShaderMaterial, Vector2, Vector3, type Mesh, type Object3D } from "three";
+import { getMictlanSky } from "./mictlan-sky";
 import { hoofDrop, pointerSplat, smokeGate, worldToSimUv, type SimUv } from "@/lib/tezcatl-fluid";
 import { TezcatlRippleSim } from "./tezcatl-ripple-sim";
 import { TEZCATL_EXTENT, WATER_LEVEL, ZERO_TEXTURE, tezcatlStore } from "./tezcatl-store";
@@ -49,6 +50,16 @@ const WATER_OPACITY = 0.22; // 0.3 -> 0.22 (02/09, sous-exposition : la nappe ne
  * du bassin, bord doux sur les derniers 12%. La grille de simulation
  * reste carree (EXTENT), seul l'affichage est rond. */
 const WATER_RADIUS = 6.4;
+/** Margelle d'obsidienne (03/09, retour Sylvain "on a du mal a voir la
+ * limite de l'eau, c'est le gros defaut de la scene, on doit mettre une
+ * vraie delimitation") : un anneau noir poli qui borde le bassin, et
+ * dans le shader de la nappe une bande de rive plus claire contre lui.
+ * Le tezcatl devient une vasque : le cerf a les pattes DANS une eau qui
+ * a un bord, les lames volent AU-DESSUS d'un bassin. */
+const RIM_INNER = WATER_RADIUS - 0.12;
+const RIM_OUTER = WATER_RADIUS + 0.38;
+const RIM_HEIGHT = 0.09;
+const MARGELLE_COLOR = new Color("#0d0a16");
 const WATER_COLOR = new Color("#0b0714");
 const SPEC_COLOR = new Color("#cfc6f2");
 const RIM_COLOR = new Color("#5a4a8a");
@@ -108,6 +119,24 @@ export default function TezcatlWater() {
 
   const lowPerf = sceneRefs ? !sceneRefs.perfProfile.postFx : false;
   const sim = useMemo(() => new TezcatlRippleSim(gl, lowPerf ? 256 : 512), [gl, lowPerf]);
+  const rimRef = useRef<Mesh>(null);
+  const rimTopRef = useRef<Mesh>(null);
+  const rimMaterial = useMemo(() => {
+    const m = new MeshPhysicalMaterial({
+      color: MARGELLE_COLOR,
+      metalness: 0.75,
+      roughness: 0.22,
+      clearcoat: 1,
+      clearcoatRoughness: 0.12,
+      envMapIntensity: 1.4,
+      transparent: true,
+      opacity: 0,
+    });
+    const sky = getMictlanSky();
+    if (sky) m.envMap = sky;
+    return m;
+  }, []);
+  useEffect(() => () => rimMaterial.dispose(), [rimMaterial]);
   useEffect(
     () => () => {
       sim.dispose();
@@ -167,11 +196,14 @@ export default function TezcatlWater() {
             // Les cretes accrochent un peu de lumiere diffuse : l'anneau
             // reste lisible hors du reflet speculaire, sans white-out.
             float slope = clamp((1.0 - n.y) * 4.0, 0.0, 1.0);
-            // Bassin rond : masque radial, bord doux.
             float d = length(vWorldPos.xz) / RADIUS;
-            float mask = 1.0 - smoothstep(0.88, 1.0, d);
-            vec3 col = uColor + uRim * fresnel * 0.35 + uSpec * (spec * 0.5 + slope * 0.18);
-            float a = (uOpacity + fresnel * 0.15 + spec * 0.3 + slope * 0.15) * mask;
+            // Bassin net (03/09) : l'eau s'arrete contre la margelle (coupe
+            // franche, plus de fondu), et une bande de RIVE plus claire et
+            // plus opaque longe le bord : la limite de l'eau se lit.
+            float mask = 1.0 - smoothstep(0.985, 1.0, d);
+            float shore = smoothstep(0.9, 0.985, d);
+            vec3 col = uColor + uRim * fresnel * 0.35 + uSpec * (spec * 0.5 + slope * 0.18) + uRim * shore * 0.55;
+            float a = (uOpacity + fresnel * 0.15 + spec * 0.3 + slope * 0.15 + shore * 0.35) * mask;
             gl_FragColor = vec4(col, clamp(a, 0.0, 0.9));
           }
         `,
@@ -188,6 +220,9 @@ export default function TezcatlWater() {
     opacityRef.current = reduced ? target : opacityRef.current + (target - opacityRef.current) * 0.05;
     const visible = opacityRef.current > 0.003;
     if (meshRef.current) meshRef.current.visible = visible;
+    if (rimRef.current) rimRef.current.visible = visible;
+    if (rimTopRef.current) rimTopRef.current.visible = visible;
+    rimMaterial.opacity = Math.min(1, opacityRef.current / WATER_OPACITY);
     if (!visible) {
       prevPointerRef.current = null;
       return;
@@ -262,17 +297,27 @@ export default function TezcatlWater() {
   });
 
   return (
-    <mesh
-      ref={meshRef}
-      material={material}
-      position={[0, WATER_LEVEL, 0]}
-      rotation={[-Math.PI / 2, 0, 0]}
-      renderOrder={1000}
-      frustumCulled={false}
-      raycast={() => null}
-      visible={false}
-    >
-      <planeGeometry args={[EXTENT * 2, EXTENT * 2]} />
-    </mesh>
+    <>
+      <mesh
+        ref={meshRef}
+        material={material}
+        position={[0, WATER_LEVEL, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        renderOrder={1000}
+        frustumCulled={false}
+        raycast={() => null}
+        visible={false}
+      >
+        <planeGeometry args={[EXTENT * 2, EXTENT * 2]} />
+      </mesh>
+      {/* Margelle : anneau d'obsidienne polie qui affleure au-dessus de la
+        * nappe (flanc + dessus), reflete le ciel du Mictlan. */}
+      <mesh ref={rimRef} material={rimMaterial} position={[0, WATER_LEVEL + RIM_HEIGHT * 0.5, 0]} frustumCulled={false} raycast={() => null} visible={false}>
+        <cylinderGeometry args={[RIM_OUTER, RIM_OUTER, RIM_HEIGHT, 96, 1, true]} />
+      </mesh>
+      <mesh ref={rimTopRef} material={rimMaterial} position={[0, WATER_LEVEL + RIM_HEIGHT, 0]} rotation={[-Math.PI / 2, 0, 0]} frustumCulled={false} raycast={() => null} visible={false}>
+        <ringGeometry args={[RIM_INNER, RIM_OUTER, 96]} />
+      </mesh>
+    </>
   );
 }
