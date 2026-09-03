@@ -9,6 +9,7 @@ import { useCardinalTransition } from "./cardinal-transition-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import OllinShockwave from "./ollin-shockwave";
+import NepantlaBlur from "./nepantla-blur";
 
 /**
  * Post-processing : retour de Sylvain le 18/08, après audit comparé à des
@@ -143,6 +144,15 @@ export default function PostFX() {
           Ollin dans sa propre passe, a sa position dans la chaine. */}
       <EffectGroup>
         <OllinShockwave />
+      </EffectGroup>
+      {/* Flou de file Nepantla (03/09 etage 2b) : pan blur horizontal
+          pendant le voyage cardinal, net sur le cerf, intensite =
+          vitesse de l'orbite. AVANT DOF/bloom : le bloom eclaire
+          l'image deja filee (physique d'un vrai pano rapide).
+          EffectGroup obligatoire : 8 taps = convolution, interdit de
+          fusionner avec Ollin qui transforme les UV (lecon 01/09). */}
+      <EffectGroup>
+        <NepantlaBlur />
       </EffectGroup>
       {/* DOF en second : les autres effets (bloom, CA) s'appliquent
           par-dessus le rendu focus-racké. Focus fixe sur ~cerf.
