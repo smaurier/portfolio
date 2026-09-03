@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, ShaderMaterial, type Group, type Mesh, type MeshStandardMaterial, type PointLight } from "three";
+import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type PointLight } from "three";
 import { getMictlanSky } from "./mictlan-sky";
-import { rimCrossing, rimHop } from "@/lib/xolotl-rim";
+import { bodyPitch, landingSquash, rimCrossing, rimHop } from "@/lib/xolotl-rim";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isBot } from "@/lib/is-bot";
 import { getTerrainHeight } from "@/lib/terrain-height";
@@ -114,6 +114,13 @@ const POOL_RADIUS = 6.4;
  * l'enjambe et l'eau eclabousse a l'entree et a la sortie (03/09). */
 const RIM_SPEC = { inner: 6.28, outer: 6.78, top: WATER_LEVEL + 0.09, reach: 0.5, hop: 0.18 };
 const SPLASH_AMOUNT = 0.3;
+/** Axe de tangage : la marche est le long de +X, le corps bascule donc
+ * autour de l'axe Z du monde. Le tangage doit s'appliquer PAR-DESSUS le
+ * cap (Rz * Ry), d'ou la composition de quaternions plutot qu'un Euler
+ * (un Euler XYZ compose dans l'autre sens et ne ferait qu'un roulis). */
+const PITCH_AXIS = new Vector3(0, 0, 1);
+const PITCH_FOLLOW_RATE = 9; // /s : le corps rattrape sa trajectoire
+const YAW_QUATERNION = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI / 2);
 
 // Peak opacity fresnel : 1.0 sur edges via shader (bord opaque),
 // centre transparent. C'est la variable qui module la globale
@@ -314,7 +321,7 @@ function setEmberMirror(uniforms: EmberMirrorUniforms, opacity: number, time: nu
 
 function createEmberMirrorMaterial(uniforms: EmberMirrorUniforms): ShaderMaterial {
   return new ShaderMaterial({
-    uniforms,
+    uniforms: { ...uniforms, uClipY: { value: WATER_LEVEL } },
     transparent: true,
     depthWrite: false,
     side: DoubleSide,
@@ -322,18 +329,23 @@ function createEmberMirrorMaterial(uniforms: EmberMirrorUniforms): ShaderMateria
       #include <common>
       #include <skinning_pars_vertex>
       varying vec3 vLocal;
+      varying vec3 vWorld;
       void main() {
         #include <skinbase_vertex>
         #include <begin_vertex>
         #include <skinning_vertex>
         vLocal = transformed;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
+        vec4 world = modelMatrix * vec4(transformed, 1.0);
+        vWorld = world.xyz;
+        gl_Position = projectionMatrix * viewMatrix * world;
       }
     `,
     fragmentShader: `
       uniform float uOpacity;
       uniform float uTime;
+      uniform float uClipY;
       varying vec3 vLocal;
+      varying vec3 vWorld;
       float hash3(vec3 p) {
         p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
         p *= 17.0;
@@ -349,6 +361,12 @@ function createEmberMirrorMaterial(uniforms: EmberMirrorUniforms): ShaderMateria
           f.z);
       }
       void main() {
+        // Rien de ce qui est SOUS la ligne d'eau ne peut se refleter : les
+        // pattes immergees se dessinaient a l'envers au-dessus de la
+        // surface, le reflet paraissait mal place (retour Sylvain 03/09).
+        // C'est le role du clip oblique du Reflector de three.js ; ici un
+        // seul objet est reflete, un discard suffit.
+        if (vWorld.y < uClipY) discard;
         // Braise : veines chaudes qui montent lentement dans le corps (espace
         // local, la braise suit la marche), crepitement fin par-dessus.
         float veins = vnoise(vLocal * 5.0 + vec3(0.0, -uTime * 0.5, 0.0));
@@ -459,6 +477,11 @@ export default function XolotlCompanion() {
     return m;
   }, []);
   const prevRadiusRef = useRef<number | null>(null);
+  const prevPosRef = useRef<{ x: number; y: number } | null>(null);
+  const pitchRef = useRef(0);
+  const prevHopRef = useRef(0);
+  const landedAtRef = useRef<number | null>(null);
+  const quatScratch = useMemo(() => new Quaternion(), []);
   const emberRef = useRef<PointLight>(null);
   const lastRippleRef = useRef(0);
   const stepRef = useRef(0);
@@ -615,8 +638,29 @@ export default function XolotlCompanion() {
     const groundY = getTerrainHeight(x, zDepth) + Y_FOOT_OFFSET;
     // Au Nord il ENJAMBE la margelle (arc au-dessus de la pierre) et l'eau
     // eclabousse quand il y entre et quand il en sort (03/09).
-    const y = groundY + (inNorth ? rimHop(radius, groundY, RIM_SPEC) : 0);
+    const hop = inNorth ? rimHop(radius, groundY, RIM_SPEC) : 0;
+    const y = groundY + hop;
     g.position.set(x, y, zDepth);
+    // Le corps suit sa trajectoire (museau haut a la montee, bas a la
+    // descente) et ses pattes amortissent a l'atterrissage : sans ca il
+    // "tombe droit et rigide" (retour Sylvain 03/09).
+    const prevPos = prevPosRef.current;
+    const pitchTarget = inNorth && prevPos ? bodyPitch(x - prevPos.x, y - prevPos.y) : 0;
+    pitchRef.current += (pitchTarget - pitchRef.current) * Math.min(1, delta * PITCH_FOLLOW_RATE);
+    if (prevPos) {
+      prevPos.x = x;
+      prevPos.y = y;
+    } else {
+      prevPosRef.current = { x, y };
+    }
+    // Atterrissage : la surelevation retombe a zero alors qu'il descend.
+    const nowSecPos = performance.now() / 1000;
+    if (inNorth && prevHopRef.current > 0.02 && hop <= 0.001) landedAtRef.current = nowSecPos;
+    prevHopRef.current = hop;
+    const squash = landedAtRef.current === null ? 1 : landingSquash(nowSecPos - landedAtRef.current);
+    g.quaternion.copy(quatScratch.setFromAxisAngle(PITCH_AXIS, pitchRef.current)).multiply(YAW_QUATERNION);
+    // Volume conserve : ce qui se tasse en hauteur s'etale en largeur.
+    g.scale.set(XOLOTL_SCALE / Math.sqrt(squash), XOLOTL_SCALE * squash, XOLOTL_SCALE / Math.sqrt(squash));
     if (inNorth) {
       const prevRadius = prevRadiusRef.current;
       if (prevRadius !== null) {
@@ -712,6 +756,8 @@ export default function XolotlCompanion() {
       // Xolotl de braise : meme place, meme pose (couche 3, vu par la
       // camera miroir de la nappe). Opacite = celle du corps.
       cloneG.position.set(x, y, zDepth);
+      cloneG.quaternion.copy(g.quaternion);
+      cloneG.scale.copy(g.scale);
       cloneG.visible = g.visible;
       setEmberMirror(emberMirrorUniforms, Math.min(1, opacity / PEAK_OPACITY), nowSec);
     } else if (cloneG) {
@@ -752,7 +798,9 @@ export default function XolotlCompanion() {
 
   return (
     <>
-      <group ref={groupRef} scale={XOLOTL_SCALE} rotation={[0, Math.PI / 2, 0]} visible={false}>
+      {/* Cap, tangage et echelle sont pilotes dans useFrame (quaternion :
+          le tangage doit composer par-dessus le cap). */}
+      <group ref={groupRef} visible={false}>
         <primitive object={scene} />
         {/* La braise (Nord) : le Soleil qu'il escorte dans la nuit. */}
         <pointLight ref={emberRef} color={EMBER_COLOR} intensity={0} distance={EMBER_DISTANCE} decay={2} position={[0, 0.7, 0]} />

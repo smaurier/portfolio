@@ -45,3 +45,23 @@ export function rimCrossing(prevRadius: number, radius: number, rim: RimSpec): "
   if (wasIn && !isIn) return "exit";
   return null;
 }
+
+/** Cap du corps pendant l'enjambement (03/09, retour Sylvain "il tombe
+ * mais garde exactement la meme posture droite et rigide") : le corps
+ * suit sa trajectoire, museau haut a la montee, museau bas a la
+ * descente. Radians, positif = museau haut. */
+export function bodyPitch(dx: number, dy: number, maxRad = 0.45): number {
+  if (dy === 0) return 0;
+  const run = Math.max(Math.abs(dx), 1e-6);
+  const raw = Math.atan2(dy, run);
+  return Math.max(-maxRad, Math.min(maxRad, raw));
+}
+
+/** Amortissement des pattes a l'atterrissage : facteur d'echelle
+ * verticale, 1 = pose normale, < 1 = tasse. Ressort amorti : le choc
+ * comprime, puis deux rebonds de moins en moins marques. */
+export function landingSquash(elapsed: number, depth = 0.2): number {
+  if (elapsed < 0) return 1;
+  const s = 1 - depth * Math.exp(-elapsed / 0.12) * Math.cos(elapsed * 18);
+  return s;
+}
