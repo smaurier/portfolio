@@ -85,3 +85,31 @@ glyphe ou d'une sculpture.
 A verifier espece par espece avant integration : colibri a gorge rubis,
 colibri de Rivoli (couronne violette, gorge verte), colibri circe (bec
 large, corps turquoise), colibri beryl, colibri a couronne violette.
+
+## Xiuhcoatl : modeles payants recherches le 04/09 (Sylvain : « cherche s'il y a des modeles payants et a combien »)
+
+Aucun modele d'un xiuhcoatl COMPLET (museau retrousse, pattes, crete, queue
+en signe de l'annee) en vente sur les places de marche consultees. Ce qui
+existe :
+
+| Source | Objet | Prix | Verdict |
+|---|---|---|---|
+| Fab, N-Hance Studio, « Stylized Fantasy Magma Serpent » | creature serpent de magma stylisee, 18 animations, 3 peaux, PBR, fbx/gltf/glb/usdz | 20,62 a 41,25 EUR (licence perso a pro) | seule CREATURE rigged et animee proche du feu ; pas l'anatomie du xiuhcoatl (ailes-nageoires, tete de dragon) |
+| Fab, Purescans, « Aztec Feathered Serpent Sculpture » | scan photogrammetrie d'une TETE de serpent de temple, fbx, textures 8k | 10,30 a 13,40 EUR | tete de pierre seule, immobile ; utilisable en element de decor, pas en creature |
+| Fab, Zbrushing25, « Serpents head sculpture » | tete sculptee | 20,62 EUR | idem, tete seule |
+| TurboSquid, « Aztec Serpent Head » | tete de serpent de temple (ma, max, obj, fbx) | 39 USD | tete seule |
+| CGTrader, « Aztec God Quetzalcoatl » | dieu a forme humaine, low poly rigged | 45 USD | serpent a plumes, pas le serpent de feu, et humanoide |
+| Etsy, « Xiuhcoatl, Aztec Fire Serpent » | fiche 3D print (STL probable), page inaccessible (403) | 20 USD | non verifiable ici ; usage commercial des STL Etsy rarement autorise |
+| Cults3D, DoubleDSculpt, « Xiuhcoatl (Fire Serpent) » | STL pour impression : serpent + poignee (une ARME, pas la creature) | 1,50 EUR | licence Cults PU, usage commercial interdit |
+| Sketchfab, British Museum, « Stone figure of Xiuhcoatl » | scan 52 500 tris | gratuit | CC BY-NC-SA : non commercial, inutilisable |
+| Sketchfab, SBCVL_UCSF, « Monumental Xiuhcoatl Stone » (Templo Mayor) | scan 187 600 tris | gratuit | CC BY-NC : non commercial, inutilisable ; excellente reference visuelle |
+| Divers « FX-05 Xiuhcoatl » | le fusil d'assaut mexicain | 39 USD | hors sujet |
+
+Commande sur mesure (ordre de grandeur, guides Fiverr 2026 et grille
+mimiccartoon) : creature stylisee simple, non riggee, 100 a 200 USD chez un
+independant de niveau intermediaire ; rig et animations + 100 a 300 USD ;
+travail de studio 2 000 EUR et au-dela.
+
+Piste sans achat, deja actee (voie B) : l'embrasement des deux xiuhcoatl
+graves dans l'anneau exterieur de la Piedra del Sol (evocation par le feu,
+aucun modele).
