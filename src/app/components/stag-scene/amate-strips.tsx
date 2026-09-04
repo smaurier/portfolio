@@ -3,7 +3,8 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { BufferAttribute, BufferGeometry, Color, DoubleSide, MeshStandardMaterial, Vector3, type Object3D } from "three";
+import { BufferAttribute, BufferGeometry, DataTexture, DoubleSide, LinearFilter, MeshStandardMaterial, RGBAFormat, SRGBColorSpace, UnsignedByteType, Vector3, type Object3D } from "three";
+import { bakeAmate } from "@/lib/amate-texture";
 import { createStrip, stepStrip, type Strip } from "@/lib/paper-strip";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -27,7 +28,12 @@ import { useSceneRefs } from "./scene-refs-context";
 
 const POINTS = 9;
 const WIDTH = 0.09;
-const PAPER = new Color("#e6d9bd");
+/** Texture d'amate (04/09, retour Sylvain "on dirait un vulgaire papier
+ * blanc") : papier d'ecorce battue, fibres, taches, bords effiloches,
+ * gouttes de hule. Une seule texture partagee en BANDES horizontales, une
+ * bande par bandelette (graine differente), cf lib/amate-texture. */
+const TEX_W = 256;
+const BAND_H = 32;
 /** Ancrages : os (noms sans point, GLTFLoader) + decalage local monde. */
 const ANCHORS: { bone: string; offset: [number, number, number]; length: number }[] = [
   // Ancrages EN SURFACE (deuxieme capture 02/09 : ancrees sur les os,
@@ -65,9 +71,30 @@ export default function AmateStrips() {
   const tangent = useMemo(() => new Vector3(), []);
   const up = useMemo(() => new Vector3(0, 1, 0), []);
 
+  const texture = useMemo(() => {
+    const data = new Uint8Array(TEX_W * BAND_H * ANCHORS.length * 4);
+    for (let i = 0; i < ANCHORS.length; i++) data.set(bakeAmate(TEX_W, BAND_H, 11 + i * 3), i * TEX_W * BAND_H * 4);
+    const t = new DataTexture(data, TEX_W, BAND_H * ANCHORS.length, RGBAFormat, UnsignedByteType);
+    t.colorSpace = SRGBColorSpace;
+    t.minFilter = LinearFilter;
+    t.magFilter = LinearFilter;
+    t.needsUpdate = true;
+    return t;
+  }, []);
   const material = useMemo(
-    () => new MeshStandardMaterial({ color: PAPER, roughness: 0.95, metalness: 0, side: DoubleSide, transparent: true, opacity: 0 }),
-    []
+    () =>
+      new MeshStandardMaterial({
+        map: texture,
+        // Les bords effiloches viennent de l'alpha de la texture ; le seuil
+        // coupe net les franges sans halo.
+        alphaTest: 0.2,
+        roughness: 1,
+        metalness: 0,
+        side: DoubleSide,
+        transparent: true,
+        opacity: 0,
+      }),
+    [texture]
   );
   const ribbons = useMemo<Ribbon[]>(
     () =>
@@ -76,6 +103,17 @@ export default function AmateStrips() {
         const geometry = new BufferGeometry();
         geometry.setAttribute("position", new BufferAttribute(new Float32Array(POINTS * 2 * 3), 3));
         geometry.setAttribute("normal", new BufferAttribute(new Float32Array(POINTS * 2 * 3), 3));
+        // UV : u le long de la bandelette (le sens des fibres), v en travers
+        // dans la bande de texture propre a cette bandelette.
+        const uv = new Float32Array(POINTS * 2 * 2);
+        for (let p = 0; p < POINTS; p++) {
+          const u = p / (POINTS - 1);
+          uv[p * 4] = u;
+          uv[p * 4 + 1] = (i + 0.02) / ANCHORS.length;
+          uv[p * 4 + 2] = u;
+          uv[p * 4 + 3] = (i + 0.98) / ANCHORS.length;
+        }
+        geometry.setAttribute("uv", new BufferAttribute(uv, 2));
         const index: number[] = [];
         for (let p = 0; p < POINTS - 1; p++) {
           const a = p * 2;
@@ -86,7 +124,7 @@ export default function AmateStrips() {
       }),
     []
   );
-  useEffect(() => () => { for (const r of ribbons) r.geometry.dispose(); material.dispose(); }, [ribbons, material]);
+  useEffect(() => () => { for (const r of ribbons) r.geometry.dispose(); material.dispose(); texture.dispose(); }, [ribbons, material, texture]);
 
   useFrame((state, delta) => {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
