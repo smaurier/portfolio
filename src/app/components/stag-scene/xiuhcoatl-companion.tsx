@@ -72,6 +72,13 @@ function setOpacity(root: Group, opacity: number, uniforms: XiuhcoatlUniforms) {
  * faible lueur, os/griffes/perles = tels quels. Eclaire comme la scene
  * (retour Sylvain), fog compris. */
 function dressMaterials(root: Group, uniforms: XiuhcoatlUniforms) {
+  // IDEMPOTENT : la scene useGLTF est mise en cache, un retour sur la page
+  // rehabille des meshes deja habilles. Sans ce garde, le ShaderMaterial
+  // des flammes tombait dans la branche « autres » et recevait fog = true
+  // sans uniform de fog : « uniforms.fogColor is undefined » a chaque
+  // frame, plus rien ne s'affichait (retour Sylvain 04/09).
+  if (root.userData.xiuhDressed) return;
+  root.userData.xiuhDressed = true;
   const sky = getMictlanSky();
   root.traverse((child) => {
     const mesh = child as Mesh;
@@ -80,9 +87,13 @@ function dressMaterials(root: Group, uniforms: XiuhcoatlUniforms) {
     const mat = mesh.material as MeshStandardMaterial;
     if (Array.isArray(mesh.material) || !mat) return;
     if (mat.name.includes("scale")) {
-      mesh.material = createTurquoiseMaterial(mat.color.clone(), sky, uniforms);
+      const stone = createTurquoiseMaterial(mat.color.clone(), sky, uniforms);
+      stone.name = "xiuh_scale_turquoise";
+      mesh.material = stone;
     } else if (mat.name.includes("fire")) {
-      mesh.material = createEmberFireMaterial(uniforms);
+      const ember = createEmberFireMaterial(uniforms);
+      ember.name = "xiuh_fire_ember";
+      mesh.material = ember;
     } else if (mat.name.includes("mouth")) {
       mat.emissiveIntensity = 0.35;
       mat.fog = true;
@@ -121,7 +132,13 @@ export default function XiuhcoatlCompanion() {
   const bankRef = useRef(0);
   const emberAccRef = useRef(0);
   const heatAtRef = useRef(0);
-  const uniforms = useMemo(() => createXiuhcoatlUniforms(), []);
+  // Les uniforms vivent avec la scene (cache useGLTF) : un remontage du
+  // composant retrouve ceux que les matieres portent deja.
+  const uniforms = useMemo<XiuhcoatlUniforms>(() => {
+    const data = scene.userData as { xiuhUniforms?: XiuhcoatlUniforms };
+    if (!data.xiuhUniforms) data.xiuhUniforms = createXiuhcoatlUniforms();
+    return data.xiuhUniforms;
+  }, [scene]);
   const scratch = useMemo(
     () => ({ q: new Quaternion(), qy: new Quaternion(), qz: new Quaternion(), qx: new Quaternion(), axisY: new Vector3(0, 1, 0), axisZ: new Vector3(0, 0, 1), axisX: new Vector3(1, 0, 0) }),
     []
@@ -170,7 +187,10 @@ export default function XiuhcoatlCompanion() {
       if (lightRef.current) lightRef.current.intensity = 0;
       return;
     }
-    const dt = Math.min(delta, 1 / 30);
+    // dt borne et jamais nul : a dt = 0 (premiere frame, onglet
+    // reactive) dh / dt donnait NaN -> quaternion NaN -> squelette NaN
+    // (« computeBoundingSphere(): Computed radius is NaN » a chaque frame).
+    const dt = Math.max(1e-3, Math.min(delta, 1 / 30));
     const prevHeading = w.heading;
     const s = stepWander(w, dt, XIUHCOATL_WANDER);
     wanderRef.current = s;
@@ -190,7 +210,8 @@ export default function XiuhcoatlCompanion() {
     const pitch = Math.asin(Math.max(-1, Math.min(1, d.y)));
     let dh = s.heading - prevHeading;
     dh = Math.atan2(Math.sin(dh), Math.cos(dh));
-    const bankTarget = Math.max(-BANK_MAX, Math.min(BANK_MAX, -(dh / dt) * BANK_GAIN));
+    const bankRaw = -(dh / dt) * BANK_GAIN;
+    const bankTarget = Number.isFinite(bankRaw) ? Math.max(-BANK_MAX, Math.min(BANK_MAX, bankRaw)) : 0;
     bankRef.current += (bankTarget - bankRef.current) * Math.min(1, dt * 3);
     const { q, qy, qz, qx, axisY, axisZ, axisX } = scratch;
     q.copy(qy.setFromAxisAngle(axisY, yaw)).multiply(qz.setFromAxisAngle(axisZ, pitch)).multiply(qx.setFromAxisAngle(axisX, bankRef.current));
