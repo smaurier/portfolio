@@ -20,6 +20,9 @@ importers:
       '@react-three/postprocessing':
         specifier: ^3.0.5
         version: 3.1.1(@react-three/fiber@9.7.0(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(three@0.185.1))(@types/three@0.185.4)(postprocessing@6.39.4(three@0.185.1))(react@19.2.8)(three@0.185.1)
+      aztec-year:
+        specifier: 0.2.0
+        version: 0.2.0
       gsap:
         specifier: ^3.12.5
         version: 3.15.0
@@ -1055,6 +1058,9 @@ packages:
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
     engines: {node: '>= 0.4'}
+
+  aztec-year@0.2.0:
+    resolution: {integrity: sha512-1J1Cac8yWYkT5MwscKf9qvIV8uwl1/ibg49uvFV5wQqZyDh+NyJ+9VbOBEJ5Qvc8Z55a4vGX7JVwEUPxgDx8Zw==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -3592,6 +3598,8 @@ snapshots:
   axe-core@4.13.0: {}
 
   axobject-query@4.1.0: {}
+
+  aztec-year@0.2.0: {}
 
   balanced-match@1.0.2: {}
 

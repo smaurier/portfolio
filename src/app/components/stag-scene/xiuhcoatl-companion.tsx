@@ -6,7 +6,7 @@ import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { Quaternion, Vector3, type Group, type Material, type Mesh, type MeshStandardMaterial, type PointLight } from "three";
 import { initialWander, stepWander, wanderTangent, XIUHCOATL_WANDER, type WanderState } from "@/lib/xiuhcoatl-wander";
-import { aztecYear, AZTEC_YEAR_BEARERS } from "@/lib/aztec-year";
+import { aztecYear, YEAR_BEARERS } from "aztec-year";
 import { getMictlanSky } from "./mictlan-sky";
 import { createEmberFireMaterial, createTurquoiseMaterial, createXiuhcoatlUniforms, type XiuhcoatlUniforms } from "./xiuhcoatl-materials";
 import { pushHeat, xiuhcoatlStore } from "./xiuhcoatl-store";
@@ -112,7 +112,7 @@ function dressMaterials(root: Group, uniforms: XiuhcoatlUniforms) {
  * faire en production d'une annee sur l'autre. */
 function applyYear(root: Group) {
   const year = aztecYear();
-  for (const bearer of AZTEC_YEAR_BEARERS) {
+  for (const bearer of YEAR_BEARERS) {
     const node = root.getObjectByName(`YearBearer_${bearer}`);
     if (node) node.visible = bearer === year.bearer;
   }
