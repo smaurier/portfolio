@@ -37,7 +37,8 @@ export function streakSpec(seed: number): StreakSpec {
     azimuth0: frac(seed) * Math.PI * 2,
     radius: 3.2 + frac(seed * 13.7) * 3.4,
     height: 0.4 + frac(seed * 7.3) * 2.8,
-    length: 1.2 + frac(seed * 29.1) * 1.6,
+    // 1.2..2.8 -> 0.85..1.85 (04/09, retour Sylvain "trainees trop grosses").
+    length: 0.85 + frac(seed * 29.1) * 1.0,
     laps: 1.6 + frac(seed * 47.9),
   };
 }

@@ -40,10 +40,13 @@ import { useSceneRefs } from "./scene-refs-context";
 
 const COUNT = 48;
 // Opacite au pic de vitesse : souffle lisible, jamais un mur blanc.
-const OPACITY_MAX = 0.3;
+// 0.3 -> 0.16 (04/09, retour Sylvain "trainees trop grosses, plus
+// transparentes") : un souffle qu'on devine, pas des rubans.
+const OPACITY_MAX = 0.16;
 // Etirement des filaments avec la vitesse (longueur x1 au repos
 // theorique, x2.4 au pic) : le vent se tend quand il souffle.
-const STRETCH_MAX = 1.4;
+// 1.4 -> 0.8 (04/09) : x1.8 au pic au lieu de x2.4, trainees plus courtes.
+const STRETCH_MAX = 0.8;
 // Souffle pale, legerement jade (l'haleine d'Ehecatl-Quetzalcoatl).
 const WIND_COLOR = new Color("#cfe0d8");
 
@@ -54,7 +57,8 @@ function makeStreakGeometry(): BufferGeometry {
   const positions: number[] = [];
   const colors: number[] = [];
   // half = demi-epaisseur ; axis "y" = ruban vertical, "z" = horizontal.
-  const half = 0.03;
+  // 0.03 -> 0.016 (04/09) : filaments deux fois plus fins.
+  const half = 0.016;
   for (const axis of ["y", "z"] as const) {
     // 3 colonnes (bout noir, coeur blanc, bout noir) -> 2 quads -> 4 tris.
     const columns = [-0.5, 0, 0.5];
