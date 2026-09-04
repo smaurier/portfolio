@@ -4,7 +4,7 @@
 import { Suspense, useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import type { DirectionKey } from "../direction-colors";
-import { useCurrentDirection } from "../use-current-direction";
+import { useAtmosphereHour } from "../use-atmosphere-hour";
 import { useSceneRefs } from "../scene-refs-context";
 import EastTonatiuh from "./east-tonatiuh";
 import SouthHuitzilopochtli from "./south-huitzilopochtli";
@@ -32,7 +32,11 @@ import CenterXiuhtecuhtli from "./center-xiuhtecuhtli";
 const FADE_SPEED = 0.06; // ~800ms pour aller de 0 à 1 (60fps × 0.06 = 3.6/frame, capé)
 
 export default function CardinalAmbience() {
-  const direction = useCurrentDirection();
+  // Heure atmospherique (03/09 etage 3 Nepantla) : pendant un passage
+  // cardinal, les 5 moods s'allument tour a tour au fil des heures
+  // traversees du voyage du soleil (god-rays de l'aube, colibri du
+  // zenith, vent du crepuscule, fumee de minuit).
+  const direction = useAtmosphereHour();
   // Refs alpha par mood, mutés dans useFrame, lus par les shaders des
   // enfants via un objet uniforms partagé.
   const alphaRefs = useMemo(

@@ -3,6 +3,8 @@ import {
   NEPANTLA_TIMING,
   enterOffset,
   exitOffset,
+  journeyHour,
+  sunJourney,
   swingAzimuth,
   swingSpeed,
   type NepantlaDirection,
@@ -109,6 +111,49 @@ describe("nepantla : orbite continue de la camera (etage 2, plan-sequence)", () 
     expect(Math.abs(swingAzimuth(1.1, "dore"))).toBeCloseTo(Math.PI * 2, 10);
     expect(swingSpeed(-0.1)).toBe(0);
     expect(swingSpeed(1.1)).toBe(0);
+  });
+});
+
+describe("nepantla : les heures du soleil traversees pendant le passage (etage 3)", () => {
+  it("le temps ne recule jamais : Est vers Nord traverse zenith puis crepuscule", () => {
+    expect(sunJourney("dore", "obsidienne")).toEqual(["dore", "turquoise", "cendre", "obsidienne"]);
+  });
+
+  it("Ouest vers Est traverse minuit (la nuit passe, l'aube revient)", () => {
+    expect(sunJourney("cendre", "dore")).toEqual(["cendre", "obsidienne", "dore"]);
+  });
+
+  it("heures adjacentes : passage direct", () => {
+    expect(sunJourney("obsidienne", "dore")).toEqual(["obsidienne", "dore"]);
+    expect(sunJourney("dore", "turquoise")).toEqual(["dore", "turquoise"]);
+  });
+
+  it("le Centre est hors du temps : vers ou depuis jade, aucune heure intermediaire", () => {
+    expect(sunJourney("jade", "obsidienne")).toEqual(["jade", "obsidienne"]);
+    expect(sunJourney("turquoise", "jade")).toEqual(["turquoise", "jade"]);
+  });
+
+  it("meme direction : pas de voyage", () => {
+    expect(sunJourney("dore", "dore")).toEqual(["dore"]);
+  });
+
+  it("journeyHour : commence a l'heure de depart, finit a l'heure d'arrivee", () => {
+    expect(journeyHour("dore", "obsidienne", 0)).toBe("dore");
+    expect(journeyHour("dore", "obsidienne", 1)).toBe("obsidienne");
+    expect(journeyHour("jade", "cendre", 0)).toBe("jade");
+    expect(journeyHour("jade", "cendre", 1)).toBe("cendre");
+  });
+
+  it("journeyHour : segments egaux, les heures intermediaires s'expriment", () => {
+    // Est → Nord : 4 heures, quartiles.
+    expect(journeyHour("dore", "obsidienne", 0.3)).toBe("turquoise");
+    expect(journeyHour("dore", "obsidienne", 0.6)).toBe("cendre");
+    expect(journeyHour("dore", "obsidienne", 0.9)).toBe("obsidienne");
+  });
+
+  it("journeyHour : clampe hors bornes", () => {
+    expect(journeyHour("dore", "obsidienne", -0.5)).toBe("dore");
+    expect(journeyHour("dore", "obsidienne", 1.5)).toBe("obsidienne");
   });
 });
 

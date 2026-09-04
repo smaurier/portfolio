@@ -6,7 +6,7 @@ import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, EffectGroup, 
 import { BlendFunction } from "postprocessing";
 import { approachGrade, getGradeRig, type GradeRig } from "@/lib/direction-grade";
 import { useCardinalTransition } from "./cardinal-transition-context";
-import { useCurrentDirection } from "./use-current-direction";
+import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { useSceneRefs } from "./scene-refs-context";
 import OllinShockwave from "./ollin-shockwave";
 import NepantlaBlur from "./nepantla-blur";
@@ -64,16 +64,16 @@ export default function PostFX() {
   const hueSatRef = useRef<{ saturation: number } | null>(null);
   const transition = useCardinalTransition();
   const refs = useSceneRefs();
-  const direction = useCurrentDirection();
-  // Grade par direction (01/09, etage 3 sprint identites) : crossfade
-  // vers la cible de la direction courante, meme cadence que fog et
-  // rig lumiere (~800ms). Init sur la direction du mount.
-  const gradeRef = useRef<GradeRig>({ ...getGradeRig(direction) });
+  // Grade sur l'heure atmospherique (03/09 etage 3 Nepantla) : pendant
+  // un passage cardinal, le grade traverse les heures intermediaires
+  // du voyage du soleil, meme cadence de lissage que fog et rig.
+  const hour = useAtmosphereHour();
+  const gradeRef = useRef<GradeRig>({ ...getGradeRig(hour) });
 
   useFrame(() => {
     // Grade par direction : snap si prefers-reduced-motion (meme
     // convention que fog/rig), sinon easing vers la cible.
-    const gradeTarget = getGradeRig(direction);
+    const gradeTarget = getGradeRig(hour);
     gradeRef.current = refs?.reducedMotionRef.current
       ? { ...gradeTarget }
       : approachGrade(gradeRef.current, gradeTarget, 0.06);

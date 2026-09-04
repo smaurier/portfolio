@@ -93,6 +93,40 @@ export function swingSpeed(t: number): number {
 }
 
 /**
+ * Les heures du monde (etage 3). Chaque direction est un moment du
+ * voyage du soleil (Codex v2 : Est=aube, Sud=zenith, Ouest=crepuscule,
+ * Nord=minuit ; Centre=hors du temps). Pendant un passage cardinal,
+ * l'atmosphere (fog, rig lumiere, grade, ambiances) ne crossfade pas
+ * directement : elle TRAVERSE les heures intermediaires, toujours dans
+ * le sens du temps : le soleil ne recule jamais. Aller de l'Ouest a
+ * l'Est, c'est passer par la nuit. Le Centre (foyer) s'atteint et se
+ * quitte directement : on sort du temps, on n'y voyage pas.
+ */
+const SUN_ORDER: NepantlaDirection[] = ["dore", "turquoise", "cendre", "obsidienne"];
+
+/** Sequence d'heures traversees, bornes incluses. */
+export function sunJourney(from: NepantlaDirection, to: NepantlaDirection): NepantlaDirection[] {
+  if (from === to) return [from];
+  if (from === "jade" || to === "jade") return [from, to];
+  const path: NepantlaDirection[] = [from];
+  let i = SUN_ORDER.indexOf(from);
+  while (SUN_ORDER[i] !== to) {
+    i = (i + 1) % SUN_ORDER.length;
+    path.push(SUN_ORDER[i]);
+  }
+  return path;
+}
+
+/** Heure courante du voyage a progress t (0..1), segments egaux. Les
+ *  consommateurs gardent leur propre lissage (~800ms) : la traversee
+ *  se lit comme un balayage de teintes, pas des sauts. */
+export function journeyHour(from: NepantlaDirection, to: NepantlaDirection, t: number): NepantlaDirection {
+  const path = sunJourney(from, to);
+  const idx = Math.min(path.length - 1, Math.floor(clamp01(t) * path.length));
+  return path[idx];
+}
+
+/**
  * Tempo unique du passage (secondes / noms d'ease GSAP). Le changement
  * de vitesse EST la signature : le vent accelere en emportant l'ancien
  * contenu (ease .in), la navigation se fait au coeur du mouvement, et

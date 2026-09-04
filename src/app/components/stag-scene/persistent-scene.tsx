@@ -8,6 +8,7 @@ import PostFX from "./post-fx";
 import SceneContent from "./scene-content";
 import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
+import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { isBot } from "@/lib/is-bot";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import XolotlCompanion from "./xolotl-companion";
@@ -33,6 +34,7 @@ import styles from "./scene-stage.module.css";
 export default function PersistentScene() {
   const refs = useSceneRefs();
   const direction = useCurrentDirection();
+  const hour = useAtmosphereHour();
   const readingMode = useReadingMode();
   // Frameloop demand quand tab hidden (28/08 task #60 perf). Canvas
   // r3f prop frameloop "always" (defaut) tourne rAF permanent meme
@@ -76,8 +78,14 @@ export default function PersistentScene() {
     };
   }, []);
 
-  const climaxRimColor = useMemo(() => readDirectionColor(direction), [direction]);
-  const climaxAccentColor = useMemo(() => readDirectionAccentColor(direction), [direction]);
+  // Palette sur l'HEURE atmospherique (03/09 etage 3 Nepantla) : au
+  // repos = la route ; pendant un passage cardinal, la palette
+  // traverse les heures intermediaires du voyage du soleil. Les
+  // enfants lissent deja ces couleurs via leurs useFrame : la
+  // traversee se lit comme un balayage de teintes. data-direction et
+  // les gates d'identite restent sur la route.
+  const climaxRimColor = useMemo(() => readDirectionColor(hour), [hour]);
+  const climaxAccentColor = useMemo(() => readDirectionAccentColor(hour), [hour]);
   const fogTint = useMemo(() => deriveFogTint(climaxRimColor), [climaxRimColor]);
 
   if (!refs) return null;

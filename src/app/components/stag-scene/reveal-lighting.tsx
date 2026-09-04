@@ -15,6 +15,7 @@ import { remapNorthArc } from "@/lib/direction-arc";
 import { approachFog, getFogRange, type FogRange } from "@/lib/direction-fog";
 import { approachRig, getLightRig, type LightRig } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
+import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { useSceneRefs } from "./scene-refs-context";
 
 /**
@@ -44,15 +45,20 @@ export default function RevealLighting({
   const directionalRef = useRef<DirectionalLight>(null);
   const fogRef = useRef<Fog>(null);
   const direction = useCurrentDirection();
+  // Heure atmospherique (03/09 etage 3 Nepantla) : fog et rig lumiere
+  // suivent l'heure traversee du voyage du soleil pendant un passage
+  // cardinal (l'arc Nord, lui, reste sur la route : c'est une
+  // mecanique de scroll d'identite, pas d'atmosphere).
+  const hour = useAtmosphereHour();
   const sceneRefs = useSceneRefs();
   // Fog par direction (01/09, etage 1 sprint identites) : near/far
   // crossfadent vers la cible de la direction courante, meme cadence
   // que les ambiances cardinales (~800ms). Init sur la direction du
   // mount : pas de lerp-in depuis une valeur d'une autre page.
-  const fogRangeRef = useRef<FogRange>({ ...getFogRange(direction) });
+  const fogRangeRef = useRef<FogRange>({ ...getFogRange(hour) });
   // Rig lumiere par direction (01/09, etage 2 sprint identites) : meme
   // logique de crossfade que le fog. Init sur la direction du mount.
-  const lightRigRef = useRef<LightRig>({ ...getLightRig(direction) });
+  const lightRigRef = useRef<LightRig>({ ...getLightRig(hour) });
   const rigColorScratch = useMemo(() => new Color(), []);
 
   // Palette pour tinter les lumières au climax (26/08, retour Sylvain
@@ -81,7 +87,7 @@ export default function RevealLighting({
     const blend = getRimColorBlend(p);
     // Crossfade du rig lumiere vers la direction courante (etage 2) :
     // snap direct si prefers-reduced-motion, meme convention que le fog.
-    const rigTarget = getLightRig(direction);
+    const rigTarget = getLightRig(hour);
     lightRigRef.current = sceneRefs?.reducedMotionRef.current
       ? { ...rigTarget }
       : approachRig(lightRigRef.current, rigTarget, 0.06);
@@ -123,7 +129,7 @@ export default function RevealLighting({
       // Densite par direction : snap direct si prefers-reduced-motion
       // (RGAA 13.6, meme convention que le crossfade des ambiances),
       // sinon easing exponentiel vers la cible.
-      const target = getFogRange(direction);
+      const target = getFogRange(hour);
       fogRangeRef.current = sceneRefs?.reducedMotionRef.current
         ? { ...target }
         : approachFog(fogRangeRef.current, target, 0.06);
