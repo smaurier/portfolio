@@ -56,6 +56,10 @@ export const tezcatlStore: {
   /** Coque en mouvement dans l'eau (monde) : Xolotl qui traverse. Lue et
    * remise a null par TezcatlWater a chaque frame (03/09). */
   hull: { x: number; z: number; dx: number; dz: number; halfLength: number; halfWidth: number; amount: number } | null;
+  /** Fleches qui se vaporisent (04/09) : origine monde + axe unitaire de
+   * la hampe (pointe vers talon) + longueur. Poussees par ObsidianArrows,
+   * consommees par ArrowVapor a chaque frame. */
+  vapors: { x: number; y: number; z: number; dx: number; dy: number; dz: number; length: number }[];
   /** La braise de Xolotl (monde) : reflet chaud sur l'eau (03/09). */
   ember: { x: number; y: number; z: number; intensity: number };
 } = {
@@ -65,5 +69,6 @@ export const tezcatlStore: {
   impacts: [],
   xolotl: null,
   hull: null,
+  vapors: [],
   ember: { x: 0, y: 0, z: 0, intensity: 0 },
 };

@@ -17,6 +17,7 @@ import StagMirror from "./stag-mirror";
 import TezcatlWater from "./tezcatl-water";
 import ObsidianBlades from "./obsidian-blades";
 import ObsidianArrows from "./obsidian-arrows";
+import ArrowVapor from "./arrow-vapor";
 import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
 import CempasuchilPath from "./cempasuchil-path";
@@ -121,6 +122,11 @@ export default function SceneContent({
       {/* Temiminaloyan (02/09) : volees de fleches en profondeur de
        * scroll, impacts dans l'eau. Nord uniquement. */}
       <ObsidianArrows />
+      {/* Vaporisation des fleches plantees (04/09) : sprite charge par
+       * useTexture, d'ou le Suspense. */}
+      <Suspense fallback={null}>
+        <ArrowVapor />
+      </Suspense>
       {/* Bandelettes d'amate (02/09) : la protection de papier contre le
        * vent d'obsidienne, aux bois et sur le dos, simulateur Verlet.
        * Nord uniquement. */}

@@ -28,9 +28,6 @@ const STUCK_TIME = 3.5;
 const ARROW_LEN = ARROW_SPEC.length;
 // Materiaux de la fleche, dans l'ordre des groupes de lib/arrow-geometry.
 const OBSIDIAN_COLOR = new Color("#0a0712");
-const REED_COLOR = new Color("#b8925a");
-const BINDING_COLOR = new Color("#2a1d12");
-const FEATHER_COLOR = new Color("#3a2f2a");
 
 type ArrowSlot = { active: boolean; x: number; z: number; start: number; impacted: boolean; yaw: number };
 
@@ -56,16 +53,22 @@ export default function ObsidianArrows() {
     const obsidian = new MeshPhysicalMaterial({ color: OBSIDIAN_COLOR, metalness: 0.85, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.1, envMapIntensity: 1.6 });
     const sky = getMictlanSky();
     if (sky) obsidian.envMap = sky;
+    // TOUT obsidienne (04/09, Sylvain "les fleches doivent etre totalement
+    // d'obsidienne") : la forme garde ses noeuds, ligatures et plumes, la
+    // matiere est une seule pierre. Les plumes en double face pour rester
+    // lisibles par la tranche. Les groupes restent en place.
+    const feather = obsidian.clone();
+    feather.side = DoubleSide;
     const list: (MeshPhysicalMaterial | MeshStandardMaterial)[] = [];
     list[ARROW_MATERIAL.obsidian] = obsidian;
-    list[ARROW_MATERIAL.reed] = new MeshStandardMaterial({ color: REED_COLOR, roughness: 0.9, metalness: 0 });
-    list[ARROW_MATERIAL.binding] = new MeshStandardMaterial({ color: BINDING_COLOR, roughness: 1, metalness: 0 });
-    list[ARROW_MATERIAL.feather] = new MeshStandardMaterial({ color: FEATHER_COLOR, roughness: 1, metalness: 0, side: DoubleSide });
+    list[ARROW_MATERIAL.reed] = obsidian;
+    list[ARROW_MATERIAL.binding] = obsidian;
+    list[ARROW_MATERIAL.feather] = feather;
     return list;
   }, []);
-  useEffect(() => () => { geometry.dispose(); for (const m of materials) m.dispose(); }, [geometry, materials]);
+  useEffect(() => () => { geometry.dispose(); for (const m of new Set(materials)) m.dispose(); }, [geometry, materials]);
 
-  const scratch = useMemo(() => ({ m: new Matrix4(), q: new Quaternion(), e: new Euler(), p: new Vector3(), s: new Vector3() }), []);
+  const scratch = useMemo(() => ({ m: new Matrix4(), q: new Quaternion(), e: new Euler(), p: new Vector3(), s: new Vector3(), axis: new Vector3() }), []);
 
   useFrame((state, delta) => {
     const mesh = meshRef.current;
@@ -103,7 +106,7 @@ export default function ObsidianArrows() {
       }
     }
 
-    const { m, q, e, p, s } = scratch;
+    const { m, q, e, p, s, axis } = scratch;
     slotsRef.current.forEach((slot, i) => {
       if (!slot.active || t < slot.start) {
         s.setScalar(0);
@@ -128,16 +131,22 @@ export default function ObsidianArrows() {
           if (r < 2.4) tezcatlStore.stagHit = { at: state.clock.elapsedTime, strength: 0.35, side: slot.z >= 0 ? 1 : -1 };
         }
         const stuck = age - FALL_TIME;
-        if (stuck > STUCK_TIME) {
-          slot.active = false;
-          s.setScalar(0);
-        } else {
-          // Plantee dans l'eau, penchee, puis s'efface (fond dans le Mictlan).
-          const fade = 1 - Math.max(0, (stuck - STUCK_TIME + 1) / 1);
-          s.set(fade, fade, fade);
-        }
         p.set(slot.x, WATER_LEVEL + ARROW_LEN * 0.35, slot.z);
         e.set(0.35, slot.yaw, 0.15);
+        if (stuck > STUCK_TIME) {
+          // Plantee quelques secondes, elle SE VAPORISE (04/09) : fumee
+          // noire et eclats le long de la hampe (ArrowVapor), et
+          // l'instance disparait d'un coup, plus de fondu.
+          slot.active = false;
+          q.setFromEuler(e);
+          // Axe pointe -> talon : la geometrie est retournee (pointe en
+          // -Y local), le talon est donc en +Y local.
+          axis.set(0, 1, 0).applyQuaternion(q);
+          tezcatlStore.vapors.push({ x: p.x, y: p.y, z: p.z, dx: axis.x, dy: axis.y, dz: axis.z, length: ARROW_LEN });
+          s.setScalar(0);
+        } else {
+          s.setScalar(1);
+        }
       }
       q.setFromEuler(e);
       m.compose(p, q, s);
