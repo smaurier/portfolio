@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bodyFromFeet, rollFromFeet } from "./quadruped-stance";
+import { bodyFromFeet, fitSupportPlane, rollFromFeet } from "./quadruped-stance";
 
 const WHEELBASE = 0.9;
 
@@ -83,5 +83,86 @@ describe("rollFromFeet (le roulis se deduit du devers)", () => {
 
   it("symetrique : inverser les deux cotes inverse le roulis", () => {
     expect(rollFromFeet(0.25, 0.05, 0.4)).toBeCloseTo(-rollFromFeet(0.05, 0.25, 0.4), 12);
+  });
+});
+
+describe("fitSupportPlane (le plan des quatre appuis)", () => {
+  // Quatre coussinets en rectangle autour du corps (avant = +x).
+  const corners = (y: (x: number, z: number) => number) => [
+    { x: 0.3, z: 0.2, y: y(0.3, 0.2) },
+    { x: 0.3, z: -0.2, y: y(0.3, -0.2) },
+    { x: -0.3, z: 0.2, y: y(-0.3, 0.2) },
+    { x: -0.3, z: -0.2, y: y(-0.3, -0.2) },
+  ];
+
+  it("retrouve exactement un plan donne", () => {
+    const s = fitSupportPlane(corners((x, z) => 0.1 * x - 0.2 * z + 0.3), 0, 0, Math.PI, Math.PI);
+    expect(s.planar).toBe(true);
+    expect(s.y).toBeCloseTo(0.3, 10);
+    expect(s.pitch).toBeCloseTo(Math.atan(0.1), 10);
+    expect(s.roll).toBeCloseTo(-Math.atan(-0.2), 10);
+  });
+
+  it("sur du plat : de niveau, a la hauteur du sol", () => {
+    const s = fitSupportPlane(corners(() => 0.4), 0, 0);
+    expect(s.pitch).toBeCloseTo(0, 12);
+    expect(s.roll).toBeCloseTo(0, 12);
+    expect(s.y).toBeCloseTo(0.4, 12);
+  });
+
+  it("marche avant/arriere : meme assiette que le calcul par paires", () => {
+    const step = 0.34;
+    const pts = corners((x) => (x > 0 ? step : 0));
+    const plane = fitSupportPlane(pts, 0, 0, Math.PI, Math.PI);
+    const pairs = bodyFromFeet(step, 0, 0.6, Math.PI);
+    expect(plane.pitch).toBeCloseTo(pairs.pitch, 10);
+    expect(plane.y).toBeCloseTo(pairs.y, 10);
+    expect(plane.roll).toBeCloseTo(0, 12);
+  });
+
+  it("devers gauche/droite : meme roulis que rollFromFeet", () => {
+    const pts = corners((_x, z) => (z > 0 ? 0.3 : 0));
+    const plane = fitSupportPlane(pts, 0, 0, Math.PI, Math.PI);
+    expect(plane.roll).toBeCloseTo(rollFromFeet(0.3, 0, 0.4, Math.PI), 10);
+    expect(plane.pitch).toBeCloseTo(0, 12);
+  });
+
+  it("diagonale : une seule patte avant sur la pierre incline les DEUX axes", () => {
+    const pts = corners((x, z) => (x > 0 && z > 0 ? 0.34 : 0));
+    const s = fitSupportPlane(pts, 0, 0);
+    expect(s.pitch).toBeGreaterThan(0.05);
+    expect(Math.abs(s.roll)).toBeGreaterThan(0.05);
+    // Et la hauteur est la moyenne des quatre : chaque patte ne s'ecarte
+    // que d'une fraction de la marche.
+    expect(s.y).toBeCloseTo(0.34 / 4, 10);
+  });
+
+  it("evalue la hauteur au centre du corps, pas a l'origine", () => {
+    const pts = corners((x) => 0.5 * x + 1).map((p) => ({ ...p, x: p.x + 2 }));
+    const s = fitSupportPlane(pts, 2, 0, Math.PI, Math.PI);
+    // Les hauteurs ont ete calculees avant le decalage de +2 : au centre
+    // (x = 2, soit x d'origine 0) le plan vaut 0.5 * 0 + 1 = 1.
+    expect(s.y).toBeCloseTo(1, 10);
+  });
+
+  it("appuis alignes : pas de plan, retombe sur la moyenne sans NaN", () => {
+    const s = fitSupportPlane(
+      [
+        { x: 0, z: 0, y: 0.1 },
+        { x: 1, z: 0, y: 0.3 },
+        { x: 2, z: 0, y: 0.2 },
+      ],
+      1,
+      0
+    );
+    expect(s.planar).toBe(false);
+    expect(s.pitch).toBe(0);
+    expect(Number.isFinite(s.y)).toBe(true);
+  });
+
+  it("garde-fous : assiette et roulis bornes", () => {
+    const s = fitSupportPlane(corners((x, z) => 5 * x - 5 * z), 0, 0, 0.6, 0.35);
+    expect(s.pitch).toBeCloseTo(0.6, 12);
+    expect(Math.abs(s.roll)).toBeCloseTo(0.35, 12);
   });
 });

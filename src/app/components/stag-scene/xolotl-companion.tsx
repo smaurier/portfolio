@@ -6,7 +6,7 @@ import { useAnimations, useGLTF } from "@react-three/drei";
 import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type PointLight } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { rimCrossing, rimSurface } from "@/lib/xolotl-rim";
-import { bodyFromFeet, rollFromFeet } from "@/lib/quadruped-stance";
+import { bodyFromFeet, fitSupportPlane, type SupportPoint } from "@/lib/quadruped-stance";
 import { DOG_LEG_LIMITS, twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isBot } from "@/lib/is-bot";
@@ -794,74 +794,38 @@ export default function XolotlCompanion() {
       if (found.length > 0) legsRef.current = found;
     }
     const sc = ikScratch;
-    let frontSum = 0;
-    let rearSum = 0;
-    let frontN = 0;
-    let rearN = 0;
-    let frontX = 0;
-    let rearX = 0;
-    // Meme raisonnement lateralement : les deux cotes n'abordent pas la
-    // pierre en meme temps (la margelle est courbe et les pattes sont
-    // ecartees), et sans roulis le cote le plus haut devait s'etirer de
-    // TOUT le devers. Mesure avant correction : jusqu'a 11 cm au-dela de
-    // l'allonge sur une patte arriere.
-    let plusZSum = 0;
-    let minusZSum = 0;
-    let plusZN = 0;
-    let minusZN = 0;
-    let plusZPos = 0;
-    let minusZPos = 0;
+    // Les quatre appuis, un point (x, z, hauteur) par coussinet. Le plan
+    // qui passe au mieux par ces quatre points donne d'un coup hauteur,
+    // assiette et roulis, y compris en DIAGONALE (une seule patte avant
+    // sur la pierre), ce que le calcul par paires ne savait pas lire.
+    const supportPoints: SupportPoint[] = [];
     if (inNorth && legsRef.current) {
-      const all = legsRef.current;
-      for (let i = 0; i < all.length; i++) {
-        all[i].ball.getWorldPosition(sc.ball);
-        const sup = supportHeight(sc.ball.x, sc.ball.z, true);
-        if (i < FRONT_LEG_COUNT) {
-          frontSum += sup;
-          frontX += sc.ball.x;
-          frontN += 1;
-        } else {
-          rearSum += sup;
-          rearX += sc.ball.x;
-          rearN += 1;
-        }
-        if (sc.ball.z >= zDepth) {
-          plusZSum += sup;
-          plusZPos += sc.ball.z;
-          plusZN += 1;
-        } else {
-          minusZSum += sup;
-          minusZPos += sc.ball.z;
-          minusZN += 1;
-        }
+      for (const leg of legsRef.current) {
+        leg.ball.getWorldPosition(sc.ball);
+        supportPoints.push({ x: sc.ball.x, z: sc.ball.z, y: supportHeight(sc.ball.x, sc.ball.z, true) });
       }
     }
     // Les positions lues datent de la frame precedente. A la toute
     // premiere frame apres le reperage des os, elles sont encore celles du
-    // groupe avant placement : l'empattement mesure valait alors 1.96 au
-    // lieu de 0.6, l'assiette sortait a 7 degres au lieu de 22 et une
-    // patte manquait son appui de 41 cm (mesure 03/09). On ne fait donc
-    // confiance aux coussinets que s'ils sont VRAISEMBLABLEMENT sous le
-    // corps ; sinon on retombe sur l'echantillonnage fixe le temps d'une
-    // frame.
+    // groupe avant placement (mesure 03/09 : empattement 1.96 au lieu de
+    // 0.6, une patte a 41 cm de son appui). On ne fait donc confiance aux
+    // coussinets que s'ils sont VRAISEMBLABLEMENT sous le corps.
     const plausible =
-      frontN > 0 &&
-      rearN > 0 &&
-      Math.abs(frontX / frontN - x) < 1.2 &&
-      Math.abs(rearX / rearN - x) < 1.2;
-    const frontSupport = plausible ? frontSum / frontN : supportHeight(x + HALF_BASE, zDepth, inNorth);
-    const rearSupport = plausible ? rearSum / rearN : supportHeight(x - HALF_BASE, zDepth, inNorth);
-    // Empattement REEL entre les appuis, mesure lui aussi.
-    const wheelbase = plausible ? Math.max(0.2, Math.abs(frontX / frontN - rearX / rearN)) : 2 * HALF_BASE;
-    const stance = bodyFromFeet(frontSupport, rearSupport, wheelbase, MAX_PITCH);
-    // Voie reelle entre les deux cotes, mesuree elle aussi.
-    const track =
-      plausible && plusZN > 0 && minusZN > 0
-        ? Math.max(0.15, Math.abs(plusZPos / plusZN - minusZPos / minusZN))
-        : 0;
-    const rollTarget = track > 0 ? rollFromFeet(plusZSum / plusZN, minusZSum / minusZN, track, MAX_ROLL) : 0;
+      supportPoints.length === LEGS.length && supportPoints.every((p) => Math.abs(p.x - x) < 1.2);
+    const plane = plausible ? fitSupportPlane(supportPoints, x, zDepth, MAX_PITCH, MAX_ROLL) : null;
+    const stance =
+      plane && plane.planar
+        ? plane
+        : bodyFromFeet(
+            supportHeight(x + HALF_BASE, zDepth, inNorth),
+            supportHeight(x - HALF_BASE, zDepth, inNorth),
+            2 * HALF_BASE,
+            MAX_PITCH
+          );
+    const rollTarget = plane && plane.planar ? plane.roll : 0;
+
     const follow = 1 - Math.exp(-STANCE_FOLLOW_RATE * Math.min(delta, 1 / 30));
-    const fromFeet = plausible;
+    const fromFeet = plane !== null && plane.planar;
     const sourceChanged = fromFeet !== stanceFromFeetRef.current;
     stanceFromFeetRef.current = fromFeet;
     const prevStance = sourceChanged ? null : stanceRef.current;
