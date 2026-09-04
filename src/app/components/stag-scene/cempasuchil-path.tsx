@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
-import { Box3, BufferGeometry, Color, Euler, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3 } from "three";
+import { Color, DoubleSide, Euler, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from "three";
 import { cempasuchilFlowers, CEMPASUCHIL_COUNT } from "@/lib/cempasuchil-path";
 import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
+import { makeCempasuchilGeometry } from "@/lib/cempasuchil-geometry";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -21,10 +21,7 @@ import { useSceneRefs } from "./scene-refs-context";
  * l'echelle), figees en reduced-motion.
  */
 
-const MODEL_PATH = "/models/flowers-quaternius.glb";
-const FLOWER_NODE = "Flower_1";
 /** Hauteur cible d'une fleur (monde) : ~15 cm pour un cerf de 2 unites. */
-const FLOWER_HEIGHT = 0.1; // hauteur de la TETE seule (03/09)
 /** La tige plonge sous la nappe : seule la tete flotte. */
 const SINK = 0.02; // la tete flotte, a peine enfoncee (plus de tige)
 const CEMPASUCHIL = new Color("#ff8a1a");
@@ -53,82 +50,30 @@ const RETURN_MAX_S = 26;
 const RETURN_RATE = 0.35; // /s : suivi de la cible (qui, elle, bouge lentement)
 const CLOUD_MIN = 0.5;
 const CLOUD_MAX = 1.6;
-/** Fraction de la hauteur du modele en dessous de laquelle on coupe (la
- * tige) : 0.55 garde la corolle et les feuilles hautes. */
-const HEAD_CUT = 0.55;
-
-/** Ne garde que les triangles dont les trois sommets sont au-dessus de
- * `fraction` de la hauteur totale. Geometrie non indexee en sortie. */
-function keepAbove(src: BufferGeometry, fraction: number): BufferGeometry {
-  const g = src.index ? src.toNonIndexed() : src;
-  g.computeBoundingBox();
-  const bb = g.boundingBox ?? new Box3();
-  const cut = bb.min.y + (bb.max.y - bb.min.y) * fraction;
-  const pos = g.attributes.position;
-  const uv = g.attributes.uv;
-  const nor = g.attributes.normal;
-  const outPos: number[] = [];
-  const outUv: number[] = [];
-  const outNor: number[] = [];
-  for (let t = 0; t < pos.count; t += 3) {
-    const ys = [pos.getY(t), pos.getY(t + 1), pos.getY(t + 2)];
-    if (Math.min(...ys) < cut) continue;
-    for (let k = 0; k < 3; k++) {
-      outPos.push(pos.getX(t + k), pos.getY(t + k), pos.getZ(t + k));
-      if (uv) outUv.push(uv.getX(t + k), uv.getY(t + k));
-      if (nor) outNor.push(nor.getX(t + k), nor.getY(t + k), nor.getZ(t + k));
-    }
-  }
-  const out = new BufferGeometry();
-  out.setAttribute("position", new Float32BufferAttribute(outPos, 3));
-  if (uv) out.setAttribute("uv", new Float32BufferAttribute(outUv, 2));
-  if (nor) out.setAttribute("normal", new Float32BufferAttribute(outNor, 3));
-  else out.computeVertexNormals();
-  if (g !== src) g.dispose();
-  return out;
-}
-
 export default function CempasuchilPath() {
   const meshRef = useRef<InstancedMesh>(null);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   const fadeRef = useRef(direction === "obsidienne" ? 1 : 0);
-  const gltf = useGLTF(MODEL_PATH);
-
-  const { geometry, material } = useMemo(() => {
-    const src = gltf.scene.getObjectByName(FLOWER_NODE) as Mesh | undefined;
-    if (!src) return { geometry: null as BufferGeometry | null, material: null as MeshStandardMaterial | null };
-    // Geometrie cuite avec le transform du noeud (scale 100 du pack), puis
-    // normalisee : hauteur FLOWER_HEIGHT, pied a y=0, centree en xz. Le
-    // pack a la fleur debout selon +z local : on la redresse selon +y.
-    src.updateWorldMatrix(true, false);
-    const whole = src.geometry.clone();
-    whole.applyMatrix4(src.matrixWorld);
-    whole.rotateX(-Math.PI / 2);
-    // TETE SEULE (03/09, retour Sylvain "ne garder que les fleurs, pas
-    // leurs tiges") : on ne garde que les triangles du haut du modele
-    // (au-dessus de HEAD_CUT de la hauteur), la tige est jetee.
-    const geo = keepAbove(whole, HEAD_CUT);
-    whole.dispose();
-    geo.computeBoundingBox();
-    const box = geo.boundingBox ?? new Box3();
-    const size = box.getSize(new Vector3());
-    const center = box.getCenter(new Vector3());
-    const k = size.y > 0 ? FLOWER_HEIGHT / size.y : 1;
-    geo.translate(-center.x, -box.min.y, -center.z);
-    geo.scale(k, k, k);
-    const srcMat = (Array.isArray(src.material) ? src.material[0] : src.material) as MeshStandardMaterial;
-    const mat = new MeshStandardMaterial({
-      map: srcMat.map ?? null,
-      color: CEMPASUCHIL,
-      roughness: 0.85,
-      metalness: 0,
-      emissive: CEMPASUCHIL,
-      emissiveIntensity: 0.18,
-    });
-    return { geometry: geo, material: mat };
-  }, [gltf]);
-  useEffect(() => () => { geometry?.dispose(); material?.dispose(); }, [geometry, material]);
+  // Fleur MODELISEE (04/09, retour Sylvain "on ne les identifie pas du
+  // tout comme telles", puis "va pour le modele que tu controles") : la
+  // boule de petales de lib/cempasuchil-geometry, couleurs par vertex
+  // (coeur sombre, bouts clairs, calice vert). Une seule variante suffit,
+  // le cap et l'echelle par instance cassent deja la repetition.
+  const geometry = useMemo(() => makeCempasuchilGeometry(7), []);
+  const material = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        vertexColors: true,
+        roughness: 0.9,
+        metalness: 0,
+        side: DoubleSide,
+        emissive: CEMPASUCHIL,
+        emissiveIntensity: 0.2,
+      }),
+    []
+  );
+  useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
 
   const scratch = useMemo(() => ({ m: new Matrix4(), q: new Quaternion(), e: new Euler(), p: new Vector3(), s: new Vector3() }), []);
   // Etat par fleur : position courante (elle glisse vers sa cible) et son
@@ -241,10 +186,8 @@ export default function CempasuchilPath() {
     mesh.instanceMatrix.needsUpdate = true;
   });
 
-  if (!geometry || !material) return null;
   return (
     <instancedMesh ref={meshRef} args={[geometry, material, CEMPASUCHIL_COUNT]} frustumCulled={false} raycast={() => null} visible={false} />
   );
 }
 
-useGLTF.preload(MODEL_PATH);
