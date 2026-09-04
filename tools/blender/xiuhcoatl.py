@@ -367,9 +367,11 @@ def action(name, frames, fn):
     return act
 
 # Retour Sylvain 04/09 : « tres rigide, il doit avancer en ondulant beaucoup
-# plus », « une forme de S pour avancer ». Vu de profil (le vol traverse
-# l'ecran), seule une vague VERTICALE se lit : le S des serpents de feu des
-# codex (Borgia, Borbonicus).
+# plus », « une forme de S pour avancer », puis « j'aurais plutot aime que le
+# corps ondule a l'horizontal » : ondulation LATERALE dominante, comme un vrai
+# serpent (aucune source mythologique n'impose un plan ; la vague verticale
+# n'etait qu'un choix de lisibilite de profil, remplace par une trajectoire
+# en diagonale cote site). Un leger tangage secondaire garde le corps vivant.
 # Axes LOCAUX d'un os Blender : Y = le long de l'os (torsion), X = tangage
 # (vague verticale), Z = lacet (vague laterale).
 # Les rotations se CUMULENT le long de la chaine : on impose l'angle de la
@@ -378,15 +380,15 @@ def action(name, frames, fn):
 # nulle (pas de bascule globale, constatee avec des angles par os directs :
 # le corps entier piquait a 60 degres). La tete compense le cou pour rester
 # a peu pres a niveau, comme un serpent qui nage.
-PITCH_AMP, PITCH_PHASE = 0.60, 0.8   # ~1.15 vague sur les 9 os du corps
-YAW_AMP, YAW_PHASE = 0.20, 0.85
+PITCH_AMP, PITCH_PHASE = 0.12, 0.8   # tangage secondaire
+YAW_AMP, YAW_PHASE = 0.55, 0.8       # ~1.15 vague laterale sur les 9 os du corps
 
 def wave_chain(f, frames, pitch_amp, yaw_amp, head_bob):
     t = f / frames * 2 * math.pi
     pp = py = 0.0
     for i, name in enumerate(spine_bones):
         a = pitch_amp * math.sin(t - i * PITCH_PHASE)
-        b = yaw_amp * math.sin(t - i * YAW_PHASE + 0.5)
+        b = yaw_amp * math.sin(t - i * YAW_PHASE)
         rig.pose.bones[name].rotation_euler = (a - pp, 0, b - py)
         pp, py = a, b
     rig.pose.bones["head"].rotation_euler = (-0.7 * pp + head_bob * math.sin(t * 2), 0, -0.5 * py)
@@ -402,7 +404,7 @@ def slither(f, frames):
         rig.pose.bones[footn].rotation_euler = (0.35 * math.sin(ph + 1.2), 0, 0)
 
 def idle(f, frames):
-    t = wave_chain(f, frames, 0.15, 0.06, 0.04)
+    t = wave_chain(f, frames, 0.05, 0.14, 0.04)
     rig.pose.bones["jaw"].rotation_euler = (0.08 + 0.06 * math.sin(t * 1.5), 0, 0)
     for k, (hipn, footn) in enumerate(leg_bones):
         rig.pose.bones[hipn].rotation_euler = (0.08 * math.sin(t + k), 0, 0)

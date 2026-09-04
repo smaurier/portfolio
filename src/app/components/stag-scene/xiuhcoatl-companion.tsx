@@ -38,7 +38,7 @@ const SCALE = 2.4;
 /** Longueur du modele (Blender) : les braises naissent le long du corps. */
 const BODY_LENGTH = 4.2;
 const EMBER_BURST_EVERY = 11; // une salve de braises toutes les N unites de budget
-const LIGHT_INTENSITY = 14;
+const LIGHT_INTENSITY = 6;
 
 useGLTF.preload(MODEL_PATH);
 
@@ -55,8 +55,10 @@ function setOpacity(root: Group, opacity: number) {
   });
 }
 
-/** Le feu doit se voir de loin : on pousse l'emission des materiaux du GLB
- * (le bloom du site fait le reste), une fois au chargement. */
+/** Eclaire comme le reste de la scene (04/09, retour Sylvain : « il doit
+ * etre eclaire comme le reste de la scene ») : pas de boost d'emission, pas
+ * d'exception au fog ; seules les flammes et la gueule gardent une faible
+ * lueur pour que le feu reste feu sans devenir un neon. */
 function dressFire(root: Group) {
   root.traverse((child) => {
     const mesh = child as Mesh;
@@ -65,10 +67,10 @@ function dressFire(root: Group) {
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     for (const m of mats) {
       const mat = m as MeshStandardMaterial;
-      if (mat.name.includes("fire")) mat.emissiveIntensity = 2.4;
-      else if (mat.name.includes("mouth")) mat.emissiveIntensity = 1.6;
-      else if (mat.name.includes("scale")) mat.emissiveIntensity = 0.9;
-      mat.fog = false;
+      if (mat.name.includes("fire")) mat.emissiveIntensity = 0.5;
+      else if (mat.name.includes("mouth")) mat.emissiveIntensity = 0.35;
+      else mat.emissiveIntensity = 0;
+      mat.fog = true;
     }
   });
 }

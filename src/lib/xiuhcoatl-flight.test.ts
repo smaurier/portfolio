@@ -20,11 +20,14 @@ describe("flightPosition (le serpent de feu porte le soleil a travers le ciel)",
     expect(argmax).toBeCloseTo(0.5, 1);
   });
 
-  it("reste derriere le cerf (z negatif), avec une ondulation bornee", () => {
+  it("reste derriere le cerf (z negatif), en diagonale de loin vers pres, ondulation bornee", () => {
+    const { fromZ, toZ, swayAmp } = XIUHCOATL_FLIGHT;
+    expect(fromZ).toBeLessThan(toZ); // arrive de loin, passe plus pres
     for (let i = 0; i <= 50; i++) {
-      const z = flightPosition(i / 50).z;
+      const u = i / 50;
+      const z = flightPosition(u).z;
       expect(z).toBeLessThan(0);
-      expect(Math.abs(z - XIUHCOATL_FLIGHT.z)).toBeLessThanOrEqual(XIUHCOATL_FLIGHT.swayAmp + 1e-9);
+      expect(Math.abs(z - (fromZ + (toZ - fromZ) * u))).toBeLessThanOrEqual(swayAmp + 1e-9);
     }
   });
 

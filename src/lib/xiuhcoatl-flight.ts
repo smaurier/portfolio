@@ -15,8 +15,12 @@ export type FlightSpec = {
   /** Abscisse de depart (hors champ, cote est) et d'arrivee (cote ouest). */
   fromX: number;
   toX: number;
-  /** Profondeur (derriere le cerf). */
-  z: number;
+  /** Profondeur au depart et a l'arrivee (derriere le cerf). Trajectoire en
+   * DIAGONALE (04/09, go Sylvain) : le serpent arrive de loin et passe plus
+   * pres en biais vers la camera, pour que son ondulation LATERALE se lise
+   * en perspective (de profil pur elle est invisible). */
+  fromZ: number;
+  toZ: number;
   /** Altitude aux bornes et au sommet de l'arc. */
   baseY: number;
   peakY: number;
@@ -35,8 +39,9 @@ export type FlightSpec = {
 // entierement dans le ciel, jamais dans la montagne (retour Sylvain).
 export const XIUHCOATL_FLIGHT: FlightSpec = {
   fromX: -20,
-  toX: 20,
-  z: -11,
+  toX: 16,
+  fromZ: -16,
+  toZ: -7,
   baseY: 5.0,
   peakY: 5.6,
   swayAmp: 0.6,
@@ -54,7 +59,7 @@ export function flightPosition(t: number, spec: FlightSpec = XIUHCOATL_FLIGHT): 
   return {
     x: spec.fromX + (spec.toX - spec.fromX) * u,
     y: spec.baseY + (spec.peakY - spec.baseY) * Math.sin(u * Math.PI),
-    z: spec.z + spec.swayAmp * Math.sin(u * Math.PI * 2 * spec.swayWaves),
+    z: spec.fromZ + (spec.toZ - spec.fromZ) * u + spec.swayAmp * Math.sin(u * Math.PI * 2 * spec.swayWaves),
   };
 }
 
@@ -63,7 +68,7 @@ export function flightTangent(t: number, spec: FlightSpec = XIUHCOATL_FLIGHT): V
   const u = clamp01(t);
   const dx = spec.toX - spec.fromX;
   const dy = (spec.peakY - spec.baseY) * Math.PI * Math.cos(u * Math.PI);
-  const dz = spec.swayAmp * Math.PI * 2 * spec.swayWaves * Math.cos(u * Math.PI * 2 * spec.swayWaves);
+  const dz = spec.toZ - spec.fromZ + spec.swayAmp * Math.PI * 2 * spec.swayWaves * Math.cos(u * Math.PI * 2 * spec.swayWaves);
   const l = Math.hypot(dx, dy, dz) || 1;
   return { x: dx / l, y: dy / l, z: dz / l };
 }
