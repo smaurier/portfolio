@@ -1,10 +1,14 @@
+/* eslint-disable react-hooks/immutability -- pattern gamedev r3f useFrame : mutation d'uniforms et du store partage a 60 fps (meme precedent que xolotl-companion). */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { Quaternion, Vector3, type Group, type Mesh, type MeshStandardMaterial, type PointLight } from "three";
+import { Quaternion, Vector3, type Group, type Material, type Mesh, type MeshStandardMaterial, type PointLight } from "three";
 import { initialWander, stepWander, wanderTangent, XIUHCOATL_WANDER, type WanderState } from "@/lib/xiuhcoatl-wander";
+import { getMictlanSky } from "./mictlan-sky";
+import { createEmberFireMaterial, createTurquoiseMaterial, createXiuhcoatlUniforms, type XiuhcoatlUniforms } from "./xiuhcoatl-materials";
+import { pushHeat, xiuhcoatlStore } from "./xiuhcoatl-store";
 import { isBot } from "@/lib/is-bot";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import { tezcatlStore } from "./tezcatl-store";
@@ -43,37 +47,47 @@ const EMBERS_PER_SECOND = 22;
 const LIGHT_INTENSITY = 6;
 const BANK_GAIN = 0.45;
 const BANK_MAX = 0.35;
+/** Cadence des points de chaleur (trainee qui deforme l'air). */
+const HEAT_EVERY_MS = 85;
 
 useGLTF.preload(MODEL_PATH);
 
-function setOpacity(root: Group, opacity: number) {
+function setOpacity(root: Group, opacity: number, uniforms: XiuhcoatlUniforms) {
+  uniforms.uOpacity.value = opacity;
   root.traverse((child) => {
     const mesh = child as Mesh;
     if (!mesh.isMesh) return;
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     for (const m of mats) {
-      const mat = m as MeshStandardMaterial;
+      const mat = m as Material & { opacity: number; isShaderMaterial?: boolean };
+      if (mat.isShaderMaterial) continue; // uOpacity
       mat.transparent = opacity < 1;
       mat.opacity = opacity;
     }
   });
 }
 
-/** Eclaire comme le reste de la scene (04/09, retour Sylvain : « il doit
- * etre eclaire comme le reste de la scene ») : pas de boost d'emission, pas
- * d'exception au fog ; seules les flammes et la gueule gardent une faible
- * lueur pour que le feu reste feu sans devenir un neon. */
-function dressFire(root: Group) {
+/** Les matieres (04/09) : ecailles = turquoise polie en mosaique avec le
+ * feu dans les joints, flammes = braise du reflet de Xolotl, gueule =
+ * faible lueur, os/griffes/perles = tels quels. Eclaire comme la scene
+ * (retour Sylvain), fog compris. */
+function dressMaterials(root: Group, uniforms: XiuhcoatlUniforms) {
+  const sky = getMictlanSky();
   root.traverse((child) => {
     const mesh = child as Mesh;
     if (!mesh.isMesh) return;
     mesh.frustumCulled = false;
-    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-    for (const m of mats) {
-      const mat = m as MeshStandardMaterial;
-      if (mat.name.includes("fire")) mat.emissiveIntensity = 0.5;
-      else if (mat.name.includes("mouth")) mat.emissiveIntensity = 0.35;
-      else mat.emissiveIntensity = 0;
+    const mat = mesh.material as MeshStandardMaterial;
+    if (Array.isArray(mesh.material) || !mat) return;
+    if (mat.name.includes("scale")) {
+      mesh.material = createTurquoiseMaterial(mat.color.clone(), sky, uniforms);
+    } else if (mat.name.includes("fire")) {
+      mesh.material = createEmberFireMaterial(uniforms);
+    } else if (mat.name.includes("mouth")) {
+      mat.emissiveIntensity = 0.35;
+      mat.fog = true;
+    } else {
+      mat.emissiveIntensity = 0;
       mat.fog = true;
     }
   });
@@ -106,14 +120,16 @@ export default function XiuhcoatlCompanion() {
   const bornAtRef = useRef(0);
   const bankRef = useRef(0);
   const emberAccRef = useRef(0);
+  const heatAtRef = useRef(0);
+  const uniforms = useMemo(() => createXiuhcoatlUniforms(), []);
   const scratch = useMemo(
     () => ({ q: new Quaternion(), qy: new Quaternion(), qz: new Quaternion(), qx: new Quaternion(), axisY: new Vector3(0, 1, 0), axisZ: new Vector3(0, 0, 1), axisX: new Vector3(1, 0, 0) }),
     []
   );
 
   useEffect(() => {
-    dressFire(scene as Group);
-  }, [scene]);
+    dressMaterials(scene as Group, uniforms);
+  }, [scene, uniforms]);
 
   // Presence : Sud seulement, jamais pour un bot, en mode recit ou en
   // reduced-motion ; tirage 1/3 par visite.
@@ -150,6 +166,7 @@ export default function XiuhcoatlCompanion() {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
     if (!present || reduced) {
       g.visible = false;
+      xiuhcoatlStore.presence = 0;
       if (lightRef.current) lightRef.current.intensity = 0;
       return;
     }
@@ -158,9 +175,12 @@ export default function XiuhcoatlCompanion() {
     const s = stepWander(w, dt, XIUHCOATL_WANDER);
     wanderRef.current = s;
 
-    const fade = Math.min(1, (performance.now() - bornAtRef.current) / FADE_IN_MS);
+    const now = performance.now();
+    const fade = Math.min(1, (now - bornAtRef.current) / FADE_IN_MS);
     g.visible = true;
-    setOpacity(scene as Group, fade);
+    setOpacity(scene as Group, fade, uniforms);
+    uniforms.uTime.value = _state.clock.elapsedTime;
+    xiuhcoatlStore.presence = fade;
 
     // Corps oriente le long de la tangente (le modele avance selon +X),
     // inclinaison dans les virages (le cap qui tourne penche le corps).
@@ -179,8 +199,16 @@ export default function XiuhcoatlCompanion() {
 
     if (lightRef.current) lightRef.current.intensity = LIGHT_INTENSITY * fade;
 
-    // Braises le long de la moitie arriere du corps (famille « chaude » du
-    // moteur des fleches). A remplacer par la trainee chaude + etincelles.
+    // Trainee chaude : un point de chaleur derriere lui a cadence fixe,
+    // le long de la moitie arriere du corps (post-fx xiuhcoatl-heat).
+    if (now - heatAtRef.current >= HEAT_EVERY_MS) {
+      heatAtRef.current = now;
+      const back = (0.3 + Math.random() * 0.6) * BODY_LENGTH * SCALE * 0.5;
+      pushHeat(s.x - d.x * back, s.y - d.y * back, s.z - d.z * back, now);
+    }
+
+    // Etincelles le long de la moitie arriere du corps (famille « chaude »
+    // du moteur des fleches : pas de fumee, que des eclats vifs).
     emberAccRef.current += EMBERS_PER_SECOND * dt;
     while (emberAccRef.current >= EMBER_BURST_EVERY) {
       emberAccRef.current -= EMBER_BURST_EVERY;

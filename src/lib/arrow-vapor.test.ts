@@ -105,18 +105,29 @@ describe("vaporAlpha / vaporSize", () => {
   });
 });
 
-describe("les braises (heat = 1, le xiuhcoatl)", () => {
-  it("par defaut froid ; a chaud, plus petites, plus courtes, et elles montent plus vite", () => {
+describe("les etincelles (heat = 1, le xiuhcoatl)", () => {
+  it("par defaut froid ; a chaud, aucune fumee, que des etincelles courtes et vives", () => {
     const cold = spawnVapor(3, ORIGIN, UP, LENGTH);
     const hot = spawnVapor(3, ORIGIN, UP, LENGTH, 1);
     expect(cold.every((p) => p.heat === 0)).toBe(true);
     expect(hot.every((p) => p.heat === 1)).toBe(true);
-    const smokeC = cold.filter((p) => p.kind === VAPOR_SMOKE);
-    const smokeH = hot.filter((p) => p.kind === VAPOR_SMOKE);
+    expect(hot.some((p) => p.kind === VAPOR_SMOKE)).toBe(false);
+    expect(hot.length).toBeGreaterThan(0);
+    expect(hot.length).toBeLessThanOrEqual(PARTICLES_PER_ARROW);
     const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
-    expect(mean(smokeH.map((p) => p.size))).toBeLessThan(mean(smokeC.map((p) => p.size)));
-    expect(mean(smokeH.map((p) => p.life))).toBeLessThan(mean(smokeC.map((p) => p.life)));
-    expect(mean(smokeH.map((p) => p.vy))).toBeGreaterThan(mean(smokeC.map((p) => p.vy)));
+    const shardsC = cold.filter((p) => p.kind === VAPOR_SHARD);
+    expect(mean(hot.map((p) => p.life))).toBeLessThan(1.2);
+    expect(mean(hot.map((p) => p.life))).toBeGreaterThan(0.4);
+    expect(mean(hot.map((p) => p.size))).toBeGreaterThan(mean(shardsC.map((p) => p.size)));
+  });
+
+  it("les etincelles partent vers l'arriere (le long de l'axe donne) et retombent", () => {
+    const axis = { x: 1, y: 0, z: 0 };
+    const hot = spawnVapor(5, ORIGIN, axis, LENGTH, 1);
+    const meanVx = hot.reduce((a, p) => a + p.vx, 0) / hot.length;
+    expect(meanVx).toBeGreaterThan(0.3);
+    stepVapor(hot, 1.0);
+    expect(hot.every((p) => p.vy < 0)).toBe(true);
   });
 
   it("la chaleur est bornee a [0, 1]", () => {

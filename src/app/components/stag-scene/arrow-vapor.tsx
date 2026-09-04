@@ -40,6 +40,7 @@ const SHARD_COLOR = new Color("#1a1326");
 // Famille chaude (04/09, le xiuhcoatl) : braises orange, eclats dores.
 const EMBER_COLOR = new Color("#ff7a1a");
 const SPARK_COLOR = new Color("#ffd27a");
+const SPARK_DYING = new Color("#7a1200");
 
 export default function ArrowVapor() {
   const pointsRef = useRef<Points>(null);
@@ -70,6 +71,7 @@ export default function ArrowVapor() {
           uShard: { value: SHARD_COLOR },
           uEmber: { value: EMBER_COLOR },
           uSpark: { value: SPARK_COLOR },
+          uSparkDying: { value: SPARK_DYING },
           uScale: { value: 1 },
         },
         transparent: true,
@@ -100,6 +102,7 @@ export default function ArrowVapor() {
           uniform vec3 uShard;
           uniform vec3 uEmber;
           uniform vec3 uSpark;
+          uniform vec3 uSparkDying;
           varying float vAlpha;
           varying float vKind;
           varying float vHeat;
@@ -117,8 +120,10 @@ export default function ArrowVapor() {
               vec2 d = gl_PointCoord - 0.5;
               float r = length(d);
               if (r > 0.5) discard;
-              vec3 col = mix(uShard + 0.12 * (1.0 - r * 2.0), uSpark, vHeat);
-              gl_FragColor = vec4(col, vAlpha);
+              // Etincelle : jaune vif qui rougit en mourant (vAlpha decroit).
+              vec3 spark = mix(uSparkDying, uSpark * (1.0 + 0.6 * (1.0 - r * 2.0)), vAlpha);
+              vec3 col = mix(uShard + 0.12 * (1.0 - r * 2.0), spark, vHeat);
+              gl_FragColor = vec4(col, vHeat > 0.5 ? 1.0 : vAlpha);
             }
           }
         `,

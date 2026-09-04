@@ -10,6 +10,7 @@ import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { useSceneRefs } from "./scene-refs-context";
 import OllinShockwave from "./ollin-shockwave";
 import NepantlaBlur from "./nepantla-blur";
+import XiuhcoatlHeat from "./xiuhcoatl-heat";
 
 /**
  * Post-processing : retour de Sylvain le 18/08, après audit comparé à des
@@ -153,6 +154,13 @@ export default function PostFX() {
           fusionner avec Ollin qui transforme les UV (lecon 01/09). */}
       <EffectGroup>
         <NepantlaBlur />
+      </EffectGroup>
+      {/* Trainee chaude du xiuhcoatl (04/09, Sud) : l'air tremble derriere
+          le serpent de feu (refraction fine, pas de fumee). Transforme les
+          UV : EffectGroup obligatoire, comme Ollin. Muet quand il est
+          absent (force 0, sortie immediate du shader). */}
+      <EffectGroup>
+        <XiuhcoatlHeat />
       </EffectGroup>
       {/* DOF en second : les autres effets (bloom, CA) s'appliquent
           par-dessus le rendu focus-racké. Focus fixe sur ~cerf.

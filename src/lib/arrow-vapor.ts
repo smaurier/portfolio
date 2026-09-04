@@ -32,9 +32,10 @@ export type VaporParticle = {
   /** Taille de reference (unites monde, diametre au pic pour la fumee). */
   size: number;
   kind: VaporKind;
-  /** 0 = fumee noire et eclats d'obsidienne (les fleches), 1 = BRAISES
-   * (le xiuhcoatl, 04/09) : plus petites, plus vives, elles montent plus
-   * vite et s'eteignent plus tot. */
+  /** 0 = fumee noire et eclats d'obsidienne (les fleches), 1 = ETINCELLES
+   * (le xiuhcoatl, 04/09) : pas de fumee du tout (les bouffees faisaient
+   * « prouts », retour Sylvain), seulement des etincelles vives qui
+   * s'echappent, retombent et s'eteignent vite. */
   heat: number;
 };
 
@@ -43,6 +44,8 @@ export type Vec3 = { x: number; y: number; z: number };
 export const SMOKE_PER_ARROW = 22;
 export const SHARDS_PER_ARROW = 14;
 export const PARTICLES_PER_ARROW = SMOKE_PER_ARROW + SHARDS_PER_ARROW;
+/** Etincelles d'une salve chaude (heat = 1) : pas de fumee, que des eclats. */
+export const SPARKS_PER_BURST = 18;
 /** Vie maximale d'une particule, toutes familles : la borne du pool. */
 export const VAPOR_MAX_LIFE = 2.4;
 
@@ -82,6 +85,7 @@ export function spawnVapor(seed: number, origin: Vec3, axis: Vec3, length: numbe
   const out: VaporParticle[] = [];
   const [u, v] = frame(axis);
   const hot = Math.max(0, Math.min(1, heat));
+  if (hot >= 0.999) return spawnSparks(seed, origin, axis, length, u, v);
   const sizeK = 1 - 0.45 * hot;
   const lifeK = 1 - 0.3 * hot;
   const riseK = 1 + 0.9 * hot;
@@ -120,6 +124,33 @@ export function spawnVapor(seed: number, origin: Vec3, axis: Vec3, length: numbe
       size: (0.018 + 0.02 * hash(seed, i, 16)) * (1 - 0.2 * hot),
       kind: VAPOR_SHARD,
       heat: hot,
+    });
+  }
+  return out;
+}
+
+/** Les etincelles d'un corps de feu : nees le long de l'axe (la moitie
+ * arriere du corps), projetees en gerbe courte vers l'arriere et le haut,
+ * elles retombent sous la gravite (famille ECLAT) et s'eteignent vite. */
+function spawnSparks(seed: number, origin: Vec3, axis: Vec3, length: number, u: Vec3, v: Vec3): VaporParticle[] {
+  const out: VaporParticle[] = [];
+  for (let i = 0; i < SPARKS_PER_BURST; i++) {
+    const t = hash(seed, i, 21) - 0.5;
+    const a = hash(seed, i, 22) * Math.PI * 2;
+    const spread = 0.3 + 0.7 * hash(seed, i, 23);
+    const back = 0.4 + 0.8 * hash(seed, i, 24);
+    out.push({
+      x: origin.x + axis.x * t * length,
+      y: origin.y + axis.y * t * length,
+      z: origin.z + axis.z * t * length,
+      vx: (u.x * Math.cos(a) + v.x * Math.sin(a)) * spread + axis.x * back,
+      vy: 0.6 + 1.1 * hash(seed, i, 25) + axis.y * back,
+      vz: (u.z * Math.cos(a) + v.z * Math.sin(a)) * spread + axis.z * back,
+      age: -0.05 * hash(seed, i, 26),
+      life: 0.45 + 0.65 * hash(seed, i, 27),
+      size: 0.022 + 0.03 * hash(seed, i, 28),
+      kind: VAPOR_SHARD,
+      heat: 1,
     });
   }
   return out;
