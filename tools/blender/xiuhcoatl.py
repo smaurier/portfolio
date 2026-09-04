@@ -259,7 +259,9 @@ TONGUE_ROOT = (mx0 + snout_len * 0.05, 0, HZ - HH * 0.42)
 TONGUE_LEN = jaw_len * 1.6
 _tp = [(TONGUE_ROOT[0] + TONGUE_LEN * k / 4, 0, TONGUE_ROOT[2] - R * 0.16 * (k / 4) ** 2) for k in range(5)]
 # tube() : rayon = bevel x radius du point (les radii sont des facteurs).
-tube("Tongue", _tp[:4] + [(_tp[3][0] + TONGUE_LEN * 0.12, 0, _tp[3][2])], [0.24, 0.22, 0.19, 0.15, 0.12], R, MAT_FIRE, res_u=6, flat_z=0.4)
+# Pas de flat_z ici : l'aplatissement est un scale autour de l'origine de
+# l'objet, il deplacait le ruban vers z = 0 et le decollait de la fourche.
+tube("Tongue", _tp[:4] + [(_tp[3][0] + TONGUE_LEN * 0.12, 0, _tp[3][2])], [0.2, 0.18, 0.16, 0.13, 0.11], R, MAT_FIRE, res_u=6)
 for side in (1, -1):
     fx, fz = _tp[3][0] + TONGUE_LEN * 0.08, _tp[3][2]
     cone(f"TongueFork{'L' if side > 0 else 'R'}", (fx, 0, fz), (fx + TONGUE_LEN * 0.24, side * R * 0.2, fz - R * 0.03), R * 0.09, MAT_FIRE, sides=5)
