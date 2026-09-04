@@ -29,6 +29,12 @@ export type WanderSpec = {
   camZ: number;
   minElevDeg: number;
   maxElevDeg: number;
+  /** Altitude plancher absolue : pres de la camera, la bande d'elevation
+   * descendrait sous le cerf ; ce plancher le fait passer AU-DESSUS du
+   * cadre (hors champ par le haut) plutot que devant l'objectif. */
+  yAbsMin: number;
+  /** Centre de braquage en z (le cerf est en 0). */
+  zCenter: number;
   /** Vitesse (unites/s), taux de virage max (rad/s), marge de braquage. */
   speed: number;
   turnRate: number;
@@ -58,17 +64,22 @@ export type WanderState = {
 // visible en fait ~0.6), donc il SORT du cadre par les cotes et revient ;
 // en profondeur jusqu'a z = -70, ou il n'est plus qu'une braise dans la
 // brume ; en hauteur jusqu'a 22 deg, au-dessus du bandeau. Il ne descend
-// pas plus pres que z = -4 (il remplirait l'ecran) ni sous la crete.
+// Puis « le centre du ciel doit arriver au-dessus du cerf » : la boite est
+// CENTREE sur le cerf (z de -45 a +5, braquage vers z = 0). Pres de la
+// camera, le plancher absolu yAbsMin le fait passer au-dessus du cadre :
+// il survole le cerf et la camera, disparait par le haut, revient.
 export const XIUHCOATL_WANDER: WanderSpec = {
   xMin: -60,
   xMax: 60,
   xHalfPerDist: 1.4,
-  zMin: -70,
-  zMax: -4,
+  zMin: -45,
+  zMax: 5,
   camY: 2.4,
   camZ: 9.5,
   minElevDeg: 5.5,
   maxElevDeg: 22,
+  yAbsMin: 5.5,
+  zCenter: 0,
   speed: 3.4,
   turnRate: 1.0,
   margin: 8,
@@ -83,11 +94,10 @@ export function xHalf(z: number, spec: WanderSpec = XIUHCOATL_WANDER): number {
 
 /** Plancher et plafond du ciel a la profondeur z. */
 export function skyBand(z: number, spec: WanderSpec = XIUHCOATL_WANDER): { yMin: number; yMax: number } {
-  const dist = spec.camZ - z;
-  return {
-    yMin: spec.camY + dist * Math.tan(spec.minElevDeg * RAD),
-    yMax: spec.camY + dist * Math.tan(spec.maxElevDeg * RAD),
-  };
+  const dist = Math.max(0.5, spec.camZ - z);
+  const yMin = Math.max(spec.yAbsMin, spec.camY + dist * Math.tan(spec.minElevDeg * RAD));
+  const yMax = Math.max(yMin + 1.5, spec.camY + dist * Math.tan(spec.maxElevDeg * RAD));
+  return { yMin, yMax };
 }
 
 /** Bruit lisse dans [-1, 1], deterministe par graine et canal. */
@@ -126,7 +136,7 @@ export function stepWander(s: WanderState, dt: number, spec: WanderSpec = XIUHCO
   // Cap : derive libre...
   let heading = s.heading + noise(t, s.seed, 0) * spec.turnRate * dt;
   // ...plus braquage vers le centre proportionnel a la penetration dans la marge.
-  const cx = 0, cz = (spec.zMin + spec.zMax) / 2;
+  const cx = 0, cz = spec.zCenter;
   const xh0 = xHalf(s.z, spec);
   const over = Math.max(
     (-xh0 + spec.margin - s.x) / spec.margin,
