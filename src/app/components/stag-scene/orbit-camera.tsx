@@ -28,6 +28,8 @@ import { useSceneRefs } from "./scene-refs-context";
  * même garde-fou d'accessibilité que le reste de l'arc (cf reveal-arc.ts
  * et cursor-reveal.ts).
  */
+const SOUTH_CAMERA_DROP = 0.2;
+const SOUTH_TARGET_LIFT = 1.1;
 const PARALLAX_X = 0.5;
 const PARALLAX_Y = 0.35;
 const MOUSE_LERP = 0.08;
@@ -93,6 +95,15 @@ export default function OrbitCamera({
   // 3/4 symétrique. Avant le 02/09, le progress caméra suivait l'arc de
   // lumière remappé et la caméra reculait puis revenait : incohérent.
   const northBlendRef = useRef(direction === "obsidienne" ? 1 : 0);
+  // Caméra Huitztlampa (04/09, retour Sylvain « ajuster la caméra pour
+  // voir plus de ciel ») : au Sud le regard se lève vers le ciel où naît le
+  // soleil (Coatepec) : la cible monte, la caméra descend un peu
+  // (contre-plongée légère). Mesuré : la crête des montagnes culmine à
+  // ~3° d'élévation et le bandeau de navigation coupe vers +5,5° avec le
+  // regard de base ; avec le regard levé, la bande de ciel va de 3° à 16°,
+  // c'est là que passe le xiuhcoatl. Le cerf reste entier dans le cadre
+  // (sabots juste au-dessus du titre).
+  const southBlendRef = useRef(direction === "turquoise" ? 1 : 0);
 
   useEffect(() => {
     reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -145,6 +156,9 @@ export default function OrbitCamera({
     const northTarget = direction === "obsidienne" ? 1 : 0;
     northBlendRef.current += (northTarget - northBlendRef.current) * 0.06;
     const nb = northBlendRef.current;
+    const southTarget = direction === "turquoise" ? 1 : 0;
+    southBlendRef.current += (southTarget - southBlendRef.current) * 0.06;
+    const sb = southBlendRef.current;
     // Parcours : la même hélice partout ; au Nord, en miroir. Crossfade
     // par le blend nb : interpolation entre la position normale et la
     // position miroir (même rayon, même hauteur, seul l'azimuth diffère :
@@ -167,7 +181,10 @@ export default function OrbitCamera({
     // Plongée légère Mictlampa : la caméra monte un peu, on regarde
     // vers le bas (on descend au Mictlan).
     position.y += nb * 0.45;
+    // Contre-plongée Huitztlampa : caméra un peu plus basse, regard levé.
+    position.y -= sb * SOUTH_CAMERA_DROP;
     const target = getOrbitCameraTarget();
+    target.y += sb * SOUTH_TARGET_LIFT;
 
     // Parallaxe : décale la position caméra XY selon la souris, la cible
     // reste ancrée sur le cerf → orbite légère autour du sujet. Y inversé

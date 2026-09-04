@@ -25,17 +25,20 @@ export type FlightSpec = {
   swayWaves: number;
 };
 
-// Reglage 04/09 (trace console, projection ecran, captures) : la camera de
-// tete de page est a (0, 2.6, 7) et regarde le cerf vers le bas ; a z = -8,
-// y = 3 tombe deja sous le bandeau de navigation. Le vol passe donc dans la
-// bande de ciel entre la pointe des bois et le bandeau (y 2 -> 2.8), loin
-// derriere le cerf (z = -8) : la silhouette du cerf se decoupe sur le feu.
+// Reglage 04/09 (trace console, projection ecran, captures, sondage du
+// terrain). Au Sud la camera leve le regard (orbit-camera, blend
+// Huitztlampa) : la bande de ciel visible va de la crete des montagnes
+// (~3 deg d'elevation, colline a x=15 z=-8 h=3.5) au bandeau de
+// navigation (~16 deg). A z = -11 (18 unites devant la camera de tete de
+// page), cela fait y de ~3.4 a ~7.6 : le vol passe au centre de cette
+// bande (y 5 -> 5.6), corps a l'echelle 2.4 et ondulation compris,
+// entierement dans le ciel, jamais dans la montagne (retour Sylvain).
 export const XIUHCOATL_FLIGHT: FlightSpec = {
-  fromX: -15,
-  toX: 15,
-  z: -8,
-  baseY: 2.0,
-  peakY: 2.8,
+  fromX: -20,
+  toX: 20,
+  z: -11,
+  baseY: 5.0,
+  peakY: 5.6,
   swayAmp: 0.6,
   swayWaves: 2,
 };

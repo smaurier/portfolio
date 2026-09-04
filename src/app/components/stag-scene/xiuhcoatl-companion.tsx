@@ -33,7 +33,8 @@ const FIRST_DELAY_MS = 12_000;
 const REPEAT_EVERY_MS = 75_000;
 const FLIGHT_MS = 17_000;
 const FADE_MS = 1_200;
-const SCALE = 1.2;
+// 2.4 (04/09, retour Sylvain : « il devrait faire le double »).
+const SCALE = 2.4;
 /** Longueur du modele (Blender) : les braises naissent le long du corps. */
 const BODY_LENGTH = 4.2;
 const EMBER_BURST_EVERY = 11; // une salve de braises toutes les N unites de budget

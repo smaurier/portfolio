@@ -321,7 +321,10 @@ bpy.ops.object.parent_set(type="ARMATURE_NAME")
 # Corps : melange lisse entre os voisins le long de X (50/50 a l'articulation),
 # machoire inferieure : os "jaw", pattes : melange hanche/pied selon la
 # position le long de la patte.
-axial = [(n, arm.bones[n].head.x, arm.bones[n].tail.x) for n in spine_bones] + [("head", arm.bones["head"].head.x, arm.bones["head"].tail.x), ("snout", arm.bones["snout"].head.x, arm.bones["snout"].tail.x)]
+# Bone.head/tail sont RELATIFS AU PARENT (0 pour un os connecte) : il faut
+# head_local/tail_local (espace armature). Constate : tout le corps pese sur
+# le museau, serpent rigide a l'ecran.
+axial = [(n, arm.bones[n].head_local.x, arm.bones[n].tail_local.x) for n in spine_bones] + [("head", arm.bones["head"].head_local.x, arm.bones["head"].tail_local.x), ("snout", arm.bones["snout"].head_local.x, arm.bones["snout"].tail_local.x)]
 def axial_weights(x):
     if x <= axial[0][1]: return {axial[0][0]: 1.0}
     if x >= axial[-1][2]: return {axial[-1][0]: 1.0}
@@ -334,7 +337,7 @@ def axial_weights(x):
     return {axial[-1][0]: 1.0}
 def leg_weights(co):
     hipn, footn = leg_bones[0] if co.y > 0 else leg_bones[1]
-    hb = arm.bones[hipn]; a = hb.head; d = hb.tail - hb.head
+    hb = arm.bones[hipn]; a = hb.head_local; d = hb.tail_local - hb.head_local
     t = max(0.0, min(1.0, (co - a).dot(d) / d.length_squared))
     if t < 0.35: return {hipn: 1.0}
     if t > 0.75: return {footn: 1.0}
@@ -363,12 +366,35 @@ def action(name, frames, fn):
         for pb in rig.pose.bones: pb.keyframe_insert("rotation_euler", frame=f + 1)
     return act
 
-def slither(f, frames):
+# Retour Sylvain 04/09 : « tres rigide, il doit avancer en ondulant beaucoup
+# plus », « une forme de S pour avancer ». Vu de profil (le vol traverse
+# l'ecran), seule une vague VERTICALE se lit : le S des serpents de feu des
+# codex (Borgia, Borbonicus).
+# Axes LOCAUX d'un os Blender : Y = le long de l'os (torsion), X = tangage
+# (vague verticale), Z = lacet (vague laterale).
+# Les rotations se CUMULENT le long de la chaine : on impose l'angle de la
+# tangente theta_i a chaque os et on donne a l'os la difference
+# theta_i - theta_(i-1). Le corps suit alors une vraie sinusoide de moyenne
+# nulle (pas de bascule globale, constatee avec des angles par os directs :
+# le corps entier piquait a 60 degres). La tete compense le cou pour rester
+# a peu pres a niveau, comme un serpent qui nage.
+PITCH_AMP, PITCH_PHASE = 0.60, 0.8   # ~1.15 vague sur les 9 os du corps
+YAW_AMP, YAW_PHASE = 0.20, 0.85
+
+def wave_chain(f, frames, pitch_amp, yaw_amp, head_bob):
     t = f / frames * 2 * math.pi
+    pp = py = 0.0
     for i, name in enumerate(spine_bones):
-        rig.pose.bones[name].rotation_euler = (0.04 * math.sin(t * 2 - i * 0.9), 0, 0.26 * math.sin(t - i * 0.85))
-    rig.pose.bones["head"].rotation_euler = (0.05 * math.sin(t * 2), 0, 0.10 * math.sin(t - SPINE * 0.85))
+        a = pitch_amp * math.sin(t - i * PITCH_PHASE)
+        b = yaw_amp * math.sin(t - i * YAW_PHASE + 0.5)
+        rig.pose.bones[name].rotation_euler = (a - pp, 0, b - py)
+        pp, py = a, b
+    rig.pose.bones["head"].rotation_euler = (-0.7 * pp + head_bob * math.sin(t * 2), 0, -0.5 * py)
     rig.pose.bones["snout"].rotation_euler = (0.06 * math.sin(t * 2 + 1), 0, 0)
+    return t
+
+def slither(f, frames):
+    t = wave_chain(f, frames, PITCH_AMP, YAW_AMP, 0.05)
     rig.pose.bones["jaw"].rotation_euler = (0.12 + 0.1 * math.sin(t * 3), 0, 0)
     for k, (hipn, footn) in enumerate(leg_bones):
         ph = t + k * math.pi
@@ -376,11 +402,7 @@ def slither(f, frames):
         rig.pose.bones[footn].rotation_euler = (0.35 * math.sin(ph + 1.2), 0, 0)
 
 def idle(f, frames):
-    t = f / frames * 2 * math.pi
-    for i, name in enumerate(spine_bones):
-        rig.pose.bones[name].rotation_euler = (0.012 * math.sin(t - i * 0.5), 0, 0.05 * math.sin(t * 0.5 - i * 0.6))
-    rig.pose.bones["head"].rotation_euler = (0.04 * math.sin(t), 0, 0.03 * math.sin(t * 0.7))
-    rig.pose.bones["snout"].rotation_euler = (0.04 * math.sin(t + 0.5), 0, 0)
+    t = wave_chain(f, frames, 0.15, 0.06, 0.04)
     rig.pose.bones["jaw"].rotation_euler = (0.08 + 0.06 * math.sin(t * 1.5), 0, 0)
     for k, (hipn, footn) in enumerate(leg_bones):
         rig.pose.bones[hipn].rotation_euler = (0.08 * math.sin(t + k), 0, 0)
@@ -435,4 +457,9 @@ for name, loc in views.items():
     scene.render.filepath = os.path.join(OUT_DIR, f"xiuhcoatl-{name}.png")
     bpy.ops.render.render(write_still=True)
 unweighted = sum(1 for v in mesh_ob.data.vertices if not v.groups)
+_counts = {g.name: 0 for g in mesh_ob.vertex_groups}
+for _v in mesh_ob.data.vertices:
+    for _ge in _v.groups:
+        if _ge.weight > 0: _counts[mesh_ob.vertex_groups[_ge.group].name] += 1
+print("WEIGHTS", _counts)
 print("OK unweighted", unweighted, "tris", tris, "bones", len(rig.pose.bones), "->", OUT_GLB)
