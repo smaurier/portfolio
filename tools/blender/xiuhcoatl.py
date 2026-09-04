@@ -297,14 +297,16 @@ prism("Mouth", [(0, 0), (jaw_len * 0.9, -R * 0.3), (jaw_len * 0.9, -R * 0.42), (
 # ondulent et la font sortir/rentrer (coup de langue).
 TONGUE_ROOT = (mx0 + snout_len * 0.05, 0, HZ - HH * 0.42)
 TONGUE_LEN = jaw_len * 1.6
-_tp = [(TONGUE_ROOT[0] + TONGUE_LEN * k / 4, 0, TONGUE_ROOT[2] - R * 0.16 * (k / 4) ** 2) for k in range(5)]
+# Retour Sylvain 04/09 soir : « plus fine et plus redescendre au lieu de
+# monter » : ruban deux fois plus fin, qui tombe nettement vers le bout.
+_tp = [(TONGUE_ROOT[0] + TONGUE_LEN * k / 4, 0, TONGUE_ROOT[2] - R * 0.5 * (k / 4) ** 1.6) for k in range(5)]
 # tube() : rayon = bevel x radius du point (les radii sont des facteurs).
 # Pas de flat_z ici : l'aplatissement est un scale autour de l'origine de
 # l'objet, il deplacait le ruban vers z = 0 et le decollait de la fourche.
-tube("Tongue", _tp[:4] + [(_tp[3][0] + TONGUE_LEN * 0.12, 0, _tp[3][2])], [0.2, 0.18, 0.16, 0.13, 0.11], R, MAT_FIRE, res_u=6)
+tube("Tongue", _tp[:4] + [(_tp[3][0] + TONGUE_LEN * 0.12, 0, _tp[3][2] - R * 0.06)], [0.11, 0.1, 0.09, 0.075, 0.06], R, MAT_FIRE, res_u=6)
 for side in (1, -1):
     fx, fz = _tp[3][0] + TONGUE_LEN * 0.08, _tp[3][2]
-    cone(f"TongueFork{'L' if side > 0 else 'R'}", (fx, 0, fz), (fx + TONGUE_LEN * 0.24, side * R * 0.2, fz - R * 0.03), R * 0.09, MAT_FIRE, sides=5)
+    cone(f"TongueFork{'L' if side > 0 else 'R'}", (fx, 0, fz - R * 0.06), (fx + TONGUE_LEN * 0.24, side * R * 0.16, fz - R * 0.16), R * 0.055, MAT_FIRE, sides=5)
 # Crocs : quatre crochets recourbes sous la machoire superieure, deux de chaque cote.
 for side in (1, -1):
     for k, fx in enumerate((0.12, 0.34)):
@@ -497,8 +499,8 @@ def wave_chain(f, frames, pitch_amp, yaw_amp, head_bob, tongue=True):
     root = rig.pose.bones[tongue_bones[0]]
     root.location = (0, -TONGUE_LEN * 0.95 * (1 - out), 0)  # espace local de l'os : Y = le long de l'os
     for k, name in enumerate(tongue_bones):
-        wig = 0.45 * out * math.sin(t * 9 - k * 1.3)
-        droop = 0.12 * out * k
+        wig = 0.4 * out * math.sin(t * 9 - k * 1.3)
+        droop = -0.14 * out * k   # negatif = vers le bas (axe X local, le bout retombe)
         rig.pose.bones[name].rotation_euler = (droop, 0, wig)
     return t
 

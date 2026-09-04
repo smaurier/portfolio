@@ -51,19 +51,23 @@ export type WanderState = {
 // 9.5, hauteur 2.4, regard vers (0, 2.1, 0). Bande d'elevation mesuree aux
 // captures du 04/09 : sous 6.5 deg le ventre frole la crete, au-dessus de
 // 12 deg la crete de flammes passe sous le bandeau de navigation.
+// 04/09 soir, retour Sylvain « il devrait se balader bien plus autour de
+// la scene » : boite bien plus grande (de loin derriere jusqu au-dessus
+// du cerf, z -30 -> -4 ; plus pres il remplirait l ecran), bande 5.5 -> 13 deg,
+// plus vif. Pres de la camera la bande est etroite, il y passe haut.
 export const XIUHCOATL_WANDER: WanderSpec = {
-  xMin: -16,
-  xMax: 16,
-  xHalfPerDist: 0.5,
-  zMin: -22,
-  zMax: -8,
+  xMin: -22,
+  xMax: 22,
+  xHalfPerDist: 0.55,
+  zMin: -30,
+  zMax: -4,
   camY: 2.4,
   camZ: 9.5,
-  minElevDeg: 6.5,
-  maxElevDeg: 12,
-  speed: 2.2,
-  turnRate: 0.9,
-  margin: 4,
+  minElevDeg: 5.5,
+  maxElevDeg: 13,
+  speed: 2.8,
+  turnRate: 1.1,
+  margin: 5,
 };
 
 const RAD = Math.PI / 180;
