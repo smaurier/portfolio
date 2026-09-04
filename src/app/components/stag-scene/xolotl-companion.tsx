@@ -54,7 +54,9 @@ import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
 const DIRECTION_SPAWN_PROBABILITY: Record<DirectionKey, number> = {
   jade: 0,
   dore: 0.15,
-  turquoise: 0.15,
+  // 0.15 -> 0 (04/09, Sylvain : "on ne doit pas voir Xolotl sur le Sud, ca
+  // va surcharger") : le Sud aura son propre passage, le xiuhcoatl.
+  turquoise: 0,
   cendre: 0.15,
   // 0.4 -> 1 (03/09, retour Sylvain "cela fait tres longtemps que je n'ai
   // pas vu Xolotl") : le Mictlan est son royaume, il y passe toujours.
@@ -679,7 +681,13 @@ export default function XolotlCompanion() {
     // v2 (03/09) : invalide les tirages "non" caches avant le passage a 1 au Nord.
     const key = `nahual-xolotl-spawn-v2-${direction}`;
     const cached = sessionStorage.getItem(key);
+    const probability = DIRECTION_SPAWN_PROBABILITY[direction] ?? 0;
     let shouldSpawn: boolean;
+    // Probabilite nulle : jamais, quel que soit un tirage cache d'avant
+    // le changement de regle (sinon un "1" en session ferait encore
+    // passer le chien).
+    if (probability <= 0) shouldSpawn = false;
+    else
     if (cached !== null) {
       shouldSpawn = cached === "1";
     } else {
