@@ -64,7 +64,8 @@ MAT_SCALE = material("xiuh_scale", (0.05, 0.40, 0.48), (0.0, 0.22, 0.30), 0.3, r
 MAT_FIRE = material("xiuh_fire", (0.92, 0.28, 0.02), (1.0, 0.36, 0.03), 0.9, rough=0.8)                # braise
 MAT_BONE = material("xiuh_bone", (0.86, 0.80, 0.66), None, 0.0, rough=0.75)                            # os, perles, griffes
 MAT_MOUTH = material("xiuh_mouth", (0.08, 0.03, 0.04), (0.35, 0.05, 0.0), 0.8, rough=0.9)            # gueule
-MATS = [MAT_SCALE, MAT_FIRE, MAT_BONE, MAT_MOUTH]
+MAT_TONGUE = material("xiuh_tongue", (0.16, 0.02, 0.03), None, 0.0, rough=0.35)                        # langue : rouge noir, luisante
+MATS = [MAT_SCALE, MAT_FIRE, MAT_BONE, MAT_MOUTH, MAT_TONGUE]
 parts = []
 
 def finish(name, bm, mat, loc=(0, 0, 0), rot=None):
@@ -292,21 +293,20 @@ for i in (3, 6, 9, 12):
 jaw_len = snout_len * 0.62
 jaw = prism("LowerJaw", [(0, 0), (jaw_len, -R * 0.35), (jaw_len * 0.95, -R * 0.85), (0, -R * 0.75)], HW * 0.4, MAT_SCALE, loc=(mx0 - skull_len * 0.35, 0, HZ - HH * 0.35))
 prism("Mouth", [(0, 0), (jaw_len * 0.9, -R * 0.3), (jaw_len * 0.9, -R * 0.42), (0, -R * 0.12)], HW * 0.34, MAT_MOUTH, loc=(mx0 - skull_len * 0.3, 0, HZ - HH * 0.34))
-# Langue de vrai serpent (04/09, Sylvain : « sifflante et bien plus molle ») :
-# un ruban fin et long, fourchu au bout, porte par 3 os (tongue00..02) qui
-# ondulent et la font sortir/rentrer (coup de langue).
+# Langue de COBRA (04/09 soir, Sylvain : « vraiment la langue d'un serpent,
+# un cobra si tu veux des refs ») : tres fine, sombre (rouge noir, pas de
+# feu), longue, tombante, profondement fourchue : deux brins qui s'ecartent
+# et vibrent sur le dernier tiers. Portee par 3 os (tongue00..02) : elle
+# sort d'un coup, fretille, rentre.
 TONGUE_ROOT = (mx0 + snout_len * 0.05, 0, HZ - HH * 0.42)
-TONGUE_LEN = jaw_len * 1.6
-# Retour Sylvain 04/09 soir : « plus fine et plus redescendre au lieu de
-# monter » : ruban deux fois plus fin, qui tombe nettement vers le bout.
-_tp = [(TONGUE_ROOT[0] + TONGUE_LEN * k / 4, 0, TONGUE_ROOT[2] - R * 0.5 * (k / 4) ** 1.6) for k in range(5)]
-# tube() : rayon = bevel x radius du point (les radii sont des facteurs).
-# Pas de flat_z ici : l'aplatissement est un scale autour de l'origine de
-# l'objet, il deplacait le ruban vers z = 0 et le decollait de la fourche.
-tube("Tongue", _tp[:4] + [(_tp[3][0] + TONGUE_LEN * 0.12, 0, _tp[3][2] - R * 0.06)], [0.11, 0.1, 0.09, 0.075, 0.06], R, MAT_FIRE, res_u=6)
+TONGUE_LEN = jaw_len * 2.0
+def _tz(u): return TONGUE_ROOT[2] - R * 0.55 * u ** 1.5      # retombe vers le bout
+_tp = [(TONGUE_ROOT[0] + TONGUE_LEN * u, 0, _tz(u)) for u in (0.0, 0.2, 0.4, 0.62)]
+# tube() : rayon = bevel x radius du point.
+tube("Tongue", _tp, [0.07, 0.065, 0.055, 0.045], R, MAT_TONGUE, res_u=6)
 for side in (1, -1):
-    fx, fz = _tp[3][0] + TONGUE_LEN * 0.08, _tp[3][2]
-    cone(f"TongueFork{'L' if side > 0 else 'R'}", (fx, 0, fz - R * 0.06), (fx + TONGUE_LEN * 0.24, side * R * 0.16, fz - R * 0.16), R * 0.055, MAT_FIRE, sides=5)
+    x0, z0 = _tp[-1][0], _tp[-1][2]
+    tube(f"TongueFork{'L' if side > 0 else 'R'}", [(x0, 0, z0), (x0 + TONGUE_LEN * 0.2, side * R * 0.12, _tz(0.82)), (x0 + TONGUE_LEN * 0.38, side * R * 0.26, _tz(1.0) - R * 0.05)], [0.045, 0.03, 0.012], R, MAT_TONGUE, res_u=4)
 # Crocs : quatre crochets recourbes sous la machoire superieure, deux de chaque cote.
 for side in (1, -1):
     for k, fx in enumerate((0.12, 0.34)):
@@ -495,12 +495,13 @@ def wave_chain(f, frames, pitch_amp, yaw_amp, head_bob, tongue=True):
     # Coup de langue : sort vite, fretille, rentre ; le reste du cycle,
     # rentree dans la gueule (translation de la racine vers l'arriere).
     u = f / frames
-    out = smoothstep(0.0, 0.12, u) * (1 - smoothstep(0.42, 0.55, u)) if tongue else 0.0
+    # Coup de langue bref : sort en un dixieme de cycle, vibre, rentre a 40 %.
+    out = smoothstep(0.0, 0.08, u) * (1 - smoothstep(0.32, 0.42, u)) if tongue else 0.0
     root = rig.pose.bones[tongue_bones[0]]
     root.location = (0, -TONGUE_LEN * 0.95 * (1 - out), 0)  # espace local de l'os : Y = le long de l'os
     for k, name in enumerate(tongue_bones):
-        wig = 0.4 * out * math.sin(t * 9 - k * 1.3)
-        droop = -0.14 * out * k   # negatif = vers le bas (axe X local, le bout retombe)
+        wig = 0.3 * out * math.sin(t * 14 - k * 1.4)   # vibration rapide, plus forte vers le bout
+        droop = -0.16 * out * k   # negatif = vers le bas (axe X local, le bout retombe)
         rig.pose.bones[name].rotation_euler = (droop, 0, wig)
     return t
 
