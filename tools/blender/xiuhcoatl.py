@@ -180,6 +180,46 @@ prism("YearRay", [(yx - TAIL_LEN * 0.18, trapH * 0.28), (yx + TAIL_LEN * 0.18, t
 for i in range(3):
     box(f"YearBand{i}", (yx, 0, trapH * (0.12 + i * 0.24)), (TAIL_LEN * 0.56, R * 0.5, R * 0.09), MAT_BONE)
 
+# --- La DATE sous le signe de l'annee (04/09, go Sylvain) --------------------
+# Le signe trapeze-et-rayon dit « annee » ; la date, c'est un nombre (1..13,
+# en points par rangees de 5) et un PORTEUR : Tochtli (lapin), Acatl
+# (roseau), Tecpatl (silex), Calli (maison). Les quatre emblemes et les 13
+# points sont des OBJETS SEPARES, skinnes sur la queue mais pas joints au
+# corps : le site (lib/aztec-year) n'affiche que l'embleme et les points de
+# l'annee en cours, calculee chez le visiteur. Noms : YearBearer_<porteur>,
+# YearDot00..12.
+extras = {}   # nom -> liste de pieces a joindre
+def extra(group, ob):
+    parts.remove(ob); extras.setdefault(group, []).append(ob); return ob
+EZ = -R * 1.7             # centre des emblemes, sous la queue
+ES = R * 1.5              # taille de reference d'un embleme (lisible a distance)
+# Tochtli : tete de lapin de profil, deux longues oreilles couchees en arriere.
+extra("YearBearer_tochtli", ball("TochtliHead", (yx, 0, EZ), ES * 0.34, ES * 0.24, ES * 0.3, MAT_BONE, seg=8, rings=5))
+extra("YearBearer_tochtli", box("TochtliSnout", (yx + ES * 0.36, 0, EZ - ES * 0.06), (ES * 0.22, ES * 0.2, ES * 0.18), MAT_BONE, bevel=ES * 0.04))
+for k, (dx, rot) in enumerate(((-ES * 0.18, 0.75), (-ES * 0.32, 0.95))):
+    extra("YearBearer_tochtli", box(f"TochtliEar{k}", (yx + dx - ES * 0.3, 0, EZ + ES * 0.42), (ES * 0.5, ES * 0.1, ES * 0.12), MAT_BONE, bevel=ES * 0.03, rot=(0, rot, 0)))
+extra("YearBearer_tochtli", ball("TochtliEye", (yx + ES * 0.12, ES * 0.2, EZ + ES * 0.06), ES * 0.06, ES * 0.06, ES * 0.06, MAT_FIRE, seg=6, rings=4))
+# Acatl : gerbe de trois roseaux liee, plumets de feu au sommet.
+for k, dx in enumerate((-ES * 0.16, 0.0, ES * 0.16)):
+    extra("YearBearer_acatl", tube(f"AcatlReed{k}", [(yx + dx, 0, EZ - ES * 0.5), (yx + dx * 0.6, 0, EZ + ES * 0.3)], [1.0, 0.8], ES * 0.06, MAT_BONE, res_u=2))
+    extra("YearBearer_acatl", cone(f"AcatlPlume{k}", (yx + dx * 0.6, 0, EZ + ES * 0.28), (yx + dx * 0.4, 0, EZ + ES * 0.6), ES * 0.09, MAT_FIRE, sides=5))
+extra("YearBearer_acatl", box("AcatlBand", (yx, 0, EZ - ES * 0.1), (ES * 0.5, ES * 0.2, ES * 0.12), MAT_FIRE, bevel=ES * 0.02))
+# Tecpatl : couteau de silex en feuille, bicolore comme dans les codex.
+_kn = [(-ES * 0.55, 0.0), (-ES * 0.1, ES * 0.26), (ES * 0.55, 0.0), (-ES * 0.1, -ES * 0.26)]
+extra("YearBearer_tecpatl", prism("TecpatlA", [_kn[0], _kn[1], (0.0, ES * 0.13), (0.0, -ES * 0.13), _kn[3]], ES * 0.1, MAT_BONE, loc=(yx, 0, EZ)))
+extra("YearBearer_tecpatl", prism("TecpatlB", [(0.0, ES * 0.13), _kn[1], _kn[2], _kn[3], (0.0, -ES * 0.13)], ES * 0.1, MAT_FIRE, loc=(yx, 0, EZ)))
+# Calli : maison de profil, socle, toit debordant, porte sombre.
+extra("YearBearer_calli", box("CalliBase", (yx, 0, EZ - ES * 0.1), (ES * 0.8, ES * 0.3, ES * 0.5), MAT_BONE, bevel=ES * 0.03))
+extra("YearBearer_calli", box("CalliRoof", (yx, 0, EZ + ES * 0.24), (ES * 1.0, ES * 0.34, ES * 0.16), MAT_FIRE, bevel=ES * 0.03))
+extra("YearBearer_calli", box("CalliDoor", (yx + ES * 0.18, ES * 0.12, EZ - ES * 0.16), (ES * 0.22, ES * 0.12, ES * 0.34), MAT_MOUTH))
+# Les 13 points, rangees de 5, de gauche a droite sous l'embleme.
+_di = 0
+for row in range(3):
+    for colk in range(5):
+        if _di >= 13: break
+        extra(f"YearDot{_di:02d}", ball(f"YearDot{_di:02d}", (yx - ES * 0.56 + colk * ES * 0.28, 0, EZ - ES * 0.7 - row * ES * 0.28), ES * 0.12, ES * 0.12, ES * 0.12, MAT_BONE, seg=6, rings=4))
+        _di += 1
+
 # ================================================================ TETE
 skull_len = HEAD_LEN * 0.5
 HX = HEAD_START                       # base du crane (jonction du cou)
@@ -387,6 +427,23 @@ for v in mesh_ob.data.vertices:
     for name, val in w.items(): vgs[name].add([v.index], val, "REPLACE")
 for g in (hint_jaw, hint_leg, hint_head, hint_tongue):
     if g: vgs.remove(g)
+
+# --- Extras (emblemes, points) : joints entre eux, skinnes sur la queue ----
+extra_objs = []
+for gname, pieces in extras.items():
+    bpy.ops.object.select_all(action="DESELECT")
+    for ob in pieces: ob.select_set(True)
+    bpy.context.view_layer.objects.active = pieces[0]
+    if len(pieces) > 1: bpy.ops.object.join()
+    ob = bpy.context.view_layer.objects.active; ob.name = gname; ob.data.name = gname
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    bpy.ops.object.select_all(action="DESELECT")
+    ob.select_set(True); rig.select_set(True); bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.parent_set(type="ARMATURE_NAME")
+    for v in ob.data.vertices:
+        for name, val in axial_weights(v.co.x).items(): ob.vertex_groups[name].add([v.index], val, "REPLACE")
+    extra_objs.append(ob)
+print("EXTRAS", [o.name for o in extra_objs])
 
 # ================================================================ ANIMATIONS
 scene.render.fps = 24

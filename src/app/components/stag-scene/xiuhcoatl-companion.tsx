@@ -6,6 +6,7 @@ import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { Quaternion, Vector3, type Group, type Material, type Mesh, type MeshStandardMaterial, type PointLight } from "three";
 import { initialWander, stepWander, wanderTangent, XIUHCOATL_WANDER, type WanderState } from "@/lib/xiuhcoatl-wander";
+import { aztecYear, AZTEC_YEAR_BEARERS } from "@/lib/aztec-year";
 import { getMictlanSky } from "./mictlan-sky";
 import { createEmberFireMaterial, createTurquoiseMaterial, createXiuhcoatlUniforms, type XiuhcoatlUniforms } from "./xiuhcoatl-materials";
 import { pushHeat, xiuhcoatlStore } from "./xiuhcoatl-store";
@@ -104,6 +105,23 @@ function dressMaterials(root: Group, uniforms: XiuhcoatlUniforms) {
   });
 }
 
+/** La DATE sous le signe de l'annee (04/09, go Sylvain) : le GLB embarque
+ * les quatre porteurs d'annee (YearBearer_<porteur>) et 13 points
+ * (YearDot00..12) ; on ne montre que le porteur et les points de l'annee
+ * mexica en cours, calculee chez le visiteur (lib/aztec-year) : rien a
+ * faire en production d'une annee sur l'autre. */
+function applyYear(root: Group) {
+  const year = aztecYear();
+  for (const bearer of AZTEC_YEAR_BEARERS) {
+    const node = root.getObjectByName(`YearBearer_${bearer}`);
+    if (node) node.visible = bearer === year.bearer;
+  }
+  for (let i = 0; i < 13; i++) {
+    const node = root.getObjectByName(`YearDot${String(i).padStart(2, "0")}`);
+    if (node) node.visible = i < year.number;
+  }
+}
+
 /** Presence tiree une fois par visite ; ?xiuhcoatl=1 force la presence. */
 function decidePresence(): boolean {
   if (window.location.search.includes("xiuhcoatl=1")) return true;
@@ -146,6 +164,7 @@ export default function XiuhcoatlCompanion() {
 
   useEffect(() => {
     dressMaterials(scene as Group, uniforms);
+    applyYear(scene as Group);
   }, [scene, uniforms]);
 
   // Presence : Sud seulement, jamais pour un bot, en mode recit ou en
