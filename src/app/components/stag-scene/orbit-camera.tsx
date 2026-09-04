@@ -30,6 +30,10 @@ import { useSceneRefs } from "./scene-refs-context";
  */
 const SOUTH_CAMERA_DROP = 0.2;
 const SOUTH_TARGET_LIFT = 1.1;
+// Recul Huitztlampa (04/09, Sylvain : « reculer la caméra, le cerf est aussi
+// important, il faut bien avoir toute la vue ») : rayon x1.36 (7 -> 9.5 en
+// tete de page), cerf entier et ciel dans le meme cadre.
+const SOUTH_RADIUS_SCALE = 1.36;
 const PARALLAX_X = 0.5;
 const PARALLAX_Y = 0.35;
 const MOUSE_LERP = 0.08;
@@ -183,6 +187,9 @@ export default function OrbitCamera({
     position.y += nb * 0.45;
     // Contre-plongée Huitztlampa : caméra un peu plus basse, regard levé.
     position.y -= sb * SOUTH_CAMERA_DROP;
+    const southPush = 1 + sb * (SOUTH_RADIUS_SCALE - 1);
+    position.x *= southPush;
+    position.z *= southPush;
     const target = getOrbitCameraTarget();
     target.y += sb * SOUTH_TARGET_LIFT;
 

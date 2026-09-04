@@ -279,7 +279,11 @@ def hint_of(ob):
     if n.startswith(("Leg", "Paw", "Claw")): return "hint_leg"
     if n.startswith("Fang"):
         cz = sum((ob.matrix_world @ v.co).z for v in ob.data.vertices) / len(ob.data.vertices)
-        if cz < JAW_Z: return "hint_jaw"
+        return "hint_jaw" if cz < JAW_Z else "hint_head"
+    # Toute la face est RIGIDE sur l'os de tete (retour Sylvain 04/09 : « les
+    # points sous l'oeil ne devraient pas bouger ») : crane, yeux, perles,
+    # volute, crete, machoire superieure. Seule la machoire inferieure bouge.
+    if n.startswith(("Skull", "Eye", "Pupil", "Brow", "Beads", "VolBead", "Volute", "CrestBand", "Star", "UpperJaw", "Mouth")): return "hint_head"
     return None
 for ob in parts:
     h = hint_of(ob)
@@ -343,15 +347,16 @@ def leg_weights(co):
     if t > 0.75: return {footn: 1.0}
     w = (t - 0.35) / 0.4; return {hipn: 1 - w, footn: w}
 vgs = mesh_ob.vertex_groups
-hint_jaw = vgs.get("hint_jaw"); hint_leg = vgs.get("hint_leg")
+hint_jaw = vgs.get("hint_jaw"); hint_leg = vgs.get("hint_leg"); hint_head = vgs.get("hint_head")
 def in_group(v, g):
     return g is not None and any(ge.group == g.index and ge.weight > 0 for ge in v.groups)
 for v in mesh_ob.data.vertices:
     if in_group(v, hint_jaw): w = {"jaw": 1.0}
+    elif in_group(v, hint_head): w = {"head": 1.0}
     elif in_group(v, hint_leg): w = leg_weights(v.co)
     else: w = axial_weights(v.co.x)
     for name, val in w.items(): vgs[name].add([v.index], val, "REPLACE")
-for g in (hint_jaw, hint_leg):
+for g in (hint_jaw, hint_leg, hint_head):
     if g: vgs.remove(g)
 
 # ================================================================ ANIMATIONS
