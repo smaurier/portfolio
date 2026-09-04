@@ -12,6 +12,10 @@
  *
  * Calcule dans le navigateur a partir de l'horloge du visiteur : rien a
  * faire en production d'une annee sur l'autre.
+ *
+ * Version publiee a part (04/09) : https://github.com/smaurier/aztec-year
+ * (meme arithmetique, API un peu plus large). Cette copie reste ici tant
+ * que le paquet n'est pas sur npm.
  */
 
 export const AZTEC_YEAR_BEARERS = ["acatl", "tecpatl", "calli", "tochtli"] as const;
