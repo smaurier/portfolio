@@ -53,11 +53,12 @@ import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
 
 const DIRECTION_SPAWN_PROBABILITY: Record<DirectionKey, number> = {
   jade: 0,
-  dore: 0.15,
+  // 0.15 -> 0 (04/09, Sylvain : Xolotl nulle part ailleurs qu'au Nord).
+  dore: 0,
   // 0.15 -> 0 (04/09, Sylvain : "on ne doit pas voir Xolotl sur le Sud, ca
   // va surcharger") : le Sud aura son propre passage, le xiuhcoatl.
   turquoise: 0,
-  cendre: 0.15,
+  cendre: 0,
   // 0.4 -> 1 (03/09, retour Sylvain "cela fait tres longtemps que je n'ai
   // pas vu Xolotl") : le Mictlan est son royaume, il y passe toujours.
   obsidienne: 1,
