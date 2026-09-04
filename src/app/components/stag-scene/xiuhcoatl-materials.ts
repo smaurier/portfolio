@@ -46,6 +46,11 @@ const FOG_CHUNK = /* glsl */ `
 /** Brouillard attenue sur une matiere standard/physique de three (le decor
  * garde le sien) : remplace le chunk de fog par une version ponderee. */
 export function softenFog(mat: Material & { onBeforeCompile?: unknown; customProgramCacheKey?: () => string }, uniforms: XiuhcoatlUniforms, key: string) {
+  // Une matiere du GLB est PARTAGEE par plusieurs meshes (os, perles,
+  // emblemes, points) : ne patcher qu'une fois, sinon l'uniform est
+  // redefini et le shader ne compile plus.
+  if (mat.userData.xiuhFogSoftened) return;
+  mat.userData.xiuhFogSoftened = true;
   const previous = mat.onBeforeCompile as ((shader: { uniforms: Record<string, unknown>; fragmentShader: string; vertexShader: string }) => void) | undefined;
   mat.onBeforeCompile = (shader: { uniforms: Record<string, unknown>; fragmentShader: string; vertexShader: string }) => {
     if (previous) previous(shader);
