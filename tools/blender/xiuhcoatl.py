@@ -31,10 +31,13 @@ args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 OUT_GLB = args[0] if args else os.path.join(os.path.dirname(os.path.abspath(__file__)), "xiuhcoatl.glb")
 OUT_DIR = args[1] if len(args) > 1 else os.path.dirname(os.path.abspath(__file__))
 
-L = 4.2
+# 4.2 -> 5.2, 6 -> 8 segments (04/09, Sylvain : « corps mobilise un peu plus
+# grand », « queue bien plus souple qui pourrait faire penser a une queue de
+# poisson »). La tete garde a peu pres sa taille absolue.
+L = 5.2
 R = 0.2
-SEGMENTS = 6
-TAIL_LEN, BODY_LEN, HEAD_LEN = L * 0.22, L * 0.46, L * 0.32
+SEGMENTS = 8
+TAIL_LEN, BODY_LEN, HEAD_LEN = L * 0.24, L * 0.48, L * 0.28
 TAIL_START = -L / 2
 BODY_START = TAIL_START + TAIL_LEN
 HEAD_START = BODY_START + BODY_LEN
@@ -249,7 +252,17 @@ for i in (3, 6, 9, 12):
 jaw_len = snout_len * 0.62
 jaw = prism("LowerJaw", [(0, 0), (jaw_len, -R * 0.35), (jaw_len * 0.95, -R * 0.85), (0, -R * 0.75)], HW * 0.4, MAT_SCALE, loc=(mx0 - skull_len * 0.35, 0, HZ - HH * 0.35))
 prism("Mouth", [(0, 0), (jaw_len * 0.9, -R * 0.3), (jaw_len * 0.9, -R * 0.42), (0, -R * 0.12)], HW * 0.34, MAT_MOUTH, loc=(mx0 - skull_len * 0.3, 0, HZ - HH * 0.34))
-prism("Tongue", [(0, 0.06 * R), (jaw_len * 1.15, -R * 0.25), (0, -0.06 * R)], R * 0.14, MAT_FIRE, loc=(mx0 + snout_len * 0.05, 0, HZ - HH * 0.42))
+# Langue de vrai serpent (04/09, Sylvain : « sifflante et bien plus molle ») :
+# un ruban fin et long, fourchu au bout, porte par 3 os (tongue00..02) qui
+# ondulent et la font sortir/rentrer (coup de langue).
+TONGUE_ROOT = (mx0 + snout_len * 0.05, 0, HZ - HH * 0.42)
+TONGUE_LEN = jaw_len * 1.6
+_tp = [(TONGUE_ROOT[0] + TONGUE_LEN * k / 4, 0, TONGUE_ROOT[2] - R * 0.16 * (k / 4) ** 2) for k in range(5)]
+# tube() : rayon = bevel x radius du point (les radii sont des facteurs).
+tube("Tongue", _tp[:4] + [(_tp[3][0] + TONGUE_LEN * 0.12, 0, _tp[3][2])], [0.24, 0.22, 0.19, 0.15, 0.12], R, MAT_FIRE, res_u=6, flat_z=0.4)
+for side in (1, -1):
+    fx, fz = _tp[3][0] + TONGUE_LEN * 0.08, _tp[3][2]
+    cone(f"TongueFork{'L' if side > 0 else 'R'}", (fx, 0, fz), (fx + TONGUE_LEN * 0.24, side * R * 0.2, fz - R * 0.03), R * 0.09, MAT_FIRE, sides=5)
 # Crocs : quatre crochets recourbes sous la machoire superieure, deux de chaque cote.
 for side in (1, -1):
     for k, fx in enumerate((0.12, 0.34)):
@@ -275,7 +288,8 @@ for side in (1, -1):
 JAW_Z = HZ - HH * 0.35
 def hint_of(ob):
     n = ob.name
-    if n.startswith(("LowerJaw", "JawBeads", "Tongue")): return "hint_jaw"
+    if n.startswith("Tongue"): return "hint_tongue"
+    if n.startswith(("LowerJaw", "JawBeads")): return "hint_jaw"
     if n.startswith(("Leg", "Paw", "Claw")): return "hint_leg"
     if n.startswith("Fang"):
         cz = sum((ob.matrix_world @ v.co).z for v in ob.data.vertices) / len(ob.data.vertices)
@@ -301,7 +315,7 @@ tris = sum(len(p.vertices) - 2 for p in mesh_ob.data.polygons)
 arm = bpy.data.armatures.new("XiuhcoatlRig"); rig = bpy.data.objects.new("XiuhcoatlRig", arm); col.objects.link(rig)
 bpy.context.view_layer.objects.active = rig; rig.select_set(True)
 bpy.ops.object.mode_set(mode="EDIT")
-SPINE = 9
+SPINE = 12  # 9 -> 12 (04/09) : os plus courts, corps et queue plus souples
 xs = [TAIL_START + (HEAD_START - TAIL_START) * i / SPINE for i in range(SPINE + 1)]
 prev = None; spine_bones = []
 for i in range(SPINE):
@@ -311,6 +325,16 @@ for i in range(SPINE):
 head = arm.edit_bones.new("head"); head.head = (HEAD_START, 0, 0); head.tail = (mx0, 0, HZ); head.parent = prev; head.use_connect = True
 snoutb = arm.edit_bones.new("snout"); snoutb.head = tuple(head.tail); snoutb.tail = (mx0 + snout_len * 0.5, 0, HZ); snoutb.parent = head; snoutb.use_connect = True
 jawb = arm.edit_bones.new("jaw"); jawb.head = (mx0 - skull_len * 0.35, 0, HZ - HH * 0.35); jawb.tail = (mx0 + jaw_len * 0.5, 0, HZ - HH * 0.35 - R * 0.6); jawb.parent = head
+# Langue : 3 os en chaine depuis la racine, parent = machoire (elle suit
+# l'ouverture de la gueule), non connectes (la racine se translate pour
+# sortir/rentrer).
+tongue_bones = []
+_prev = None
+for k in range(3):
+    tb = arm.edit_bones.new(f"tongue{k:02d}")
+    tb.head = (TONGUE_ROOT[0] + TONGUE_LEN * k / 3, 0, TONGUE_ROOT[2]); tb.tail = (TONGUE_ROOT[0] + TONGUE_LEN * (k + 1) / 3, 0, TONGUE_ROOT[2])
+    tb.parent = _prev if _prev else jawb; tb.use_connect = _prev is not None
+    _prev = tb; tongue_bones.append(tb.name)
 leg_bones = []
 for side, sname in ((1, "L"), (-1, "R")):
     hipb = arm.edit_bones.new(f"leg_{sname}_hip"); hipb.head = (lx, side * R * 0.5, -R * 0.4); hipb.tail = (lx + R * 0.35, side * R * 1.25, -R * 1.05)
@@ -329,16 +353,18 @@ bpy.ops.object.parent_set(type="ARMATURE_NAME")
 # head_local/tail_local (espace armature). Constate : tout le corps pese sur
 # le museau, serpent rigide a l'ecran.
 axial = [(n, arm.bones[n].head_local.x, arm.bones[n].tail_local.x) for n in spine_bones] + [("head", arm.bones["head"].head_local.x, arm.bones["head"].tail_local.x), ("snout", arm.bones["snout"].head_local.x, arm.bones["snout"].tail_local.x)]
-def axial_weights(x):
-    if x <= axial[0][1]: return {axial[0][0]: 1.0}
-    if x >= axial[-1][2]: return {axial[-1][0]: 1.0}
-    for k, (name, h, t) in enumerate(axial):
+tongue_chain = [(n, arm.bones[n].head_local.x, arm.bones[n].tail_local.x) for n in tongue_bones]
+def chain_weights(x, chain):
+    if x <= chain[0][1]: return {chain[0][0]: 1.0}
+    if x >= chain[-1][2]: return {chain[-1][0]: 1.0}
+    for k, (name, h, t) in enumerate(chain):
         if h <= x <= t:
             u = (x - h) / (t - h)
-            if u < 0.5 and k > 0: w = 0.5 - u; return {name: 1 - w, axial[k - 1][0]: w}
-            if u > 0.5 and k < len(axial) - 1: w = u - 0.5; return {name: 1 - w, axial[k + 1][0]: w}
+            if u < 0.5 and k > 0: w = 0.5 - u; return {name: 1 - w, chain[k - 1][0]: w}
+            if u > 0.5 and k < len(chain) - 1: w = u - 0.5; return {name: 1 - w, chain[k + 1][0]: w}
             return {name: 1.0}
-    return {axial[-1][0]: 1.0}
+    return {chain[-1][0]: 1.0}
+def axial_weights(x): return chain_weights(x, axial)
 def leg_weights(co):
     hipn, footn = leg_bones[0] if co.y > 0 else leg_bones[1]
     hb = arm.bones[hipn]; a = hb.head_local; d = hb.tail_local - hb.head_local
@@ -347,16 +373,17 @@ def leg_weights(co):
     if t > 0.75: return {footn: 1.0}
     w = (t - 0.35) / 0.4; return {hipn: 1 - w, footn: w}
 vgs = mesh_ob.vertex_groups
-hint_jaw = vgs.get("hint_jaw"); hint_leg = vgs.get("hint_leg"); hint_head = vgs.get("hint_head")
+hint_jaw = vgs.get("hint_jaw"); hint_leg = vgs.get("hint_leg"); hint_head = vgs.get("hint_head"); hint_tongue = vgs.get("hint_tongue")
 def in_group(v, g):
     return g is not None and any(ge.group == g.index and ge.weight > 0 for ge in v.groups)
 for v in mesh_ob.data.vertices:
-    if in_group(v, hint_jaw): w = {"jaw": 1.0}
+    if in_group(v, hint_tongue): w = chain_weights(v.co.x, tongue_chain)
+    elif in_group(v, hint_jaw): w = {"jaw": 1.0}
     elif in_group(v, hint_head): w = {"head": 1.0}
     elif in_group(v, hint_leg): w = leg_weights(v.co)
     else: w = axial_weights(v.co.x)
     for name, val in w.items(): vgs[name].add([v.index], val, "REPLACE")
-for g in (hint_jaw, hint_leg, hint_head):
+for g in (hint_jaw, hint_leg, hint_head, hint_tongue):
     if g: vgs.remove(g)
 
 # ================================================================ ANIMATIONS
@@ -369,6 +396,7 @@ def action(name, frames, fn):
     for f in range(0, frames + 1, 2):
         fn(f, frames)
         for pb in rig.pose.bones: pb.keyframe_insert("rotation_euler", frame=f + 1)
+        rig.pose.bones[tongue_bones[0]].keyframe_insert("location", frame=f + 1)
     return act
 
 # Retour Sylvain 04/09 : « tres rigide, il doit avancer en ondulant beaucoup
@@ -388,16 +416,31 @@ def action(name, frames, fn):
 PITCH_AMP, PITCH_PHASE = 0.12, 0.8   # tangage secondaire
 YAW_AMP, YAW_PHASE = 0.55, 0.8       # ~1.15 vague laterale sur les 9 os du corps
 
-def wave_chain(f, frames, pitch_amp, yaw_amp, head_bob):
+TAIL_GAIN = 1.1   # la queue bat plus fort (nageoire caudale), sur les 4 premiers os
+def smoothstep(a, b, x):
+    u = max(0.0, min(1.0, (x - a) / (b - a))); return u * u * (3 - 2 * u)
+
+def wave_chain(f, frames, pitch_amp, yaw_amp, head_bob, tongue=True):
     t = f / frames * 2 * math.pi
     pp = py = 0.0
     for i, name in enumerate(spine_bones):
+        gain = 1.0 + TAIL_GAIN * max(0.0, (4 - i) / 4)
         a = pitch_amp * math.sin(t - i * PITCH_PHASE)
-        b = yaw_amp * math.sin(t - i * YAW_PHASE)
+        b = yaw_amp * gain * math.sin(t - i * YAW_PHASE)
         rig.pose.bones[name].rotation_euler = (a - pp, 0, b - py)
         pp, py = a, b
     rig.pose.bones["head"].rotation_euler = (-0.7 * pp + head_bob * math.sin(t * 2), 0, -0.5 * py)
     rig.pose.bones["snout"].rotation_euler = (0.06 * math.sin(t * 2 + 1), 0, 0)
+    # Coup de langue : sort vite, fretille, rentre ; le reste du cycle,
+    # rentree dans la gueule (translation de la racine vers l'arriere).
+    u = f / frames
+    out = smoothstep(0.0, 0.12, u) * (1 - smoothstep(0.42, 0.55, u)) if tongue else 0.0
+    root = rig.pose.bones[tongue_bones[0]]
+    root.location = (0, -TONGUE_LEN * 0.95 * (1 - out), 0)  # espace local de l'os : Y = le long de l'os
+    for k, name in enumerate(tongue_bones):
+        wig = 0.45 * out * math.sin(t * 9 - k * 1.3)
+        droop = 0.12 * out * k
+        rig.pose.bones[name].rotation_euler = (droop, 0, wig)
     return t
 
 def slither(f, frames):

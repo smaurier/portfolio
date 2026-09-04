@@ -41,7 +41,7 @@ const FADE_IN_MS = 1_800;
 // 2.4 (04/09, retour Sylvain : « il devrait faire le double »).
 const SCALE = 2.4;
 /** Longueur du modele (Blender) : les braises naissent le long du corps. */
-const BODY_LENGTH = 4.2;
+const BODY_LENGTH = 5.2;
 const EMBER_BURST_EVERY = 11; // une salve de braises toutes les N unites de budget
 const EMBERS_PER_SECOND = 22;
 const LIGHT_INTENSITY = 6;

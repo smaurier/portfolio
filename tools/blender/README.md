@@ -10,8 +10,18 @@ Le serpent de feu du Sud, modelise d'apres les references de
 `docs/da/sud-sources.md` (rien de repris des scans, tout est construit en
 courbes et primitives) : corps segmente, crete de flammes, museau en
 volute, yeux, crocs, pattes avant griffues, queue en signe de l'annee.
-Squelette de 16 os, actions `Slither` (48 images) et `Idle` (72 images),
+Squelette de 22 os (12 os de corps, tete, museau, machoire, 3 os de langue,
+2 x 2 os de pattes), actions `Slither` (48 images) et `Idle` (72 images),
 export GLB avec animations, rendus de controle.
+
+Animation (04/09) : l'ondulation est LATERALE (comme un vrai serpent) ; on
+impose l'angle de tangente par os et on donne a chaque os la difference
+avec le precedent (sinusoide de moyenne nulle, pas de bascule globale) ;
+la queue bat plus fort (gain sur les 4 premiers os, le signe de l'annee
+sert de nageoire caudale) ; la langue fourchue sort, fretille et rentre
+(translation de son os racine le long de l'os, axe Y local).
+Axes locaux d'un os Blender : Y = le long de l'os, X = tangage, Z = lacet.
+`Bone.head/tail` sont relatifs au parent : utiliser `head_local/tail_local`.
 
 ```
 "C:\Program Files\Blender Foundation\Blender 5.1\blender.exe" --background --python tools/blender/xiuhcoatl.py -- public/models/xiuhcoatl.glb <dossier_rendus>
