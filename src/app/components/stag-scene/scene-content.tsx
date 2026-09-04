@@ -20,6 +20,7 @@ import ObsidianArrows from "./obsidian-arrows";
 import ArrowVapor from "./arrow-vapor";
 import XiuhcoatlCompanion from "./xiuhcoatl-companion";
 import SudSky from "./sud-sky";
+import CentzonStars from "./centzon-stars";
 import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
 import CempasuchilPath from "./cempasuchil-path";
@@ -137,6 +138,9 @@ export default function SceneContent({
       {/* Le ciel de midi du Sud (04/09) : dome hors fog, horizon = couleur
        * du brouillard, zenith plus profond ; noir en haut de page. */}
       <SudSky />
+      {/* Les 400 etoiles du Sud (04/09, lead) : sur le dome de nuit, elles
+       * meurent et tombent a mesure que le midi monte. */}
+      <CentzonStars />
       {/* Bandelettes d'amate (02/09) : la protection de papier contre le
        * vent d'obsidienne, aux bois et sur le dos, simulateur Verlet.
        * Nord uniquement. */}
