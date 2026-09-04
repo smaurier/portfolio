@@ -38,15 +38,18 @@ import { useSceneRefs } from "./scene-refs-context";
  * (meme convention que NepantlaBlur).
  */
 
-const COUNT = 48;
+// 48 -> 80 (04/09, "beaucoup plus fin et filamentaire") : beaucoup de
+// fils tres fins plutot que quelques rubans.
+const COUNT = 80;
 // Opacite au pic de vitesse : souffle lisible, jamais un mur blanc.
 // 0.3 -> 0.16 (04/09, retour Sylvain "trainees trop grosses, plus
 // transparentes") : un souffle qu'on devine, pas des rubans.
-const OPACITY_MAX = 0.16;
+const OPACITY_MAX = 0.13;
 // Etirement des filaments avec la vitesse (longueur x1 au repos
 // theorique, x2.4 au pic) : le vent se tend quand il souffle.
-// 1.4 -> 0.8 (04/09) : x1.8 au pic au lieu de x2.4, trainees plus courtes.
-const STRETCH_MAX = 0.8;
+// 1.4 -> 0.8 -> 1.0 (04/09) : un fil peut etre long, c'est sa finesse qui
+// fait le filament.
+const STRETCH_MAX = 1.0;
 // Souffle pale, legerement jade (l'haleine d'Ehecatl-Quetzalcoatl).
 const WIND_COLOR = new Color("#cfe0d8");
 
@@ -57,8 +60,9 @@ function makeStreakGeometry(): BufferGeometry {
   const positions: number[] = [];
   const colors: number[] = [];
   // half = demi-epaisseur ; axis "y" = ruban vertical, "z" = horizontal.
-  // 0.03 -> 0.016 (04/09) : filaments deux fois plus fins.
-  const half = 0.016;
+  // 0.03 -> 0.016 -> 0.005 (04/09, "beaucoup plus fin") : un fil, quasi
+  // sub-pixel de loin, que l'additif garde lisible sans le grossir.
+  const half = 0.005;
   for (const axis of ["y", "z"] as const) {
     // 3 colonnes (bout noir, coeur blanc, bout noir) -> 2 quads -> 4 tris.
     const columns = [-0.5, 0, 0.5];
