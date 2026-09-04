@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { BoxGeometry, Color, Euler, InstancedMesh, Matrix4, MeshPhysicalMaterial, Quaternion, Vector3 } from "three";
+import { Color, DoubleSide, Euler, InstancedMesh, Matrix4, MeshPhysicalMaterial, MeshStandardMaterial, Quaternion, Vector3 } from "three";
+import { ARROW_MATERIAL, ARROW_SPEC, makeArrowGeometry } from "@/lib/arrow-geometry";
 import { arrowVolley } from "@/lib/obsidian-wind";
 import { getMictlanSky } from "./mictlan-sky";
 import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
@@ -24,8 +25,12 @@ const POOL = 24;
 const FALL_FROM = 7;
 const FALL_TIME = 0.55;
 const STUCK_TIME = 3.5;
-const ARROW_LEN = 0.9;
-const ARROW_COLOR = new Color("#140f1e");
+const ARROW_LEN = ARROW_SPEC.length;
+// Materiaux de la fleche, dans l'ordre des groupes de lib/arrow-geometry.
+const OBSIDIAN_COLOR = new Color("#0a0712");
+const REED_COLOR = new Color("#b8925a");
+const BINDING_COLOR = new Color("#2a1d12");
+const FEATHER_COLOR = new Color("#3a2f2a");
 
 type ArrowSlot = { active: boolean; x: number; z: number; start: number; impacted: boolean; yaw: number };
 
@@ -36,14 +41,30 @@ export default function ObsidianArrows() {
   const timeRef = useRef(0);
   const lastVolleyRef = useRef(-1);
   const slotsRef = useRef<ArrowSlot[]>(Array.from({ length: POOL }, () => ({ active: false, x: 0, z: 0, start: 0, impacted: false, yaw: 0 })));
-  const geometry = useMemo(() => new BoxGeometry(0.025, ARROW_LEN, 0.025), []);
-  const material = useMemo(() => {
-    const m = new MeshPhysicalMaterial({ color: ARROW_COLOR, metalness: 0.7, roughness: 0.3, clearcoat: 0.8, envMapIntensity: 1.2 });
-    const sky = getMictlanSky();
-    if (sky) m.envMap = sky;
-    return m;
+  // Fleche MODELISEE (04/09, cf lib/arrow-geometry : roseau a noeuds,
+  // avant-fut, ligatures, pointe d'obsidienne en feuille, trois plumes).
+  // Construite pointe en +Y, retournee ici : elle tombe pointe en bas.
+  const geometry = useMemo(() => {
+    const g = makeArrowGeometry();
+    g.rotateX(Math.PI);
+    g.computeBoundingSphere();
+    return g;
   }, []);
-  useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
+  // Un materiau par groupe (InstancedMesh accepte le tableau). La pointe
+  // reprend la recette des lames d'obsidienne, le reste est mat.
+  const materials = useMemo(() => {
+    const obsidian = new MeshPhysicalMaterial({ color: OBSIDIAN_COLOR, metalness: 0.85, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.1, envMapIntensity: 1.6 });
+    const sky = getMictlanSky();
+    if (sky) obsidian.envMap = sky;
+    const list: (MeshPhysicalMaterial | MeshStandardMaterial)[] = [];
+    list[ARROW_MATERIAL.obsidian] = obsidian;
+    list[ARROW_MATERIAL.reed] = new MeshStandardMaterial({ color: REED_COLOR, roughness: 0.9, metalness: 0 });
+    list[ARROW_MATERIAL.binding] = new MeshStandardMaterial({ color: BINDING_COLOR, roughness: 1, metalness: 0 });
+    list[ARROW_MATERIAL.feather] = new MeshStandardMaterial({ color: FEATHER_COLOR, roughness: 1, metalness: 0, side: DoubleSide });
+    return list;
+  }, []);
+  useEffect(() => () => { geometry.dispose(); for (const m of materials) m.dispose(); }, [geometry, materials]);
+
   const scratch = useMemo(() => ({ m: new Matrix4(), q: new Quaternion(), e: new Euler(), p: new Vector3(), s: new Vector3() }), []);
 
   useFrame((state, delta) => {
@@ -125,5 +146,5 @@ export default function ObsidianArrows() {
     mesh.instanceMatrix.needsUpdate = true;
   });
 
-  return <instancedMesh ref={meshRef} args={[geometry, material, POOL]} frustumCulled={false} raycast={() => null} visible={false} />;
+  return <instancedMesh ref={meshRef} args={[geometry, materials, POOL]} frustumCulled={false} raycast={() => null} visible={false} />;
 }
