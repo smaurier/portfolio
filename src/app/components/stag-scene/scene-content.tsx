@@ -22,6 +22,8 @@ import XiuhcoatlCompanion from "./xiuhcoatl-companion";
 import SudSky from "./sud-sky";
 import CentzonStars from "./centzon-stars";
 import HuitzilinBirds from "./huitzilin-birds";
+import PiedraXiuhcoatlRing from "./piedra-xiuhcoatl-ring";
+import SudSpines from "./sud-spines";
 import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
 import CempasuchilPath from "./cempasuchil-path";
@@ -146,6 +148,15 @@ export default function SceneContent({
        * couleurs d'especes, ailes battues par shader, chasseurs d'etoiles. */}
       <Suspense fallback={null}>
         <HuitzilinBirds />
+      </Suspense>
+      {/* Voie B (04/09) : l'anneau exterieur de la Piedra, les deux
+       * xiuhcoatl graves, prend la matiere du serpent et s'embrase au midi. */}
+      <Suspense fallback={null}>
+        <PiedraXiuhcoatlRing />
+      </Suspense>
+      {/* Les epines du Sud (04/09) : agaves et nopals plus nombreux. */}
+      <Suspense fallback={null}>
+        <SudSpines />
       </Suspense>
       {/* Bandelettes d'amate (02/09) : la protection de papier contre le
        * vent d'obsidienne, aux bois et sur le dos, simulateur Verlet.

@@ -63,7 +63,7 @@ const SPECIES: Species[] = [
 // propre mécanique de pousse dans milpa.tsx).
 const INSTANCES_PER_SPECIES = 4;
 
-function useNormalizedClone(path: string, targetHeight: number): Object3D {
+export function useNormalizedClone(path: string, targetHeight: number): Object3D {
   const { scene } = useGLTF(path);
   const clone = useMemo(() => scene.clone(true), [scene]);
   const normalizedRef = useRef(false);
