@@ -9,10 +9,35 @@ describe("DIRECTION_LIGHT_RIG", () => {
     expect(getLightRig("jade")).toEqual(NEUTRAL_RIG);
   });
 
-  it("laisse dore/turquoise/cendre neutres tant que leurs fiches ne sont pas enrichies", () => {
+  it("laisse dore/cendre neutres tant que leurs fiches ne sont pas enrichies", () => {
     expect(getLightRig("dore")).toEqual(NEUTRAL_RIG);
-    expect(getLightRig("turquoise")).toEqual(NEUTRAL_RIG);
     expect(getLightRig("cendre")).toEqual(NEUTRAL_RIG);
+  });
+
+  it("donne au Sud le zenith : lumiere quasi verticale, la plus haute du site", () => {
+    const rig = getLightRig("turquoise");
+    const [x, y, z] = rig.position;
+    expect(Math.abs(x)).toBeLessThan(2);
+    expect(Math.abs(z)).toBeLessThan(2);
+    expect(y).toBeGreaterThanOrEqual(9);
+    for (const dir of DIRECTIONS) expect(y).toBeGreaterThanOrEqual(getLightRig(dir).position[1]);
+  });
+
+  it("eclaire le Sud au-dessus du neutre (la page la plus lumineuse), le Nord en dessous", () => {
+    const sud = getLightRig("turquoise");
+    expect(sud.ambientScale).toBeGreaterThan(NEUTRAL_RIG.ambientScale);
+    expect(sud.directionalScale).toBeGreaterThan(NEUTRAL_RIG.directionalScale);
+    expect(sud.colorMix).toBeGreaterThan(0.5);
+    const nord = getLightRig("obsidienne");
+    expect(sud.ambientScale).toBeGreaterThan(nord.ambientScale);
+  });
+
+  it("la couleur du Sud est chaude et claire (midi), pas froide", () => {
+    const hex = getLightRig("turquoise").color.replace("#", "");
+    const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
+    expect(r).toBeGreaterThanOrEqual(g);
+    expect(g).toBeGreaterThanOrEqual(b);
+    expect(b).toBeGreaterThan(150); // claire, pas orange
   });
 
   it("donne au Nord une top light : position quasi zenithale", () => {
@@ -36,10 +61,12 @@ describe("DIRECTION_LIGHT_RIG", () => {
   it("borne toutes les echelles et mix dans des plages saines", () => {
     for (const dir of DIRECTIONS) {
       const rig = getLightRig(dir);
+      // Plafonds releves le 04/09 : le Sud (midi) depasse le neutre par
+      // intention ; au-dela de 1.6 / 2 l'image crame (bloom, blancs).
       expect(rig.ambientScale).toBeGreaterThan(0);
-      expect(rig.ambientScale).toBeLessThanOrEqual(1);
+      expect(rig.ambientScale).toBeLessThanOrEqual(1.6);
       expect(rig.directionalScale).toBeGreaterThan(0);
-      expect(rig.directionalScale).toBeLessThanOrEqual(1);
+      expect(rig.directionalScale).toBeLessThanOrEqual(2);
       expect(rig.colorMix).toBeGreaterThanOrEqual(0);
       expect(rig.colorMix).toBeLessThanOrEqual(1);
     }

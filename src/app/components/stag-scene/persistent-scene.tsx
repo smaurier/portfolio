@@ -10,6 +10,7 @@ import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { isBot } from "@/lib/is-bot";
+import { getFogTint } from "@/lib/direction-fog";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import XolotlCompanion from "./xolotl-companion";
 import EhecatlWind from "./ehecatl-wind";
@@ -87,7 +88,8 @@ export default function PersistentScene() {
   // les gates d'identite restent sur la route.
   const climaxRimColor = useMemo(() => readDirectionColor(hour), [hour]);
   const climaxAccentColor = useMemo(() => readDirectionAccentColor(hour), [hour]);
-  const fogTint = useMemo(() => deriveFogTint(climaxRimColor), [climaxRimColor]);
+  // Sud : ciel de midi (getFogTint deroge a la derivation, cf direction-fog.ts).
+  const fogTint = useMemo(() => getFogTint(hour, deriveFogTint(climaxRimColor)), [hour, climaxRimColor]);
 
   if (!refs) return null;
   if (bot) return null;

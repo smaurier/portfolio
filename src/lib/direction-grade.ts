@@ -32,7 +32,15 @@ export const NEUTRAL_GRADE: GradeRig = {
 export const DIRECTION_GRADE: Record<DirectionKey, GradeRig> = {
   jade: NEUTRAL_GRADE,
   dore: NEUTRAL_GRADE,
-  turquoise: NEUTRAL_GRADE,
+  /** Sud/midi (04/09) : l'inverse discret du Nord. Cadre OUVERT (vignette
+   * allegee : le zenith n'a pas de coins sombres), bloom inchange (le
+   * plafond du grade est 1), saturation legerement relevee : les
+   * couleurs de midi sont franches. */
+  turquoise: {
+    vignetteAdd: -0.08,
+    bloomScale: 1,
+    saturation: 0.08,
+  },
   cendre: NEUTRAL_GRADE,
   obsidienne: {
     // 0.2 -> 0.1 (02/09, sous-exposition) : cadre ferme, pas bouche.

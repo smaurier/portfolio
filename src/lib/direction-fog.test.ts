@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { approachFog, DIRECTION_FOG_RANGE, getFogRange } from "./direction-fog";
+import { approachFog, DIRECTION_FOG_RANGE, FOG_TINT_OVERRIDE, getFogRange, getFogTint } from "./direction-fog";
 import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
 
 const DIRECTIONS = Object.keys(DIRECTION_FOG_RANGE) as DirectionKey[];
@@ -61,5 +61,23 @@ describe("approachFog", () => {
     expect(range.near).toBeGreaterThanOrEqual(target.near);
     expect(range.far).toBeGreaterThanOrEqual(target.far);
     expect(range).toEqual(target);
+  });
+});
+
+describe("getFogTint (le ciel de midi du Sud)", () => {
+  it("rend la teinte derivee partout sauf au Sud", () => {
+    const derived = { r: 10, g: 20, b: 30 };
+    expect(getFogTint("jade", derived)).toEqual(derived);
+    expect(getFogTint("obsidienne", derived)).toEqual(derived);
+    expect(getFogTint("turquoise", derived)).not.toEqual(derived);
+  });
+
+  it("au Sud, un ciel de midi : turquoise clair, nettement plus lumineux que la derivation", () => {
+    const derived = { r: 11, g: 80, b: 138 }; // 75 % de #0f6bb8
+    const sud = getFogTint("turquoise", derived);
+    expect(sud.g + sud.b).toBeGreaterThan((derived.g + derived.b) * 1.5);
+    expect(sud.b).toBeGreaterThan(sud.r); // turquoise, pas ocre
+    expect(sud.g).toBeGreaterThan(sud.r);
+    expect(FOG_TINT_OVERRIDE.turquoise).toEqual(sud);
   });
 });

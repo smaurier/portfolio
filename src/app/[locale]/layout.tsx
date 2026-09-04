@@ -19,7 +19,15 @@ import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
 import SkipNav from "../components/skip-nav";
 import SmoothScroll from "../components/smooth-scroll";
-import { formatAztecYear } from "../../lib/aztec-calendar";
+import { aztecYear, YEAR_BEARER_INFO } from "aztec-year";
+
+/** « 1 Tochtli · Lapin » : numeral + nom nahuatl + glose dans la langue de la page. */
+function footerAztecYear(locale: string): string {
+  const year = aztecYear();
+  const info = YEAR_BEARER_INFO[year.bearer];
+  const gloss = locale === "en" ? info.en : locale === "es" ? info.es : info.fr;
+  return `${year.number} ${info.nahuatl} · ${gloss}`;
+}
 import { renderWithNahuatl } from "../../lib/nahuatl";
 import { ReadingModeProvider } from "../../lib/reading-mode-context";
 import PiedraSkeleton from "../components/stag-scene/piedra-skeleton";
@@ -380,14 +388,17 @@ export default async function LocaleLayout({
                 qu'apres la ligne credit). Renvoi discret italique. */}
             <XolotlWitnessMessage message={dict.common.xolotlSeen} locale={locale} />
             <div className="footerBottom">
-              {/* Signature date rituelle (29/08) : annee Gregorienne +
-                  porteur Xiuhpohualli nahua (convention Rafael Tena,
-                  1519 = 2 Acatl). 2026 = 2 Tochtli · Lapin. Cycle
-                  complet 52 ans (siecle nahua). Discret, en italique
-                  entre parentheses. Le nom Tochtli est wrappe
-                  lang=nah automatiquement via renderWithNahuatl. */}
+              {/* Signature date rituelle (29/08, corrigee 04/09) : annee
+                  gregorienne + porteur d'annee mexica, par le paquet
+                  aztec-year (sorti du site, smaurier/aztec-year) :
+                  correlation standard 1519 = 1 Acatl, 1521 = 3 Calli,
+                  bascule le 13 fevrier. L'ancienne lib locale posait
+                  1519 = 2 Acatl et affichait 2 Tochtli pour 2026 : c'est
+                  1 Tochtli. Le nom nahuatl est wrappe lang=nah via
+                  renderWithNahuatl. Calcule au rendu : le footer est
+                  dynamique, rien a faire d'une annee sur l'autre. */}
               © {new Date().getFullYear()} NAHUAL Studio · Sylvain Maurier
-              <span className="footerAztec"> · {renderWithNahuatl(formatAztecYear(new Date().getFullYear(), locale))}</span>
+              <span className="footerAztec"> · {renderWithNahuatl(footerAztecYear(locale))}</span>
             </div>
           </footer>
           {/* Intro cinématique retiree 28/08 (retour Sylvain "gros

@@ -5,11 +5,20 @@ import type { DirectionKey } from "@/app/components/stag-scene/direction-colors"
 const DIRECTIONS = Object.keys(DIRECTION_GRADE) as DirectionKey[];
 
 describe("DIRECTION_GRADE", () => {
-  it("laisse jade/dore/turquoise/cendre sur le grade neutre (fiches pas encore enrichies)", () => {
+  it("laisse jade/dore/cendre sur le grade neutre (fiches pas encore enrichies)", () => {
     expect(getGradeRig("jade")).toEqual(NEUTRAL_GRADE);
     expect(getGradeRig("dore")).toEqual(NEUTRAL_GRADE);
-    expect(getGradeRig("turquoise")).toEqual(NEUTRAL_GRADE);
     expect(getGradeRig("cendre")).toEqual(NEUTRAL_GRADE);
+  });
+
+  it("ouvre le cadre au Sud : vignette allegee, saturation relevee, l'inverse du Nord", () => {
+    const sud = getGradeRig("turquoise");
+    const nord = getGradeRig("obsidienne");
+    expect(sud.vignetteAdd).toBeLessThan(0);
+    expect(sud.saturation).toBeGreaterThan(0);
+    expect(sud.saturation).toBeLessThan(0.2); // discret
+    expect(sud.vignetteAdd).toBeLessThan(nord.vignetteAdd);
+    expect(sud.saturation).toBeGreaterThan(nord.saturation);
   });
 
   it("ferme le cadre au Nord : vignette renforcee, bloom sourd, desaturation legere", () => {

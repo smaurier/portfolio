@@ -33,6 +33,25 @@ export function getFogRange(direction: DirectionKey): FogRange {
   return DIRECTION_FOG_RANGE[direction];
 }
 
+export type FogTint = { r: number; g: number; b: number };
+
+/**
+ * Teinte cible du brouillard en fin d'arc. Par defaut elle est derivee de
+ * la couleur de la direction (deriveFogTint, direction-colors.ts : 75 %
+ * de la couleur). Le SUD y deroge (04/09, go Sylvain « le fond de page en
+ * plein midi, franchement clair ») : l'horizon devient un vrai ciel de
+ * midi, turquoise clair, bien plus lumineux que le bleu chalchihuitl
+ * profond de son liseré. Le haut de page reste noir (la nuit des 400
+ * etoiles) : c'est l'arc de revelation qui fait monter cette teinte.
+ */
+export const FOG_TINT_OVERRIDE: Partial<Record<DirectionKey, FogTint>> = {
+  turquoise: { r: 62, g: 168, b: 196 },
+};
+
+export function getFogTint(direction: DirectionKey, derived: FogTint): FogTint {
+  return FOG_TINT_OVERRIDE[direction] ?? derived;
+}
+
 /** Seuil sous lequel on snap sur la cible (evite l'asymptote infinie
  * de l'easing exponentiel, meme logique que le lerp alpha de
  * CardinalAmbience). */

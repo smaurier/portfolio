@@ -39,7 +39,21 @@ export const NEUTRAL_RIG: LightRig = {
 export const DIRECTION_LIGHT_RIG: Record<DirectionKey, LightRig> = {
   jade: NEUTRAL_RIG,
   dore: NEUTRAL_RIG,
-  turquoise: NEUTRAL_RIG,
+  /** Sud/midi (04/09, fiche Huitzilopochtli, go Sylvain « la page la plus
+   * lumineuse du site ») : le ZENITH. Le soleil ne vient d'aucun cote, il
+   * tombe d'en haut : directionnelle quasi verticale (un soupcon vers la
+   * camera pour que les faces se lisent), couleur de midi a peine chaude,
+   * ambiante et directionnelle AU-DESSUS du neutre en fin d'arc. La seule
+   * direction qui depasse le neutre : le Nord est son inverse exact. */
+  turquoise: {
+    position: [0.6, 10, 1.2],
+    color: "#ffe6bd",
+    // 1.25/1.55 -> 1.12/1.3 (04/09, premiere capture : montagnes cramees
+    // en blanc plat) : au-dessus du neutre, mais l'image garde du modele.
+    ambientScale: 1.12,
+    directionalScale: 1.3,
+    colorMix: 0.65,
+  },
   cendre: NEUTRAL_RIG,
   /** Nord/minuit : la lueur du puits. Top light froide quasi zenithale
    * (l'ouverture du Mictlan vue depuis l'interieur), contre-jour :
