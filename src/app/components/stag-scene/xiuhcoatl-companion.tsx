@@ -8,7 +8,7 @@ import { Quaternion, Vector3, type Group, type Material, type Mesh, type MeshSta
 import { initialWander, stepWander, wanderTangent, XIUHCOATL_WANDER, type WanderState } from "@/lib/xiuhcoatl-wander";
 import { aztecYear, YEAR_BEARERS } from "aztec-year";
 import { getMictlanSky } from "./mictlan-sky";
-import { createEmberFireMaterial, createTurquoiseMaterial, createXiuhcoatlUniforms, type XiuhcoatlUniforms } from "./xiuhcoatl-materials";
+import { createEmberFireMaterial, createTurquoiseMaterial, createXiuhcoatlUniforms, softenFog, type XiuhcoatlUniforms } from "./xiuhcoatl-materials";
 import { pushHeat, xiuhcoatlStore } from "./xiuhcoatl-store";
 import { isBot } from "@/lib/is-bot";
 import { useReadingMode } from "@/lib/reading-mode-context";
@@ -98,9 +98,11 @@ function dressMaterials(root: Group, uniforms: XiuhcoatlUniforms) {
     } else if (mat.name.includes("mouth")) {
       mat.emissiveIntensity = 0.35;
       mat.fog = true;
+      softenFog(mat, uniforms, "xiuhcoatl-mouth");
     } else {
       mat.emissiveIntensity = 0;
       mat.fog = true;
+      softenFog(mat, uniforms, `xiuhcoatl-${mat.name}`);
     }
   });
 }

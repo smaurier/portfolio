@@ -1,4 +1,4 @@
-import { Color, DoubleSide, MeshPhysicalMaterial, ShaderMaterial, type Texture } from "three";
+import { Color, DoubleSide, MeshPhysicalMaterial, ShaderMaterial, type Material, type Texture } from "three";
 
 /**
  * Les matieres du xiuhcoatl (04/09, retours Sylvain) :
@@ -21,10 +21,41 @@ export type XiuhcoatlUniforms = {
   uOpacity: { value: number };
   /** 0..1 : force du feu dans les joints et des flammes. */
   uEmber: { value: number };
+  /** Part du brouillard de la scene qu'il subit (04/09, retour Sylvain :
+   * « trop loin il devient trop bleu en bas de scroll, ou trop noir ») :
+   * 1 = comme le decor, 0 = aucun. Il garde un peu d'atmosphere sans se
+   * dissoudre dans la couleur du fog. */
+  uFogScale: { value: number };
 };
 
 export function createXiuhcoatlUniforms(): XiuhcoatlUniforms {
-  return { uTime: { value: 0 }, uOpacity: { value: 1 }, uEmber: { value: 1 } };
+  return { uTime: { value: 0 }, uOpacity: { value: 1 }, uEmber: { value: 1 }, uFogScale: { value: 0.3 } };
+}
+
+const FOG_CHUNK = /* glsl */ `
+#ifdef USE_FOG
+  #ifdef FOG_EXP2
+    float xFogFactor = 1.0 - exp(-fogDensity * fogDensity * vFogDepth * vFogDepth);
+  #else
+    float xFogFactor = smoothstep(fogNear, fogFar, vFogDepth);
+  #endif
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, xFogFactor * uFogScale);
+#endif
+`;
+
+/** Brouillard attenue sur une matiere standard/physique de three (le decor
+ * garde le sien) : remplace le chunk de fog par une version ponderee. */
+export function softenFog(mat: Material & { onBeforeCompile?: unknown; customProgramCacheKey?: () => string }, uniforms: XiuhcoatlUniforms, key: string) {
+  const previous = mat.onBeforeCompile as ((shader: { uniforms: Record<string, unknown>; fragmentShader: string; vertexShader: string }) => void) | undefined;
+  mat.onBeforeCompile = (shader: { uniforms: Record<string, unknown>; fragmentShader: string; vertexShader: string }) => {
+    if (previous) previous(shader);
+    shader.uniforms.uFogScale = uniforms.uFogScale;
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", "#include <common>\nuniform float uFogScale;")
+      .replace("#include <fog_fragment>", FOG_CHUNK);
+  };
+  mat.customProgramCacheKey = () => key;
+  mat.needsUpdate = true;
 }
 
 const NOISE_GLSL = /* glsl */ `
@@ -70,7 +101,6 @@ export function createTurquoiseMaterial(base: Color, sky: Texture | null, unifor
     sheenColor: new Color("#8fe8e0"),
   });
   if (sky) mat.envMap = sky;
-  mat.customProgramCacheKey = () => "xiuhcoatl-turquoise";
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = uniforms.uTime;
     shader.uniforms.uEmber = uniforms.uEmber;
@@ -118,6 +148,7 @@ vec3 xEmber = xEmberColor(xGlow, uTime, xGlow);
 totalEmissiveRadiance += xEmber * uEmber * (xGrout * 0.9 + 0.07 * xGlow);`
       );
   };
+  softenFog(mat, uniforms, "xiuhcoatl-turquoise");
   return mat;
 }
 
