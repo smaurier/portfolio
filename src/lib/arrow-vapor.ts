@@ -32,6 +32,10 @@ export type VaporParticle = {
   /** Taille de reference (unites monde, diametre au pic pour la fumee). */
   size: number;
   kind: VaporKind;
+  /** 0 = fumee noire et eclats d'obsidienne (les fleches), 1 = BRAISES
+   * (le xiuhcoatl, 04/09) : plus petites, plus vives, elles montent plus
+   * vite et s'eteignent plus tot. */
+  heat: number;
 };
 
 export type Vec3 = { x: number; y: number; z: number };
@@ -74,9 +78,13 @@ function frame(axis: Vec3): [Vec3, Vec3] {
  * @param axis   axe unitaire de la hampe, de la pointe vers le talon
  * @param length longueur de la hampe
  */
-export function spawnVapor(seed: number, origin: Vec3, axis: Vec3, length: number): VaporParticle[] {
+export function spawnVapor(seed: number, origin: Vec3, axis: Vec3, length: number, heat = 0): VaporParticle[] {
   const out: VaporParticle[] = [];
   const [u, v] = frame(axis);
+  const hot = Math.max(0, Math.min(1, heat));
+  const sizeK = 1 - 0.45 * hot;
+  const lifeK = 1 - 0.3 * hot;
+  const riseK = 1 + 0.9 * hot;
   for (let i = 0; i < SMOKE_PER_ARROW; i++) {
     const t = hash(seed, i, 1) - 0.5; // le long de la hampe
     const a = hash(seed, i, 2) * Math.PI * 2;
@@ -87,12 +95,13 @@ export function spawnVapor(seed: number, origin: Vec3, axis: Vec3, length: numbe
       y: origin.y + axis.y * t * length + (u.y * Math.cos(a) + v.y * Math.sin(a)) * r,
       z: origin.z + axis.z * t * length + (u.z * Math.cos(a) + v.z * Math.sin(a)) * r,
       vx: (u.x * Math.cos(a) + v.x * Math.sin(a)) * lateral,
-      vy: 0.2 + 0.3 * hash(seed, i, 5),
+      vy: (0.2 + 0.3 * hash(seed, i, 5)) * riseK,
       vz: (u.z * Math.cos(a) + v.z * Math.sin(a)) * lateral,
       age: -0.06 * hash(seed, i, 6), // naissance echelonnee
-      life: 1.4 + 0.8 * hash(seed, i, 7),
-      size: 0.22 + 0.22 * hash(seed, i, 8),
+      life: (1.4 + 0.8 * hash(seed, i, 7)) * lifeK,
+      size: (0.22 + 0.22 * hash(seed, i, 8)) * sizeK,
       kind: VAPOR_SMOKE,
+      heat: hot,
     });
   }
   for (let i = 0; i < SHARDS_PER_ARROW; i++) {
@@ -107,9 +116,10 @@ export function spawnVapor(seed: number, origin: Vec3, axis: Vec3, length: numbe
       vy: 0.4 + 0.9 * hash(seed, i, 14),
       vz: (u.z * Math.cos(a) + v.z * Math.sin(a)) * speed,
       age: 0,
-      life: 0.7 + 0.4 * hash(seed, i, 15),
-      size: 0.018 + 0.02 * hash(seed, i, 16),
+      life: (0.7 + 0.4 * hash(seed, i, 15)) * lifeK,
+      size: (0.018 + 0.02 * hash(seed, i, 16)) * (1 - 0.2 * hot),
       kind: VAPOR_SHARD,
+      heat: hot,
     });
   }
   return out;

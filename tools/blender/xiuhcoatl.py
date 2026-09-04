@@ -268,6 +268,22 @@ for side in (1, -1):
         cone(f"Claw{side}{g}", (foot[0] + R * 0.35, foot[1] + g * R * 0.17, foot[2]), (foot[0] + R * 0.85, foot[1] + g * R * 0.24, foot[2] - R * 0.2), R * 0.09, MAT_BONE, sides=5)
 
 # ================================================================ JONCTION
+# Le skinning automatique (bone heat) echoue sur ce mesh fait de dizaines
+# de coques disjointes (constate : 0 poids sur 2524 sommets). On marque donc
+# chaque piece avant la jonction (groupes "hint_*", fusionnes par nom au join)
+# et on calcule les poids nous-memes plus bas.
+JAW_Z = HZ - HH * 0.35
+def hint_of(ob):
+    n = ob.name
+    if n.startswith(("LowerJaw", "JawBeads", "Tongue")): return "hint_jaw"
+    if n.startswith(("Leg", "Paw", "Claw")): return "hint_leg"
+    if n.startswith("Fang"):
+        cz = sum((ob.matrix_world @ v.co).z for v in ob.data.vertices) / len(ob.data.vertices)
+        if cz < JAW_Z: return "hint_jaw"
+    return None
+for ob in parts:
+    h = hint_of(ob)
+    if h: ob.vertex_groups.new(name=h).add(list(range(len(ob.data.vertices))), 1.0, "REPLACE")
 bpy.ops.object.select_all(action="DESELECT")
 for ob in parts: ob.select_set(True)
 bpy.context.view_layer.objects.active = skull
@@ -299,7 +315,41 @@ for side, sname in ((1, "L"), (-1, "R")):
     leg_bones.append((hipb.name, footb.name))
 bpy.ops.object.mode_set(mode="OBJECT")
 mesh_ob.select_set(True); rig.select_set(True); bpy.context.view_layer.objects.active = rig
-bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+bpy.ops.object.parent_set(type="ARMATURE_NAME")
+
+# --- Poids proceduraux -----------------------------------------------------
+# Corps : melange lisse entre os voisins le long de X (50/50 a l'articulation),
+# machoire inferieure : os "jaw", pattes : melange hanche/pied selon la
+# position le long de la patte.
+axial = [(n, arm.bones[n].head.x, arm.bones[n].tail.x) for n in spine_bones] + [("head", arm.bones["head"].head.x, arm.bones["head"].tail.x), ("snout", arm.bones["snout"].head.x, arm.bones["snout"].tail.x)]
+def axial_weights(x):
+    if x <= axial[0][1]: return {axial[0][0]: 1.0}
+    if x >= axial[-1][2]: return {axial[-1][0]: 1.0}
+    for k, (name, h, t) in enumerate(axial):
+        if h <= x <= t:
+            u = (x - h) / (t - h)
+            if u < 0.5 and k > 0: w = 0.5 - u; return {name: 1 - w, axial[k - 1][0]: w}
+            if u > 0.5 and k < len(axial) - 1: w = u - 0.5; return {name: 1 - w, axial[k + 1][0]: w}
+            return {name: 1.0}
+    return {axial[-1][0]: 1.0}
+def leg_weights(co):
+    hipn, footn = leg_bones[0] if co.y > 0 else leg_bones[1]
+    hb = arm.bones[hipn]; a = hb.head; d = hb.tail - hb.head
+    t = max(0.0, min(1.0, (co - a).dot(d) / d.length_squared))
+    if t < 0.35: return {hipn: 1.0}
+    if t > 0.75: return {footn: 1.0}
+    w = (t - 0.35) / 0.4; return {hipn: 1 - w, footn: w}
+vgs = mesh_ob.vertex_groups
+hint_jaw = vgs.get("hint_jaw"); hint_leg = vgs.get("hint_leg")
+def in_group(v, g):
+    return g is not None and any(ge.group == g.index and ge.weight > 0 for ge in v.groups)
+for v in mesh_ob.data.vertices:
+    if in_group(v, hint_jaw): w = {"jaw": 1.0}
+    elif in_group(v, hint_leg): w = leg_weights(v.co)
+    else: w = axial_weights(v.co.x)
+    for name, val in w.items(): vgs[name].add([v.index], val, "REPLACE")
+for g in (hint_jaw, hint_leg):
+    if g: vgs.remove(g)
 
 # ================================================================ ANIMATIONS
 scene.render.fps = 24
@@ -347,7 +397,12 @@ scene.frame_end = 72
 os.makedirs(os.path.dirname(OUT_GLB), exist_ok=True)
 bpy.ops.object.select_all(action="DESELECT")
 mesh_ob.select_set(True); rig.select_set(True)
-bpy.ops.export_scene.gltf(filepath=OUT_GLB, export_format="GLB", export_animations=True, export_apply=True, use_selection=True, export_skins=True, export_nla_strips=True)
+# export_apply=False : appliquer les modificateurs cuirait le modificateur
+# Armature et ferait disparaitre le skin (constate : "skins 0" dans le GLB).
+# use_selection=False : avec la selection, l'exporteur perdait le skin (skins 0
+# malgre JOINTS_0/WEIGHTS_0) ; la scene ne contient alors que le mesh et le rig.
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(os.path.dirname(OUT_GLB), "xiuhcoatl.blend"))
+bpy.ops.export_scene.gltf(filepath=OUT_GLB, export_format="GLB", export_animations=True, export_apply=False, use_selection=False, export_skins=True, export_nla_strips=True, export_def_bones=False)
 
 # ================================================================ RENDUS
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -379,4 +434,5 @@ for name, loc in views.items():
     look_at(cam, target if name != "head" else (HX + skull_len * 0.6, 0, HZ))
     scene.render.filepath = os.path.join(OUT_DIR, f"xiuhcoatl-{name}.png")
     bpy.ops.render.render(write_still=True)
-print("OK tris", tris, "bones", len(rig.pose.bones), "->", OUT_GLB)
+unweighted = sum(1 for v in mesh_ob.data.vertices if not v.groups)
+print("OK unweighted", unweighted, "tris", tris, "bones", len(rig.pose.bones), "->", OUT_GLB)

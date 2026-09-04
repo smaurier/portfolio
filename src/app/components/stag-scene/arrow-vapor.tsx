@@ -37,6 +37,9 @@ const ARROW_SLOTS = 24;
 const POOL = ARROW_SLOTS * PARTICLES_PER_ARROW;
 const SMOKE_COLOR = new Color("#0b0810");
 const SHARD_COLOR = new Color("#1a1326");
+// Famille chaude (04/09, le xiuhcoatl) : braises orange, eclats dores.
+const EMBER_COLOR = new Color("#ff7a1a");
+const SPARK_COLOR = new Color("#ffd27a");
 
 export default function ArrowVapor() {
   const pointsRef = useRef<Points>(null);
@@ -52,6 +55,7 @@ export default function ArrowVapor() {
     g.setAttribute("aSize", new BufferAttribute(new Float32Array(POOL), 1));
     g.setAttribute("aAlpha", new BufferAttribute(new Float32Array(POOL), 1));
     g.setAttribute("aKind", new BufferAttribute(new Float32Array(POOL), 1));
+    g.setAttribute("aHeat", new BufferAttribute(new Float32Array(POOL), 1));
     // Jamais de culling : les positions changent a chaque frame.
     g.boundingSphere = null;
     return g;
@@ -64,6 +68,8 @@ export default function ArrowVapor() {
           uSprite: { value: smokeTexture },
           uSmoke: { value: SMOKE_COLOR },
           uShard: { value: SHARD_COLOR },
+          uEmber: { value: EMBER_COLOR },
+          uSpark: { value: SPARK_COLOR },
           uScale: { value: 1 },
         },
         transparent: true,
@@ -73,12 +79,15 @@ export default function ArrowVapor() {
           attribute float aSize;
           attribute float aAlpha;
           attribute float aKind;
+          attribute float aHeat;
           uniform float uScale;
           varying float vAlpha;
           varying float vKind;
+          varying float vHeat;
           void main() {
             vAlpha = aAlpha;
             vKind = aKind;
+            vHeat = aHeat;
             vec4 mv = modelViewMatrix * vec4(position, 1.0);
             // Taille en pixels proportionnelle a la taille monde (diametre).
             gl_PointSize = aSize * uScale / max(0.1, -mv.z);
@@ -89,20 +98,27 @@ export default function ArrowVapor() {
           uniform sampler2D uSprite;
           uniform vec3 uSmoke;
           uniform vec3 uShard;
+          uniform vec3 uEmber;
+          uniform vec3 uSpark;
           varying float vAlpha;
           varying float vKind;
+          varying float vHeat;
           void main() {
             if (vAlpha <= 0.001) discard;
             if (vKind < 0.5) {
-              float a = texture2D(uSprite, gl_PointCoord).a * vAlpha;
+              float sprite = texture2D(uSprite, gl_PointCoord).a;
+              float a = sprite * vAlpha;
               if (a < 0.01) discard;
-              gl_FragColor = vec4(uSmoke, a);
+              // Fumee noire, ou braise chaude, plus lumineuse au coeur.
+              vec3 col = mix(uSmoke, uEmber * (1.0 + 0.8 * sprite), vHeat);
+              gl_FragColor = vec4(col, a);
             } else {
               // Eclat : petit disque dur, legerement plus clair au centre.
               vec2 d = gl_PointCoord - 0.5;
               float r = length(d);
               if (r > 0.5) discard;
-              gl_FragColor = vec4(uShard + 0.12 * (1.0 - r * 2.0), vAlpha);
+              vec3 col = mix(uShard + 0.12 * (1.0 - r * 2.0), uSpark, vHeat);
+              gl_FragColor = vec4(col, vAlpha);
             }
           }
         `,
@@ -114,16 +130,16 @@ export default function ArrowVapor() {
   useFrame((state, delta) => {
     const points = pointsRef.current;
     if (!points) return;
-    const north = direction === "obsidienne";
+    // Nord : les fleches qui se vaporisent ; Sud : les braises du xiuhcoatl.
+    const active = direction === "obsidienne" || direction === "turquoise";
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
     const particles = particlesRef.current;
-    // Nouvelles vaporisations, poussees par ObsidianArrows.
-    if (north && !reduced && tezcatlStore.vapors.length > 0) {
+    if (active && !reduced && tezcatlStore.vapors.length > 0) {
       for (const v of tezcatlStore.vapors) {
         const free = POOL - particles.length;
         if (free < PARTICLES_PER_ARROW) break;
         seedRef.current += 1;
-        particles.push(...spawnVapor(seedRef.current, { x: v.x, y: v.y, z: v.z }, { x: v.dx, y: v.dy, z: v.dz }, v.length));
+        particles.push(...spawnVapor(seedRef.current, { x: v.x, y: v.y, z: v.z }, { x: v.dx, y: v.dy, z: v.dz }, v.length, v.heat ?? 0));
       }
     }
     tezcatlStore.vapors.length = 0;
@@ -142,6 +158,7 @@ export default function ArrowVapor() {
     const size = geometry.getAttribute("aSize") as BufferAttribute;
     const alpha = geometry.getAttribute("aAlpha") as BufferAttribute;
     const kind = geometry.getAttribute("aKind") as BufferAttribute;
+    const heat = geometry.getAttribute("aHeat") as BufferAttribute;
     for (let i = 0; i < POOL; i++) {
       if (i < n) {
         const p = particles[i];
@@ -149,6 +166,7 @@ export default function ArrowVapor() {
         size.setX(i, vaporSize(p));
         alpha.setX(i, vaporAlpha(p));
         kind.setX(i, p.kind === VAPOR_SHARD ? 1 : 0);
+        heat.setX(i, p.heat);
       } else {
         alpha.setX(i, 0);
       }
@@ -157,6 +175,7 @@ export default function ArrowVapor() {
     size.needsUpdate = true;
     alpha.needsUpdate = true;
     kind.needsUpdate = true;
+    heat.needsUpdate = true;
     geometry.setDrawRange(0, n);
     // Echelle pixel : hauteur du viewport en pixels physiques / tangente
     // du demi-FOV, comme un PointsMaterial a attenuation.

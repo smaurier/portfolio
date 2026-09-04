@@ -59,7 +59,7 @@ export const tezcatlStore: {
   /** Fleches qui se vaporisent (04/09) : origine monde + axe unitaire de
    * la hampe (pointe vers talon) + longueur. Poussees par ObsidianArrows,
    * consommees par ArrowVapor a chaque frame. */
-  vapors: { x: number; y: number; z: number; dx: number; dy: number; dz: number; length: number }[];
+  vapors: { x: number; y: number; z: number; dx: number; dy: number; dz: number; length: number; heat?: number }[];
   /** La braise de Xolotl (monde) : reflet chaud sur l'eau (03/09). */
   ember: { x: number; y: number; z: number; intensity: number };
 } = {

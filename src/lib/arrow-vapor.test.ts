@@ -104,3 +104,23 @@ describe("vaporAlpha / vaporSize", () => {
     expect(vaporSize({ ...shard, age: 0.1 })).toBe(vaporSize({ ...shard, age: 0.6 }));
   });
 });
+
+describe("les braises (heat = 1, le xiuhcoatl)", () => {
+  it("par defaut froid ; a chaud, plus petites, plus courtes, et elles montent plus vite", () => {
+    const cold = spawnVapor(3, ORIGIN, UP, LENGTH);
+    const hot = spawnVapor(3, ORIGIN, UP, LENGTH, 1);
+    expect(cold.every((p) => p.heat === 0)).toBe(true);
+    expect(hot.every((p) => p.heat === 1)).toBe(true);
+    const smokeC = cold.filter((p) => p.kind === VAPOR_SMOKE);
+    const smokeH = hot.filter((p) => p.kind === VAPOR_SMOKE);
+    const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    expect(mean(smokeH.map((p) => p.size))).toBeLessThan(mean(smokeC.map((p) => p.size)));
+    expect(mean(smokeH.map((p) => p.life))).toBeLessThan(mean(smokeC.map((p) => p.life)));
+    expect(mean(smokeH.map((p) => p.vy))).toBeGreaterThan(mean(smokeC.map((p) => p.vy)));
+  });
+
+  it("la chaleur est bornee a [0, 1]", () => {
+    expect(spawnVapor(1, ORIGIN, UP, LENGTH, 7)[0].heat).toBe(1);
+    expect(spawnVapor(1, ORIGIN, UP, LENGTH, -2)[0].heat).toBe(0);
+  });
+});

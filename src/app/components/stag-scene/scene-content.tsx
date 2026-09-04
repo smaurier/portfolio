@@ -18,6 +18,7 @@ import TezcatlWater from "./tezcatl-water";
 import ObsidianBlades from "./obsidian-blades";
 import ObsidianArrows from "./obsidian-arrows";
 import ArrowVapor from "./arrow-vapor";
+import XiuhcoatlCompanion from "./xiuhcoatl-companion";
 import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
 import CempasuchilPath from "./cempasuchil-path";
@@ -126,6 +127,11 @@ export default function SceneContent({
        * useTexture, d'ou le Suspense. */}
       <Suspense fallback={null}>
         <ArrowVapor />
+      </Suspense>
+      {/* Le serpent de feu du Sud (04/09) : passage rare au-dessus du cerf,
+       * modele Blender charge par useGLTF, d'ou le Suspense. */}
+      <Suspense fallback={null}>
+        <XiuhcoatlCompanion />
       </Suspense>
       {/* Bandelettes d'amate (02/09) : la protection de papier contre le
        * vent d'obsidienne, aux bois et sur le dos, simulateur Verlet.
