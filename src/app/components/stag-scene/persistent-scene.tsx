@@ -12,6 +12,7 @@ import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { isBot } from "@/lib/is-bot";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import XolotlCompanion from "./xolotl-companion";
+import EhecatlWind from "./ehecatl-wind";
 import styles from "./scene-stage.module.css";
 
 /**
@@ -114,6 +115,10 @@ export default function PersistentScene() {
             15% pages écho, 40% Mémoire (Nord), 0% home. Traverse
             fugitivement en fond ~18s. Voir codex.xolotl. */}
         <XolotlCompanion />
+        {/* Ehecatl (03/09, etage 4 Nepantla) : le vent du passage
+            cardinal rendu visible : filaments qui balaient l'orbite
+            plus vite que la camera. Invisible hors transition. */}
+        <EhecatlWind />
         {refs.perfProfile.postFx && <PostFX />}
       </Canvas>
     </div>
