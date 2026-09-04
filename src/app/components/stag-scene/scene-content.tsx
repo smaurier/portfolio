@@ -21,6 +21,7 @@ import ArrowVapor from "./arrow-vapor";
 import XiuhcoatlCompanion from "./xiuhcoatl-companion";
 import SudSky from "./sud-sky";
 import CentzonStars from "./centzon-stars";
+import HuitzilinBirds from "./huitzilin-birds";
 import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
 import CempasuchilPath from "./cempasuchil-path";
@@ -141,6 +142,11 @@ export default function SceneContent({
       {/* Les 400 etoiles du Sud (04/09, lead) : sur le dome de nuit, elles
        * meurent et tombent a mesure que le midi monte. */}
       <CentzonStars />
+      {/* Les colibris du Sud (04/09, contre-chant) : vrai modele Poly,
+       * couleurs d'especes, ailes battues par shader, chasseurs d'etoiles. */}
+      <Suspense fallback={null}>
+        <HuitzilinBirds />
+      </Suspense>
       {/* Bandelettes d'amate (02/09) : la protection de papier contre le
        * vent d'obsidienne, aux bois et sur le dos, simulateur Verlet.
        * Nord uniquement. */}
