@@ -549,7 +549,7 @@
     "sections": [
       {
         "title": "Modèles 3D",
-        "text": "Le cerf et une partie de la flore proviennent des packs open-source Quaternius (licence CC0). Xolotl (le chien-frère de Quetzalcoatl qui traverse parfois la scène) utilise le modèle Xoloitzcuintle de Nyilonelycompany, acheté sur Fab.com, teinté en obsidienne. Les modèles complémentaires (ocotillo, lianes) sont générés procéduralement. Les fleurs de cempasúchil du Nord sont modélisées procéduralement."
+        "text": "Le cerf et une partie de la flore proviennent des packs open-source Quaternius (licence CC0). Xolotl (le chien-frère de Quetzalcoatl qui traverse parfois la scène) utilise le modèle Xoloitzcuintle de Nyilonelycompany, acheté sur Fab.com, teinté en obsidienne. Les modèles complémentaires (ocotillo, lianes) sont générés procéduralement. Les fleurs de cempasúchil du Nord sont modélisées procéduralement. Les colibris du Sud utilisent le modèle Hummingbird de Poly by Google (licence CC BY 3.0), recoloré par espèce ; le serpent de feu Xiuhcoatl est modélisé par script Blender pour ce site."
       },
       {
         "title": "Polices",
