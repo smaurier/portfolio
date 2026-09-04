@@ -51,23 +51,27 @@ export type WanderState = {
 // 9.5, hauteur 2.4, regard vers (0, 2.1, 0). Bande d'elevation mesuree aux
 // captures du 04/09 : sous 6.5 deg le ventre frole la crete, au-dessus de
 // 12 deg la crete de flammes passe sous le bandeau de navigation.
-// 04/09 soir, retour Sylvain « il devrait se balader bien plus autour de
-// la scene » : boite bien plus grande (de loin derriere jusqu au-dessus
-// du cerf, z -30 -> -4 ; plus pres il remplirait l ecran), bande 5.5 -> 13 deg,
-// plus vif. Pres de la camera la bande est etroite, il y passe haut.
+// 04/09 soir, retours Sylvain : « il devrait se balader bien plus autour de
+// la scene », puis « le ciel doit etre largement agrandi, il ne va pas tres
+// loin et il reste tout le temps visible ». Le ciel est donc bien plus
+// grand que le cadre : en x, 1.4 fois la distance a la camera (le champ
+// visible en fait ~0.6), donc il SORT du cadre par les cotes et revient ;
+// en profondeur jusqu'a z = -70, ou il n'est plus qu'une braise dans la
+// brume ; en hauteur jusqu'a 22 deg, au-dessus du bandeau. Il ne descend
+// pas plus pres que z = -4 (il remplirait l'ecran) ni sous la crete.
 export const XIUHCOATL_WANDER: WanderSpec = {
-  xMin: -22,
-  xMax: 22,
-  xHalfPerDist: 0.55,
-  zMin: -30,
+  xMin: -60,
+  xMax: 60,
+  xHalfPerDist: 1.4,
+  zMin: -70,
   zMax: -4,
   camY: 2.4,
   camZ: 9.5,
   minElevDeg: 5.5,
-  maxElevDeg: 13,
-  speed: 2.8,
-  turnRate: 1.1,
-  margin: 5,
+  maxElevDeg: 22,
+  speed: 3.4,
+  turnRate: 1.0,
+  margin: 8,
 };
 
 const RAD = Math.PI / 180;
