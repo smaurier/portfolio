@@ -1,7 +1,7 @@
 import { BackSide, Color, DataTexture, RGBAFormat, UnsignedByteType, type Texture } from "three";
 import { MeshBasicNodeMaterial } from "three/webgpu";
 import { Fn, float, vec2, vec3, mix, smoothstep, clamp, fract, atan, asin, positionLocal } from "three/tsl";
-import { boundColor, boundFloat, boundTexture } from "./tsl-bind";
+import { boundColor, boundFloat, boundTexture, boundRgb } from "./tsl-bind";
 
 /**
  * Le dome du Sud en TSL (05/09, migration WebGPU) : la traduction du
@@ -60,7 +60,7 @@ export function createSudSkyNodeMaterial(uniforms: SudSkyUniforms): SudSkyNodeMa
   const uOpacity = boundFloat(uniforms.uOpacity);
   const uHasSky = boundFloat(uniforms.uHasSky);
   const uDay = boundFloat(uniforms.uDay);
-  const uTint = boundColor(uniforms.uTint);
+  const tint = boundRgb(uniforms.uTint);
   const uTintMix = boundFloat(uniforms.uTintMix);
   const uSkyOffset = boundFloat(uniforms.uSkyOffset);
   const sky = boundTexture(uniforms.uSky, blackPixel());
@@ -76,7 +76,6 @@ export function createSudSkyNodeMaterial(uniforms: SudSkyUniforms): SudSkyNodeMa
     const u = fract(atan(dir.z, dir.x).div(6.2831853).add(0.5).add(uSkyOffset));
     const v = asin(clamp(dir.y, -1, 1)).div(3.1415927).add(0.5);
     const photo = sky.sample(vec2(u, v)).rgb;
-    const tint = vec3(uTint.r, uTint.g, uTint.b);
     const tinted = mix(photo, photo.mul(tint), uTintMix);
     const band = smoothstep(0, 0.1, e);
     const day = mix(horizon, tinted, band);

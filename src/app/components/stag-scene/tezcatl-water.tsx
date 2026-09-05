@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Color, DoubleSide, Matrix4, MeshPhysicalMaterial, PerspectiveCamera, Plane, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderTarget, type Camera, type Mesh, type Object3D, type WebGLRenderer } from "three";
+import { Color, DoubleSide, Matrix4, MeshPhysicalMaterial, PerspectiveCamera, Plane, Scene, Vector2, Vector3, WebGLRenderTarget, type Camera, type Mesh, type Object3D, type WebGLRenderer } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { hoofDrop, pointerSplat, smokeGate, worldToSimUv, type SimUv } from "@/lib/tezcatl-fluid";
 import type { RippleHull } from "./tezcatl-ripple-sim";
@@ -13,6 +13,7 @@ import { createTezcatlWaterNodeMaterial, type TezcatlWaterUniforms } from "./web
 import { TEZCATL_EXTENT, WATER_LEVEL, ZERO_TEXTURE, tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { glslMaterial } from "./glsl-material";
 
 /**
  * TezcatlWater (02/09, Nord). Une nappe d'eau CALME de ~20 cm sur toute la
@@ -175,8 +176,7 @@ function renderReflection(gl: WebGLRenderer, scene: Scene, mainCamera: Camera, r
 /** La nappe : GLSL en WebGL, TSL en WebGPU (tezcatl-water-tsl.ts). */
 function createTezcatlWaterMaterial(uniforms: TezcatlWaterUniforms) {
   if (isWebGpu()) return createTezcatlWaterNodeMaterial(uniforms, EXTENT, WATER_RADIUS);
-  return Object.assign(
-    new ShaderMaterial({
+  return glslMaterial({
       uniforms,
       transparent: true,
       depthWrite: false,
@@ -256,9 +256,7 @@ function createTezcatlWaterMaterial(uniforms: TezcatlWaterUniforms) {
           gl_FragColor = vec4(col, clamp(a, 0.0, 0.9));
         }
       `,
-    }),
-    { uniforms }
-  );
+    });
 }
 
 export default function TezcatlWater() {

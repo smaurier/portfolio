@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
-import { Color, NormalBlending, ShaderMaterial, type BufferGeometry } from "three";
+import { Color, NormalBlending, type BufferGeometry } from "three";
 import { isWebGpu } from "./webgpu/renderer-kind";
 import { createParticleGeometry, createParticleObject, particleBuffer, setParticleCount } from "./webgpu/particles";
 import { createArrowVaporNodeMaterial, type ArrowVaporUniforms } from "./webgpu/arrow-vapor-tsl";
@@ -21,6 +21,7 @@ import {
 import { tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { glslMaterial } from "./glsl-material";
 
 /**
  * ArrowVapor (04/09). Les fleches de Temiminaloyan, une fois plantees
@@ -48,8 +49,7 @@ const SPARK_DYING = new Color("#7a1200");
 /** La vapeur : GLSL en WebGL (Points), TSL en WebGPU (sprites instancies). */
 function createArrowVaporMaterial(geometry: BufferGeometry, uniforms: ArrowVaporUniforms) {
   if (isWebGpu()) return createArrowVaporNodeMaterial(geometry, uniforms);
-  return Object.assign(
-    new ShaderMaterial({
+  return glslMaterial({
             uniforms,
           transparent: true,
           depthWrite: false,
@@ -104,9 +104,7 @@ function createArrowVaporMaterial(geometry: BufferGeometry, uniforms: ArrowVapor
               }
             }
           `,
-        }),
-    { uniforms }
-  );
+        });
 }
 
 export default function ArrowVapor() {

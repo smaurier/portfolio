@@ -1,7 +1,7 @@
 import { DataTexture, DoubleSide, type Color, type Texture } from "three";
 import { MeshBasicNodeMaterial } from "three/webgpu";
 import { Fn, float, vec2, vec3, vec4, length, smoothstep, varying, positionLocal, modelWorldMatrix, cameraViewMatrix, cameraProjectionMatrix } from "three/tsl";
-import { boundColor, boundFloat, boundTexture } from "./tsl-bind";
+import { boundFloat, boundTexture, boundRgb } from "./tsl-bind";
 
 /**
  * Le reflet du cerf dans le puits (stag-mirror.tsx) en TSL (05/09,
@@ -27,7 +27,7 @@ export type StagMirrorUniforms = {
 
 export function createStagMirrorNodeMaterial(u: StagMirrorUniforms): MeshBasicNodeMaterial & { uniforms: StagMirrorUniforms } {
   const mat = new MeshBasicNodeMaterial() as MeshBasicNodeMaterial & { uniforms: StagMirrorUniforms };
-  const c = boundColor(u.uColor);
+  const uColor = boundRgb(u.uColor);
   const uOpacity = boundFloat(u.uOpacity);
   const uRadiusInner = boundFloat(u.uRadiusInner);
   const uRadiusOuter = boundFloat(u.uRadiusOuter);
@@ -58,7 +58,7 @@ export function createStagMirrorNodeMaterial(u: StagMirrorUniforms): MeshBasicNo
   const worldPos = varying(refractedWorld.xyz);
   mat.vertexNode = cameraProjectionMatrix.mul(cameraViewMatrix.mul(refractedWorld));
 
-  mat.colorNode = vec3(c.r, c.g, c.b);
+  mat.colorNode = uColor;
   mat.opacityNode = Fn(() => {
     const mask = float(1).sub(smoothstep(uRadiusInner, uRadiusOuter, length(worldPos.xz)));
     // Fade de contact : le reflet emerge en s'eloignant du plan du miroir.

@@ -2,7 +2,7 @@ import { AdditiveBlending, DataTexture, type BufferGeometry, type Color, type Te
 import type { Node, PointsNodeMaterial } from "three/webgpu";
 import { Fn, float, vec2, vec3, sin, cos, mod, abs, pow, mix, max, length, smoothstep, step, select } from "three/tsl";
 import { createParticleNodeMaterial, particleAttribute, pointCoord, pointSizeNode } from "./particles";
-import { boundColor, boundFloat, boundTexture } from "./tsl-bind";
+import { boundFloat, boundTexture, boundRgb } from "./tsl-bind";
 
 /**
  * Les ambiances cardinales en TSL (05/09, migration WebGPU) : les quatre
@@ -26,11 +26,6 @@ export type NorthUniforms = AlphaTime & {
   uSmokeTex: { value: Texture | null };
 };
 
-const rgb = (c: { value: Color }) => {
-  const u = boundColor(c);
-  return vec3(u.r, u.g, u.b);
-};
-
 /** Disque doux, rayon 0.5 (le point entier), comme les GLSL. */
 const disc = (r: Node<"float">) => float(1).sub(smoothstep(0, 0.5, r));
 
@@ -52,8 +47,8 @@ function ambienceMaterial<U extends AlphaTime>(u: U, position: Node<"vec3">, siz
 export function createCenterAmbienceNodeMaterial(geometry: BufferGeometry, u: CenterUniforms) {
   const uTime = boundFloat(u.uTime);
   const uAlpha = boundFloat(u.uAlpha);
-  const uColor = rgb(u.uColor);
-  const uAccent = rgb(u.uAccent);
+  const uColor = boundRgb(u.uColor);
+  const uAccent = boundRgb(u.uAccent);
   const origin = particleAttribute(geometry, "position", "vec3");
   const seed = particleAttribute(geometry, "aSeed", "float");
   const lifespan = particleAttribute(geometry, "aLifespan", "float");
@@ -76,7 +71,7 @@ export function createCenterAmbienceNodeMaterial(geometry: BufferGeometry, u: Ce
 export function createEastAmbienceNodeMaterial(geometry: BufferGeometry, u: EastUniforms) {
   const uTime = boundFloat(u.uTime);
   const uAlpha = boundFloat(u.uAlpha);
-  const uColor = rgb(u.uColor);
+  const uColor = boundRgb(u.uColor);
   const origin = particleAttribute(geometry, "position", "vec3");
   const seed = particleAttribute(geometry, "aSeed", "float");
   const position = origin.add(vec3(sin(uTime.mul(0.3).add(seed.mul(6.28))).mul(0.15), cos(uTime.mul(0.25).add(seed.mul(4))).mul(0.12), 0));
@@ -93,7 +88,7 @@ export function createEastAmbienceNodeMaterial(geometry: BufferGeometry, u: East
 export function createWestAmbienceNodeMaterial(geometry: BufferGeometry, u: WestUniforms) {
   const uTime = boundFloat(u.uTime);
   const uAlpha = boundFloat(u.uAlpha);
-  const uColor = rgb(u.uColor);
+  const uColor = boundRgb(u.uColor);
   const origin = particleAttribute(geometry, "position", "vec3");
   const seed = particleAttribute(geometry, "aSeed", "float");
   const speed = seed.mul(0.8).add(0.6);
@@ -116,8 +111,8 @@ export function createWestAmbienceNodeMaterial(geometry: BufferGeometry, u: West
 export function createSouthAmbienceNodeMaterial(geometry: BufferGeometry, u: SouthUniforms) {
   const uTime = boundFloat(u.uTime);
   const uAlpha = boundFloat(u.uAlpha);
-  const uColor = rgb(u.uColor);
-  const uAccent = rgb(u.uAccent);
+  const uColor = boundRgb(u.uColor);
+  const uAccent = boundRgb(u.uAccent);
   const bird = particleAttribute(geometry, "aBird", "float");
   const trail = particleAttribute(geometry, "aTrail", "float");
   const phase = bird.mul(2.1);
@@ -151,10 +146,10 @@ const rotate2 = (uv: Node<"vec2">, angle: Node<"float">) => {
 export function createNorthAmbienceNodeMaterial(geometry: BufferGeometry, u: NorthUniforms) {
   const uTime = boundFloat(u.uTime);
   const uAlpha = boundFloat(u.uAlpha);
-  const uSmoke = rgb(u.uSmokeColor);
-  const uShard = rgb(u.uShardColor);
-  const uMist = rgb(u.uMistColor);
-  const uGlint = rgb(u.uGlintColor);
+  const uSmoke = boundRgb(u.uSmokeColor);
+  const uShard = boundRgb(u.uShardColor);
+  const uMist = boundRgb(u.uMistColor);
+  const uGlint = boundRgb(u.uGlintColor);
   // La texture arrive apres le premier rendu (useTexture) : un pixel
   // transparent en attendant.
   const placeholder = new DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1);

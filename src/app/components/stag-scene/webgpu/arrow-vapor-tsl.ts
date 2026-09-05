@@ -2,7 +2,7 @@ import { NormalBlending, type BufferGeometry, type Color, type Texture } from "t
 import type { PointsNodeMaterial } from "three/webgpu";
 import { Fn, float, vec3, length, mix, select, step, texture } from "three/tsl";
 import { createParticleNodeMaterial, particleAttribute, pointCoord, pointSizeNode } from "./particles";
-import { boundColor, boundFloat } from "./tsl-bind";
+import { boundFloat, boundRgb } from "./tsl-bind";
 
 /**
  * La vapeur des fleches en TSL (05/09, migration WebGPU) : fumee noire
@@ -21,14 +21,12 @@ export type ArrowVaporUniforms = {
   uScale: { value: number };
 };
 
-const rgb = (c: ReturnType<typeof boundColor>) => vec3(c.r, c.g, c.b);
-
 export function createArrowVaporNodeMaterial(geometry: BufferGeometry, u: ArrowVaporUniforms): PointsNodeMaterial & { uniforms: ArrowVaporUniforms } {
-  const uSmoke = rgb(boundColor(u.uSmoke));
-  const uShard = rgb(boundColor(u.uShard));
-  const uEmber = rgb(boundColor(u.uEmber));
-  const uSpark = rgb(boundColor(u.uSpark));
-  const uSparkDying = rgb(boundColor(u.uSparkDying));
+  const uSmoke = boundRgb(u.uSmoke);
+  const uShard = boundRgb(u.uShard);
+  const uEmber = boundRgb(u.uEmber);
+  const uSpark = boundRgb(u.uSpark);
+  const uSparkDying = boundRgb(u.uSparkDying);
   const uScale = boundFloat(u.uScale);
   const position = particleAttribute(geometry, "position", "vec3");
   const size = particleAttribute(geometry, "aSize", "float");

@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Color, DoubleSide, ShaderMaterial, type Mesh } from "three";
+import { Color, DoubleSide, type Mesh } from "three";
 import { mistEmitters } from "@/lib/mictlan-mist";
 import { smokeGate } from "@/lib/tezcatl-fluid";
 import { isWebGpu } from "./webgpu/renderer-kind";
@@ -12,6 +12,7 @@ import { createMictlanMistNodeMaterial, type MictlanMistUniforms } from "./webgp
 import { TEZCATL_EXTENT, WATER_LEVEL } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { glslMaterial } from "./glsl-material";
 
 /**
  * MictlanMist (03/09, Nord). Les NAPPES de brouillard du Mictlan, sur un
@@ -50,8 +51,7 @@ const CLEAR_RADIUS = 2.6;
 /** Une couche de brume : GLSL en WebGL, TSL en WebGPU (mictlan-mist-tsl.ts). */
 function createMistMaterial(uniforms: MictlanMistUniforms) {
   if (isWebGpu()) return createMictlanMistNodeMaterial(uniforms, EXTENT, CLEAR_RADIUS);
-  return Object.assign(
-    new ShaderMaterial({
+  return glslMaterial({
       uniforms,
       transparent: true,
       depthWrite: false,
@@ -87,9 +87,7 @@ function createMistMaterial(uniforms: MictlanMistUniforms) {
           gl_FragColor = vec4(col, a);
         }
       `,
-    }),
-    { uniforms }
-  );
+    });
 }
 
 export default function MictlanMist() {

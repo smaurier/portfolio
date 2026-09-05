@@ -3,11 +3,12 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Color, ShaderMaterial, SkinnedMesh, type Material, type Object3D } from "three";
+import { Color, SkinnedMesh, type Material, type Object3D } from "three";
 import { isWebGpu } from "./webgpu/renderer-kind";
 import { createFurShellNodeMaterial, type FurShellUniforms } from "./webgpu/fur-shells-tsl";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { glslMaterial } from "./glsl-material";
 
 /**
  * FurShells (02/09, Nord). Le POIL du cerf noir : "shell texturing", la
@@ -96,7 +97,7 @@ type FurMaterial = Material & { uniforms: FurShellUniforms };
 /** Une coque : GLSL en WebGL, TSL en WebGPU (fur-shells-tsl.ts). */
 function createFurShellMaterial(uniforms: FurShellUniforms): FurMaterial {
   if (isWebGpu()) return createFurShellNodeMaterial(uniforms);
-  return Object.assign(new ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG, uniforms, transparent: true, depthWrite: false }), { uniforms });
+  return glslMaterial({ vertexShader: VERT, fragmentShader: FRAG, uniforms, transparent: true, depthWrite: false });
 }
 
 export default function FurShells() {

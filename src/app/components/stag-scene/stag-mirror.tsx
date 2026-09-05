@@ -24,6 +24,7 @@ import { useSceneRefs } from "./scene-refs-context";
 import { TEZCATL_EXTENT, tezcatlStore } from "./tezcatl-store";
 import { isWebGpu } from "./webgpu/renderer-kind";
 import { createStagMirrorNodeMaterial, type StagMirrorUniforms } from "./webgpu/stag-mirror-tsl";
+import { glslMaterial } from "./glsl-material";
 
 /**
  * StagMirror (01/09, etage 4 sprint identites : element B de la fiche
@@ -97,8 +98,7 @@ const CONTACT_FADE_EDGE = 0.08;
 /** Le reflet : GLSL en WebGL, TSL en WebGPU (stag-mirror-tsl.ts). */
 function createStagMirrorMaterial(uniforms: StagMirrorUniforms) {
   if (isWebGpu()) return createStagMirrorNodeMaterial(uniforms);
-  return Object.assign(
-    new ShaderMaterial({
+  return glslMaterial({
       uniforms,
       transparent: true,
       depthWrite: false,
@@ -146,9 +146,7 @@ function createStagMirrorMaterial(uniforms: StagMirrorUniforms) {
           gl_FragColor = vec4(uColor, a);
         }
       `,
-    }),
-    { uniforms }
-  );
+    });
 }
 
 export default function StagMirror() {

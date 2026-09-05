@@ -1,7 +1,7 @@
 import { DoubleSide, type Color, type Matrix4, type Texture, type Vector3 } from "three";
 import { MeshBasicNodeMaterial } from "three/webgpu";
 import { Fn, float, vec2, vec3, vec4, uniform, dot, max, pow, length, clamp, step, normalize, smoothstep, positionWorld, cameraPosition } from "three/tsl";
-import { boundColor, boundFloat, boundTexture, boundVec3 } from "./tsl-bind";
+import { boundFloat, boundTexture, boundVec3, boundRgb } from "./tsl-bind";
 import { ZERO_TEXTURE } from "../tezcatl-store";
 
 /**
@@ -29,25 +29,20 @@ export type TezcatlWaterUniforms = {
   uReflRefract: { value: number };
 };
 
-const rgb = (c: { value: Color }) => {
-  const u = boundColor(c);
-  return vec3(u.r, u.g, u.b);
-};
-
 export function createTezcatlWaterNodeMaterial(u: TezcatlWaterUniforms, extent: number, radius: number): MeshBasicNodeMaterial & { uniforms: TezcatlWaterUniforms } {
   const mat = new MeshBasicNodeMaterial() as MeshBasicNodeMaterial & { uniforms: TezcatlWaterUniforms };
   const height = boundTexture(u.uHeight, ZERO_TEXTURE);
   const reflection = boundTexture(u.uReflection, ZERO_TEXTURE);
   const uTexel = boundFloat(u.uTexel);
   const uOpacity = boundFloat(u.uOpacity);
-  const uColor = rgb(u.uColor);
-  const uSpec = rgb(u.uSpec);
-  const uRim = rgb(u.uRim);
+  const uColor = boundRgb(u.uColor);
+  const uSpec = boundRgb(u.uSpec);
+  const uRim = boundRgb(u.uRim);
   const uLightDir = boundVec3(u.uLightDir);
   const uNormalGain = boundFloat(u.uNormalGain);
   const uEmberPos = boundVec3(u.uEmberPos);
   const uEmberStrength = boundFloat(u.uEmberStrength);
-  const uEmberColor = rgb(u.uEmberColor);
+  const uEmberColor = boundRgb(u.uEmberColor);
   const uTextureMatrix = uniform(u.uTextureMatrix.value);
   const uReflStrength = boundFloat(u.uReflStrength);
   const uReflRefract = boundFloat(u.uReflRefract);

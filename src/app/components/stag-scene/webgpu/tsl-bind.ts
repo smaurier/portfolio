@@ -1,4 +1,4 @@
-import { uniform } from "three/tsl";
+import { uniform, vec3 } from "three/tsl";
 import type { Color, Vector2, Vector3, Vector4, Texture } from "three";
 import { texture as textureNode } from "three/tsl";
 
@@ -22,6 +22,13 @@ export function boundFloat(ref: Ref<number>) {
 
 export function boundColor(ref: Ref<Color>) {
   return uniform(ref.value);
+}
+
+/** La couleur liee, en vec3 : le noeud `uniform(Color)` n'est pas un vec3
+ * pour le typage TSL, on le recompose. */
+export function boundRgb(ref: Ref<Color>) {
+  const c = boundColor(ref);
+  return vec3(c.r, c.g, c.b);
 }
 
 export function boundVec2(ref: Ref<Vector2>) {

@@ -2,7 +2,7 @@ import { AdditiveBlending, type BufferGeometry, type Color } from "three";
 import { LineBasicNodeMaterial, type PointsNodeMaterial, type Node } from "three/webgpu";
 import { Fn, float, vec3, smoothstep, length, attribute } from "three/tsl";
 import { createParticleNodeMaterial, particleAttribute, pointCoord, pointSizeNode } from "./particles";
-import { boundColor, boundFloat } from "./tsl-bind";
+import { boundFloat, boundRgb } from "./tsl-bind";
 
 /**
  * Les 400 etoiles en TSL (05/09, migration WebGPU) : les points (coeur
@@ -14,7 +14,7 @@ export type StarUniforms = { uColor: { value: Color }; uScale: { value: number }
 export type StreakUniforms = { uColor: { value: Color }; uOpacity: { value: number } };
 
 export function createStarPointsNodeMaterial(geometry: BufferGeometry, u: StarUniforms): PointsNodeMaterial & { uniforms: StarUniforms } {
-  const uColor = boundColor(u.uColor);
+  const uColor = boundRgb(u.uColor);
   const uScale = boundFloat(u.uScale);
   const uOpacity = boundFloat(u.uOpacity);
   const position = particleAttribute(geometry, "position", "vec3");
@@ -23,7 +23,7 @@ export function createStarPointsNodeMaterial(geometry: BufferGeometry, u: StarUn
   const mat = createParticleNodeMaterial({
     position,
     size: pointSizeNode(position, size, uScale),
-    color: vec3(uColor.r, uColor.g, uColor.b),
+    color: uColor,
     opacity: Fn(() => {
       const d = pointCoord().sub(0.5);
       const r = length(d).mul(2);
@@ -41,14 +41,14 @@ export function createStarPointsNodeMaterial(geometry: BufferGeometry, u: StarUn
 
 export function createStreakLinesNodeMaterial(u: StreakUniforms): LineBasicNodeMaterial & { uniforms: StreakUniforms } {
   const mat = new LineBasicNodeMaterial() as LineBasicNodeMaterial & { uniforms: StreakUniforms };
-  const uColor = boundColor(u.uColor);
+  const uColor = boundRgb(u.uColor);
   const uOpacity = boundFloat(u.uOpacity);
   mat.transparent = true;
   mat.depthWrite = false;
   mat.blending = AdditiveBlending;
   mat.toneMapped = false;
   mat.fog = false;
-  mat.colorNode = vec3(uColor.r, uColor.g, uColor.b);
+  mat.colorNode = uColor;
   mat.opacityNode = (attribute("aAlpha", "float") as unknown as Node<"float">).mul(uOpacity);
   mat.uniforms = u;
   return mat;

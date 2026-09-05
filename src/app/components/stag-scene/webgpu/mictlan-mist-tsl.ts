@@ -1,7 +1,7 @@
 import { DoubleSide, type Color, type Texture } from "three";
 import { MeshBasicNodeMaterial } from "three/webgpu";
 import { Fn, float, vec3, abs, max, length, mix, smoothstep, positionWorld } from "three/tsl";
-import { boundColor, boundFloat, boundTexture } from "./tsl-bind";
+import { boundFloat, boundTexture, boundRgb } from "./tsl-bind";
 import { ZERO_TEXTURE } from "../tezcatl-store";
 
 /**
@@ -23,10 +23,8 @@ export function createMictlanMistNodeMaterial(u: MictlanMistUniforms, extent: nu
   const dye = boundTexture(u.uDye, ZERO_TEXTURE);
   const uOpacity = boundFloat(u.uOpacity);
   const uLayer = boundFloat(u.uLayer);
-  const c = boundColor(u.uColor);
-  const s = boundColor(u.uShadow);
-  const uColor = vec3(c.r, c.g, c.b);
-  const uShadow = vec3(s.r, s.g, s.b);
+  const uColor = boundRgb(u.uColor);
+  const uShadow = boundRgb(u.uShadow);
 
   const dens = dye.sample(positionWorld.xz.div(2 * extent).add(0.5)).r;
   mat.colorNode = mix(uShadow, uColor, smoothstep(0.1, 0.9, dens));

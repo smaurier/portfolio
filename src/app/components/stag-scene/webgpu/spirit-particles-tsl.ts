@@ -2,7 +2,7 @@ import { AdditiveBlending, type BufferGeometry, type Color, type Vector3 } from 
 import type { Node, PointsNodeMaterial } from "three/webgpu";
 import { Fn, float, vec2, vec3, sin, cos, mod, length, mix, smoothstep, max } from "three/tsl";
 import { createParticleNodeMaterial, particleAttribute, pointCoord } from "./particles";
-import { boundColor, boundFloat, boundVec3 } from "./tsl-bind";
+import { boundFloat, boundVec3, boundRgb } from "./tsl-bind";
 import { modelViewMatrix, vec4 } from "three/tsl";
 
 /**
@@ -26,10 +26,8 @@ const flow = Fn(([p]: [Node<"vec3">]) =>
 );
 
 export function createSpiritNodeMaterial(geometry: BufferGeometry, u: SpiritUniforms): PointsNodeMaterial & { uniforms: SpiritUniforms } {
-  const c = boundColor(u.uColor);
-  const a = boundColor(u.uAccentColor);
-  const uColor = vec3(c.r, c.g, c.b);
-  const uAccent = vec3(a.r, a.g, a.b);
+  const uColor = boundRgb(u.uColor);
+  const uAccent = boundRgb(u.uAccentColor);
   const uIntensity = boundFloat(u.uIntensity);
   const uTime = boundFloat(u.uTime);
   const uWind = boundVec3(u.uCardinalWind);

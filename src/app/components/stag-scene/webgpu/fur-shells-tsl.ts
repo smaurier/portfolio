@@ -1,7 +1,7 @@
 import type { Color } from "three";
 import { MeshBasicNodeMaterial } from "three/webgpu";
 import { Fn, float, vec3, dot, pow, clamp, normalize, floor, positionLocal, positionGeometry, positionView, normalLocal, normalView, modelScale, Discard } from "three/tsl";
-import { boundColor, boundFloat } from "./tsl-bind";
+import { boundFloat, boundRgb } from "./tsl-bind";
 import { hash3 } from "./tsl-noise";
 
 /**
@@ -28,10 +28,8 @@ export function createFurShellNodeMaterial(u: FurShellUniforms): MeshBasicNodeMa
   const uLength = boundFloat(u.uLength);
   const uOpacity = boundFloat(u.uOpacity);
   const uFreq = boundFloat(u.uFreq);
-  const base = boundColor(u.uBase);
-  const sheen = boundColor(u.uSheen);
-  const uBase = vec3(base.r, base.g, base.b);
-  const uSheen = vec3(sheen.r, sheen.g, sheen.b);
+  const uBase = boundRgb(u.uBase);
+  const uSheen = boundRgb(u.uSheen);
   // Extrusion et bruit en unites monde : le maillage porte une echelle
   // de ~36 dans sa matrice, sinon 5 cm de poil font 2 unites.
   const worldScale = modelScale.x;

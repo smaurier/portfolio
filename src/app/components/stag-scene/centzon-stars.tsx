@@ -3,7 +3,7 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, LineSegments, ShaderMaterial, type Group } from "three";
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, LineSegments, type Group } from "three";
 import { isWebGpu } from "./webgpu/renderer-kind";
 import { createParticleGeometry, createParticleObject, particleBuffer } from "./webgpu/particles";
 import { createStarPointsNodeMaterial, createStreakLinesNodeMaterial } from "./webgpu/centzon-tsl";
@@ -12,6 +12,7 @@ import { centzonStore } from "./centzon-store";
 import { markTrace } from "../traces-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { glslMaterial } from "./glsl-material";
 
 /**
  * CentzonStars (04/09, le LEAD du Sud). Les 400 etoiles des Centzon
@@ -32,8 +33,7 @@ const SEED = 400;
 /** Les etoiles : GLSL en WebGL (Points, gl_PointSize), TSL en WebGPU (sprites). */
 function createStarPointsMaterial(geometry: BufferGeometry, uniforms: { uColor: { value: Color }; uScale: { value: number }; uOpacity: { value: number } }) {
   if (isWebGpu()) return createStarPointsNodeMaterial(geometry, uniforms);
-  return Object.assign(
-    new ShaderMaterial({
+  return glslMaterial({
         transparent: true,
         depthWrite: false,
         blending: AdditiveBlending,
@@ -65,16 +65,13 @@ function createStarPointsMaterial(geometry: BufferGeometry, uniforms: { uColor: 
             gl_FragColor = vec4(uColor, a);
           }
         `,
-      }),
-    { uniforms }
-  );
+      });
 }
 
 /** Les traits de chute : idem. */
 function createStreakLinesMaterial(uniforms: { uColor: { value: Color }; uOpacity: { value: number } }) {
   if (isWebGpu()) return createStreakLinesNodeMaterial(uniforms);
-  return Object.assign(
-    new ShaderMaterial({
+  return glslMaterial({
         transparent: true,
         depthWrite: false,
         blending: AdditiveBlending,
@@ -97,9 +94,7 @@ function createStreakLinesMaterial(uniforms: { uColor: { value: Color }; uOpacit
             gl_FragColor = vec4(uColor, a);
           }
         `,
-      }),
-    { uniforms }
-  );
+      });
 }
 
 export default function CentzonStars() {

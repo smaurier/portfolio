@@ -1,7 +1,7 @@
 import { AdditiveBlending, Color, DoubleSide } from "three";
 import { MeshBasicNodeMaterial } from "three/webgpu";
-import { Fn, float, vec3, vec4, uv, dot, abs, pow, sin, length, normalize, smoothstep, mix, uniform, normalView, positionView, positionLocal, positionWorld, screenCoordinate, screenSize, Discard } from "three/tsl";
-import { boundColor, boundFloat } from "./tsl-bind";
+import { Fn, float, vec3, vec4, uv, dot, abs, pow, sin, length, normalize, smoothstep, mix, normalView, positionView, positionLocal, positionWorld, screenCoordinate, screenSize, Discard } from "three/tsl";
+import { boundFloat, boundRgb } from "./tsl-bind";
 import { vnoise } from "./tsl-noise";
 
 /**
@@ -21,7 +21,7 @@ export function createFresnelNodeMaterial(u: FresnelUniforms, color: string): Me
   const uBoost = boundFloat(u.uBoost);
   const uOpacity = boundFloat(u.uOpacity);
   const uTime = boundFloat(u.uTime);
-  const diffuse = uniform(new Color(color));
+  const diffuse = boundRgb({ value: new Color(color) });
   const shading = Fn(() => {
     const N = normalize(normalView);
     const V = normalize(positionView.negate());
@@ -37,7 +37,7 @@ export function createFresnelNodeMaterial(u: FresnelUniforms, color: string): Me
     const scan = sin(fragY.mul(0.35).sub(uTime.mul(2))).mul(0.25).add(0.75);
     const fresnelMod = fresnelG.mul(pulse).mul(scan);
     Discard(fresnelMod.lessThan(0.22));
-    const col = vec3(diffuse.r, diffuse.g, diffuse.b).mul(fresnelG.mul(uBoost).add(1)).toVar();
+    const col = diffuse.mul(fresnelG.mul(uBoost).add(1)).toVar();
     col.r.addAssign(fresnelR.sub(fresnelG).mul(uBoost).mul(0.6));
     col.b.addAssign(fresnelB.sub(fresnelG).mul(uBoost).mul(0.6));
     col.mulAssign(pulse.mul(scan));
@@ -81,13 +81,13 @@ export function createEmberMirrorNodeMaterial(u: EmberMirrorUniforms, clipY: num
 /** Le halo au sol : anneau additif qui pulse sous les pattes. */
 export function createHaloNodeMaterial(u: HaloUniforms): MeshBasicNodeMaterial {
   const mat = new MeshBasicNodeMaterial();
-  const c = boundColor(u.uColor);
+  const uColor = boundRgb(u.uColor);
   const uOpacity = boundFloat(u.uOpacity);
   const uPulse = boundFloat(u.uPulse);
   const dist = length(uv().sub(0.5)).mul(2);
   const ring = smoothstep(0, 0.55, dist).mul(float(1).sub(smoothstep(0.55, 1, dist)));
   const glow = pow(float(1).sub(smoothstep(0, 1, dist)), 2).mul(0.5);
-  mat.colorNode = vec3(c.r, c.g, c.b).mul(uPulse);
+  mat.colorNode = uColor.mul(uPulse);
   mat.opacityNode = ring.mul(0.9).add(glow).mul(uPulse).mul(uOpacity);
   mat.transparent = true;
   mat.depthWrite = false;

@@ -1,7 +1,7 @@
 import { DoubleSide, type Color, type DataTexture } from "three";
 import { Fn, float, vec2, vec3, mix, min, sin, fract, dot, texture, positionLocal, positionGeometry } from "three/tsl";
 import { NahualStandardMaterial } from "./nahual-material";
-import { boundColor, boundFloat } from "./tsl-bind";
+import { boundFloat, boundRgb } from "./tsl-bind";
 
 /**
  * La prairie en TSL (05/09, migration WebGPU) : la traduction du patch
@@ -31,7 +31,7 @@ export function createGrassNodeMaterial(bendMap: DataTexture, gridExtent: number
   mat.metalness = 0;
 
   const uTime = boundFloat(uniforms.uTime);
-  const uTint = boundColor(uniforms.uTint);
+  const tint = boundRgb(uniforms.uTint);
   const uTintMix = boundFloat(uniforms.uTintMix);
   const uGreenBase = boundFloat(uniforms.uGreenBase);
   const bend = texture(bendMap);
@@ -58,7 +58,6 @@ export function createGrassNodeMaterial(bendMap: DataTexture, gridExtent: number
 
   mat.colorNode = Fn(() => {
     const h = positionGeometry.y;
-    const tint = vec3(uTint.r, uTint.g, uTint.b);
     const c = vec3(mix(0.45, 1.15, h)).toVar();
     c.assign(mix(c, c.mul(tint), uTintMix));
     c.assign(mix(c, vec3(0.34, 0.48, 0.2), uGreenBase.mul(float(1).sub(h)).mul(0.6)));

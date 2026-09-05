@@ -10,6 +10,7 @@ import { getRevealFloor } from "@/lib/reveal-arc";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { isWebGpu } from "./webgpu/renderer-kind";
 import { createSudSkyNodeMaterial, createSudSkyUniforms } from "./webgpu/sud-sky-material";
+import { glslMaterial } from "./glsl-material";
 
 /**
  * SudSky (04/09, tissu du Sud). Le ciel de midi. Jusqu'ici le fond de la
@@ -56,8 +57,7 @@ export default function SudSky() {
     () =>
       isWebGpu()
         ? createSudSkyNodeMaterial(uniforms)
-        : Object.assign(
-            new ShaderMaterial({
+        : glslMaterial({
             side: BackSide,
             depthWrite: false,
             fog: false,
@@ -102,8 +102,6 @@ export default function SudSky() {
               }
             `,
           }),
-            { uniforms }
-          ),
     [uniforms]
   );
 
