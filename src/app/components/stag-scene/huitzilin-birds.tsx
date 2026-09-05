@@ -29,7 +29,7 @@ import { useSceneRefs } from "./scene-refs-context";
  */
 
 const MODEL_PATH = "/models/hummingbird-poly.glb";
-const BASE_SCALE = 0.08; // 0.22 -> 0.08 (05/09, Sylvain : « trop gros, c est tout petit normalement »)
+const BASE_SCALE = 0.06; // 0.22 -> 0.08 -> 0.06 (05/09, Sylvain : « trop gros, c est tout petit normalement », puis « encore un peu grand »)
 const MODEL_PITCH = 0.68; // rad, redresse le corps : +atan(0.63/0.78), le bec vient a l horizontale (05/09, retour Sylvain « ils volent a la verticale » : le signe etait inverse)
 const FLAP_HZ = 14;
 const FLAP_AMPLITUDE = 0.75; // rad
@@ -105,7 +105,7 @@ export default function HuitzilinBirds() {
   const statesRef = useRef<BirdState[]>(HUITZILIN_SPECIES.map((_, i) => initialBird(11 + i * 17, HUITZILIN_SPEC)));
   const birdsRef = useRef<Mesh[]>([]);
   const scratch = useMemo(
-    () => ({ q: new Quaternion(), qy: new Quaternion(), qx: new Quaternion(), qm: new Quaternion(), axisY: new Vector3(0, 1, 0), axisX: new Vector3(1, 0, 0) }),
+    () => ({ q: new Quaternion(), qy: new Quaternion(), qx: new Quaternion(), qm: new Quaternion(), axisY: new Vector3(0, 1, 0), axisX: new Vector3(1, 0, 0), fwd: new Vector3(), vel: new Vector3() }),
     []
   );
 
@@ -162,6 +162,20 @@ export default function HuitzilinBirds() {
       q.copy(qy.setFromAxisAngle(axisY, yaw)).multiply(qx.setFromAxisAngle(axisX, -s.pitch)).multiply(qm);
       mesh.quaternion.copy(q);
       mesh.scale.setScalar(mesh.userData.scale as number);
+      // Verification (05/09, Sylvain : « verifie que les colibris ne volent
+      // pas en arriere ») : produit scalaire entre l'avant du modele (+z
+      // local -> monde) et la vitesse ; > 0 = il vole bec devant. Lu par
+      // Playwright via window.__huitzilinForward, sans cout notable.
+      if (typeof window !== "undefined" && s.mode === "dart") {
+        const prev = mesh.userData.prevPos as Vector3 | undefined;
+        if (prev) {
+          const fwd = scratch.fwd.set(0, 0, 1).applyQuaternion(mesh.quaternion);
+          const vel = scratch.vel.copy(mesh.position).sub(prev);
+          const dbg = ((window as unknown as { __huitzilinForward?: number[] }).__huitzilinForward ??= []);
+          dbg[i] = vel.lengthSq() > 1e-8 ? fwd.dot(vel.normalize()) : 0;
+        }
+        mesh.userData.prevPos = (prev ?? new Vector3()).copy(mesh.position);
+      }
       const u = mesh.userData.uniforms as BirdUniforms;
       u.uTime.value = state.clock.elapsedTime;
       u.uFlap.value = reduced ? 0 : FLAP_AMPLITUDE;

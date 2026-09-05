@@ -21,6 +21,10 @@ export type XiuhcoatlUniforms = {
   uOpacity: { value: number };
   /** 0..1 : force du feu dans les joints et des flammes. */
   uEmber: { value: number };
+  /** Crepitement : 1 = le serpent ; plus haut = flammes plus nerveuses et
+   * pointes chaudes plus frequentes (l'anneau de la Piedra, 05/09, Sylvain :
+   * « faire crepiter un peu plus l'anneau »). */
+  uCrackle: { value: number };
   /** Part du brouillard de la scene qu'il subit (04/09, retour Sylvain :
    * « trop loin il devient trop bleu en bas de scroll, ou trop noir ») :
    * 1 = comme le decor, 0 = aucun. Il garde un peu d'atmosphere sans se
@@ -29,7 +33,7 @@ export type XiuhcoatlUniforms = {
 };
 
 export function createXiuhcoatlUniforms(): XiuhcoatlUniforms {
-  return { uTime: { value: 0 }, uOpacity: { value: 1 }, uEmber: { value: 1 }, uFogScale: { value: 0.3 } };
+  return { uTime: { value: 0 }, uOpacity: { value: 1 }, uEmber: { value: 1 }, uFogScale: { value: 0.3 }, uCrackle: { value: 1 } };
 }
 
 const FOG_CHUNK = /* glsl */ `
@@ -84,10 +88,15 @@ float xEmberGlow(vec3 local, float t) {
   float crackle = xVnoise(local * 16.0 + vec3(t * 0.35, 0.0, -t * 0.2));
   return smoothstep(0.42, 0.88, veins * 0.65 + crackle * 0.35);
 }
+uniform float uCrackle;
 vec3 xEmberColor(float glow, float t, float phase) {
-  float flicker = 0.85 + 0.15 * sin(t * 6.0 + phase * 25.0);
+  // Crepitement : un scintillement lent, plus un petillement rapide et
+  // irregulier dont uCrackle regle la nervosite (1 = serpent, 3 = anneau).
+  float slow = sin(t * 6.0 + phase * 25.0);
+  float fast = sin(t * 23.0 + phase * 61.0) * sin(t * 17.0 + phase * 37.0);
+  float flicker = 0.85 + 0.15 * slow + 0.12 * (uCrackle - 1.0) * fast;
   vec3 col = mix(vec3(0.5, 0.09, 0.01), vec3(0.9, 0.38, 0.05), glow) * flicker;
-  col += vec3(1.0, 0.72, 0.35) * pow(glow, 5.0) * 0.25;
+  col += vec3(1.0, 0.72, 0.35) * pow(glow, 5.0) * (0.25 + 0.2 * (uCrackle - 1.0)) * (0.7 + 0.3 * max(0.0, fast));
   return col;
 }
 `;
@@ -109,6 +118,7 @@ export function createTurquoiseMaterial(base: Color, sky: Texture | null, unifor
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = uniforms.uTime;
     shader.uniforms.uEmber = uniforms.uEmber;
+    shader.uniforms.uCrackle = uniforms.uCrackle;
     shader.vertexShader = shader.vertexShader
       .replace("#include <common>", "#include <common>\nvarying vec3 vXLocal;")
       .replace("#include <begin_vertex>", "#include <begin_vertex>\nvXLocal = position;");
@@ -160,7 +170,7 @@ totalEmissiveRadiance += xEmber * uEmber * (xGrout * 0.9 + 0.07 * xGlow);`
 /** Les flammes : la braise du reflet de Xolotl, skinnee, sans clip. */
 export function createEmberFireMaterial(uniforms: XiuhcoatlUniforms): ShaderMaterial {
   return new ShaderMaterial({
-    uniforms: { uTime: uniforms.uTime, uOpacity: uniforms.uOpacity, uEmber: uniforms.uEmber },
+    uniforms: { uTime: uniforms.uTime, uOpacity: uniforms.uOpacity, uEmber: uniforms.uEmber, uCrackle: uniforms.uCrackle },
     transparent: true,
     side: DoubleSide,
     vertexShader: /* glsl */ `

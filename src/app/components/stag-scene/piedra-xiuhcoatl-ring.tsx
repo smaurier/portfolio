@@ -94,6 +94,8 @@ export default function PiedraXiuhcoatlRing() {
     const ignite = getRevealFloor(p);
     uniforms.uTime.value = state.clock.elapsedTime;
     uniforms.uEmber.value = 0.3 + 1.7 * ignite;
+    // L'anneau crepite plus que le serpent, et de plus en plus avec le midi.
+    uniforms.uCrackle.value = 1.5 + 2.0 * ignite;
     material.opacity = blend * (0.15 + 0.85 * ignite);
     material.visible = material.opacity > 0.01;
   });

@@ -28,6 +28,8 @@ export type Star = {
   falls: boolean;
   /** Direction unitaire de la chute (vers le bas, un peu de biais). */
   fall: Vec3;
+  /** Delai (s) avant d'etre JETEE dans le ciel a l'arrivee sur la page. */
+  throwDelay: number;
 };
 
 export type StarState = {
@@ -54,7 +56,16 @@ export const CENTZON_SPEC = {
   fallLength: 0.16,
   /** Part des etoiles qui tombent. */
   fallShare: 0.28,
+  /** Le JET des 400 a l'arrivee (05/09, Sylvain : « comme jetees lorsqu'on
+   * arrive sur la page, a 1 ou 2 secondes ») : delais etales sur
+   * throwSpread, chaque jet dure throwSpan. Elles partent d'un point bas
+   * devant (la main qui jette, vers le cerf) et montent a leur place. */
+  throwSpread: 1.2,
+  throwSpan: 0.9,
 };
+
+/** Direction d'ou les etoiles sont jetees (bas, devant la camera). */
+export const THROW_ORIGIN: Vec3 = { x: 0, y: 0.12, z: -1 };
 
 const RAD = Math.PI / 180;
 
@@ -93,12 +104,31 @@ export function makeStarField(seed: number): Star[] {
       deathAt: CENTZON_SPEC.firstDeath + (CENTZON_SPEC.lastDeath - CENTZON_SPEC.firstDeath) * hash(seed, i, 7),
       falls: hash(seed, i, 8) < CENTZON_SPEC.fallShare,
       fall: { x: fx / fl, y: fy / fl, z: fz / fl },
+      throwDelay: CENTZON_SPEC.throwSpread * hash(seed, i, 9),
     });
   }
   return out;
 }
 
 const ZERO: Vec3 = { x: 0, y: 0, z: 0 };
+
+/** Avancement du jet d'une etoile, 0 (pas encore partie) .. 1 (en place),
+ * `since` = secondes depuis l'arrivee sur la page. Ease-out : elle file
+ * vite et se pose doucement. */
+export function throwFactor(star: Star, since: number): number {
+  const u = clamp01((since - star.throwDelay) / CENTZON_SPEC.throwSpan);
+  return 1 - (1 - u) * (1 - u) * (1 - u);
+}
+
+/** Direction (unitaire) d'une etoile pendant son jet : de l'origine du jet
+ * a sa place, en ligne droite sur la sphere. */
+export function thrownDir(star: Star, f: number): Vec3 {
+  const x = THROW_ORIGIN.x + (star.dir.x - THROW_ORIGIN.x) * f;
+  const y = THROW_ORIGIN.y + (star.dir.y - THROW_ORIGIN.y) * f;
+  const z = THROW_ORIGIN.z + (star.dir.z - THROW_ORIGIN.z) * f;
+  const l = Math.hypot(x, y, z) || 1;
+  return { x: x / l, y: y / l, z: z / l };
+}
 
 /** Etat d'une etoile au progres p (0..1) et au temps t (s). */
 export function starState(star: Star, p: number, t: number): StarState {

@@ -4,7 +4,7 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, LineSegments, Points, ShaderMaterial, type Group } from "three";
-import { CENTZON_COUNT, makeStarField, starState } from "@/lib/centzon-stars";
+import { CENTZON_COUNT, makeStarField, starState, throwFactor, thrownDir } from "@/lib/centzon-stars";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -32,6 +32,9 @@ export default function CentzonStars() {
   const sceneRefs = useSceneRefs();
   const blendRef = useRef(direction === "turquoise" ? 1 : 0);
   const stars = useMemo(() => makeStarField(SEED), []);
+  // Le jet des 400 a l'arrivee : chronometre depuis le moment ou le champ
+  // devient visible (arrivee au Sud), remis a zero quand on le quitte.
+  const arrivedAtRef = useRef<number | null>(null);
 
   const pointsGeometry = useMemo(() => {
     const g = new BufferGeometry();
@@ -120,11 +123,17 @@ export default function CentzonStars() {
     const g = groupRef.current;
     if (!g) return;
     g.visible = blend > 0.01;
-    if (!g.visible) return;
+    if (!g.visible) {
+      arrivedAtRef.current = null;
+      return;
+    }
     g.position.copy(state.camera.position);
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
     const p = sceneRefs?.progressRef.current ?? 0;
     const t = reduced ? 0 : state.clock.elapsedTime;
+    if (arrivedAtRef.current === null) arrivedAtRef.current = state.clock.elapsedTime;
+    // reduced-motion : pas de jet, elles sont en place tout de suite.
+    const since = reduced ? 1e9 : state.clock.elapsedTime - arrivedAtRef.current;
 
     const pos = pointsGeometry.getAttribute("position") as BufferAttribute;
     const size = pointsGeometry.getAttribute("aSize") as BufferAttribute;
@@ -134,12 +143,16 @@ export default function CentzonStars() {
     for (let i = 0; i < CENTZON_COUNT; i++) {
       const s = stars[i];
       const st = starState(s, p, t);
-      const x = (s.dir.x + st.offset.x) * RADIUS;
-      const y = (s.dir.y + st.offset.y) * RADIUS;
-      const z = (s.dir.z + st.offset.z) * RADIUS;
+      const f = throwFactor(s, since);
+      const d = f < 1 ? thrownDir(s, f) : s.dir;
+      const x = (d.x + st.offset.x) * RADIUS;
+      const y = (d.y + st.offset.y) * RADIUS;
+      const z = (d.z + st.offset.z) * RADIUS;
       pos.setXYZ(i, x, y, z);
-      size.setX(i, s.size * (1 + 0.6 * st.streak));
-      alpha.setX(i, st.alpha);
+      // Pendant le jet : plus grosse et plus vive (une braise lancee), puis
+      // elle se pose a sa taille.
+      size.setX(i, s.size * (1 + 0.6 * st.streak) * (f < 1 ? 1 + 1.2 * (1 - f) : 1));
+      alpha.setX(i, f <= 0 ? 0 : st.alpha * Math.min(1, 0.4 + f));
       // Trait de chute : de la tete vers l'arriere, le long de la chute.
       const len = st.streak * RADIUS * 0.045;
       lpos.setXYZ(i * 2, x, y, z);

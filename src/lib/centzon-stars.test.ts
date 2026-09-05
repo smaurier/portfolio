@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CENTZON_COUNT, CENTZON_SPEC, makeStarField, starState } from "./centzon-stars";
+import { CENTZON_COUNT, CENTZON_SPEC, makeStarField, starState, throwFactor, thrownDir } from "./centzon-stars";
 
 const FIELD = makeStarField(7);
 
@@ -83,5 +83,45 @@ describe("starState (vivre, scintiller, mourir, tomber)", () => {
   it("le lever du jour affaiblit meme les vivantes : alpha decroit avec la lumiere", () => {
     const late = FIELD.filter((s) => s.deathAt > 0.6)[0];
     expect(starState(late, 0.5, 2).alpha).toBeLessThan(starState(late, 0.0, 2).alpha + 1e-9);
+  });
+});
+
+describe("le jet des 400 a l'arrivee (throwFactor / thrownDir)", () => {
+  it("a l'arrivee aucune n'est partie ; apres le dernier jet toutes sont en place", () => {
+    for (const s of FIELD) expect(throwFactor(s, 0)).toBe(0);
+    const end = CENTZON_SPEC.throwSpread + CENTZON_SPEC.throwSpan;
+    for (const s of FIELD) expect(throwFactor(s, end + 0.01)).toBe(1);
+    expect(end).toBeLessThanOrEqual(2.2); // « a 1 ou 2 secondes »
+  });
+
+  it("les delais s'etalent : pas toutes jetees en meme temps", () => {
+    const delays = FIELD.map((s) => s.throwDelay);
+    expect(Math.max(...delays) - Math.min(...delays)).toBeGreaterThan(CENTZON_SPEC.throwSpread * 0.8);
+    // A mi-etalement : certaines sont en vol, d'autres pas encore parties.
+    const at = CENTZON_SPEC.throwSpread * 0.5;
+    const flying = FIELD.filter((s) => throwFactor(s, at) > 0 && throwFactor(s, at) < 1).length;
+    const waiting = FIELD.filter((s) => throwFactor(s, at) === 0).length;
+    expect(flying).toBeGreaterThan(0);
+    expect(waiting).toBeGreaterThan(0);
+  });
+
+  it("le jet est monotone et file vite au depart (ease-out)", () => {
+    const s = FIELD[3];
+    let prev = 0;
+    for (let k = 0; k <= 20; k++) {
+      const f = throwFactor(s, s.throwDelay + (k / 20) * CENTZON_SPEC.throwSpan);
+      expect(f).toBeGreaterThanOrEqual(prev);
+      prev = f;
+    }
+    expect(throwFactor(s, s.throwDelay + CENTZON_SPEC.throwSpan * 0.5)).toBeGreaterThan(0.5);
+  });
+
+  it("thrownDir : unitaire, part de l'origine du jet et finit a sa place", () => {
+    const s = FIELD[5];
+    const d0 = thrownDir(s, 0), d1 = thrownDir(s, 1);
+    expect(Math.hypot(d0.x, d0.y, d0.z)).toBeCloseTo(1, 9);
+    expect(d1.x).toBeCloseTo(s.dir.x, 9);
+    expect(d1.y).toBeCloseTo(s.dir.y, 9);
+    expect(d0.y).toBeLessThan(d1.y + 1e-9 + 1); // part bas
   });
 });
