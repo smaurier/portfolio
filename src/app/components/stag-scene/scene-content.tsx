@@ -4,6 +4,7 @@ import { Suspense, type MutableRefObject } from "react";
 import type { ColorRgb } from "@/lib/reveal-arc";
 import BackgroundFlora from "./background-flora";
 import CardinalAmbience from "./ambience/cardinal-ambience";
+import CardinalOrientation from "./cardinal-orientation";
 import CursorRevealScene from "./cursor-reveal-scene";
 import EnvironmentDepthFade from "./environment-depth-fade";
 import Grass from "./grass";
@@ -75,6 +76,11 @@ export default function SceneContent({
        * cerf inclus (contrairement à EnvironmentDepthFade qui l'exclut). */}
       <CursorRevealScene noticedRef={noticedRef} progressRef={progressRef}>
         <EnvironmentDepthFade>
+          {/* Orientation cardinale (05/09) : le decor neutre tourne pour
+              que chaque page regarde vers sa direction ; le reste de la
+              scene (cerf, camera, lumiere, astres, effets par direction)
+              reste compose par rapport a la camera. */}
+          <CardinalOrientation>
           <Ground />
           <Suspense fallback={null}>
             <PiedraGround />
@@ -94,6 +100,7 @@ export default function SceneContent({
               <Grass />
             </Suspense>
           </group>
+          </CardinalOrientation>
         </EnvironmentDepthFade>
         <Suspense fallback={null}>
           <StagModel

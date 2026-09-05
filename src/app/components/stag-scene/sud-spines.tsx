@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { type Group } from "three";
 import { generateRingPlacements } from "@/lib/flora-placement";
-import { getTerrainHeight } from "@/lib/terrain-height";
+import { terrainHeightWorld } from "./cardinal-orientation";
 import { useNormalizedClone } from "./background-flora";
 import { useCurrentDirection } from "./use-current-direction";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
@@ -32,7 +32,7 @@ const INSTANCES_PER_SPECIES = 5;
 function Spine({ path, targetHeight, x, z, rotationY, scale, grow, phase }: { path: string; targetHeight: number; x: number; z: number; rotationY: number; scale: number; grow: { current: number }; phase: number }) {
   const model = useNormalizedClone(path, targetHeight);
   const ref = useRef<Group>(null);
-  const terrainY = getTerrainHeight(x, z);
+  const terrainY = terrainHeightWorld(x, z);
   useFrame((state) => {
     const g = ref.current;
     if (!g) return;

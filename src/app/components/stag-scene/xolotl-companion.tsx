@@ -10,7 +10,7 @@ import { bodyFromFeet, fitSupportPlane, type SupportPoint } from "@/lib/quadrupe
 import { DOG_LEG_LIMITS, twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isBot } from "@/lib/is-bot";
-import { getTerrainHeight } from "@/lib/terrain-height";
+import { terrainHeightWorld } from "./cardinal-orientation";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import type { DirectionKey } from "./direction-colors";
 import { useCurrentDirection } from "./use-current-direction";
@@ -205,7 +205,7 @@ function collectLegs(root: Group, twinRoot: Group | null): Leg[] {
 /** Hauteur d'appui sous un point du monde : le sol, plus l'enjambement de
  * la margelle. C'est ce que la patte doit toucher. */
 function supportHeight(px: number, pz: number, north: boolean): number {
-  const ground = getTerrainHeight(px, pz) + Y_FOOT_OFFSET;
+  const ground = terrainHeightWorld(px, pz) + Y_FOOT_OFFSET;
   return north ? rimSurface(Math.hypot(px, pz), ground, RIM_SPEC) : ground;
 }
 
@@ -773,7 +773,7 @@ export default function XolotlCompanion() {
     const x = START_X + (END_X - START_X) * t;
     const inNorth = direction === "obsidienne";
     const radius = Math.hypot(x, zDepth);
-    const groundY = getTerrainHeight(x, zDepth) + Y_FOOT_OFFSET;
+    const groundY = terrainHeightWorld(x, zDepth) + Y_FOOT_OFFSET;
     // Au Nord il ENJAMBE la margelle (arc au-dessus de la pierre) et l'eau
     // eclabousse quand il y entre et quand il en sort (03/09).
     // ---- Assiette DEDUITE des appuis (03/09, retour Sylvain : "en
@@ -1000,7 +1000,7 @@ export default function XolotlCompanion() {
       if (delayedElapsed > 0) {
         const dt = delayedElapsed / totalMs;
         const dx = START_X + (END_X - START_X) * dt;
-        const dy = getTerrainHeight(dx, Z_DEPTH) + Y_FOOT_OFFSET;
+        const dy = terrainHeightWorld(dx, Z_DEPTH) + Y_FOOT_OFFSET;
         cloneG.position.set(dx, dy, zDepth);
         cloneG.visible = true;
         // Fade envelope pour la clone : meme forme que primaire mais
