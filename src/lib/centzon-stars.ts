@@ -130,6 +130,25 @@ export function thrownDir(star: Star, f: number): Vec3 {
   return { x: x / l, y: y / l, z: z / l };
 }
 
+/** Duree (s) de la chute d'une etoile prise par un colibri. */
+export const KILL_FALL_SECONDS = 0.8;
+
+/** Etat d'une etoile TUEE par un colibri (05/09, le geste du mythe) :
+ * quel que soit le scroll, elle tombe en trait depuis l'instant de la mise
+ * a mort, puis n'est plus. `sinceKill` en secondes. */
+export function killedState(star: Star, sinceKill: number): StarState {
+  const u = sinceKill / KILL_FALL_SECONDS;
+  if (u >= 1) return { alpha: 0, offset: ZERO, streak: 0 };
+  if (u < 0) return { alpha: 1, offset: ZERO, streak: 0 };
+  const flash = u < 0.15 ? 1 + 1.4 * (1 - u / 0.15) : 1;
+  const d = CENTZON_SPEC.fallLength * u;
+  return {
+    alpha: clamp01(flash * (1 - u) * 1.2),
+    offset: { x: star.fall.x * d, y: star.fall.y * d, z: star.fall.z * d },
+    streak: Math.sin(u * Math.PI),
+  };
+}
+
 /** Etat d'une etoile au progres p (0..1) et au temps t (s). */
 export function starState(star: Star, p: number, t: number): StarState {
   const { fadeSpan, fallSpan, fallLength, firstDeath, lastDeath } = CENTZON_SPEC;

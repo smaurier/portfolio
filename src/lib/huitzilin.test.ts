@@ -82,3 +82,39 @@ describe("stepBird (vol stationnaire, fleche, vol stationnaire)", () => {
     }
   });
 });
+
+describe("la chasse (pickPrey : une fleche vers une etoile, qu'elle eteint a l'arrivee)", () => {
+  it("avec une proie, la fleche part dans la direction de l'etoile et la tue a l'arrivee", () => {
+    const prey = { index: 42, dir: { x: 0.6, y: 0.2, z: -0.77 } };
+    let s = initialBird(21, SPEC);
+    let killed: number | null = null;
+    let dartStart: BirdState | null = null;
+    for (let i = 0; i < 60 * 20; i++) {
+      const prevMode = s.mode;
+      s = stepBird(s, 1 / 60, 0, SPEC, () => prey);
+      if (prevMode === "hover" && s.mode === "dart") dartStart = s;
+      if (s.justKilled !== null) {
+        killed = s.justKilled;
+        break;
+      }
+    }
+    expect(killed).toBe(42);
+    expect(dartStart).not.toBeNull();
+    const d = dartStart!;
+    const dx = d.target.x - d.x, dz = d.target.z - d.z;
+    expect(dx * prey.dir.x + dz * prey.dir.z).toBeGreaterThan(0);
+    expect(d.preyIndex).toBe(42);
+    // justKilled ne dure qu'un pas
+    s = stepBird(s, 1 / 60, 0, SPEC, () => prey);
+    expect(s.justKilled).toBeNull();
+  });
+
+  it("sans proie, aucune mise a mort et la fleche va vers une ancre", () => {
+    let s = initialBird(22, SPEC);
+    for (let i = 0; i < 60 * 20; i++) {
+      s = stepBird(s, 1 / 60, 0, SPEC, () => null);
+      expect(s.justKilled).toBeNull();
+      expect(s.preyIndex).toBeNull();
+    }
+  });
+});

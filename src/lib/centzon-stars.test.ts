@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CENTZON_COUNT, CENTZON_SPEC, makeStarField, starState, throwFactor, thrownDir } from "./centzon-stars";
+import { CENTZON_COUNT, CENTZON_SPEC, KILL_FALL_SECONDS, killedState, makeStarField, starState, throwFactor, thrownDir } from "./centzon-stars";
 
 const FIELD = makeStarField(7);
 
@@ -123,5 +123,18 @@ describe("le jet des 400 a l'arrivee (throwFactor / thrownDir)", () => {
     expect(d1.x).toBeCloseTo(s.dir.x, 9);
     expect(d1.y).toBeCloseTo(s.dir.y, 9);
     expect(d0.y).toBeLessThan(d1.y + 1e-9 + 1); // part bas
+  });
+});
+
+describe("killedState (une etoile prise par un colibri)", () => {
+  it("eclat bref, chute en trait vers le bas, puis plus rien, quel que soit le scroll", () => {
+    const s = FIELD.find((x) => !x.falls)!; // meme une etoile qui ne tombait pas par le scroll tombe si un colibri la prend
+    const start = killedState(s, 0.02);
+    expect(start.alpha).toBeGreaterThan(1 - 1e-9);
+    const mid = killedState(s, KILL_FALL_SECONDS * 0.5);
+    expect(mid.streak).toBeGreaterThan(0.9);
+    expect(mid.offset.y).toBeLessThan(0);
+    expect(mid.alpha).toBeGreaterThan(0);
+    expect(killedState(s, KILL_FALL_SECONDS + 0.01)).toEqual({ alpha: 0, offset: { x: 0, y: 0, z: 0 }, streak: 0 });
   });
 });

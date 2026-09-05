@@ -27,6 +27,14 @@ export const xiuhcoatlStore = {
    * en ete, sur toute la largeur. Ecrit par SudSky, lu par la passe de
    * chaleur. */
   groundHeat: 0,
+  /** LA CHARGE (05/09, le geste du mythe) : au climax du midi, le serpent
+   * pique sur la Piedra et embrase l'anneau des deux xiuhcoatl graves.
+   * `strikeAt` = instant (horloge de scene, s) du declenchement, -1 sinon ;
+   * `strikeHit` = instant ou il touche l'anneau (ecrit par le companion),
+   * lu par l'anneau pour sa bouffee de feu. Une fois par arrivee au Sud. */
+  strikeAt: -1,
+  strikeHit: -1,
+  strikeArmed: true,
 };
 
 /** Ajoute un point, borne la file, purge les morts. */

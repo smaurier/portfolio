@@ -7,6 +7,7 @@ import { useTexture } from "@react-three/drei";
 import { Color, PlaneGeometry, RepeatWrapping, type MeshPhysicalMaterial } from "three";
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { createTurquoiseMaterial, createXiuhcoatlUniforms } from "./xiuhcoatl-materials";
+import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { getMictlanSky } from "./mictlan-sky";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -93,10 +94,14 @@ export default function PiedraXiuhcoatlRing() {
     // Embrasement avec l'arc : l'anneau s'allume quand le midi monte.
     const ignite = getRevealFloor(p);
     uniforms.uTime.value = state.clock.elapsedTime;
-    uniforms.uEmber.value = 0.3 + 1.7 * ignite;
+    // La bouffee de feu quand le xiuhcoatl touche l'anneau (le geste du
+    // mythe) : forte, puis retombe en ~3 s sur le niveau du midi.
+    const hit = xiuhcoatlStore.strikeHit;
+    const burst = hit >= 0 ? Math.exp(-(state.clock.elapsedTime - hit) / 1.2) : 0;
+    uniforms.uEmber.value = 0.3 + 1.7 * ignite + 2.5 * burst;
     // L'anneau crepite plus que le serpent, et de plus en plus avec le midi.
-    uniforms.uCrackle.value = 1.5 + 2.0 * ignite;
-    material.opacity = blend * (0.15 + 0.85 * ignite);
+    uniforms.uCrackle.value = 1.5 + 2.0 * ignite + 3.0 * burst;
+    material.opacity = blend * Math.min(1, 0.15 + 0.85 * ignite + 0.6 * burst);
     material.visible = material.opacity > 0.01;
   });
 

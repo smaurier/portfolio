@@ -76,6 +76,16 @@ export default function SudSky() {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
     const ignite = getRevealFloor(sceneRefs?.progressRef.current ?? 0);
     xiuhcoatlStore.groundHeat = reduced ? 0 : blend * ignite * ignite;
+    // Declencheur de la charge : au premier passage du climax (ignite > 0.7)
+    // apres l'arrivee au Sud, une fois. Rearme en quittant le Sud.
+    if (!south) {
+      xiuhcoatlStore.strikeArmed = true;
+      xiuhcoatlStore.strikeAt = -1;
+      xiuhcoatlStore.strikeHit = -1;
+    } else if (xiuhcoatlStore.strikeArmed && ignite > 0.7 && !reduced) {
+      xiuhcoatlStore.strikeArmed = false;
+      xiuhcoatlStore.strikeAt = state.clock.elapsedTime;
+    }
     const mesh = meshRef.current;
     if (!mesh) return;
     mesh.visible = blend > 0.01;

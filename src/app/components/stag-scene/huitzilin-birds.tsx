@@ -5,7 +5,9 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { Group, Mesh, MeshStandardMaterial, Quaternion, Vector3 } from "three";
-import { birdTangent, HUITZILIN_SPEC, HUITZILIN_SPECIES, initialBird, stepBird, type BirdState } from "@/lib/huitzilin";
+import { birdTangent, HUITZILIN_SPEC, HUITZILIN_SPECIES, initialBird, stepBird, type BirdState, type Prey } from "@/lib/huitzilin";
+import { CENTZON_COUNT, CENTZON_SPEC, makeStarField, throwFactor } from "@/lib/centzon-stars";
+import { centzonStore } from "./centzon-store";
 import { addShaderModifier } from "./shader-patch";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -104,6 +106,11 @@ export default function HuitzilinBirds() {
   const blendRef = useRef(direction === "turquoise" ? 1 : 0);
   const statesRef = useRef<BirdState[]>(HUITZILIN_SPECIES.map((_, i) => initialBird(11 + i * 17, HUITZILIN_SPEC)));
   const birdsRef = useRef<Mesh[]>([]);
+  // Le meme champ d'etoiles que CentzonStars (meme graine) : les colibris
+  // choisissent leurs proies dedans.
+  const stars = useMemo(() => makeStarField(400), []);
+  const arrivedAtRef = useRef<number | null>(null);
+  const preyPick = useRef(0);
   const scratch = useMemo(
     () => ({ q: new Quaternion(), qy: new Quaternion(), qx: new Quaternion(), qm: new Quaternion(), axisY: new Vector3(0, 1, 0), axisX: new Vector3(1, 0, 0), fwd: new Vector3(), vel: new Vector3() }),
     []
@@ -146,15 +153,40 @@ export default function HuitzilinBirds() {
     const g = groupRef.current;
     if (!g) return;
     g.visible = blend > 0.01;
-    if (!g.visible) return;
+    if (!g.visible) {
+      arrivedAtRef.current = null;
+      return;
+    }
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
     const p = sceneRefs?.progressRef.current ?? 0;
     const dt = reduced ? 0 : Math.max(1e-3, Math.min(delta, 1 / 30));
+    if (arrivedAtRef.current === null) arrivedAtRef.current = state.clock.elapsedTime;
+    const sinceArrival = state.clock.elapsedTime - arrivedAtRef.current;
+    // Une proie : une etoile encore vivante (ni prise, ni eteinte par le
+    // scroll), deja jetee dans le ciel, devant la camera (z < 0) et pas trop
+    // haute (un colibri ne monte pas au zenith). Tant que la nuit dure
+    // (p < 0.7) ; au midi il n'y a plus rien a chasser.
+    const pickPrey = (): Prey | null => {
+      if (p > 0.7) return null;
+      for (let tries = 0; tries < 24; tries++) {
+        preyPick.current = (preyPick.current * 1103515245 + 12345) & 0x7fffffff;
+        const i = preyPick.current % CENTZON_COUNT;
+        const s = stars[i];
+        if (centzonStore.killedAt[i] >= 0) continue;
+        if (p - s.deathAt >= 0) continue;
+        if (throwFactor(s, sinceArrival) < 1) continue;
+        if (s.dir.z > -0.2 || s.dir.y > 0.6 || s.dir.y < 0.1) continue;
+        return { index: i, dir: s.dir };
+      }
+      return null;
+    };
     const { q, qy, qx, qm, axisY, axisX } = scratch;
     qm.setFromAxisAngle(axisX, MODEL_PITCH);
     for (let i = 0; i < birds.length; i++) {
       const mesh = birds[i];
-      const s = (statesRef.current[i] = dt > 0 ? stepBird(statesRef.current[i], dt, p, HUITZILIN_SPEC) : statesRef.current[i]);
+      const s = (statesRef.current[i] = dt > 0 ? stepBird(statesRef.current[i], dt, p, HUITZILIN_SPEC, pickPrey) : statesRef.current[i]);
+      // Le geste du mythe : a l'arrivee de sa fleche, l'etoile visee tombe.
+      if (s.justKilled !== null && centzonStore.killedAt[s.justKilled] < 0) centzonStore.killedAt[s.justKilled] = state.clock.elapsedTime;
       mesh.position.set(s.x, s.y, s.z);
       // Le modele regarde +z : cap = rotation autour de Y telle que +z -> tangente.
       const d = birdTangent(s);

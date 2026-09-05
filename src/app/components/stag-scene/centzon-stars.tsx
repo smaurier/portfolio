@@ -4,7 +4,8 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, LineSegments, Points, ShaderMaterial, type Group } from "three";
-import { CENTZON_COUNT, makeStarField, starState, throwFactor, thrownDir } from "@/lib/centzon-stars";
+import { CENTZON_COUNT, killedState, makeStarField, starState, throwFactor, thrownDir } from "@/lib/centzon-stars";
+import { centzonStore } from "./centzon-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -124,6 +125,7 @@ export default function CentzonStars() {
     if (!g) return;
     g.visible = blend > 0.01;
     if (!g.visible) {
+      if (arrivedAtRef.current !== null) centzonStore.reset(); // nouvelle nuit au retour
       arrivedAtRef.current = null;
       return;
     }
@@ -142,7 +144,11 @@ export default function CentzonStars() {
     const lalpha = linesGeometry.getAttribute("aAlpha") as BufferAttribute;
     for (let i = 0; i < CENTZON_COUNT; i++) {
       const s = stars[i];
-      const st = starState(s, p, t);
+      // Prise par un colibri (le geste du mythe) : elle tombe a cet instant,
+      // sauf si le scroll l'avait deja eteinte.
+      const killedAt = centzonStore.killedAt[i];
+      const scrollState = starState(s, p, t);
+      const st = killedAt >= 0 && scrollState.alpha > 0 ? killedState(s, state.clock.elapsedTime - killedAt) : scrollState;
       const f = throwFactor(s, since);
       const d = f < 1 ? thrownDir(s, f) : s.dir;
       const x = (d.x + st.offset.x) * RADIUS;

@@ -52,7 +52,14 @@ export type BirdSpec = {
   hoverMax: number;
   /** Amplitude de la vibration en stationnaire (u). */
   jitter: number;
+  /** Longueur d'une fleche de chasse (u) : le colibri file vers l'etoile
+   * visee sur cette distance, borne a la boite. */
+  huntDart: number;
 };
+
+/** Une proie : l'etoile visee (index dans le champ) et sa direction
+ * unitaire dans le ciel. */
+export type Prey = { index: number; dir: Vec3 };
 
 export const HUITZILIN_SPEC: BirdSpec = {
   xHalf: 9,
@@ -66,6 +73,7 @@ export const HUITZILIN_SPEC: BirdSpec = {
   hoverMin: 1.6,
   hoverMax: 4.2,
   jitter: 0.12,
+  huntDart: 5,
 };
 
 export type BirdState = {
@@ -85,6 +93,10 @@ export type BirdState = {
   seed: number;
   /** Compteur de fleches (pour les tirages deterministes). */
   darts: number;
+  /** Etoile visee par la fleche en cours (chasse), sinon null. */
+  preyIndex: number | null;
+  /** Etoile mise a mort a la fin de la derniere fleche (un seul pas), sinon null. */
+  justKilled: number | null;
 };
 
 function hash(seed: number, i: number, k: number): number {
@@ -126,6 +138,8 @@ export function initialBird(seed: number, spec: BirdSpec = HUITZILIN_SPEC, p = 0
     t: 0,
     seed,
     darts: 0,
+    preyIndex: null,
+    justKilled: null,
   };
 }
 
@@ -133,9 +147,17 @@ export function initialBird(seed: number, spec: BirdSpec = HUITZILIN_SPEC, p = 0
  * doucement ; en fleche, ligne droite vers la cible a vitesse constante,
  * cap sur la cible ; a l'arrivee, nouveau stationnaire. L'altitude de
  * l'ancre suit le progres (les fleurs a midi). */
-export function stepBird(s: BirdState, dt: number, p: number, spec: BirdSpec = HUITZILIN_SPEC): BirdState {
+/**
+ * Un pas de vol. `pickPrey` (05/09, le geste du mythe) : appele quand un
+ * stationnaire se termine ; s'il rend une proie, la fleche part vers ELLE
+ * (le colibri file dans la direction de l'etoile sur huntDart, borne a la
+ * boite) et l'etoile est marquee tuee a l'arrivee (`justKilled`, un pas).
+ * Sans proie : une fleche ordinaire vers une nouvelle ancre.
+ */
+export function stepBird(s: BirdState, dt: number, p: number, spec: BirdSpec = HUITZILIN_SPEC, pickPrey?: (s: BirdState) => Prey | null): BirdState {
   const t = s.t + dt;
   const pp = clamp(p, 0, 1);
+  if (s.justKilled !== null) s = { ...s, justKilled: null };
   if (s.mode === "hover") {
     const remaining = s.remaining - dt;
     // Vibration : trois sinus incommensurables autour de l'ancre.
@@ -153,10 +175,22 @@ export function stepBird(s: BirdState, dt: number, p: number, spec: BirdSpec = H
     const heading = wrapAngle(s.heading + Math.sin(t * 0.9 + ph) * 0.35 * dt);
     const pitch = s.pitch + (0.25 - s.pitch) * Math.min(1, dt * 3); // cabre en stationnaire
     if (remaining > 0) return { ...s, x, y, z, anchor, remaining, heading, pitch, t };
-    // Fin du stationnaire : une fleche vers une nouvelle ancre.
+    // Fin du stationnaire : une fleche, vers une proie si on en a une,
+    // sinon vers une nouvelle ancre.
     const darts = s.darts + 1;
+    const prey = pickPrey ? pickPrey(s) : null;
+    if (prey) {
+      const yMin = spec.yMinNight + (spec.yMinNoon - spec.yMinNight) * pp;
+      const yMax = spec.yMaxNight + (spec.yMaxNoon - spec.yMaxNight) * pp;
+      const target = {
+        x: clamp(x + prey.dir.x * spec.huntDart, -spec.xHalf, spec.xHalf),
+        y: clamp(y + prey.dir.y * spec.huntDart, yMin, yMax),
+        z: clamp(z + prey.dir.z * spec.huntDart, spec.zMin, spec.zMax),
+      };
+      return { ...s, x, y, z, anchor, mode: "dart", target, remaining: 0, heading, pitch, t, darts, preyIndex: prey.index };
+    }
     const target = pickAnchor(s.seed, darts, pp, spec);
-    return { ...s, x, y, z, anchor, mode: "dart", target, remaining: 0, heading, pitch, t, darts };
+    return { ...s, x, y, z, anchor, mode: "dart", target, remaining: 0, heading, pitch, t, darts, preyIndex: null };
   }
   // Fleche : droit vers la cible.
   const dx = s.target.x - s.x, dy = s.target.y - s.y, dz = s.target.z - s.z;
@@ -176,6 +210,8 @@ export function stepBird(s: BirdState, dt: number, p: number, spec: BirdSpec = H
       heading,
       pitch,
       t,
+      preyIndex: null,
+      justKilled: s.preyIndex,
     };
   }
   const k = step / dist;

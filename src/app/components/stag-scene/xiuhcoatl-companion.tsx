@@ -48,6 +48,11 @@ const EMBERS_PER_SECOND = 22;
 const LIGHT_INTENSITY = 6;
 const BANK_GAIN = 0.45;
 const BANK_MAX = 0.35;
+/** LA CHARGE (05/09) : duree du pique sur la Piedra, point d'impact (bord
+ * de l'anneau), et hauteur de reprise. */
+const STRIKE_MS = 3200;
+const STRIKE_HIT = { x: 2.6, y: 0.55, z: 0.6 };
+const STRIKE_CLIMB = { x: -6, y: 6.5, z: -9 };
 /** Cadence des points de chaleur (trainee qui deforme l'air). */
 const HEAT_EVERY_MS = 85;
 
@@ -152,6 +157,7 @@ export default function XiuhcoatlCompanion() {
   const bankRef = useRef(0);
   const emberAccRef = useRef(0);
   const heatAtRef = useRef(0);
+  const strikeRef = useRef<{ at: number; from: { x: number; y: number; z: number }; hitDone: boolean } | null>(null);
   // Les uniforms vivent avec la scene (cache useGLTF) : un remontage du
   // composant retrouve ceux que les matieres portent deja.
   const uniforms = useMemo<XiuhcoatlUniforms>(() => {
@@ -213,7 +219,34 @@ export default function XiuhcoatlCompanion() {
     // (« computeBoundingSphere(): Computed radius is NaN » a chaque frame).
     const dt = Math.max(1e-3, Math.min(delta, 1 / 30));
     const prevHeading = w.heading;
-    const s = stepWander(w, dt, XIUHCOATL_WANDER);
+    let s = stepWander(w, dt, XIUHCOATL_WANDER);
+    // La charge : declenchee par le store (climax), une courbe de Bezier du
+    // point courant au bord de l'anneau puis vers le ciel ; a mi-course il
+    // touche l'anneau (strikeHit) et l'anneau flambe. Pendant la charge, le
+    // vol errant est mis de cote et reprend au point de sortie.
+    const clockNow = _state.clock.elapsedTime;
+    if (xiuhcoatlStore.strikeAt >= 0 && !strikeRef.current && clockNow - xiuhcoatlStore.strikeAt < 0.5) {
+      strikeRef.current = { at: clockNow, from: { x: s.x, y: s.y, z: s.z }, hitDone: false };
+    }
+    const strike = strikeRef.current;
+    if (strike) {
+      const u = Math.min(1, (clockNow - strike.at) / (STRIKE_MS / 1000));
+      const a = strike.from, b = STRIKE_HIT, c = STRIKE_CLIMB;
+      // Bezier quadratique passant PAR le point d'impact a u = 0.5.
+      const ctrl = { x: 2 * b.x - 0.5 * (a.x + c.x), y: 2 * b.y - 0.5 * (a.y + c.y), z: 2 * b.z - 0.5 * (a.z + c.z) };
+      const k0 = (1 - u) * (1 - u), k1 = 2 * (1 - u) * u, k2 = u * u;
+      const px = k0 * a.x + k1 * ctrl.x + k2 * c.x, py = k0 * a.y + k1 * ctrl.y + k2 * c.y, pz = k0 * a.z + k1 * ctrl.z + k2 * c.z;
+      const tx = 2 * (1 - u) * (ctrl.x - a.x) + 2 * u * (c.x - ctrl.x), ty = 2 * (1 - u) * (ctrl.y - a.y) + 2 * u * (c.y - ctrl.y), tz = 2 * (1 - u) * (ctrl.z - a.z) + 2 * u * (c.z - ctrl.z);
+      const tl = Math.hypot(tx, ty, tz) || 1;
+      const heading = Math.atan2(tz / tl, tx / tl);
+      const pitch = Math.asin(Math.max(-1, Math.min(1, ty / tl)));
+      s = { ...s, x: px, y: py, z: pz, heading, pitch };
+      if (!strike.hitDone && u >= 0.5) {
+        strike.hitDone = true;
+        xiuhcoatlStore.strikeHit = clockNow;
+      }
+      if (u >= 1) strikeRef.current = null;
+    }
     wanderRef.current = s;
 
     const now = performance.now();
