@@ -1,114 +1,317 @@
+/* eslint-disable react-hooks/immutability -- pattern gamedev r3f useFrame : mutation d'objets three a 60 fps (meme precedent que sud-sky). */
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { Color, ConeGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Object3D } from "three";
-import { useCurrentDirection } from "./use-current-direction";
+import { useFrame } from "@react-three/fiber";
+import {
+  BufferGeometry,
+  Color,
+  DataTexture,
+  DoubleSide,
+  Float32BufferAttribute,
+  InstancedMesh,
+  LinearFilter,
+  MeshStandardMaterial,
+  Object3D,
+  Plane,
+  RGBAFormat,
+  UnsignedByteType,
+  Vector2,
+  Vector3,
+} from "three";
+import { rotateY } from "@/lib/cardinal-orientation";
+import {
+  applyRadialImpulse,
+  createGrassGrid,
+  GRASS_SIM,
+  GRASS_TINT_BY_DIRECTION,
+  GRASS_WIND_BY_DIRECTION,
+  stepGrassGrid,
+  windAt,
+} from "@/lib/grass-sim";
 import { getTerrainHeight } from "@/lib/terrain-height";
+import { orientationStore } from "./cardinal-orientation";
+import { addShaderModifier } from "./shader-patch";
+import { useSceneRefs } from "./scene-refs-context";
+import { useCurrentDirection } from "./use-current-direction";
+import { xiuhcoatlStore } from "./xiuhcoatl-store";
 
 /**
- * Touffes d'herbe sèche, fixes au sol : retour de Sylvain le 18/08 ("un peu
- * triste", habiller la scène). Herbe sèche/en touffes (pas un gazon) :
- * cohérent avec le reste de la palette désertique déjà posée (agave, nopal,
- * ocotillo) : l'altiplano centre-mexicain est un matorral/steppe semi-aride,
- * pas une prairie.
+ * La prairie (05/09, refonte : retour Sylvain « un vrai simulateur
+ * d'herbe... une vraie prairie qui pourrait reagir au vent », puis « je
+ * voudrais vraiment quelque chose qui prend toute la surface »).
  *
- * 05/09 (retour Sylvain : « il ne devrait pas y avoir d'herbe sur
- * l'anneau, par contre tu pourrais mettre de l'herbe sur toute la prairie,
- * et pas de la couleur, de vraies mesh ») : les touffes couvrent maintenant
- * TOUTE la prairie (rayon 3.3 -> 34, plus clairsemees au loin), jamais sur
- * la Piedra (r < 3.3, l'anneau des serpents compris), et restent de vrais
- * brins (cones a 3 faces) : un seul InstancedMesh (~3600 brins) plutot que
- * 200 meshes, pour que la prairie entiere ne coute qu'un draw call.
+ * Avant : 900 touffes eparses de 4 cones rigides. Maintenant : des
+ * dizaines de milliers de BRINS (un seul InstancedMesh, un seul draw
+ * call) qui couvrent toute la prairie, du bord de la Piedra au pied des
+ * montagnes, et qui PLIENT : chaque brin a trois segments, un vertex
+ * shader le courbe selon la flexion lue dans une texture de simulation.
  *
- * Placement deterministe (hash), hauteur du terrain reelle par touffe. Au
- * Nord, les touffes dans le bassin (r < margelle) disparaissent (03/09) :
- * on les ecrase a l'echelle 0.
+ * La simulation (lib pure grass-sim.ts) tourne en CPU sur une grille de
+ * 64 x 64 cellules : ressort + amortissement par cellule, poussee par un
+ * champ de vent qui vit (brise + rafales en nappes qui voyagent) et par
+ * des impulsions radiales : l'onde d'Ollin (le press souris, projete au
+ * sol) et la frappe du xiuhcoatl sur l'anneau (Sud). La grille est
+ * envoyee au GPU chaque frame (64 x 64 RGBA 8 bits, 16 Ko) et
+ * echantillonnee en bilineaire : la flexion est continue d'un brin a
+ * l'autre.
+ *
+ * Herbe SECHE (altiplano semi-aride, pas une pelouse), doree a paille,
+ * plus claire en pointe, teintee par page (lib GRASS_TINT_BY_DIRECTION).
+ * Le mesh vit dans le groupe d'orientation cardinale : la grille est
+ * dans le repere du decor, le vent (monde) y est ramene par l'angle
+ * courant.
+ *
+ * Reduced-motion : pas de simulation, pose de brise statique.
  */
 
-const BLADE_COLORS = ["#8a7d4a", "#6f6a3c", "#5c6b3f"];
-const BLADES_PER_TUFT = 4;
-const TUFT_COUNT = 900;
 const MIN_RADIUS = 3.3; // au-dela de la Piedra (3) et de son anneau
-// 34 -> 16 (05/09, retour Sylvain « des brins d'herbe dans le ciel ») : au
-// loin les touffes se posaient sur les flancs des montagnes et se lisaient
-// contre le ciel. La prairie, c'est le plat autour de la scene ; on refuse
-// aussi toute touffe la ou le terrain monte (pente = montagne).
-const MAX_RADIUS = 16;
+const MAX_RADIUS = 16; // la prairie, c'est le plat ; les pentes sont les montagnes
 const MAX_TERRAIN_Y = 0.35;
-/** Rayon de la margelle du bassin du Nord (cf tezcatl-water WATER_RADIUS + margelle). */
-const POOL_RADIUS = 6.9;
+const BLADES_DESKTOP = 26000;
+const BLADES_MOBILE = 9000;
+const GRID_SIZE = 64;
+const GRID_EXTENT = 17;
+const SEGMENTS = 3;
+/** Ou le xiuhcoatl frappe l'anneau (cf xiuhcoatl-companion STRIKE_HIT), monde. */
+const STRIKE_POINT = { x: 2.6, z: 0.6 };
+
+const BLADE_COLORS = ["#a58c4e", "#8a7d4a", "#6f6a3c", "#b59d5a", "#7d7a44", "#9c8a52"];
 
 function hash(i: number, k: number): number {
   const v = Math.sin(i * 12.9898 + k * 78.233 + 12.0) * 43758.5453;
   return v - Math.floor(v);
 }
 
-type Tuft = { x: number; z: number; y: number; rotationY: number; scale: number; blades: { angle: number; lean: number; height: number; color: number }[] };
+/** Un brin : une bande de SEGMENTS quads, largeur 1 au pied qui s'effile,
+ * hauteur 1 (echelle par instance). position.y = 0..1 sert de parametre de
+ * courbure dans le shader. */
+function makeBladeGeometry(): BufferGeometry {
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const uvs: number[] = [];
+  const index: number[] = [];
+  for (let r = 0; r <= SEGMENTS; r++) {
+    const y = r / SEGMENTS;
+    const half = 0.5 * Math.pow(1 - y, 0.8);
+    positions.push(-half, y, 0, half, y, 0);
+    normals.push(0, 0, 1, 0, 0, 1);
+    uvs.push(0, y, 1, y);
+  }
+  for (let r = 0; r < SEGMENTS; r++) {
+    const a = r * 2, b = a + 1, c = a + 2, d = a + 3;
+    index.push(a, b, c, b, d, c);
+  }
+  const g = new BufferGeometry();
+  g.setAttribute("position", new Float32BufferAttribute(positions, 3));
+  g.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+  g.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
+  g.setIndex(index);
+  return g;
+}
 
-function makeTufts(): Tuft[] {
-  const out: Tuft[] = [];
-  for (let i = 0; i < TUFT_COUNT; i++) {
-    // Densite qui decroit avec la distance : racine du rayon uniforme en
-    // surface, puis biais vers le proche (puissance 0.7).
-    const r = MIN_RADIUS + (MAX_RADIUS - MIN_RADIUS) * Math.pow(hash(i, 1), 0.8);
+type Blade = { x: number; y: number; z: number; rot: number; width: number; height: number; color: number };
+
+function makeBlades(count: number): Blade[] {
+  const out: Blade[] = [];
+  for (let i = 0; i < count; i++) {
+    // Plus dense pres de la scene, mais toute la surface couverte.
+    const r = MIN_RADIUS + (MAX_RADIUS - MIN_RADIUS) * Math.pow(hash(i, 1), 0.85);
     const a = hash(i, 2) * Math.PI * 2;
     const x = Math.cos(a) * r, z = Math.sin(a) * r;
     const y = getTerrainHeight(x, z);
-    if (y > MAX_TERRAIN_Y) continue; // pas d'herbe sur les pentes
-    const blades = [];
-    for (let b = 0; b < BLADES_PER_TUFT; b++) {
-      const angle = (b / BLADES_PER_TUFT) * Math.PI * 2 + i * 1.7;
-      blades.push({
-        angle,
-        lean: 0.15 + 0.1 * Math.sin(i * 1.7 + b),
-        height: 0.22 + 0.12 * ((Math.cos(i * 5.1 + b) + 1) / 2),
-        color: b % BLADE_COLORS.length,
-      });
-    }
-    out.push({ x, z, y, rotationY: hash(i, 3) * Math.PI * 2, scale: 0.8 + 0.8 * hash(i, 4), blades });
+    if (y > MAX_TERRAIN_Y) continue;
+    out.push({
+      x,
+      y,
+      z,
+      rot: hash(i, 3) * Math.PI * 2,
+      width: 0.02 + 0.014 * hash(i, 4),
+      height: (0.2 + 0.16 * hash(i, 5)) * (0.85 + 0.65 * hash(i, 6)),
+      color: Math.floor(hash(i, 7) * BLADE_COLORS.length) % BLADE_COLORS.length,
+    });
   }
   return out;
 }
 
+const GROUND_PLANE = new Plane(new Vector3(0, 1, 0), 0);
+
 export default function Grass() {
   const meshRef = useRef<InstancedMesh>(null);
   const direction = useCurrentDirection();
-  const tufts = useMemo(() => makeTufts(), []);
-  const geometry = useMemo(() => new ConeGeometry(0.012, 1, 3), []); // hauteur 1, mise a l'echelle par instance
-  const material = useMemo(() => new MeshStandardMaterial({ color: "#ffffff" }), []);
-  const count = tufts.length * BLADES_PER_TUFT;
+  const sceneRefs = useSceneRefs();
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const blades = useMemo(() => makeBlades(isMobile ? BLADES_MOBILE : BLADES_DESKTOP), [isMobile]);
+  const geometry = useMemo(() => makeBladeGeometry(), []);
+  const grid = useMemo(() => createGrassGrid(GRID_SIZE, GRID_EXTENT), []);
+  const bendData = useMemo(() => new Uint8Array(GRID_SIZE * GRID_SIZE * 4).fill(128), []);
+  const bendMap = useMemo(() => {
+    const t = new DataTexture(bendData, GRID_SIZE, GRID_SIZE, RGBAFormat, UnsignedByteType);
+    t.magFilter = LinearFilter;
+    t.minFilter = LinearFilter;
+    t.generateMipmaps = false;
+    t.needsUpdate = true;
+    return t;
+  }, [bendData]);
+  // Uniformes partages entre les recompilations (objets stables).
+  const uniforms = useMemo(
+    () => ({
+      uBendMap: { value: bendMap },
+      uGridExtent: { value: GRID_EXTENT },
+      uTime: { value: 0 },
+      uTint: { value: new Color(1, 1, 1) },
+      uTintMix: { value: 0 },
+      uGreenBase: { value: 0 },
+    }),
+    [bendMap]
+  );
+  const material = useMemo(() => {
+    const m = new MeshStandardMaterial({ color: "#ffffff", side: DoubleSide, roughness: 0.92, metalness: 0 });
+    addShaderModifier(m, (shader) => {
+      Object.assign(shader.uniforms, uniforms);
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          "#include <common>",
+          `#include <common>
+          uniform sampler2D uBendMap;
+          uniform float uGridExtent;
+          uniform float uTime;
+          varying float vGrassH;`
+        )
+        .replace(
+          "#include <begin_vertex>",
+          `vec3 transformed = vec3(position);
+          vGrassH = position.y;
+          #ifdef USE_INSTANCING
+          vec3 gBase = instanceMatrix[3].xyz;
+          vec2 gUv = gBase.xz / (2.0 * uGridExtent) + 0.5;
+          vec2 gBend = texture2D(uBendMap, gUv).xy * 2.0 - 1.0;
+          float gHash = fract(sin(dot(gBase.xz, vec2(12.9898, 78.233))) * 43758.5453);
+          float gFlut = sin(uTime * (2.4 + gHash * 2.2) + gHash * 6.2831) * 0.035;
+          vec2 gDisp = gBend + vec2(gFlut, -0.6 * gFlut);
+          float gHH = vGrassH * vGrassH;
+          vec3 gAx = instanceMatrix[0].xyz;
+          vec3 gAz = instanceMatrix[2].xyz;
+          float gHy = length(instanceMatrix[1].xyz);
+          vec3 gDw = vec3(gDisp.x, 0.0, gDisp.y) * gHH * gHy * 0.9;
+          transformed.x += dot(gDw, gAx) / max(dot(gAx, gAx), 1e-8);
+          transformed.z += dot(gDw, gAz) / max(dot(gAz, gAz), 1e-8);
+          transformed.y *= 1.0 - 0.3 * gHH * min(1.0, length(gDisp));
+          #endif`
+        );
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          "#include <common>",
+          `#include <common>
+          uniform vec3 uTint;
+          uniform float uTintMix;
+          uniform float uGreenBase;
+          varying float vGrassH;`
+        )
+        .replace(
+          "#include <color_fragment>",
+          `#include <color_fragment>
+          diffuseColor.rgb *= mix(0.45, 1.15, vGrassH);
+          diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * uTint, uTintMix);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.34, 0.48, 0.2), uGreenBase * (1.0 - vGrassH) * 0.6);`
+        );
+    });
+    return m;
+  }, [uniforms]);
 
+  // Pose des brins (une fois) : matrices + couleurs.
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
-    const north = direction === "obsidienne";
     const dummy = new Object3D();
-    const tuftM = new Matrix4();
     const color = new Color();
-    let idx = 0;
-    for (const t of tufts) {
-      const hidden = north && Math.hypot(t.x, t.z) < POOL_RADIUS;
-      dummy.position.set(t.x, t.y, t.z);
-      dummy.rotation.set(0, t.rotationY, 0);
-      dummy.scale.setScalar(hidden ? 0.0001 : t.scale);
+    blades.forEach((b, i) => {
+      dummy.position.set(b.x, b.y, b.z);
+      dummy.rotation.set(0, b.rot, 0);
+      dummy.scale.set(b.width, b.height, b.width);
       dummy.updateMatrix();
-      tuftM.copy(dummy.matrix);
-      for (const b of t.blades) {
-        const offset = 0.03;
-        dummy.position.set(Math.cos(b.angle) * offset, b.height / 2, Math.sin(b.angle) * offset);
-        dummy.rotation.set(Math.sin(b.angle) * b.lean, 0, Math.cos(b.angle) * b.lean);
-        dummy.scale.set(1, b.height, 1);
-        dummy.updateMatrix();
-        dummy.matrix.premultiply(tuftM);
-        mesh.setMatrixAt(idx, dummy.matrix);
-        mesh.setColorAt(idx, color.set(BLADE_COLORS[b.color]));
-        idx++;
-      }
-    }
+      mesh.setMatrixAt(i, dummy.matrix);
+      mesh.setColorAt(i, color.set(BLADE_COLORS[b.color]));
+    });
+    mesh.count = blades.length;
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
-  }, [tufts, direction]);
+  }, [blades]);
 
-  return <instancedMesh ref={meshRef} args={[geometry, material, count]} frustumCulled={false} castShadow={false} receiveShadow />;
+  // L'onde d'Ollin : le press est projete au sol, la prairie se couche en
+  // cercle depuis le point d'impact.
+  const pressRef = useRef<Vector2 | null>(null);
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      pressRef.current = new Vector2((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
+    };
+    window.addEventListener("pointerdown", onDown, { passive: true });
+    return () => window.removeEventListener("pointerdown", onDown);
+  }, []);
+  const lastStrikeRef = useRef(-1);
+  const hitPoint = useMemo(() => new Vector3(), []);
+
+  useFrame((state, delta) => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const north = direction === "obsidienne";
+    if (north) return; // la prairie est cachee au Nord (bassin)
+    const reduced = sceneRefs?.reducedMotionRef.current ?? false;
+    const t = reduced ? 0 : state.clock.elapsedTime;
+    const spec = GRASS_WIND_BY_DIRECTION[direction];
+    const angle = orientationStore.angle;
+    // Le vent est donne dans le monde, la grille vit dans le decor tourne.
+    const windLocal = (lx: number, lz: number) => {
+      const w = rotateY({ x: lx, z: lz }, angle);
+      const ww = windAt(w.x, w.z, t, spec);
+      return rotateY(ww, -angle);
+    };
+    if (!reduced) {
+      if (pressRef.current) {
+        state.raycaster.setFromCamera(pressRef.current, state.camera);
+        pressRef.current = null;
+        if (state.raycaster.ray.intersectPlane(GROUND_PLANE, hitPoint)) {
+          const l = rotateY({ x: hitPoint.x, z: hitPoint.z }, -angle);
+          applyRadialImpulse(grid, l.x, l.z, 4, 5);
+        }
+      }
+      if (xiuhcoatlStore.strikeHit > lastStrikeRef.current) {
+        lastStrikeRef.current = xiuhcoatlStore.strikeHit;
+        const l = rotateY(STRIKE_POINT, -angle);
+        applyRadialImpulse(grid, l.x, l.z, 8, 9);
+      }
+      stepGrassGrid(grid, Math.min(delta, 0.1), windLocal, GRASS_SIM);
+    } else {
+      // Pose de brise statique : la flexion de repos du vent a t = 0.
+      const n = GRID_SIZE * GRID_SIZE;
+      const cell = (2 * GRID_EXTENT) / GRID_SIZE;
+      for (let i = 0; i < n; i++) {
+        const w = windLocal(-GRID_EXTENT + ((i % GRID_SIZE) + 0.5) * cell, -GRID_EXTENT + (Math.floor(i / GRID_SIZE) + 0.5) * cell);
+        grid.bend[2 * i] = w.x * GRASS_SIM.windGain;
+        grid.bend[2 * i + 1] = w.z * GRASS_SIM.windGain;
+      }
+    }
+    const n = GRID_SIZE * GRID_SIZE;
+    for (let i = 0; i < n; i++) {
+      bendData[4 * i] = Math.round((grid.bend[2 * i] * 0.5 + 0.5) * 255);
+      bendData[4 * i + 1] = Math.round((grid.bend[2 * i + 1] * 0.5 + 0.5) * 255);
+    }
+    bendMap.needsUpdate = true;
+    uniforms.uTime.value = t;
+    const tint = GRASS_TINT_BY_DIRECTION[direction];
+    uniforms.uTint.value.lerp(new Color(tint.rgb[0], tint.rgb[1], tint.rgb[2]), 0.05);
+    uniforms.uTintMix.value += (tint.mix - uniforms.uTintMix.value) * 0.05;
+    uniforms.uGreenBase.value += (tint.greenBase - uniforms.uGreenBase.value) * 0.05;
+  });
+
+  return (
+    <instancedMesh
+      ref={meshRef}
+      args={[geometry, material, blades.length]}
+      frustumCulled={false}
+      castShadow={false}
+      receiveShadow
+    />
+  );
 }
