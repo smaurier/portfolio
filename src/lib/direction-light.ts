@@ -83,6 +83,53 @@ export function getLightRig(direction: DirectionKey): LightRig {
   return DIRECTION_LIGHT_RIG[direction];
 }
 
+/**
+ * ASTRONOMIE du Sud (05/09, Sylvain : « on doit etre coherent avec
+ * l'astronomie »). Une seule source de verite pour la lumiere ET les
+ * disques dans le ciel (sud-sky-bodies) :
+ *  - le SOLEIL se leve a l'EST (+x, la droite en tete de page), monte en
+ *    arc jusqu'au ZENITH au climax ;
+ *  - la LUNE est a l'OUEST (-x, la gauche), basse, et se COUCHE a mesure
+ *    que le soleil monte (elle passe sous l'horizon vers le tiers de l'arc).
+ * `t` = position sur l'arc de revelation (0 nuit, 1 midi). Directions
+ * unitaires ; les positions de lumiere en derivent (x LIGHT_DISTANCE).
+ */
+export type Dir3 = { x: number; y: number; z: number };
+
+const LIGHT_DISTANCE = 10;
+
+function normalize(v: Dir3): Dir3 {
+  const l = Math.hypot(v.x, v.y, v.z) || 1;
+  return { x: v.x / l, y: v.y / l, z: v.z / l };
+}
+function smooth(u: number): number {
+  const c = Math.min(1, Math.max(0, u));
+  return c * c * (3 - 2 * c);
+}
+
+/** Direction du soleil : sous l'horizon a l'est la nuit, il se leve vers
+ * t = 0.15, monte en arc et atteint le zenith a t = 1 (un peu vers la
+ * camera pour que les faces se lisent). */
+export function sunDirection(t: number): Dir3 {
+  const u = smooth((t - 0.12) / 0.88);
+  // Arc est -> zenith : angle d'elevation de -8 deg (sous l'horizon) a 84 deg.
+  const elev = (-8 + 92 * u) * (Math.PI / 180);
+  return normalize({ x: Math.cos(elev), y: Math.sin(elev), z: 0.12 * u });
+}
+
+/** Direction de la lune : a l'ouest, 16 deg au-dessus de l'horizon la
+ * nuit, elle se couche (passe sous l'horizon) entre t = 0.2 et t = 0.55. */
+export function moonDirection(t: number): Dir3 {
+  const set = smooth((t - 0.2) / 0.35);
+  const elev = (16 - 26 * set) * (Math.PI / 180);
+  return normalize({ x: -Math.cos(elev) * 0.85, y: Math.sin(elev), z: -Math.cos(elev) * 0.55 });
+}
+
+/** Le soleil est-il leve (au-dessus de l'horizon) a t ? */
+export function sunUp(t: number): boolean {
+  return sunDirection(t).y > 0;
+}
+
 function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace("#", "");
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
@@ -101,12 +148,18 @@ function lerp(a: number, b: number, t: number): number {
 export function rigAtArc(rig: LightRig, floor: number): LightRig {
   if (!rig.night) return rig;
   const u = Math.min(1, Math.max(0, floor));
-  const t = u * u * (3 - 2 * u);
+  // La source passe de la LUNE au SOLEIL quand celui-ci se leve (t 0.15 ->
+  // 0.4) ; sa position suit l'astre (une seule verite : sunDirection /
+  // moonDirection), ses reglages (couleur, intensites) se fondent en meme temps.
+  const t = smooth((u - 0.15) / 0.25);
   const n = rig.night;
   const [nr, ng, nb] = hexToRgb(n.color);
   const [dr, dg, db] = hexToRgb(rig.color);
+  const moon = moonDirection(u);
+  const sun = sunDirection(u);
+  const dir = normalize({ x: lerp(moon.x, sun.x, t), y: lerp(Math.max(0.08, moon.y), Math.max(0.08, sun.y), t), z: lerp(moon.z, sun.z, t) });
   return {
-    position: [lerp(n.position[0], rig.position[0], t), lerp(n.position[1], rig.position[1], t), lerp(n.position[2], rig.position[2], t)],
+    position: [dir.x * LIGHT_DISTANCE, dir.y * LIGHT_DISTANCE, dir.z * LIGHT_DISTANCE],
     color: rgbToHex(lerp(nr, dr, t), lerp(ng, dg, t), lerp(nb, db, t)),
     ambientScale: lerp(n.ambientScale, rig.ambientScale, t),
     directionalScale: lerp(n.directionalScale, rig.directionalScale, t),

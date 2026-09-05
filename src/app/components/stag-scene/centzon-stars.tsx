@@ -133,7 +133,16 @@ export default function CentzonStars() {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
     const p = sceneRefs?.progressRef.current ?? 0;
     const t = reduced ? 0 : state.clock.elapsedTime;
-    if (arrivedAtRef.current === null) arrivedAtRef.current = state.clock.elapsedTime;
+    // L'arrivee, c'est quand le VOILE de chargement tombe (html[data-loaded],
+    // pose par LoadingSync), pas quand le champ se monte derriere le voile :
+    // sinon le jet des 400 se jouait avant qu'on voie la scene (retour
+    // Sylvain 05/09 « je ne vois pas l'apparition des 400 »). Un demi-seconde
+    // de plus pour le fondu du voile.
+    if (arrivedAtRef.current === null) {
+      const loaded = typeof document !== "undefined" && document.documentElement.getAttribute("data-loaded") === "true";
+      if (!loaded) return;
+      arrivedAtRef.current = state.clock.elapsedTime + 0.5;
+    }
     // reduced-motion : pas de jet, elles sont en place tout de suite.
     const since = reduced ? 1e9 : state.clock.elapsedTime - arrivedAtRef.current;
 

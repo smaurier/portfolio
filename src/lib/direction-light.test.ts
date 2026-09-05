@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { approachRig, DIRECTION_LIGHT_RIG, getLightRig, NEUTRAL_RIG, rigAtArc } from "./direction-light";
+import { approachRig, DIRECTION_LIGHT_RIG, getLightRig, moonDirection, NEUTRAL_RIG, rigAtArc, sunDirection, sunUp } from "./direction-light";
 import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
 
 const DIRECTIONS = Object.keys(DIRECTION_LIGHT_RIG) as DirectionKey[];
@@ -117,15 +117,59 @@ describe("rigAtArc (la lune, puis le soleil qui se leve)", () => {
     expect(dr).toBeGreaterThan(db);
   });
 
-  it("la source monte de facon continue et monotone le long de l'arc", () => {
+  it("la source passe de la lune au soleil sans jamais passer sous l'horizon, puis monte au zenith", () => {
     const sud = getLightRig("turquoise");
-    let prev = rigAtArc(sud, 0).position[1];
-    for (let k = 1; k <= 20; k++) {
+    // Le relais lune -> soleil (t 0.15 -> 0.4) peut faire baisser la source
+    // (la lune se couche, le soleil se leve bas) : c'est l'astronomie ; mais
+    // jamais sous l'horizon, et une fois le soleil maitre (t >= 0.4) il ne
+    // fait que monter.
+    for (let k = 0; k <= 20; k++) expect(rigAtArc(sud, k / 20).position[1]).toBeGreaterThan(0.5);
+    let prev = rigAtArc(sud, 0.4).position[1];
+    for (let k = 9; k <= 20; k++) {
       const y = rigAtArc(sud, k / 20).position[1];
-      expect(y).toBeGreaterThanOrEqual(prev);
+      expect(y).toBeGreaterThanOrEqual(prev - 1e-9);
       prev = y;
     }
-    expect(rigAtArc(sud, 0.5).position[1]).toBeGreaterThan(rigAtArc(sud, 0).position[1]);
-    expect(rigAtArc(sud, 0.5).position[1]).toBeLessThan(rigAtArc(sud, 1).position[1]);
+    expect(rigAtArc(sud, 1).position[1]).toBeGreaterThan(rigAtArc(sud, 0).position[1]);
+  });
+});
+
+describe("astronomie du Sud (sunDirection / moonDirection)", () => {
+  it("le soleil est sous l'horizon la nuit, se leve a l'est (+x) et finit au zenith", () => {
+    expect(sunUp(0)).toBe(false);
+    expect(sunUp(0.3)).toBe(true);
+    const rise = sunDirection(0.3);
+    expect(rise.x).toBeGreaterThan(0.5); // a l'est
+    const noon = sunDirection(1);
+    expect(noon.y).toBeGreaterThan(0.95); // au zenith
+    let prev = sunDirection(0).y;
+    for (let k = 1; k <= 20; k++) {
+      const y = sunDirection(k / 20).y;
+      expect(y).toBeGreaterThanOrEqual(prev - 1e-12);
+      prev = y;
+    }
+  });
+
+  it("la lune est a l'ouest (-x), basse la nuit, et se couche quand le soleil monte", () => {
+    const night = moonDirection(0);
+    expect(night.x).toBeLessThan(0);
+    expect(night.y).toBeGreaterThan(0.15);
+    expect(night.y).toBeLessThan(0.45);
+    expect(moonDirection(0.6).y).toBeLessThan(0); // couchee
+    let prev = moonDirection(0).y;
+    for (let k = 1; k <= 20; k++) {
+      const y = moonDirection(k / 20).y;
+      expect(y).toBeLessThanOrEqual(prev + 1e-12);
+      prev = y;
+    }
+  });
+
+  it("la lumiere suit les astres : lune a l'ouest la nuit, zenith a midi, et jamais sous l'horizon", () => {
+    const sud = getLightRig("turquoise");
+    const night = rigAtArc(sud, 0);
+    expect(night.position[0]).toBeLessThan(0);
+    const noon = rigAtArc(sud, 1);
+    expect(noon.position[1]).toBeGreaterThan(9);
+    for (let k = 0; k <= 20; k++) expect(rigAtArc(sud, k / 20).position[1]).toBeGreaterThan(0);
   });
 });

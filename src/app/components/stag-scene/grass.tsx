@@ -29,7 +29,12 @@ const BLADE_COLORS = ["#8a7d4a", "#6f6a3c", "#5c6b3f"];
 const BLADES_PER_TUFT = 4;
 const TUFT_COUNT = 900;
 const MIN_RADIUS = 3.3; // au-dela de la Piedra (3) et de son anneau
-const MAX_RADIUS = 34;
+// 34 -> 16 (05/09, retour Sylvain « des brins d'herbe dans le ciel ») : au
+// loin les touffes se posaient sur les flancs des montagnes et se lisaient
+// contre le ciel. La prairie, c'est le plat autour de la scene ; on refuse
+// aussi toute touffe la ou le terrain monte (pente = montagne).
+const MAX_RADIUS = 16;
+const MAX_TERRAIN_Y = 0.35;
 /** Rayon de la margelle du bassin du Nord (cf tezcatl-water WATER_RADIUS + margelle). */
 const POOL_RADIUS = 6.9;
 
@@ -45,20 +50,22 @@ function makeTufts(): Tuft[] {
   for (let i = 0; i < TUFT_COUNT; i++) {
     // Densite qui decroit avec la distance : racine du rayon uniforme en
     // surface, puis biais vers le proche (puissance 0.7).
-    const r = MIN_RADIUS + (MAX_RADIUS - MIN_RADIUS) * Math.pow(hash(i, 1), 0.7);
+    const r = MIN_RADIUS + (MAX_RADIUS - MIN_RADIUS) * Math.pow(hash(i, 1), 0.8);
     const a = hash(i, 2) * Math.PI * 2;
     const x = Math.cos(a) * r, z = Math.sin(a) * r;
+    const y = getTerrainHeight(x, z);
+    if (y > MAX_TERRAIN_Y) continue; // pas d'herbe sur les pentes
     const blades = [];
     for (let b = 0; b < BLADES_PER_TUFT; b++) {
       const angle = (b / BLADES_PER_TUFT) * Math.PI * 2 + i * 1.7;
       blades.push({
         angle,
         lean: 0.15 + 0.1 * Math.sin(i * 1.7 + b),
-        height: 0.18 + 0.08 * ((Math.cos(i * 5.1 + b) + 1) / 2),
+        height: 0.22 + 0.12 * ((Math.cos(i * 5.1 + b) + 1) / 2),
         color: b % BLADE_COLORS.length,
       });
     }
-    out.push({ x, z, y: getTerrainHeight(x, z), rotationY: hash(i, 3) * Math.PI * 2, scale: 0.7 + 0.7 * hash(i, 4), blades });
+    out.push({ x, z, y, rotationY: hash(i, 3) * Math.PI * 2, scale: 0.8 + 0.8 * hash(i, 4), blades });
   }
   return out;
 }
@@ -69,7 +76,7 @@ export default function Grass() {
   const tufts = useMemo(() => makeTufts(), []);
   const geometry = useMemo(() => new ConeGeometry(0.012, 1, 3), []); // hauteur 1, mise a l'echelle par instance
   const material = useMemo(() => new MeshStandardMaterial({ color: "#ffffff" }), []);
-  const count = TUFT_COUNT * BLADES_PER_TUFT;
+  const count = tufts.length * BLADES_PER_TUFT;
 
   useEffect(() => {
     const mesh = meshRef.current;

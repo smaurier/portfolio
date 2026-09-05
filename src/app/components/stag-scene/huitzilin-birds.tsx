@@ -160,8 +160,13 @@ export default function HuitzilinBirds() {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
     const p = sceneRefs?.progressRef.current ?? 0;
     const dt = reduced ? 0 : Math.max(1e-3, Math.min(delta, 1 / 30));
-    if (arrivedAtRef.current === null) arrivedAtRef.current = state.clock.elapsedTime;
-    const sinceArrival = state.clock.elapsedTime - arrivedAtRef.current;
+    // Meme horloge d'arrivee que les etoiles (le voile tombe) : on ne chasse
+    // pas une etoile qui n'est pas encore jetee.
+    if (arrivedAtRef.current === null) {
+      const loaded = typeof document !== "undefined" && document.documentElement.getAttribute("data-loaded") === "true";
+      if (loaded) arrivedAtRef.current = state.clock.elapsedTime + 0.5;
+    }
+    const sinceArrival = arrivedAtRef.current === null ? -1 : state.clock.elapsedTime - arrivedAtRef.current;
     // Une proie : une etoile encore vivante (ni prise, ni eteinte par le
     // scroll), deja jetee dans le ciel, devant la camera (z < 0) et pas trop
     // haute (un colibri ne monte pas au zenith). Tant que la nuit dure

@@ -5,6 +5,7 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, CanvasTexture, Color, Group, NormalBlending, Sprite, SpriteMaterial } from "three";
 import { getRevealFloor } from "@/lib/reveal-arc";
+import { moonDirection, sunDirection } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -22,8 +23,6 @@ import { useSceneRefs } from "./scene-refs-context";
  */
 
 const RADIUS = 80;
-/** Direction de la lune = direction de la source de nuit du rig Sud. */
-const MOON_DIR = { x: -3.2, y: 2.2, z: -7 }; // ~16 deg d'elevation, ~25 deg a gauche : dans le cadre de tete de page (plus a gauche ou plus haut, elle sortait du champ)
 const CLOUD_COUNT = 7;
 
 function radialTexture(size: number, inner: number, outer: number, noise: number, seed: number): CanvasTexture {
@@ -78,6 +77,18 @@ export default function SudSkyBodies() {
     () => new SpriteMaterial({ map: radialTexture(128, 0.55, 1.0, 0, 1), color: new Color("#dfe8ff"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }),
     []
   );
+  // Le SOLEIL (05/09, astronomie) : un disque franc et un halo large, aux
+  // couleurs de midi ; il suit sunDirection, la meme que la lumiere.
+  const sunMaterial = useMemo(
+    () => new SpriteMaterial({ map: radialTexture(128, 0.62, 0.72, 0, 2), color: new Color("#fff4d6"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }),
+    []
+  );
+  const sunHaloMaterial = useMemo(
+    () => new SpriteMaterial({ map: radialTexture(128, 0.0, 1.0, 0, 3), color: new Color("#ffd9a0"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }),
+    []
+  );
+  const sunRef = useRef<Sprite>(null);
+  const sunHaloRef = useRef<Sprite>(null);
   const clouds = useMemo(
     () =>
       Array.from({ length: CLOUD_COUNT }, (_, i) => {
@@ -93,10 +104,6 @@ export default function SudSkyBodies() {
       }),
     []
   );
-  const moonDir = useMemo(() => {
-    const l = Math.hypot(MOON_DIR.x, MOON_DIR.y, MOON_DIR.z);
-    return { x: MOON_DIR.x / l, y: MOON_DIR.y / l, z: MOON_DIR.z / l };
-  }, []);
 
   useFrame((state) => {
     const south = direction === "turquoise";
@@ -109,12 +116,29 @@ export default function SudSkyBodies() {
     g.position.copy(state.camera.position);
     const day = getRevealFloor(sceneRefs?.progressRef.current ?? 0);
     const t = sceneRefs?.reducedMotionRef.current ? 0 : state.clock.elapsedTime;
-    // La lune : pleine la nuit, s'efface avec le jour.
+    // La lune : a l'ouest, elle se couche quand le soleil monte (moonDirection,
+    // la meme direction que la lumiere de nuit) ; elle palit avec le jour.
     const moon = moonRef.current;
     if (moon) {
-      moon.position.set(moonDir.x * RADIUS, moonDir.y * RADIUS, moonDir.z * RADIUS);
+      const md = moonDirection(day);
+      moon.position.set(md.x * RADIUS, md.y * RADIUS, md.z * RADIUS);
       moon.scale.setScalar(6.5);
-      moonMaterial.opacity = blend * (1 - day) * (1 - day) * 0.9;
+      moonMaterial.opacity = blend * Math.max(0, 1 - day * 1.6) * (md.y > -0.02 ? 1 : 0) * 0.95;
+    }
+    // Le soleil : se leve a l'est, monte au zenith (sunDirection, la meme
+    // direction que la lumiere de jour). Disque + halo, plus forts en montant.
+    const sun = sunRef.current, halo = sunHaloRef.current;
+    if (sun && halo) {
+      const sd = sunDirection(day);
+      sun.position.set(sd.x * RADIUS, sd.y * RADIUS, sd.z * RADIUS);
+      halo.position.copy(sun.position);
+      const up = Math.max(0, Math.min(1, (sd.y + 0.02) / 0.12));
+      sun.scale.setScalar(7);
+      halo.scale.setScalar(26 + 10 * day);
+      sunMaterial.opacity = blend * up;
+      sunHaloMaterial.opacity = blend * up * (0.35 + 0.25 * day);
+      // Rougeoyant a l'horizon, blanc-or en montant.
+      sunMaterial.color.setRGB(1, 0.8 + 0.16 * day, 0.6 + 0.3 * day);
     }
     // Les nuages : derive lente en azimut, plus presents au jour, teintes
     // de nuit (bleu sombre) puis blancs.
@@ -136,6 +160,8 @@ export default function SudSkyBodies() {
   return (
     <group ref={groupRef} visible={false}>
       <sprite ref={moonRef} material={moonMaterial} raycast={() => null} renderOrder={-97} />
+      <sprite ref={sunHaloRef} material={sunHaloMaterial} raycast={() => null} renderOrder={-97} />
+      <sprite ref={sunRef} material={sunMaterial} raycast={() => null} renderOrder={-96} />
       {clouds.map((c, i) => (
         <sprite
           key={i}
