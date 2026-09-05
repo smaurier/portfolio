@@ -2,18 +2,29 @@ import { describe, expect, it } from "vitest";
 import { cinematicProgress, CINEMATIC, resolveQuality, SCENE_SHORTCUTS, shortcutAction } from "./scene-controls";
 
 describe("cinematicProgress : la scene deroule seule, du soir au midi", () => {
-  it("part de la position courante et atteint la fin de l'arc en CINEMATIC.seconds, puis y reste", () => {
+  it("part de la position courante et atteint le midi en CINEMATIC.seconds", () => {
     expect(cinematicProgress(0, 0.2)).toBeCloseTo(0.2, 9);
     expect(cinematicProgress(CINEMATIC.seconds, 0.2)).toBeCloseTo(1, 9);
-    expect(cinematicProgress(CINEMATIC.seconds * 3, 0.2)).toBeCloseTo(1, 9);
   });
 
-  it("est monotone et lisse : jamais de retour en arriere, pas de saut", () => {
+  it("puis boucle : retour a la nuit en autant de temps, et rebelote", () => {
+    const s = CINEMATIC.seconds;
+    expect(cinematicProgress(2 * s, 0.2)).toBeCloseTo(0, 9);
+    expect(cinematicProgress(3 * s, 0.2)).toBeCloseTo(1, 9);
+    expect(cinematicProgress(2.5 * s, 0.2)).toBeCloseTo(0.5, 9);
+  });
+
+  it("est monotone sur la montee et lisse partout : pas de saut", () => {
     let prev = cinematicProgress(0, 0);
-    for (let t = 0.5; t <= CINEMATIC.seconds + 5; t += 0.5) {
+    for (let t = 0.5; t <= CINEMATIC.seconds; t += 0.5) {
       const p = cinematicProgress(t, 0);
       expect(p).toBeGreaterThanOrEqual(prev - 1e-12);
       expect(p - prev).toBeLessThan(0.05);
+      prev = p;
+    }
+    for (let t = CINEMATIC.seconds; t <= 3 * CINEMATIC.seconds; t += 0.5) {
+      const p = cinematicProgress(t, 0);
+      expect(Math.abs(p - prev)).toBeLessThan(0.05);
       prev = p;
     }
   });
@@ -25,8 +36,9 @@ describe("cinematicProgress : la scene deroule seule, du soir au midi", () => {
     expect(mid).toBeGreaterThan(0.1);
   });
 
-  it("un depart deja a la fin reste a la fin", () => {
-    expect(cinematicProgress(1, 1)).toBe(1);
+  it("un depart deja au midi redescend vers la nuit", () => {
+    expect(cinematicProgress(0, 1)).toBe(1);
+    expect(cinematicProgress(2 * CINEMATIC.seconds, 1)).toBeCloseTo(0, 9);
   });
 });
 
@@ -59,6 +71,7 @@ describe("les raccourcis de scene", () => {
     expect(shortcutAction("t")).toBe("cinematic");
     expect(shortcutAction("p")).toBe("photo");
     expect(shortcutAction("e")).toBe("eco");
+    expect(shortcutAction("l")).toBe("link");
     expect(shortcutAction("w")).toBeNull(); // WASD reste a la navigation
     expect(shortcutAction("Escape")).toBeNull(); // Echap reste au retour accueil
   });

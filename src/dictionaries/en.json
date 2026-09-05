@@ -35,7 +35,11 @@
       "cinematicOff": "Stop contemplation",
       "photo": "Photo of the scene",
       "ecoOn": "Eco mode: lighter rendering",
-      "ecoOff": "Leave eco mode"
+      "ecoOff": "Leave eco mode",
+      "link": "Copy the link to this moment",
+      "linkCopied": "Link copied",
+      "resume": "Pick up where you left off",
+      "resumeDismiss": "No thanks"
     },
     "readingMode": {
       "on": "Enable accessible reading mode",
@@ -648,7 +652,7 @@
       },
       {
         "title": "Keyboard shortcuts",
-        "text": "Alt+Up/Right/Down/Left Arrow: direct cardinal navigation (up=Memory North, right=Services East, down=Projects South, left=Contact West). WASD (QWERTY) or ZQSD (AZERTY) · independent of physical layout · same cardinal grid: W/Z=Memory, D=Services, S=Projects, A/Q=Contact, C=Home (Center). Escape: return home. Scene controls (single letters): H hides or shows the text, F full screen, T contemplation (the scene plays on its own from dusk to noon, any gesture stops it), P photo of the scene, E eco mode. These shortcuts obey the same switch as the others."
+        "text": "Alt+Up/Right/Down/Left Arrow: direct cardinal navigation (up=Memory North, right=Services East, down=Projects South, left=Contact West). WASD (QWERTY) or ZQSD (AZERTY) · independent of physical layout · same cardinal grid: W/Z=Memory, D=Services, S=Projects, A/Q=Contact, C=Home (Center). Escape: return home. Scene controls (single letters): H hides or shows the text, F full screen, T contemplation (the scene plays on its own from dusk to noon, any gesture stops it), P photo of the scene, L copies the link to this moment, E eco mode. These shortcuts obey the same switch as the others."
       },
       {
         "title": "Gamepad shortcuts",

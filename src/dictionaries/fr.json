@@ -35,7 +35,11 @@
       "cinematicOff": "Arrêter la contemplation",
       "photo": "Photo de la scène",
       "ecoOn": "Mode éco : rendu allégé",
-      "ecoOff": "Quitter le mode éco"
+      "ecoOff": "Quitter le mode éco",
+      "link": "Copier le lien de cet instant",
+      "linkCopied": "Lien copié",
+      "resume": "Reprendre où vous étiez",
+      "resumeDismiss": "Non merci"
     },
     "readingMode": {
       "on": "Activer le mode récit accessible",
@@ -648,7 +652,7 @@
       },
       {
         "title": "Raccourcis clavier",
-        "text": "Alt+Flèche haute/droite/basse/gauche : navigation cardinale directe (haut=Mémoire au Nord, droite=Services à l'Est, bas=Projets au Sud, gauche=Contact à l'Ouest). WASD (QWERTY) ou ZQSD (AZERTY) · indépendamment du layout physique · même grille cardinale : W/Z=Mémoire, D=Services, S=Projets, A/Q=Contact, C=Accueil (Centre). Échap : retour à l'accueil. Contrôles de scène (lettres seules) : H masque ou affiche le texte, F plein écran, T contemplation (la scène déroule seule du soir au midi, tout geste l'arrête), P photo de la scène, E mode éco. Ces raccourcis obéissent au même interrupteur que les autres."
+        "text": "Alt+Flèche haute/droite/basse/gauche : navigation cardinale directe (haut=Mémoire au Nord, droite=Services à l'Est, bas=Projets au Sud, gauche=Contact à l'Ouest). WASD (QWERTY) ou ZQSD (AZERTY) · indépendamment du layout physique · même grille cardinale : W/Z=Mémoire, D=Services, S=Projets, A/Q=Contact, C=Accueil (Centre). Échap : retour à l'accueil. Contrôles de scène (lettres seules) : H masque ou affiche le texte, F plein écran, T contemplation (la scène déroule seule du soir au midi, tout geste l'arrête), P photo de la scène, L copie du lien de cet instant, E mode éco. Ces raccourcis obéissent au même interrupteur que les autres."
       },
       {
         "title": "Raccourcis manette",

@@ -35,7 +35,11 @@
       "cinematicOff": "Detener la contemplación",
       "photo": "Foto de la escena",
       "ecoOn": "Modo eco: renderizado ligero",
-      "ecoOff": "Salir del modo eco"
+      "ecoOff": "Salir del modo eco",
+      "link": "Copiar el enlace de este instante",
+      "linkCopied": "Enlace copiado",
+      "resume": "Retomar donde lo dejó",
+      "resumeDismiss": "No, gracias"
     },
     "readingMode": {
       "on": "Activar el modo lectura accesible",
@@ -612,7 +616,7 @@
       },
       {
         "title": "Atajos de teclado",
-        "text": "Alt+Flecha arriba/derecha/abajo/izquierda: navegación cardinal directa (arriba=Memoria Norte, derecha=Servicios Este, abajo=Proyectos Sur, izquierda=Contacto Oeste). WASD (QWERTY) o ZQSD (AZERTY) · sin importar el layout físico · misma cuadrícula cardinal: W/Z=Memoria, D=Servicios, S=Proyectos, A/Q=Contacto, C=Inicio (Centro). Escape: volver al inicio. Controles de escena (letras solas): H oculta o muestra el texto, F pantalla completa, T contemplación (la escena avanza sola del atardecer al mediodía, cualquier gesto la detiene), P foto de la escena, E modo eco. Estos atajos obedecen al mismo interruptor que los demás."
+        "text": "Alt+Flecha arriba/derecha/abajo/izquierda: navegación cardinal directa (arriba=Memoria Norte, derecha=Servicios Este, abajo=Proyectos Sur, izquierda=Contacto Oeste). WASD (QWERTY) o ZQSD (AZERTY) · sin importar el layout físico · misma cuadrícula cardinal: W/Z=Memoria, D=Servicios, S=Proyectos, A/Q=Contacto, C=Inicio (Centro). Escape: volver al inicio. Controles de escena (letras solas): H oculta o muestra el texto, F pantalla completa, T contemplación (la escena avanza sola del atardecer al mediodía, cualquier gesto la detiene), P foto de la escena, L copia el enlace de este instante, E modo eco. Estos atajos obedecen al mismo interruptor que los demás."
       },
       {
         "title": "Atajos de mando",

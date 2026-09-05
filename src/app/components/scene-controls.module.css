@@ -72,6 +72,61 @@
   }
 }
 
+/* Toast : « Lien copie », « Reprendre ou vous etiez ». */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.4rem;
+  transform: translateX(-50%);
+  z-index: 9250;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 234, 213, 0.25);
+  background: rgba(15, 12, 22, 0.85);
+  color: #f4ead5;
+  font-size: 0.9rem;
+  backdrop-filter: blur(8px);
+  animation: sceneToastIn 0.25s ease-out;
+}
+.toastAction {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(0, 192, 120, 0.6);
+  padding: 0;
+}
+.toastDismiss {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+  padding: 0 0.2rem;
+  line-height: 1;
+}
+.toastDismiss:hover,
+.toastDismiss:focus-visible {
+  opacity: 1;
+}
+@keyframes sceneToastIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 @media (max-width: 767px) {
   .cluster {
     bottom: calc(1.2rem + 56px);

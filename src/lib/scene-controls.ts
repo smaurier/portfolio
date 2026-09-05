@@ -19,7 +19,7 @@
  * (scene-controls.tsx) ne fait que brancher le navigateur dessus.
  */
 
-export type SceneAction = "text" | "fullscreen" | "cinematic" | "photo" | "eco";
+export type SceneAction = "text" | "fullscreen" | "cinematic" | "photo" | "eco" | "link";
 
 /** Raccourcis de scene : lettres LIBRES (la navigation cardinale prend
  * WASD / ZQSD / C, et Echap ramene a l'accueil). */
@@ -29,6 +29,7 @@ export const SCENE_SHORTCUTS: Record<string, SceneAction> = {
   t: "cinematic",
   p: "photo",
   e: "eco",
+  l: "link",
 };
 
 export function shortcutAction(key: string): SceneAction | null {
@@ -46,12 +47,20 @@ function smooth(u: number): number {
 }
 
 /** Progres de l'arc (0..1) a `elapsed` secondes apres le depart, en
- * partant de `from` : ease-in-out jusqu'a 1, puis 1. */
+ * partant de `from` : ease-in-out jusqu'a 1 (le midi), puis, EN BOUCLE
+ * (05/09, Sylvain : « la contemplation en boucle »), retour vers 0 (la
+ * nuit) en `seconds`, et ainsi de suite, jusqu'au geste qui l'arrete. Un
+ * ecran de salon, une video : la journee se rejoue sans fin. */
 export function cinematicProgress(elapsed: number, from: number, seconds: number = CINEMATIC.seconds): number {
   const start = from < 0 ? 0 : from > 1 ? 1 : from;
-  if (start >= 1) return 1;
-  const u = smooth(elapsed / seconds);
-  return start + (1 - start) * u;
+  if (elapsed <= 0) return start;
+  // Premiere montee : de `start` a 1.
+  if (elapsed < seconds) return start + (1 - start) * smooth(elapsed / seconds);
+  // Puis des allers-retours complets 1 -> 0 -> 1 -> ...
+  const rest = elapsed - seconds;
+  const leg = Math.floor(rest / seconds);
+  const u = smooth((rest - leg * seconds) / seconds);
+  return leg % 2 === 0 ? 1 - u : u;
 }
 
 export type QualityProfile = {

@@ -1462,3 +1462,9 @@ body.nahual-scene-only header nav {
   pointer-events: none;
   transition: opacity 0.4s ease, visibility 0s linear 0.4s;
 }
+
+/* Contemplation (05/09) : le curseur disparait, la scene deroule seule. */
+body.nahual-cinematic,
+body.nahual-cinematic * {
+  cursor: none !important;
+}

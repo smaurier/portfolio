@@ -1,26 +1,33 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import styles from "./scene-controls.module.css";
 import { cinematicProgress, shortcutAction, type SceneAction } from "@/lib/scene-controls";
+import { buildInstantSearch, parseInstant, shouldOfferResume, type LastVisit } from "@/lib/instant-link";
 import { isShortcutsEnabled, subscribeShortcuts } from "@/lib/shortcuts";
 import { useReadingMode } from "../../lib/reading-mode-context";
 import { getSceneControls, hydrateSceneControls, setSceneControls, subscribeSceneControls, type SceneControlsState } from "./scene-controls-store";
 
 /**
  * SceneControls (05/09). Le bloc de controles de l'experience, au-dessus
- * du bouton son : texte, plein ecran, contemplation, photo, eco. Chaque
- * bouton est un vrai bouton (libelle, etat annonce par aria-pressed,
- * clavier), et chaque geste a sa lettre (H, F, T, P, E), soumise au meme
- * interrupteur RGAA que les autres raccourcis. Invisible en mode recit
- * accessible (il n'y a plus de scene a regarder).
+ * du bouton son : texte, plein ecran, contemplation, photo, eco, lien de
+ * l'instant. Chaque bouton est un vrai bouton (libelle, etat annonce par
+ * aria-pressed, clavier), et chaque geste a sa lettre (H, F, T, P, E, L),
+ * soumise au meme interrupteur RGAA que les autres raccourcis. Invisible
+ * en mode recit accessible (il n'y a plus de scene a regarder).
  *
  * Le texte masque = classe `nahual-scene-only` sur <body> (globals.css
  * fond le contenu en opacite, la page garde sa hauteur : le scroll
  * continue de piloter l'arc). La contemplation fait defiler la page
- * elle-meme (lib cinematicProgress) ; le moindre geste de l'utilisateur
- * l'arrete. La photo lit le canvas (preserveDrawingBuffer) et propose le
- * fichier. L'eco change le profil de rendu (scene-refs-context).
+ * elle-meme, en boucle nuit / midi (lib cinematicProgress) ; le moindre
+ * geste de l'utilisateur l'arrete ; le curseur disparait (body
+ * `nahual-cinematic`). La photo lit le canvas (preserveDrawingBuffer) et
+ * propose le fichier. L'eco change le profil de rendu (scene-refs-
+ * context). Le lien de l'instant met le moment de l'arc dans l'URL
+ * (lib instant-link) ; a l'ouverture d'un tel lien, la page se place la
+ * une fois le voile de chargement tombe. La derniere visite est gardee
+ * et l'accueil propose de la reprendre.
  */
 
 export type SceneControlsLabels = {
@@ -33,21 +40,52 @@ export type SceneControlsLabels = {
   photo: string;
   ecoOn: string;
   ecoOff: string;
+  link: string;
+  linkCopied: string;
+  resume: string;
+  resumeDismiss: string;
 };
 
 const ARC_SCROLL_VIEWPORTS = 2;
+const LAST_VISIT_KEY = "nahual-last-visit";
 
 function arcPixels(): number {
   return window.innerHeight * ARC_SCROLL_VIEWPORTS;
 }
 
+function readLastVisit(): LastVisit | null {
+  try {
+    const raw = window.localStorage.getItem(LAST_VISIT_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw) as LastVisit;
+    return typeof v.path === "string" && typeof v.t === "number" && typeof v.at === "number" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+function isHomePath(path: string): boolean {
+  return /^\/[a-z]{2}\/?$/.test(path);
+}
+
 export default function SceneControls({ labels }: { labels: SceneControlsLabels }) {
   const readingMode = useReadingMode();
+  const pathname = usePathname();
+  const router = useRouter();
   const [state, setState] = useState<SceneControlsState>(() => getSceneControls());
   const [fullscreen, setFullscreen] = useState(false);
   const [flashKey, setFlashKey] = useState(0);
   const [shortcuts, setShortcuts] = useState(true);
+  const [toast, setToast] = useState<string | null>(null);
+  const [resume, setResume] = useState<LastVisit | null>(null);
   const cinematicRef = useRef<{ start: number; from: number; raf: number } | null>(null);
+  const toastTimer = useRef<number | null>(null);
+
+  const showToast = useCallback((text: string) => {
+    setToast(text);
+    if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 2200);
+  }, []);
 
   // Etat partage + stockage (client seulement).
   useEffect(() => {
@@ -65,11 +103,62 @@ export default function SceneControls({ labels }: { labels: SceneControlsLabels 
     };
   }, []);
 
-  // Le texte masque : une classe sur <body>.
+  // Le lien de l'instant : `?t=` place la page une fois le voile tombe ;
+  // `scene=1` masque le texte. Puis « reprendre » : sur l'accueil, si la
+  // derniere visite etait ailleurs et engagee, on le propose.
+  useEffect(() => {
+    const instant = parseInstant(window.location.search);
+    if (instant.sceneOnly && !getSceneControls().sceneOnly) setSceneControls({ sceneOnly: true });
+    let cancelled = false;
+    if (instant.t !== null) {
+      const target = instant.t;
+      const go = () => {
+        if (cancelled) return;
+        if (document.documentElement.getAttribute("data-loaded") === "true") {
+          window.scrollTo({ top: target * arcPixels(), behavior: "auto" });
+        } else {
+          window.setTimeout(go, 120);
+        }
+      };
+      go();
+    } else if (isHomePath(pathname)) {
+      const visit = readLastVisit();
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture du stockage au montage, cote client
+      if (shouldOfferResume(visit, pathname, Date.now())) setResume(visit);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  // La derniere visite : page + moment de l'arc, ecrite au fil du scroll.
+  useEffect(() => {
+    let last = 0;
+    const save = () => {
+      const now = Date.now();
+      if (now - last < 500) return;
+      last = now;
+      const arc = arcPixels();
+      const t = arc > 0 ? Math.min(1, window.scrollY / arc) : 0;
+      try {
+        window.localStorage.setItem(LAST_VISIT_KEY, JSON.stringify({ path: pathname, t, at: now } satisfies LastVisit));
+      } catch {
+        /* stockage indisponible */
+      }
+    };
+    window.addEventListener("scroll", save, { passive: true });
+    return () => window.removeEventListener("scroll", save);
+  }, [pathname]);
+
+  // Le texte masque et la contemplation : des classes sur <body>.
   useEffect(() => {
     document.body.classList.toggle("nahual-scene-only", state.sceneOnly);
     return () => document.body.classList.remove("nahual-scene-only");
   }, [state.sceneOnly]);
+  useEffect(() => {
+    document.body.classList.toggle("nahual-cinematic", state.cinematic);
+    return () => document.body.classList.remove("nahual-cinematic");
+  }, [state.cinematic]);
 
   const stopCinematic = useCallback(() => {
     const c = cinematicRef.current;
@@ -88,16 +177,11 @@ export default function SceneControls({ labels }: { labels: SceneControlsLabels 
       const c = cinematicRef.current;
       if (!c) return;
       const elapsed = (performance.now() - c.start) / 1000;
-      const p = cinematicProgress(elapsed, c.from);
-      window.scrollTo(0, p * arc);
-      if (p >= 1) {
-        stopCinematic();
-        return;
-      }
+      window.scrollTo(0, cinematicProgress(elapsed, c.from) * arc);
       c.raf = requestAnimationFrame(tick);
     };
     cinematicRef.current = { start, from, raf: requestAnimationFrame(tick) };
-  }, [stopCinematic]);
+  }, []);
 
   // Le moindre geste de l'utilisateur arrete la contemplation.
   useEffect(() => {
@@ -138,6 +222,15 @@ export default function SceneControls({ labels }: { labels: SceneControlsLabels 
     else void document.documentElement.requestFullscreen?.();
   }, []);
 
+  const copyLink = useCallback(() => {
+    const arc = arcPixels();
+    const t = arc > 0 ? window.scrollY / arc : 0;
+    const url = `${window.location.origin}${pathname}${buildInstantSearch({ t, sceneOnly: getSceneControls().sceneOnly })}`;
+    const done = () => showToast(labels.linkCopied);
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(done, () => window.prompt(labels.link, url));
+    else window.prompt(labels.link, url);
+  }, [pathname, labels.link, labels.linkCopied, showToast]);
+
   const act = useCallback(
     (action: SceneAction) => {
       const s = getSceneControls();
@@ -146,11 +239,12 @@ export default function SceneControls({ labels }: { labels: SceneControlsLabels 
       else if (action === "cinematic") (s.cinematic ? stopCinematic : startCinematic)();
       else if (action === "photo") takePhoto();
       else if (action === "eco") setSceneControls({ eco: !s.eco });
+      else if (action === "link") copyLink();
     },
-    [toggleFullscreen, stopCinematic, startCinematic, takePhoto]
+    [toggleFullscreen, stopCinematic, startCinematic, takePhoto, copyLink]
   );
 
-  // Raccourcis (H, F, T, P, E), soumis a l'interrupteur RGAA.
+  // Raccourcis (H, F, T, P, E, L), soumis a l'interrupteur RGAA.
   useEffect(() => {
     if (!shortcuts || readingMode.active) return;
     const onKey = (e: KeyboardEvent) => {
@@ -220,6 +314,16 @@ export default function SceneControls({ labels }: { labels: SceneControlsLabels 
       ),
     },
     {
+      action: "link",
+      pressed: null,
+      label: labels.link,
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1.5 1.5M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1.5-1.5" />
+        </svg>
+      ),
+    },
+    {
       action: "eco",
       pressed: state.eco,
       label: state.eco ? labels.ecoOff : labels.ecoOn,
@@ -248,6 +352,29 @@ export default function SceneControls({ labels }: { labels: SceneControlsLabels 
           </button>
         ))}
       </div>
+      {toast && (
+        <div className={styles.toast} role="status">
+          {toast}
+        </div>
+      )}
+      {resume && (
+        <div className={styles.toast} role="status">
+          <button
+            type="button"
+            className={styles.toastAction}
+            onClick={() => {
+              const v = resume;
+              setResume(null);
+              router.push(`${v.path}${buildInstantSearch({ t: v.t, sceneOnly: false })}`);
+            }}
+          >
+            {labels.resume}
+          </button>
+          <button type="button" className={styles.toastDismiss} onClick={() => setResume(null)} aria-label={labels.resumeDismiss}>
+            ×
+          </button>
+        </div>
+      )}
       {flashKey > 0 && <div key={flashKey} className={styles.flash} aria-hidden="true" />}
     </>
   );
