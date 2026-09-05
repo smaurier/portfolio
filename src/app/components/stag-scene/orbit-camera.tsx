@@ -10,6 +10,8 @@ import { useCardinalTransition } from "./cardinal-transition-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
+import { sudCamera } from "@/lib/sud-camera";
+import { getRevealFloor } from "@/lib/reveal-arc";
 
 /**
  * Applique à chaque frame la trajectoire pure de src/lib/camera-path.ts.
@@ -29,8 +31,9 @@ import { xiuhcoatlStore } from "./xiuhcoatl-store";
  * même garde-fou d'accessibilité que le reste de l'arc (cf reveal-arc.ts
  * et cursor-reveal.ts).
  */
-const SOUTH_CAMERA_DROP = 0.2;
-const SOUTH_TARGET_LIFT = 1.0; // 1.1 -> 1.0 (05/09, retour Sylvain : la stele de l'annee coupee en bas)
+// 05/09 : SOUTH_CAMERA_DROP / SOUTH_TARGET_LIFT remplaces par lib/sud-camera
+// (la camera monte avec le soleil : contre-plongee la nuit, plongee douce
+// sur la Piedra au zenith, focale qui s'ouvre, coup de focale a la frappe).
 // Recul Huitztlampa (04/09, Sylvain : « reculer la caméra, le cerf est aussi
 // important, il faut bien avoir toute la vue ») : rayon x1.36 (7 -> 9.5 en
 // tete de page), cerf entier et ciel dans le meme cadre.
@@ -187,12 +190,13 @@ export default function OrbitCamera({
     // vers le bas (on descend au Mictlan).
     position.y += nb * 0.45;
     // Contre-plongée Huitztlampa : caméra un peu plus basse, regard levé.
-    position.y -= sb * SOUTH_CAMERA_DROP;
+    const sud = sudCamera(getRevealFloor(rawP), xiuhcoatlStore.strike.fire);
+    position.y += sb * sud.height;
     const southPush = 1 + sb * (SOUTH_RADIUS_SCALE - 1);
     position.x *= southPush;
     position.z *= southPush;
     const target = getOrbitCameraTarget();
-    target.y += sb * SOUTH_TARGET_LIFT;
+    target.y += sb * sud.targetLift;
 
     // Parallaxe : décale la position caméra XY selon la souris, la cible
     // reste ancrée sur le cerf → orbite légère autour du sujet. Y inversé
@@ -245,17 +249,18 @@ export default function OrbitCamera({
       position.z *= dolly;
       position.y += speed * SWING_LIFT;
 
-      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5;
+      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + sb * (sud.fov - 45);
       const perspCam = camera as PerspectiveCamera;
       if (perspCam.isPerspectiveCamera) {
         perspCam.fov = baseFov + speed * SWING_FOV;
         perspCam.updateProjectionMatrix();
       }
     } else {
-      // Retour repos FOV : safety, réévalue le base FOV responsive.
-      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5;
+      // Retour repos FOV : safety, réévalue le base FOV responsive (+ la
+      // focale solaire du Sud, continue le long de l'arc).
+      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + sb * (sud.fov - 45);
       const perspCam = camera as PerspectiveCamera;
-      if (perspCam.isPerspectiveCamera && Math.abs(perspCam.fov - baseFov) > 0.5) {
+      if (perspCam.isPerspectiveCamera && Math.abs(perspCam.fov - baseFov) > 0.05) {
         perspCam.fov = baseFov;
         perspCam.updateProjectionMatrix();
       }
