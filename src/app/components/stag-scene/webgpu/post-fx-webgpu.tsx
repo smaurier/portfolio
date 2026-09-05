@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { RenderPipeline, type WebGPURenderer, type Node } from "three/webgpu";
-import { Vector4, type PerspectiveCamera } from "three";
+import { NoToneMapping, Vector4, type PerspectiveCamera } from "three";
 import { Fn, pass, uniform, vec2, vec3, vec4, float, mix, smoothstep, dot, length, screenUV, clamp } from "three/tsl";
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
 import { chromaticAberration } from "three/addons/tsl/display/ChromaticAberrationNode.js";
@@ -43,6 +43,9 @@ export default function PostFxWebgpu() {
 
   const rig = useMemo(() => {
     const renderer = gl as unknown as WebGPURenderer;
+    // Comme la chaine pmndrs en WebGL : le rendu sort sans tone mapping
+    // (ACES, le defaut r3f, assombrirait et desaturerait la scene).
+    renderer.toneMapping = NoToneMapping;
     const pipeline = new RenderPipeline(renderer);
     const scenePass = pass(scene, camera);
     const color = scenePass.getTextureNode("output");

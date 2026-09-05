@@ -241,7 +241,11 @@ export default function Grass() {
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
-  }, [blades]);
+    // WebGPU : le programme de noeuds a pu etre construit avant que
+    // instanceColor existe ; il ne se reconstruit pas tout seul (WebGL
+    // recompile via USE_INSTANCING_COLOR). Une reconstruction, une fois.
+    if (isWebGpu()) material.needsUpdate = true;
+  }, [blades, material]);
 
   // L'onde d'Ollin : le press est projete au sol, la prairie se couche en
   // cercle depuis le point d'impact.
