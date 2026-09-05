@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { aztecYear } from "aztec-year";
-import { Box3, BoxGeometry, Color, Group, IcosahedronGeometry, Mesh, MeshStandardMaterial, Vector3, type MeshPhysicalMaterial } from "three";
+import { Box3, Color, Group, Mesh, Vector3, type MeshPhysicalMaterial } from "three";
 import { createTurquoiseMaterial, createXiuhcoatlUniforms } from "./xiuhcoatl-materials";
 import { getMictlanSky } from "./mictlan-sky";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
@@ -13,110 +13,108 @@ import { useCurrentDirection } from "./use-current-direction";
 import { terrainHeightWorld } from "./cardinal-orientation";
 
 /**
- * YearStones (05/09, Sylvain : « oui on met la date sur l'anneau, mais ca
- * pourrait etre des pierres disposees juste en face du cerf »). L'annee
- * mexica en cours (lib aztec-year, la meme que le pied de page et la
- * queue du serpent), ecrite comme sur les monuments : un NOMBRE et un
- * SIGNE.
- *  - Le signe : une petite stele de pierre face a la camera de tete de
- *    page, qui porte le glyphe du porteur d'annee (Tochtli, Acatl,
- *    Tecpatl, Calli), le meme embleme que sur la queue du xiuhcoatl,
- *    en mosaique de turquoise. Xihuitl = l'annee, la turquoise, le feu.
- *  - Le nombre : autant de galets que le chiffre de l'annee (1 a 13),
- *    poses en arc de part et d'autre de la stele. Compter en points est
- *    la notation attestee des glyphes d'annee (les Mexica n'utilisaient
- *    pas les barres).
- * A la frappe du serpent, le glyphe et les galets s'embrasent (licence :
- * portee par le mot xihuitl, pas par un texte). Sud seulement.
+ * YearStones (05/09, v3 apres deux retours de Sylvain : « vire la stele
+ * noire, vire la pierre noire a cote. Ce qui nous interesse c'est la
+ * partie turquoise et braise. Tu tournes ca precisement a l'horizontal
+ * et ca doit faire une sorte de rocher dans le sol »).
+ *
+ * L'annee mexica en cours (lib aztec-year, la meme que le pied de page
+ * et la queue du serpent), ecrite comme sur les monuments, un SIGNE et
+ * un NOMBRE, mais ici ce sont des ROCHERS DE TURQUOISE a demi enfouis
+ * dans la prairie, devant le cerf, hors du cercle :
+ *  - le signe : l'embleme du porteur d'annee (Tochtli, Acatl, Tecpatl,
+ *    Calli), la geometrie meme de la queue du xiuhcoatl, couchee a plat
+ *    (le haut du glyphe vers le loin, comme un texte au sol lu depuis la
+ *    camera), en mosaique de turquoise a joints de braise ;
+ *  - le nombre : autant de points que le chiffre (1 a 13), les memes
+ *    points de turquoise que sur la queue, a demi enfouis en arc de part
+ *    et d'autre du signe. Compter en points est la notation attestee.
+ * A la frappe du serpent, tout s'embrase (licence, portee par le mot
+ * xihuitl : l'annee, la turquoise, le feu). Sud seulement.
  */
 
 const MODEL_PATH = "/models/xiuhcoatl.glb";
-/** Rayon de l'arc (u) : HORS du cercle (Piedra 3 + anneau), dans l'herbe,
- * devant le cerf (retour Sylvain 05/09 : « la meme disposition, a meme le
- * sol, dans l'herbe, en dehors du cercle, en 5-6 fois sa taille »). */
-const ARC_RADIUS = 4.4;
-/** Pas angulaire entre deux pierres (rad) : ~0.33 u a ce rayon. */
-const PEBBLE_STEP = 0.075;
-const STONE_COLOR = "#17140f"; // basalte sombre : la lueur portee du serpent ne doit pas en faire une enseigne
-const EMBER = new Color("#ff7a1e");
+/** Rayon de l'arc (u) : hors de la Piedra et de son anneau, dans l'herbe. */
+const ARC_RADIUS = 4.0;
+/** Largeur du glyphe couche (u) : 5-6 fois l'embleme de la queue. */
+const GLYPH_WIDTH = 1.3;
+/** Pas angulaire entre deux points (rad) a ce rayon. */
+const DOT_STEP = 0.075;
+/** Part du rocher qui depasse du sol (fraction de son epaisseur). */
+const EMERGED = 0.55;
 
-function hash(i: number, k: number): number {
-  const v = Math.sin(i * 12.9898 + k * 78.233 + 5.0) * 43758.5453;
-  return v - Math.floor(v);
-}
-
-/** Une pierre levee : icosaedre bruite, plus haut que large (debout, pas
- * couche : retour Sylvain « les cailloux a la verticale »). */
-function pebbleGeometry(seed: number): IcosahedronGeometry {
-  const g = new IcosahedronGeometry(1, 1);
-  const pos = g.getAttribute("position");
-  const v = new Vector3();
-  for (let i = 0; i < pos.count; i++) {
-    v.fromBufferAttribute(pos, i);
-    const n = 0.78 + 0.32 * hash(seed, Math.round(v.x * 7 + v.y * 13 + v.z * 17));
-    v.multiplyScalar(n);
-    pos.setXYZ(i, v.x * 0.55, v.y, v.z * 0.45);
-  }
-  g.computeVertexNormals();
-  return g;
+/** Un noeud du GLB (mesh ou groupe de primitives) en meshes statiques,
+ * centre a l'origine, ramene a `width` u de large ; rend aussi l'epaisseur
+ * (axe z du GLB, l'embleme est plat en XY). */
+function bakeFlat(src: Group | Mesh, material: MeshPhysicalMaterial, width: number): { group: Group; thickness: number } {
+  const g = new Group();
+  src.traverse((o) => {
+    if ((o as Mesh).isMesh) g.add(new Mesh((o as Mesh).geometry, material));
+  });
+  const box = new Box3().setFromObject(g);
+  const size = new Vector3();
+  const center = new Vector3();
+  box.getSize(size);
+  box.getCenter(center);
+  const s = width / Math.max(size.x, size.y, 1e-3);
+  g.children.forEach((c) => c.position.sub(center));
+  g.scale.setScalar(s);
+  return { group: g, thickness: size.z * s };
 }
 
 export default function YearStones() {
   const groupRef = useRef<Group>(null);
   const glyphRef = useRef<Group>(null);
+  const dotsRef = useRef<Group>(null);
   const direction = useCurrentDirection();
   const blendRef = useRef(direction === "turquoise" ? 1 : 0);
   const { scene } = useGLTF(MODEL_PATH);
   const year = useMemo(() => aztecYear(), []);
   const uniforms = useMemo(() => createXiuhcoatlUniforms(), []);
-  const glyphMaterial = useMemo(() => {
+  const material = useMemo(() => {
     const m = createTurquoiseMaterial(new Color("#2aa6b8"), getMictlanSky(), uniforms) as MeshPhysicalMaterial;
     m.transparent = false;
     m.opacity = 1;
     return m;
   }, [uniforms]);
-  const stoneMaterial = useMemo(() => new MeshStandardMaterial({ color: STONE_COLOR, roughness: 1, metalness: 0, emissive: EMBER, emissiveIntensity: 0 }), []);
-  const pebbles = useMemo(
-    () =>
-      Array.from({ length: year.number }, (_, i) => {
-        // De part et d'autre de la stele, en alternance, sur l'arc.
+
+  // Le signe et les points : geometries du GLB, couchees a plat, a demi
+  // enfouies (la pose est faite une fois, quand le GLB est la).
+  useEffect(() => {
+    const glyphHolder = glyphRef.current;
+    const dotsHolder = dotsRef.current;
+    if (!glyphHolder || !dotsHolder) return;
+    const added: { holder: Group; node: Group }[] = [];
+    const bearer = scene.getObjectByName(`YearBearer_${year.bearer}`) as Group | Mesh | undefined;
+    if (bearer) {
+      const { group, thickness } = bakeFlat(bearer, material, GLYPH_WIDTH);
+      // XY du GLB -> XZ du sol : le haut du glyphe (+y) part vers -z, le
+      // loin ; l'epaisseur (z) devient la hauteur.
+      group.rotation.x = -Math.PI / 2;
+      group.position.set(0, terrainHeightWorld(0, ARC_RADIUS) + thickness * (EMERGED - 0.5), ARC_RADIUS);
+      glyphHolder.add(group);
+      added.push({ holder: glyphHolder, node: group });
+    }
+    const dotSrc = scene.getObjectByName("YearDot00") as Group | Mesh | undefined;
+    if (dotSrc) {
+      const dotWidth = GLYPH_WIDTH * 0.2;
+      for (let i = 0; i < year.number; i++) {
         const side = i % 2 === 0 ? -1 : 1;
         const rank = Math.floor(i / 2) + 1;
-        const a = side * rank * PEBBLE_STEP * 1.15 + 0.17 * side; // la stele occupe ~0.17 rad a ce rayon
-        const x = Math.sin(a) * ARC_RADIUS, z = Math.cos(a) * ARC_RADIUS;
-        // Hauteur ~0.4-0.55 u : au-dessus de l'herbe (0.2-0.36), 5-6 fois les galets d'avant.
-        return { geometry: pebbleGeometry(i + 1), x, z, y: terrainHeightWorld(x, z), rot: hash(i, 3) * Math.PI, scale: 0.4 + 0.15 * hash(i, 4) };
-      }),
-    [year.number]
-  );
-  const steleGeometry = useMemo(() => new BoxGeometry(0.9, 0.7, 0.18), []);
-  const steleY = useMemo(() => terrainHeightWorld(0, ARC_RADIUS), []);
-
-  // Le glyphe : l'embleme du porteur, extrait du GLB du serpent (bind
-  // pose, mesh statique), centre, ramene a 0.34 u de large, monte sur la
-  // face avant de la stele.
-  useEffect(() => {
-    const holder = glyphRef.current;
-    if (!holder) return;
-    const src = scene.getObjectByName(`YearBearer_${year.bearer}`);
-    if (!src) return;
-    const g = new Group();
-    src.traverse((o) => {
-      if ((o as Mesh).isMesh) g.add(new Mesh((o as Mesh).geometry, glyphMaterial));
-    });
-    const box = new Box3().setFromObject(g);
-    const size = new Vector3();
-    const center = new Vector3();
-    box.getSize(size);
-    box.getCenter(center);
-    const s = 0.58 / Math.max(size.x, size.y, 1e-3);
-    g.children.forEach((c) => c.position.sub(center));
-    g.scale.setScalar(s);
-    holder.add(g);
+        const a = side * (rank * DOT_STEP * 1.2 + GLYPH_WIDTH / ARC_RADIUS / 2 + 0.06);
+        const x = Math.sin(a) * ARC_RADIUS;
+        const z = Math.cos(a) * ARC_RADIUS;
+        const { group, thickness } = bakeFlat(dotSrc, material, dotWidth);
+        group.rotation.x = -Math.PI / 2;
+        group.position.set(x, terrainHeightWorld(x, z) + thickness * (EMERGED - 0.5), z);
+        dotsHolder.add(group);
+        added.push({ holder: dotsHolder, node: group });
+      }
+    }
     return () => {
-      holder.remove(g);
+      for (const { holder, node } of added) holder.remove(node);
     };
-  }, [scene, year.bearer, glyphMaterial]);
+  }, [scene, year.bearer, year.number, material]);
 
   useFrame((state) => {
     const south = direction === "turquoise";
@@ -132,19 +130,12 @@ export default function YearStones() {
     uniforms.uTime.value = state.clock.elapsedTime;
     uniforms.uEmber.value = 0.25 + 0.6 * gate + 2.6 * fire;
     uniforms.uCrackle.value = 1 + 2 * fire;
-    stoneMaterial.emissiveIntensity = 0.12 * gate + 2.2 * fire;
   });
 
   return (
     <group ref={groupRef} visible={false}>
-      {/* La stele, face a la camera de tete de page (+z), posee sur la Piedra. */}
-      <group position={[0, steleY, ARC_RADIUS]}>
-        <mesh geometry={steleGeometry} material={stoneMaterial} position={[0, 0.33, 0]} castShadow receiveShadow />
-        <group ref={glyphRef} position={[0, 0.37, 0.092]} />
-      </group>
-      {pebbles.map((p, i) => (
-        <mesh key={i} geometry={p.geometry} material={stoneMaterial} position={[p.x, p.y + p.scale * 0.42, p.z]} rotation={[0, p.rot, 0]} scale={p.scale} castShadow receiveShadow />
-      ))}
+      <group ref={glyphRef} />
+      <group ref={dotsRef} />
     </group>
   );
 }
