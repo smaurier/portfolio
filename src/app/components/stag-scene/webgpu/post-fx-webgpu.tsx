@@ -1,18 +1,16 @@
 /* eslint-disable react-hooks/immutability -- pattern gamedev r3f useFrame : mutation d uniformes a 60 fps (meme precedent que post-fx.tsx). */
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { RenderPipeline, type WebGPURenderer, type Node } from "three/webgpu";
 import { NoToneMapping, Vector4, type PerspectiveCamera } from "three";
-import { Fn, pass, uniform, vec2, vec3, vec4, float, mix, smoothstep, dot, length, screenUV, clamp, convertToTexture } from "three/tsl";
+import { Fn, pass, uniform, vec2, vec3, vec4, float, mix, smoothstep, dot, length, screenUV, clamp, select, convertToTexture } from "three/tsl";
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
 import { chromaticAberration } from "three/addons/tsl/display/ChromaticAberrationNode.js";
 import { dof } from "three/addons/tsl/display/DepthOfFieldNode.js";
-import { approachGrade, getGradeRig, type GradeRig } from "@/lib/direction-grade";
-import { useCardinalTransition } from "../cardinal-transition-context";
-import { useAtmosphereHour } from "../use-atmosphere-hour";
 import { useSceneRefs } from "../scene-refs-context";
+import { BLOOM_BASE, CA_BASE, usePostFxDrive } from "../post-fx-drive";
 import { xiuhcoatlStore, HEAT_TRAIL_MAX } from "../xiuhcoatl-store";
 import { projectHeatPoints } from "../heat-projection";
 import { useOllinWave } from "../ollin-wave";
@@ -31,13 +29,20 @@ import { createOllinUniforms, nepantlaNode, ollinNode } from "./post-fx-extras-t
  * chaleur, profondeur de champ du burst, bloom, aberration, grade.
  */
 
-const BLOOM_BASE = 0.6;
-const BLOOM_BURST_ADD = 0.8;
-const CA_BASE = 0.0006;
-const CA_BURST_ADD = 0.0012;
 const HEAT_AMPLITUDE = 0.012;
-/** Bokeh au pic du burst cardinal (0 au repos : passe quasi neutre). */
-const DOF_BURST_BOKEH = 3.0;
+/** Le bloom TSL (Unreal : cinq niveaux ponderes puis sommes) est bien plus
+ * fort que le bloom mipmap de pmndrs a intensite egale : la force du
+ * pilotage commun est ramenee a l'echelle de l'ancienne chaine. */
+const BLOOM_TSL_SCALE = 0.125;
+/** Decalage de la vignette pmndrs (offset 0.25, eskil = false). */
+const VIGNETTE_OFFSET = 0.25;
+
+/** Sonde de dev : reglages surchargeables depuis Playwright (jamais en
+ * production). Un singleton de module, pas un objet du useMemo : en
+ * StrictMode React joue le memo deux fois et jette le premier resultat. */
+type PostFxProbe = { bloomScale: number; vignette: boolean; saturation: boolean };
+const probe: PostFxProbe = { bloomScale: 1, vignette: true, saturation: true };
+if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") (window as unknown as { __nahualPostFx?: PostFxProbe }).__nahualPostFx = probe;
 /** Mise au point sur le cerf : pmndrs (0.03, 0.06) en profondeur normalisee
  * sur far = 100, soit ~3 et ~6 unites en distance de vue. */
 const DOF_FOCUS = 3;
@@ -45,10 +50,10 @@ const DOF_FOCAL = 6;
 
 export default function PostFxWebgpu() {
   const { gl, scene, camera, size } = useThree();
-  const transition = useCardinalTransition();
   const refs = useSceneRefs();
-  const hour = useAtmosphereHour();
-  const gradeRef = useRef<GradeRig>({ ...getGradeRig(hour) });
+  // Le pilotage (grade, vignette, bloom, aberration, bokeh) est partage
+  // avec la chaine pmndrs : post-fx-drive.ts.
+  const drive = usePostFxDrive();
   const ollinWave = useOllinWave();
   const nepantla = useNepantlaStrength();
 
@@ -110,11 +115,16 @@ export default function PostFxWebgpu() {
     // 3. Saturation, vignette, eclair et teinte de la frappe.
     const graded = Fn(() => {
       const c = vec4(ca).toVar();
-      const grey = dot(c.rgb, vec3(0.299, 0.587, 0.114));
-      c.rgb.assign(mix(vec3(grey), c.rgb, float(1).add(uSaturation)));
+      // HueSaturation pmndrs : ecart a la moyenne des canaux, pondere par
+      // -s (desaturation) ou 1 - 1/(1.001 - s) (saturation).
+      const average = c.r.add(c.g).add(c.b).div(3);
+      const diff = vec3(average).sub(c.rgb);
+      const satGain = select(uSaturation.greaterThan(0), float(1).sub(float(1).div(float(1.001).sub(uSaturation))), uSaturation.negate());
+      c.rgb.addAssign(diff.mul(satGain));
+      // Vignette pmndrs (eskil = false) : smoothstep(0.8, offset * 0.799, d * (darkness + offset)).
       const d = length(screenUV.sub(0.5));
-      const v = clamp(float(1).sub(smoothstep(0.25, 0.95, d).mul(uVignette)), 0, 1);
-      c.rgb.mulAssign(v);
+      const v = float(1).sub(smoothstep(VIGNETTE_OFFSET * 0.799, 0.8, d.mul(uVignette.add(VIGNETTE_OFFSET))));
+      c.rgb.mulAssign(clamp(v, 0, 1));
       const turq = vec3(0.25, 0.95, 0.9);
       c.rgb.assign(mix(c.rgb, c.rgb.mul(0.6).add(turq.mul(0.7)), uTint));
       c.rgb.assign(mix(c.rgb, turq.mul(1.15), uFlash.mul(0.85)).add(turq.mul(uFlash).mul(0.5)));
@@ -132,26 +142,15 @@ export default function PostFxWebgpu() {
   }, [rig]);
 
   useFrame((state) => {
-    const gradeTarget = getGradeRig(hour);
-    gradeRef.current = refs?.reducedMotionRef.current ? { ...gradeTarget } : approachGrade(gradeRef.current, gradeTarget, 0.06);
-    const grade = gradeRef.current;
-    rig.uSaturation.value = grade.saturation;
-    const p = refs?.progressRef.current ?? 0;
-    rig.uVignette.value = 0.9 - p * 0.25 + grade.vignetteAdd;
-
-    const tp = transition?.transitionProgressRef.current ?? 0;
-    const active = !!transition && transition.transitionDirection !== null && tp > 0;
-    const bell = active ? Math.sin(tp * Math.PI) : 0;
-    const audioLevel = (window as unknown as { __nahualAudioLevel?: { current: number } }).__nahualAudioLevel?.current ?? 0;
-    const pinLevel = refs?.pinProgressRef.current ?? 0;
-    rig.bloomPass.strength.value = (BLOOM_BASE + bell * BLOOM_BURST_ADD + audioLevel * 0.6 + pinLevel * 1.5) * grade.bloomScale;
-    rig.uCa.value = CA_BASE + bell * CA_BURST_ADD;
-    rig.uBokeh.value = bell * DOF_BURST_BOKEH;
+    rig.uSaturation.value = probe.saturation ? drive.saturation : 0;
+    rig.uVignette.value = probe.vignette ? drive.vignette : -VIGNETTE_OFFSET;
+    rig.bloomPass.strength.value = drive.bloom * BLOOM_TSL_SCALE * probe.bloomScale;
+    rig.uCa.value = drive.chromaticAberration;
+    rig.uBokeh.value = drive.bokeh;
     rig.uOllin.progress.value = ollinWave.progress;
     rig.uOllin.amplitude.value = ollinWave.amplitude;
     rig.uOllin.center.value.copy(ollinWave.center);
     rig.uNepantla.value = nepantla.value;
-
     rig.uTime.value = state.clock.elapsedTime;
     rig.uAspect.value = size.width / Math.max(1, size.height);
     rig.uGroundHeat.value = xiuhcoatlStore.groundHeat;

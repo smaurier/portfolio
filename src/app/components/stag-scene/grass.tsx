@@ -139,7 +139,6 @@ function makeBlades(count: number): Blade[] {
 const GROUND_PLANE = new Plane(new Vector3(0, 1, 0), 0);
 
 export default function Grass() {
-  const meshRef = useRef<InstancedMesh>(null);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   const bladeCount = sceneRefs?.perfProfile.bladeCount ?? BLADES_FALLBACK;
@@ -223,10 +222,14 @@ export default function Grass() {
     return m;
   }, [uniforms, bendMap]);
 
-  // Pose des brins (une fois) : matrices + couleurs.
-  useEffect(() => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
+  // Le maillage instancie, brins POSES AVANT le premier rendu (matrices +
+  // couleurs) : le programme de noeuds WebGPU est construit avec
+  // instanceColor des le depart, rien a reconstruire apres coup.
+  const mesh = useMemo(() => {
+    const mesh = new InstancedMesh(geometry, material, blades.length);
+    mesh.frustumCulled = false;
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
     const dummy = new Object3D();
     const color = new Color();
     blades.forEach((b, i) => {
@@ -241,11 +244,9 @@ export default function Grass() {
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
-    // WebGPU : le programme de noeuds a pu etre construit avant que
-    // instanceColor existe ; il ne se reconstruit pas tout seul (WebGL
-    // recompile via USE_INSTANCING_COLOR). Une reconstruction, une fois.
-    if (isWebGpu()) material.needsUpdate = true;
-  }, [blades, material]);
+    return mesh;
+  }, [geometry, material, blades]);
+  useEffect(() => () => mesh.dispose(), [mesh]);
 
   // L'onde d'Ollin : le press est projete au sol, la prairie se couche en
   // cercle depuis le point d'impact.
@@ -261,8 +262,6 @@ export default function Grass() {
   const hitPoint = useMemo(() => new Vector3(), []);
 
   useFrame((state, delta) => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
     const north = direction === "obsidienne";
     if (north) return; // la prairie est cachee au Nord (bassin)
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
@@ -313,13 +312,5 @@ export default function Grass() {
     uniforms.uGreenBase.value += (tint.greenBase - uniforms.uGreenBase.value) * 0.05;
   });
 
-  return (
-    <instancedMesh
-      ref={meshRef}
-      args={[geometry, material, blades.length]}
-      frustumCulled={false}
-      castShadow={false}
-      receiveShadow
-    />
-  );
+  return <primitive object={mesh} />;
 }

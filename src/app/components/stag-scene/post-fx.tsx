@@ -4,10 +4,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, EffectGroup, HueSaturation, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
-import { approachGrade, getGradeRig, type GradeRig } from "@/lib/direction-grade";
-import { useCardinalTransition } from "./cardinal-transition-context";
-import { useAtmosphereHour } from "./use-atmosphere-hour";
-import { useSceneRefs } from "./scene-refs-context";
+import { BLOOM_BASE, CA_BASE, usePostFxDrive } from "./post-fx-drive";
 import OllinShockwave from "./ollin-shockwave";
 import NepantlaBlur from "./nepantla-blur";
 import XiuhcoatlHeat from "./xiuhcoatl-heat";
@@ -41,21 +38,6 @@ import XiuhcoatlHeat from "./xiuhcoatl-heat";
  * boost doit rester subtile SOTA cinéma, pas gimmick.
  */
 
-const BLOOM_BASE = 0.6;
-const BLOOM_BURST_ADD = 0.8;
-const CA_BASE = 0.0006;
-const CA_BURST_ADD = 0.0012;
-
-/**
- * Focus rack (28/08 task #44). DOF quasi-inactif au repos (bokehScale 0)
- * pour économiser le shader pass ; monte à ~3 pendant le peak burst =
- * shallow DOF, arrière-plan flou tandis que le cerf reste net. Le focus
- * suit la caméra target (getOrbitCameraTarget = origine cerf).
- * focusDistance 0.03 correspond à ~5 units world (Z du cerf) avec la
- * caméra qui orbite radius ~5-6. focalLength 0.06 = bokeh subtile
- * mais lisible. Signature cinéma directe.
- */
-const DOF_BURST_BOKEH = 3.0;
 
 export default function PostFX() {
   const bloomRef = useRef<{ intensity: number } | null>(null);
@@ -63,67 +45,19 @@ export default function PostFX() {
   const dofRef = useRef<{ bokehScale: number } | null>(null);
   const vignetteRef = useRef<{ darkness: number } | null>(null);
   const hueSatRef = useRef<{ saturation: number } | null>(null);
-  const transition = useCardinalTransition();
-  const refs = useSceneRefs();
-  // Grade sur l'heure atmospherique (03/09 etage 3 Nepantla) : pendant
-  // un passage cardinal, le grade traverse les heures intermediaires
-  // du voyage du soleil, meme cadence de lissage que fog et rig.
-  const hour = useAtmosphereHour();
-  const gradeRef = useRef<GradeRig>({ ...getGradeRig(hour) });
+  // Le pilotage (grade, vignette, bloom, aberration, bokeh) est partage
+  // avec la chaine WebGPU : post-fx-drive.ts.
+  const drive = usePostFxDrive();
 
   useFrame(() => {
-    // Grade par direction : snap si prefers-reduced-motion (meme
-    // convention que fog/rig), sinon easing vers la cible.
-    const gradeTarget = getGradeRig(hour);
-    gradeRef.current = refs?.reducedMotionRef.current
-      ? { ...gradeTarget }
-      : approachGrade(gradeRef.current, gradeTarget, 0.06);
-    const grade = gradeRef.current;
-    if (hueSatRef.current) {
-      hueSatRef.current.saturation = grade.saturation;
-    }
-
-    // Vignette breathing scroll (28/08 boite outil D) : vignette
-    // darkness varie selon progress reveal-arc : plus forte en
-    // penombre (0.9) relaxe au climax chemins reveles (0.65). Signature
-    // "l'oeil s'ouvre progressivement au monde nahual". Le grade
-    // directionnel s'ajoute par-dessus (Nord : cadre ferme).
-    if (vignetteRef.current && refs) {
-      const p = refs.progressRef.current;
-      vignetteRef.current.darkness = 0.9 - p * 0.25 + grade.vignetteAdd;
-    }
-
-    if (!transition) return;
-    const p = transition.transitionProgressRef.current;
-    const active = transition.transitionDirection !== null && p > 0;
-    const bell = active ? Math.sin(p * Math.PI) : 0;
-
-    if (bloomRef.current) {
-      // Sound-reactive bloom (28/08 boite outil #3) : si audio level
-      // dispo (window.__nahualAudioLevel pose par SoundDesign quand
-      // unmuted), ajoute pulse proportionnel. Silencieux si mute.
-      const audioLevel = typeof window !== "undefined"
-        ? (window as unknown as { __nahualAudioLevel?: { current: number } }).__nahualAudioLevel?.current ?? 0
-        : 0;
-      // Pin face-a-face bloom boost (28/08 boite outil #6) : pendant
-      // scrub pin, bloom monte de 0 a +1.5 = pic dramatique "regard
-      // silencieux amplifie".
-      const pinLevel = refs?.pinProgressRef.current ?? 0;
-      // Le grade directionnel module l'ensemble (Nord : bloom sourd,
-      // rien ne brille chez les morts sauf les lames).
-      bloomRef.current.intensity = (BLOOM_BASE + bell * BLOOM_BURST_ADD + audioLevel * 0.6 + pinLevel * 1.5) * grade.bloomScale;
-    }
+    if (hueSatRef.current) hueSatRef.current.saturation = drive.saturation;
+    if (vignetteRef.current) vignetteRef.current.darkness = drive.vignette;
+    if (bloomRef.current) bloomRef.current.intensity = drive.bloom;
     if (caRef.current) {
-      const offset = CA_BASE + bell * CA_BURST_ADD;
-      caRef.current.offset.x = offset;
-      caRef.current.offset.y = offset;
+      caRef.current.offset.x = drive.chromaticAberration;
+      caRef.current.offset.y = drive.chromaticAberration;
     }
-    if (dofRef.current) {
-      // Bokeh 0 au repos = shader DOF quasi-passthrough (perf).
-      // Pendant burst : monte en bell curve, peak 3.0 = arrière-plan
-      // franchement flou, cerf reste net → focus rack cinéma.
-      dofRef.current.bokehScale = bell * DOF_BURST_BOKEH;
-    }
+    if (dofRef.current) dofRef.current.bokehScale = drive.bokeh;
   });
 
   return (
