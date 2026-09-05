@@ -19,15 +19,7 @@ import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
 import SkipNav from "../components/skip-nav";
 import SmoothScroll from "../components/smooth-scroll";
-import { aztecYear, YEAR_BEARER_INFO } from "aztec-year";
-
-/** « 1 Tochtli · Lapin » : numeral + nom nahuatl + glose dans la langue de la page. */
-function footerAztecYear(locale: string): string {
-  const year = aztecYear();
-  const info = YEAR_BEARER_INFO[year.bearer];
-  const gloss = locale === "en" ? info.en : locale === "es" ? info.es : info.fr;
-  return `${year.number} ${info.nahuatl} · ${gloss}`;
-}
+import FooterAztecYear, { formatFooterAztecYear } from "../components/footer-aztec-year";
 import { renderWithNahuatl } from "../../lib/nahuatl";
 import { ReadingModeProvider } from "../../lib/reading-mode-context";
 import PiedraSkeleton from "../components/stag-scene/piedra-skeleton";
@@ -398,7 +390,7 @@ export default async function LocaleLayout({
                   renderWithNahuatl. Calcule au rendu : le footer est
                   dynamique, rien a faire d'une annee sur l'autre. */}
               © {new Date().getFullYear()} NAHUAL Studio · Sylvain Maurier
-              <span className="footerAztec"> · {renderWithNahuatl(footerAztecYear(locale))}</span>
+              <span className="footerAztec"> · <FooterAztecYear locale={locale} initial={formatFooterAztecYear(locale)} /></span>
             </div>
           </footer>
           {/* Intro cinématique retiree 28/08 (retour Sylvain "gros
