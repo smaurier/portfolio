@@ -1,9 +1,11 @@
 /* eslint-disable react-hooks/immutability -- fichier 3D r3f : useFrame mutations 60 fps, refs pour valeurs frame-based, Math.random init particules. Patterns gamedev legitimes. */
 "use client";
 
-import { useMemo, useRef, type MutableRefObject } from "react";
+import { useMemo, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
-import { AdditiveBlending, BackSide, Color, type ShaderMaterial } from "three";
+import { AdditiveBlending, BackSide, Color, ShaderMaterial } from "three";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createStagAuraNodeMaterial, type StagAuraUniforms } from "./webgpu/stag-aura-tsl";
 import { getRimColorBlend } from "@/lib/reveal-arc";
 
 /**
@@ -33,6 +35,44 @@ import { getRimColorBlend } from "@/lib/reveal-arc";
  * halo évite ce piège : pas de motif régulier, juste un fresnel avec
  * une opacité qui respire.
  */
+/** Le halo : GLSL en WebGL, TSL en WebGPU (stag-aura-tsl.ts). */
+function createStagAuraMaterial(uniforms: StagAuraUniforms) {
+  if (isWebGpu()) return createStagAuraNodeMaterial(uniforms);
+  return new ShaderMaterial({
+    uniforms,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    side: BackSide,
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vViewPosition;
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        vViewPosition = -mvPosition.xyz;
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+        `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uIntensity;
+      varying vec3 vNormal;
+      varying vec3 vViewPosition;
+      void main() {
+        // BackSide : la normale pointe vers l'intérieur ; on prend abs
+        // du dot pour obtenir un fresnel "silhouette" symétrique quel
+        // que soit le côté rendu. Power 5.0 = halo doux, très étalé
+        // sur les bords, presque nul au centre : pas un cerceau net
+        // (ce serait de l'hologramme, rejeté par Sylvain 25/08).
+        float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 4.0);
+        float alpha = fres * uIntensity * 0.9;
+        gl_FragColor = vec4(uColor * alpha, alpha);
+      }
+        `,
+  });
+}
+
 export default function StagAura({
   progressRef,
   climaxRimColor,
@@ -40,18 +80,16 @@ export default function StagAura({
   progressRef: MutableRefObject<number>;
   climaxRimColor: string;
 }) {
-  const materialRef = useRef<ShaderMaterial>(null);
-
-  const uniforms = useMemo(
+  const uniforms = useMemo<StagAuraUniforms>(
     () => ({
       uColor: { value: new Color(climaxRimColor) },
       uIntensity: { value: 0 },
     }),
     [climaxRimColor],
   );
+  const material = useMemo(() => createStagAuraMaterial(uniforms), [uniforms]);
 
   useFrame((state) => {
-    if (!materialRef.current) return;
     const p = progressRef.current;
     const blend = getRimColorBlend(p);
     const pulse = 0.65 + 0.35 * Math.pow(Math.sin(state.clock.elapsedTime * Math.PI * 0.25), 4);
@@ -61,40 +99,7 @@ export default function StagAura({
   return (
     <mesh position={[0, 1.0, 0]} scale={[1.8, 2.2, 1.8]} raycast={() => null}>
       <sphereGeometry args={[1, 32, 16]} />
-      <shaderMaterial
-        ref={materialRef}
-        uniforms={uniforms}
-        transparent
-        depthWrite={false}
-        blending={AdditiveBlending}
-        side={BackSide}
-        vertexShader={`
-          varying vec3 vNormal;
-          varying vec3 vViewPosition;
-          void main() {
-            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-            vViewPosition = -mvPosition.xyz;
-            vNormal = normalize(normalMatrix * normal);
-            gl_Position = projectionMatrix * mvPosition;
-          }
-        `}
-        fragmentShader={`
-          uniform vec3 uColor;
-          uniform float uIntensity;
-          varying vec3 vNormal;
-          varying vec3 vViewPosition;
-          void main() {
-            // BackSide : la normale pointe vers l'intérieur ; on prend abs
-            // du dot pour obtenir un fresnel "silhouette" symétrique quel
-            // que soit le côté rendu. Power 5.0 = halo doux, très étalé
-            // sur les bords, presque nul au centre : pas un cerceau net
-            // (ce serait de l'hologramme, rejeté par Sylvain 25/08).
-            float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 4.0);
-            float alpha = fres * uIntensity * 0.9;
-            gl_FragColor = vec4(uColor * alpha, alpha);
-          }
-        `}
-      />
+      <primitive object={material} attach="material" />
     </mesh>
   );
 }

@@ -1,9 +1,12 @@
-/* eslint-disable react-hooks/purity -- pattern gamedev r3f useFrame + init particules Math.random dans useMemo : mutations 60 fps + random init sont legitimes en 3D, les regles React 19 sont trop strictes pour ce contexte. */
+/* eslint-disable react-hooks/purity, react-hooks/immutability -- pattern gamedev r3f useFrame + init particules Math.random dans useMemo : mutations 60 fps + random init sont legitimes en 3D, les regles React 19 sont trop strictes pour ce contexte. */
 "use client";
 
-import { useMemo, useRef, type MutableRefObject } from "react";
+import { useMemo, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, type Points, type ShaderMaterial } from "three";
+import { AdditiveBlending, Color, ShaderMaterial, type BufferGeometry } from "three";
+import { isWebGpu } from "../webgpu/renderer-kind";
+import { createParticleGeometry, createParticleObject } from "../webgpu/particles";
+import { createEastAmbienceNodeMaterial, type EastUniforms } from "../webgpu/ambience-tsl";
 
 /**
  * Est / Tonatiuh (28/08 task #43, refonte 28/08 bug canvas noir).
@@ -19,12 +22,53 @@ import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, type Points, 
  */
 const PARTICLE_COUNT = 120;
 
+/** GLSL en WebGL (Points), TSL en WebGPU (webgpu/ambience-tsl.ts). */
+function createEastMaterial(geometry: BufferGeometry, uniforms: EastUniforms) {
+  if (isWebGpu()) return createEastAmbienceNodeMaterial(geometry, uniforms);
+  return new ShaderMaterial({
+    uniforms,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    vertexShader: `
+      attribute float aSeed;
+      uniform float uTime;
+      varying float vTwinkle;
+
+      void main() {
+        vec3 pos = position;
+        // Léger flottement lent
+        pos.x += sin(uTime * 0.3 + aSeed * 6.28) * 0.15;
+        pos.y += cos(uTime * 0.25 + aSeed * 4.0) * 0.12;
+        // Twinkle scintillement individuel (fréquence variée par seed)
+        vTwinkle = 0.3 + 0.7 * pow(0.5 + 0.5 * sin(uTime * (2.0 + aSeed * 3.0) + aSeed * 6.28), 3.0);
+
+        vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+        gl_Position = projectionMatrix * mv;
+        gl_PointSize = 28.0 / -mv.z;
+      }
+        `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uAlpha;
+      varying float vTwinkle;
+
+      void main() {
+        if (uAlpha < 0.01) discard;
+        vec2 uv = gl_PointCoord - 0.5;
+        float r = length(uv);
+        float shape = 1.0 - smoothstep(0.0, 0.5, r);
+        shape = pow(shape, 1.4);
+        float a = shape * vTwinkle * uAlpha;
+        gl_FragColor = vec4(uColor * a, 1.0);
+      }
+        `,
+  });
+}
+
 export default function EastTonatiuh({ alphaRef }: { alphaRef: MutableRefObject<number> }) {
-  const pointsRef = useRef<Points>(null);
-  const materialRef = useRef<ShaderMaterial>(null);
 
   const { geometry, uniforms } = useMemo(() => {
-    const geo = new BufferGeometry();
     const positions = new Float32Array(PARTICLE_COUNT * 3);
     const seeds = new Float32Array(PARTICLE_COUNT);
     for (let i = 0; i < PARTICLE_COUNT; i++) {
@@ -37,66 +81,22 @@ export default function EastTonatiuh({ alphaRef }: { alphaRef: MutableRefObject<
       positions[i * 3 + 2] = -1 + t * 2 + (Math.random() - 0.5) * jitter;
       seeds[i] = Math.random();
     }
-    geo.setAttribute("position", new BufferAttribute(positions, 3));
-    geo.setAttribute("aSeed", new BufferAttribute(seeds, 1));
-    return {
-      geometry: geo,
-      uniforms: {
-        uAlpha: { value: 0 },
-        uTime: { value: 0 },
-        uColor: { value: new Color("#ffb400") },
-      },
+    // Particules sur les deux moteurs (webgpu/particles.ts).
+    const geo = createParticleGeometry({ position: { array: positions, itemSize: 3 }, aSeed: { array: seeds, itemSize: 1 } });
+    const u: EastUniforms = {
+      uAlpha: { value: 0 },
+      uTime: { value: 0 },
+      uColor: { value: new Color("#ffb400") },
     };
+    return { geometry: geo, uniforms: u };
   }, []);
+  const material = useMemo(() => createEastMaterial(geometry, uniforms), [geometry, uniforms]);
+  const object = useMemo(() => createParticleObject(geometry, material), [geometry, material]);
 
   useFrame((state) => {
-    if (!materialRef.current) return;
-    materialRef.current.uniforms.uAlpha.value = alphaRef.current;
-    materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
+    uniforms.uAlpha.value = alphaRef.current;
+    uniforms.uTime.value = state.clock.elapsedTime;
   });
 
-  return (
-    <points ref={pointsRef} geometry={geometry} raycast={() => null}>
-      <shaderMaterial
-        ref={materialRef}
-        uniforms={uniforms}
-        transparent
-        depthWrite={false}
-        blending={AdditiveBlending}
-        vertexShader={`
-          attribute float aSeed;
-          uniform float uTime;
-          varying float vTwinkle;
-
-          void main() {
-            vec3 pos = position;
-            // Léger flottement lent
-            pos.x += sin(uTime * 0.3 + aSeed * 6.28) * 0.15;
-            pos.y += cos(uTime * 0.25 + aSeed * 4.0) * 0.12;
-            // Twinkle scintillement individuel (fréquence variée par seed)
-            vTwinkle = 0.3 + 0.7 * pow(0.5 + 0.5 * sin(uTime * (2.0 + aSeed * 3.0) + aSeed * 6.28), 3.0);
-
-            vec4 mv = modelViewMatrix * vec4(pos, 1.0);
-            gl_Position = projectionMatrix * mv;
-            gl_PointSize = 28.0 / -mv.z;
-          }
-        `}
-        fragmentShader={`
-          uniform vec3 uColor;
-          uniform float uAlpha;
-          varying float vTwinkle;
-
-          void main() {
-            if (uAlpha < 0.01) discard;
-            vec2 uv = gl_PointCoord - 0.5;
-            float r = length(uv);
-            float shape = 1.0 - smoothstep(0.0, 0.5, r);
-            shape = pow(shape, 1.4);
-            float a = shape * vTwinkle * uAlpha;
-            gl_FragColor = vec4(uColor * a, 1.0);
-          }
-        `}
-      />
-    </points>
-  );
+  return <primitive object={object} raycast={() => null} />;
 }

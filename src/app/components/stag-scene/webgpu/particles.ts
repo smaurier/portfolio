@@ -114,8 +114,9 @@ export function createParticleNodeMaterial(nodes: ParticleMaterialNodes): Points
   return mat;
 }
 
-/** L'objet a mettre dans la scene : Sprite instancie (WebGPU) ou Points. */
-export function createParticleObject(geometry: BufferGeometry, material: Material, count: number): Object3D {
+/** L'objet a mettre dans la scene : Sprite instancie (WebGPU) ou Points.
+ * `count` par defaut = toutes les particules de la geometrie. */
+export function createParticleObject(geometry: BufferGeometry, material: Material, count = particleBuffer(geometry, POSITION).count): Object3D {
   if (isWebGpu()) {
     const sprite = new Sprite(material as PointsNodeMaterial);
     sprite.geometry = geometry;
