@@ -19,7 +19,16 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    {
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        // Sur Windows, Chromium headless rend en SwiftShader (logiciel) :
+        // la scene 3D bloque le fil principal et les tests expirent. ANGLE
+        // D3D11 donne le vrai GPU, et un adaptateur WebGPU (05/09).
+        launchOptions: process.platform === "win32" ? { args: ["--use-angle=d3d11", "--use-gl=angle", "--enable-unsafe-webgpu", "--ignore-gpu-blocklist"] } : undefined,
+      },
+    },
   ],
   webServer: {
     command: "pnpm run dev",

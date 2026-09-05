@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useProgress } from "@react-three/drei";
 import { MIN_VEIL_DURATION_MS } from "@/lib/loading-veil";
+import { GPU_WARMUP_TIMEOUT_MS, gpuWarmupDone } from "./webgpu/gpu-warmup";
+import { isWebGpu } from "./webgpu/renderer-kind";
 
 /**
  * LoadingSync (30/08). Tiny client component qui pose
@@ -34,10 +36,23 @@ export default function LoadingSync({ minDurationMs = MIN_VEIL_DURATION_MS }: Pr
     return () => clearTimeout(timer);
   }, [minDurationMs]);
 
+  // Sous WebGPU, les pipelines se compilent derriere le voile
+  // (webgpu-warmup.tsx) : on attend la promesse, avec un delai de garde si
+  // la scene ne monte pas (robots, mode recit).
   useEffect(() => {
-    if (progress >= 100 && minElapsed) {
+    if (progress < 100 || !minElapsed) return;
+    if (!isWebGpu()) {
       document.documentElement.setAttribute("data-loaded", "true");
+      return;
     }
+    let cancelled = false;
+    const guard = new Promise<void>((resolve) => setTimeout(resolve, GPU_WARMUP_TIMEOUT_MS));
+    Promise.race([gpuWarmupDone, guard]).then(() => {
+      if (!cancelled) document.documentElement.setAttribute("data-loaded", "true");
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [progress, minElapsed]);
 
   return null;

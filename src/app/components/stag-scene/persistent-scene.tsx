@@ -18,6 +18,7 @@ import XolotlCompanion from "./xolotl-companion";
 import EhecatlWind from "./ehecatl-wind";
 import styles from "./scene-stage.module.css";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
+import WebGpuWarmup from "./webgpu/webgpu-warmup";
 
 /**
  * Scène 3D persistante montée UNE seule fois dans layout.tsx
@@ -156,6 +157,8 @@ export default function PersistentScene() {
             cardinal rendu visible : filaments qui balaient l'orbite
             plus vite que la camera. Invisible hors transition. */}
         <EhecatlWind />
+        {/* Precompilation des pipelines derriere le voile (gpu-warmup.ts). */}
+        <WebGpuWarmup />
         {refs.perfProfile.postFx && (rendererKind === "webgpu" ? <PostFxWebgpu /> : <PostFX />)}
       </Canvas>
     </div>
