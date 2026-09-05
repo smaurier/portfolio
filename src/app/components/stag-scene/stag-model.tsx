@@ -148,6 +148,11 @@ export default function StagModel({
   // pas la mise à l'échelle.
   const headBone = useMemo(() => {
     centerAndScale(scene, TARGET_HEIGHT);
+    // Ombres (05/09) : le cerf projette son ombre (Sud seulement, cf
+    // reveal-lighting).
+    scene.traverse((o) => {
+      if ((o as { isMesh?: boolean }).isMesh) o.castShadow = true;
+    });
     return scene.getObjectByName(HEAD_BONE_NAME) ?? null;
   }, [scene]);
   // Regard vers le soleil (05/09, echo de scroll du Sud, go Sylvain avec

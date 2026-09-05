@@ -101,6 +101,10 @@ export default function PersistentScene() {
   return (
     <div className={styles.stage} data-direction={direction}>
       <Canvas
+        // Ombres (05/09, Sud : « un jeu d'ombres delicats ») : shadow map
+        // activee au niveau du Canvas, la directionnelle ne projette qu'au
+        // Sud (reveal-lighting), les autres pages restent sans ombre.
+        shadows
         camera={{ fov: 45, near: 0.1, far: 100 }}
         dpr={[1, refs.perfProfile.dprCap]}
         frameloop={frameloop}

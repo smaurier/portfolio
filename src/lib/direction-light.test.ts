@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { approachRig, DIRECTION_LIGHT_RIG, getLightRig, NEUTRAL_RIG } from "./direction-light";
+import { approachRig, DIRECTION_LIGHT_RIG, getLightRig, NEUTRAL_RIG, rigAtArc } from "./direction-light";
 import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
 
 const DIRECTIONS = Object.keys(DIRECTION_LIGHT_RIG) as DirectionKey[];
@@ -93,5 +93,39 @@ describe("approachRig", () => {
     const target = getLightRig("obsidienne");
     for (let i = 0; i < 400; i++) rig = approachRig(rig, target, 0.06);
     expect(rig).toEqual(target);
+  });
+});
+
+describe("rigAtArc (la lune, puis le soleil qui se leve)", () => {
+  it("un rig sans etat de nuit est rendu tel quel", () => {
+    expect(rigAtArc(NEUTRAL_RIG, 0)).toEqual(NEUTRAL_RIG);
+    expect(rigAtArc(getLightRig("obsidienne"), 0.5)).toEqual(getLightRig("obsidienne"));
+  });
+
+  it("au Sud : la lune en haut de page (basse, froide, sous le jour), le zenith en bas", () => {
+    const sud = getLightRig("turquoise");
+    const night = rigAtArc(sud, 0);
+    const noon = rigAtArc(sud, 1);
+    expect(night.position[1]).toBeLessThan(noon.position[1]);
+    expect(night.color.toLowerCase()).toBe(sud.night!.color.toLowerCase());
+    expect(noon.color.toLowerCase()).toBe(sud.color.toLowerCase());
+    expect(night.directionalScale).toBeLessThan(noon.directionalScale);
+    // froide : le bleu domine la nuit, le rouge domine le jour
+    const nb = parseInt(night.color.slice(5, 7), 16), nr = parseInt(night.color.slice(1, 3), 16);
+    const db = parseInt(noon.color.slice(5, 7), 16), dr = parseInt(noon.color.slice(1, 3), 16);
+    expect(nb).toBeGreaterThan(nr);
+    expect(dr).toBeGreaterThan(db);
+  });
+
+  it("la source monte de facon continue et monotone le long de l'arc", () => {
+    const sud = getLightRig("turquoise");
+    let prev = rigAtArc(sud, 0).position[1];
+    for (let k = 1; k <= 20; k++) {
+      const y = rigAtArc(sud, k / 20).position[1];
+      expect(y).toBeGreaterThanOrEqual(prev);
+      prev = y;
+    }
+    expect(rigAtArc(sud, 0.5).position[1]).toBeGreaterThan(rigAtArc(sud, 0).position[1]);
+    expect(rigAtArc(sud, 0.5).position[1]).toBeLessThan(rigAtArc(sud, 1).position[1]);
   });
 });

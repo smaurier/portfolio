@@ -8,12 +8,13 @@ import {
   getAmbientIntensity,
   getDirectionalIntensity,
   getFogColor,
+  getRevealFloor,
   getRimColorBlend,
   type ColorRgb,
 } from "@/lib/reveal-arc";
 import { remapNorthArc } from "@/lib/direction-arc";
 import { approachFog, getFogRange, type FogRange } from "@/lib/direction-fog";
-import { approachRig, getLightRig, type LightRig } from "@/lib/direction-light";
+import { approachRig, getLightRig, rigAtArc, type LightRig } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { useSceneRefs } from "./scene-refs-context";
@@ -87,7 +88,9 @@ export default function RevealLighting({
     const blend = getRimColorBlend(p);
     // Crossfade du rig lumiere vers la direction courante (etage 2) :
     // snap direct si prefers-reduced-motion, meme convention que le fog.
-    const rigTarget = getLightRig(hour);
+    // Lune -> soleil (05/09) : le rig de la direction a un etat de nuit ; l'arc
+    // de revelation l'emmene vers le jour (rigAtArc, identite pour les autres).
+    const rigTarget = rigAtArc(getLightRig(hour), getRevealFloor(p));
     lightRigRef.current = sceneRefs?.reducedMotionRef.current
       ? { ...rigTarget }
       : approachRig(lightRigRef.current, rigTarget, 0.06);
@@ -123,6 +126,8 @@ export default function RevealLighting({
       if (arrivalGlow > 0) directionalColorScratch.lerp(cardinalColor, arrivalGlow * 0.6);
       directionalRef.current.color.copy(directionalColorScratch);
       directionalRef.current.position.set(rig.position[0], rig.position[1], rig.position[2]);
+      const wantShadow = hour === "turquoise" && !sceneRefs?.reducedMotionRef.current;
+      if (directionalRef.current.castShadow !== wantShadow) directionalRef.current.castShadow = wantShadow;
     }
     if (fogRef.current) {
       fogRef.current.color.set(getFogColor(p, fogTint));
@@ -145,7 +150,22 @@ export default function RevealLighting({
        * inchangé depuis stag-scene.tsx, seule la couleur bouge désormais. */}
       <fog ref={fogRef} attach="fog" args={["#000000", 10, 34]} />
       <ambientLight ref={ambientRef} />
-      <directionalLight ref={directionalRef} position={[4, 6, 4]} />
+      {/* Ombres (05/09) : projetees au Sud seulement (castShadow pilote par
+       * useFrame), carte 2048, frustum ortho sur la scene proche (le cerf, la
+       * Piedra, les epines), biais pour eviter l'acne sur le low poly. */}
+      <directionalLight
+        ref={directionalRef}
+        position={[4, 6, 4]}
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-near={0.5}
+        shadow-camera-far={40}
+        shadow-camera-left={-10}
+        shadow-camera-right={10}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.03}
+      />
     </>
   );
 }

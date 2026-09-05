@@ -20,6 +20,7 @@ import ObsidianArrows from "./obsidian-arrows";
 import ArrowVapor from "./arrow-vapor";
 import XiuhcoatlCompanion from "./xiuhcoatl-companion";
 import SudSky from "./sud-sky";
+import SudSkyBodies from "./sud-sky-bodies";
 import CentzonStars from "./centzon-stars";
 import HuitzilinBirds from "./huitzilin-birds";
 import PiedraXiuhcoatlRing from "./piedra-xiuhcoatl-ring";
@@ -141,6 +142,9 @@ export default function SceneContent({
       {/* Le ciel de midi du Sud (04/09) : dome hors fog, horizon = couleur
        * du brouillard, zenith plus profond ; noir en haut de page. */}
       <SudSky />
+      {/* La lune et les nuages du Sud (05/09) : la lune s'efface quand le
+       * soleil monte, les nuages derivent et blanchissent au midi. */}
+      <SudSkyBodies />
       {/* Les 400 etoiles du Sud (04/09, lead) : sur le dome de nuit, elles
        * meurent et tombent a mesure que le midi monte. */}
       <CentzonStars />

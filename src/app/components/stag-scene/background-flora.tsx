@@ -65,7 +65,15 @@ const INSTANCES_PER_SPECIES = 4;
 
 export function useNormalizedClone(path: string, targetHeight: number): Object3D {
   const { scene } = useGLTF(path);
-  const clone = useMemo(() => scene.clone(true), [scene]);
+  const clone = useMemo(() => {
+    const c = scene.clone(true);
+    // Ombres (05/09) : la flore projette (visible au Sud seulement, la
+    // directionnelle ne projette que la).
+    c.traverse((o) => {
+      if ((o as { isMesh?: boolean }).isMesh) o.castShadow = true;
+    });
+    return c;
+  }, [scene]);
   const normalizedRef = useRef(false);
 
   // Recadre sur le bounding box réel plutôt que de deviner un facteur

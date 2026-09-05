@@ -24,6 +24,12 @@ export type LightRig = {
   directionalScale: number;
   /** Dose de la teinte rig dans la couleur finale (0 = logique historique seule). */
   colorMix: number;
+  /** Etat de NUIT du rig (05/09, Sylvain : « la lune qui amenera son ombrage
+   * puis au fur et a mesure du scroll c'est le soleil qui se levera ») : en
+   * haut de page la source est la lune, basse et froide ; l'arc de
+   * revelation l'emmene vers l'etat de jour ci-dessus (rigAtArc). Absent =
+   * rig fixe. */
+  night?: { position: [number, number, number]; color: string; ambientScale: number; directionalScale: number; colorMix: number };
 };
 
 /** Comportement historique exact : directionnelle [4,6,4], pas de
@@ -48,6 +54,9 @@ export const DIRECTION_LIGHT_RIG: Record<DirectionKey, LightRig> = {
   turquoise: {
     position: [0.6, 10, 1.2],
     color: "#ffe6bd",
+    // La lune de Coatepec : basse, derriere a gauche, froide ; ses ombres
+    // longues balaient la scene quand le soleil monte au zenith.
+    night: { position: [-7, 3, -6], color: "#a9bde0", ambientScale: 0.9, directionalScale: 0.85, colorMix: 0.7 },
     // 1.25/1.55 -> 1.12/1.3 (04/09, premiere capture : montagnes cramees
     // en blanc plat) : au-dessus du neutre, mais l'image garde du modele.
     ambientScale: 1.12,
@@ -72,6 +81,37 @@ export const DIRECTION_LIGHT_RIG: Record<DirectionKey, LightRig> = {
 
 export function getLightRig(direction: DirectionKey): LightRig {
   return DIRECTION_LIGHT_RIG[direction];
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace("#", "");
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function rgbToHex(r: number, g: number, b: number): string {
+  const c = (v: number) => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, "0");
+  return `#${c(r)}${c(g)}${c(b)}`;
+}
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+/** Le rig au point `floor` (0..1) de l'arc de revelation : de l'etat de
+ * nuit (lune) a l'etat de jour. Sans etat de nuit, le rig est rendu tel
+ * quel. Lissage smoothstep : la lune s'efface doucement, le soleil monte. */
+export function rigAtArc(rig: LightRig, floor: number): LightRig {
+  if (!rig.night) return rig;
+  const u = Math.min(1, Math.max(0, floor));
+  const t = u * u * (3 - 2 * u);
+  const n = rig.night;
+  const [nr, ng, nb] = hexToRgb(n.color);
+  const [dr, dg, db] = hexToRgb(rig.color);
+  return {
+    position: [lerp(n.position[0], rig.position[0], t), lerp(n.position[1], rig.position[1], t), lerp(n.position[2], rig.position[2], t)],
+    color: rgbToHex(lerp(nr, dr, t), lerp(ng, dg, t), lerp(nb, db, t)),
+    ambientScale: lerp(n.ambientScale, rig.ambientScale, t),
+    directionalScale: lerp(n.directionalScale, rig.directionalScale, t),
+    colorMix: lerp(n.colorMix, rig.colorMix, t),
+  };
 }
 
 /** Meme convention que approachFog (direction-fog.ts) : easing

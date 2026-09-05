@@ -75,7 +75,7 @@ export default function Ground() {
 
   return (
     <>
-      <mesh geometry={geometry} position={[0, -0.005, 0]}>
+      <mesh geometry={geometry} position={[0, -0.005, 0]} receiveShadow>
         <meshStandardMaterial color={GROUND_COLOR} flatShading />
       </mesh>
       {/* Contact shadow (28/08 retour Sylvain "c'est quoi le cercle
