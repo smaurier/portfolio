@@ -114,7 +114,7 @@ function smooth(u: number): number {
  * (la camera regarde -z) : 35 deg a droite / a gauche. Plein est (+x) et
  * plein ouest (-x) sortiraient du cadre (demi-champ ~30 deg) : le lever et
  * le coucher ne se verraient jamais. */
-const EAST_AZIMUTH = (35 * Math.PI) / 180;
+const EAST_AZIMUTH = (28 * Math.PI) / 180;
 
 export function sunDirection(t: number): Dir3 {
   const u = smooth((t - 0.12) / 0.88);
@@ -128,7 +128,7 @@ export function sunDirection(t: number): Dir3 {
  * nuit, elle se couche (passe sous l'horizon) entre t = 0.2 et t = 0.55. */
 export function moonDirection(t: number): Dir3 {
   const set = smooth((t - 0.2) / 0.35);
-  const elev = (14 - 24 * set) * (Math.PI / 180);
+  const elev = (9 - 22 * set) * (Math.PI / 180); // 9 deg : sous le bandeau de navigation (le cadre s arrete vers 19 deg)
   const c = Math.cos(elev);
   return normalize({ x: -Math.sin(EAST_AZIMUTH) * c, y: Math.sin(elev), z: -Math.cos(EAST_AZIMUTH) * c });
 }

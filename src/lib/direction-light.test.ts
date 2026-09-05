@@ -139,7 +139,7 @@ describe("astronomie du Sud (sunDirection / moonDirection)", () => {
     expect(sunUp(0)).toBe(false);
     expect(sunUp(0.3)).toBe(true);
     const rise = sunDirection(0.3);
-    expect(rise.x).toBeGreaterThan(0.5); // a l'est
+    expect(rise.x).toBeGreaterThan(0.3); // a l est (28 deg a droite du regard)
     const noon = sunDirection(1);
     expect(noon.y).toBeGreaterThan(0.95); // au zenith
     let prev = sunDirection(0).y;
