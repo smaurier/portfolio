@@ -57,7 +57,7 @@ export default function XiuhcoatlHeat() {
       // Rayon UV = rayon monde / hauteur visible a cette distance.
       const radiusUv = HEAT_RADIUS_WORLD / (2 * dist * Math.tan(fovRad / 2));
       // L'air chaud monte un peu en vieillissant, puis se calme.
-      const strength = presence * Math.pow(1 - age, 1.6);
+      const strength = presence * xiuhcoatlStore.heatGate * Math.pow(1 - age, 1.6);
       points[i].set((scratch.x + 1) / 2, (scratch.y + 1) / 2 + age * radiusUv * 0.8, radiusUv * (0.6 + 0.7 * age), strength);
     }
   });

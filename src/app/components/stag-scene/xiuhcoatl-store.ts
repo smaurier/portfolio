@@ -35,6 +35,13 @@ export const xiuhcoatlStore = {
   strikeAt: -1,
   strikeHit: -1,
   strikeArmed: true,
+  /** 0..1 : PORTE DE CHALEUR (05/09, Sylvain « avant que le serpent ne
+   * touche l'anneau, on ne doit pas avoir les ondulations de chaleur ») :
+   * 0 tant que l'anneau n'a pas ete frappe, monte en ~0.8 s apres
+   * strikeHit. Multiplie le souffle chaud ET la trainee de chaleur du
+   * serpent : avant l'impact, le xiuhcoatl est une pierre de turquoise
+   * aux braises muettes ; l'air ne tremble qu'une fois le feu sorti. */
+  heatGate: 0,
 };
 
 /** Ajoute un point, borne la file, purge les morts. */

@@ -208,6 +208,17 @@ export default function XiuhcoatlCompanion() {
     const w = wanderRef.current;
     if (!g || !w) return;
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
+    // Le geste du mythe a lieu a CHAQUE visite : si le serpent n'etait pas
+    // la (tirage 1/3 du vol errant), il surgit du lointain pour la charge
+    // et reste ensuite. Sans lui, pas d'impact, donc pas de feu ni de
+    // chaleur (porte de chaleur, 05/09).
+    if (!present && !reduced && direction === "turquoise" && xiuhcoatlStore.strikeAt >= 0 && _state.clock.elapsedTime - xiuhcoatlStore.strikeAt < 0.5 && !isBot() && !readingMode.active) {
+      wanderRef.current = initialWander(Math.floor(Math.random() * 1e6), XIUHCOATL_WANDER);
+      bornAtRef.current = performance.now();
+      bankRef.current = 0;
+      setPresent(true);
+      return;
+    }
     if (!present || reduced) {
       g.visible = false;
       xiuhcoatlStore.presence = 0;

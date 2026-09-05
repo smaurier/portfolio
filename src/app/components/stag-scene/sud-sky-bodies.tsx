@@ -3,7 +3,7 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { AdditiveBlending, CanvasTexture, Color, Group, NormalBlending, Sprite, SpriteMaterial } from "three";
+import { AdditiveBlending, CanvasTexture, Color, Group, Sprite, SpriteMaterial } from "three";
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { moonDirection, sunDirection } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
@@ -14,16 +14,14 @@ import { useSceneRefs } from "./scene-refs-context";
  *  - la LUNE de Coatepec : un disque doux, bas derriere a gauche, dans la
  *    direction de la source de nuit du rig (direction-light, night). Elle
  *    s'efface quand le soleil monte au zenith (l'arc de revelation).
- *  - des petits NUAGES : quelques sprites doux, hauts sur le dome, qui
- *    derivent lentement ; pales la nuit, blancs et pleins au midi. Ils
- *    cassent l'impression de « soleil ecrasant » (retour Sylvain) sans
- *    couvrir le ciel.
+ *  - le SOLEIL (disque + halo) qui se leve a l'est et monte au zenith.
+ * Les nuages en sprites du 05/09 matin ont ete retires le 05/09 apres-midi :
+ * le ciel de jour est maintenant une photographie sur le dome (sud-sky).
  * Textures generees sur canvas (pas d'asset). Groupe centre camera, comme
  * le dome. Sud seulement, fondu.
  */
 
 const RADIUS = 80;
-const CLOUD_COUNT = 7;
 
 function radialTexture(size: number, inner: number, outer: number, noise: number, seed: number): CanvasTexture {
   const c = document.createElement("canvas");
@@ -68,7 +66,6 @@ function radialTexture(size: number, inner: number, outer: number, noise: number
 export default function SudSkyBodies() {
   const groupRef = useRef<Group>(null);
   const moonRef = useRef<Sprite>(null);
-  const cloudsRef = useRef<Sprite[]>([]);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   const blendRef = useRef(direction === "turquoise" ? 1 : 0);
@@ -89,22 +86,6 @@ export default function SudSkyBodies() {
   );
   const sunRef = useRef<Sprite>(null);
   const sunHaloRef = useRef<Sprite>(null);
-  const clouds = useMemo(
-    () =>
-      Array.from({ length: CLOUD_COUNT }, (_, i) => {
-        const az = -1.2 + (i / (CLOUD_COUNT - 1)) * 2.4 + Math.sin(i * 3.1) * 0.15; // eventail devant la camera
-        const elev = 0.17 + Math.sin(i * 1.7) * 0.06 + 0.05 * (i % 2); // 6 a 16 deg : sous le bandeau, au-dessus de la crete
-        return {
-          material: new SpriteMaterial({ map: radialTexture(192, 0, 1, 1, 10 + i), color: new Color("#ffffff"), transparent: true, opacity: 0, depthWrite: false, blending: NormalBlending, fog: false }),
-          az,
-          elev,
-          width: 14 + Math.sin(i * 2.3) * 4,
-          drift: 0.004 + 0.002 * (i % 3),
-        };
-      }),
-    []
-  );
-
   useFrame((state) => {
     const south = direction === "turquoise";
     blendRef.current += ((south ? 1 : 0) - blendRef.current) * 0.06;
@@ -115,7 +96,6 @@ export default function SudSkyBodies() {
     if (!g.visible) return;
     g.position.copy(state.camera.position);
     const day = getRevealFloor(sceneRefs?.progressRef.current ?? 0);
-    const t = sceneRefs?.reducedMotionRef.current ? 0 : state.clock.elapsedTime;
     // La lune : a l'ouest, elle se couche quand le soleil monte (moonDirection,
     // la meme direction que la lumiere de nuit) ; elle palit avec le jour.
     const moon = moonRef.current;
@@ -140,21 +120,6 @@ export default function SudSkyBodies() {
       // Rougeoyant a l'horizon, blanc-or en montant.
       sunMaterial.color.setRGB(1, 0.8 + 0.16 * day, 0.6 + 0.3 * day);
     }
-    // Les nuages : derive lente en azimut, plus presents au jour, teintes
-    // de nuit (bleu sombre) puis blancs.
-    for (let i = 0; i < clouds.length; i++) {
-      const s = cloudsRef.current[i];
-      const c = clouds[i];
-      if (!s) continue;
-      const az = c.az + t * c.drift;
-      const y = Math.sin(c.elev);
-      const r = Math.cos(c.elev);
-      // Devant la camera : la camera regarde -z en tete de page.
-      s.position.set(Math.sin(az) * r * RADIUS, y * RADIUS, -Math.cos(az) * r * RADIUS);
-      s.scale.set(c.width, c.width * (0.3 + 0.12 * (i % 3)), 1);
-      c.material.opacity = blend * (0.04 + 0.76 * day); // la nuit, a peine devinables (des soucoupes grises sinon)
-      c.material.color.setRGB(0.55 + 0.45 * day, 0.6 + 0.4 * day, 0.75 + 0.25 * day);
-    }
   });
 
   return (
@@ -162,17 +127,6 @@ export default function SudSkyBodies() {
       <sprite ref={moonRef} material={moonMaterial} raycast={() => null} renderOrder={-97} />
       <sprite ref={sunHaloRef} material={sunHaloMaterial} raycast={() => null} renderOrder={-97} />
       <sprite ref={sunRef} material={sunMaterial} raycast={() => null} renderOrder={-96} />
-      {clouds.map((c, i) => (
-        <sprite
-          key={i}
-          ref={(el) => {
-            if (el) cloudsRef.current[i] = el;
-          }}
-          material={c.material}
-          raycast={() => null}
-          renderOrder={-96}
-        />
-      ))}
     </group>
   );
 }
