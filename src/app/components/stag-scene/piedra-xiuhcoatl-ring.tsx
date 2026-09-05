@@ -2,6 +2,7 @@
 "use client";
 
 import { useMemo, useRef } from "react";
+import type { Mesh } from "three";
 import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import { Color, PlaneGeometry, RepeatWrapping, type MeshPhysicalMaterial } from "three";
@@ -35,12 +36,15 @@ const GROUND_RADIUS = 3;
 const RING_INNER = 0.82;
 const RING_OUTER = 0.99;
 const RING_Y = 0.03;
+/** Hauteur maximale du soulevement de l'anneau a la frappe (u). */
+const LIFT_MAX = 0.4;
 
 export default function PiedraXiuhcoatlRing() {
   const heightMap = useTexture(PIEDRA_HEIGHTMAP);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   const blendRef = useRef(direction === "turquoise" ? 1 : 0);
+  const meshRef = useRef<Mesh>(null);
   const uniforms = useMemo(() => createXiuhcoatlUniforms(), []);
 
   const geometry = useMemo(() => {
@@ -98,6 +102,10 @@ export default function PiedraXiuhcoatlRing() {
     // mythe) : forte, puis retombe en ~3 s sur le niveau du midi.
     const hit = xiuhcoatlStore.strikeHit;
     const burst = hit >= 0 ? Math.exp(-(state.clock.elapsedTime - hit) / 1.2) : 0;
+    // La frappe (05/09) : l'anneau des deux serpents graves se SOULEVE de
+    // la pierre, porte par le feu, puis se repose (lib strike-sequence).
+    const lift = xiuhcoatlStore.strike.lift;
+    if (meshRef.current) meshRef.current.position.y = RING_Y + LIFT_MAX * lift;
     uniforms.uEmber.value = 0.3 + 1.7 * ignite + 2.5 * burst;
     // L'anneau crepite plus que le serpent, et de plus en plus avec le midi.
     uniforms.uCrackle.value = 1.5 + 2.0 * ignite + 3.0 * burst;
@@ -105,7 +113,7 @@ export default function PiedraXiuhcoatlRing() {
     material.visible = material.opacity > 0.01;
   });
 
-  return <mesh geometry={geometry} material={material} position={[0, RING_Y, 0]} raycast={() => null} renderOrder={2} />;
+  return <mesh ref={meshRef} geometry={geometry} material={material} position={[0, RING_Y, 0]} raycast={() => null} renderOrder={2} />;
 }
 
 useTexture.preload(PIEDRA_HEIGHTMAP);

@@ -9,6 +9,7 @@ import { swingAzimuth, swingSpeed } from "@/lib/nepantla";
 import { useCardinalTransition } from "./cardinal-transition-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { xiuhcoatlStore } from "./xiuhcoatl-store";
 
 /**
  * Applique à chaque frame la trajectoire pure de src/lib/camera-path.ts.
@@ -266,14 +267,21 @@ export default function OrbitCamera({
     // + palette shift future. Camera reste path normal, cerf reste
     // meme taille. La contemplation se fait par la lumiere qui
     // pulse, pas par le zoom close.
+    // La frappe du xiuhcoatl (05/09) : secousse amortie de la camera,
+    // trois sinus incommensurables, amplitude lue dans le store (0 hors
+    // frappe, 0 en reduced-motion par construction de la lib).
+    const shake = xiuhcoatlStore.strike.shake;
+    const st = performance.now() / 1000;
+    const shakeX = shake * 0.11 * (Math.sin(st * 47.0) * 0.6 + Math.sin(st * 71.3) * 0.4);
+    const shakeY = shake * 0.08 * (Math.sin(st * 59.7 + 1.3) * 0.6 + Math.sin(st * 83.1) * 0.4);
     camera.position.set(
-      position.x + parallaxX + touchX,
-      position.y + parallaxY + touchY,
+      position.x + parallaxX + touchX + shakeX,
+      position.y + parallaxY + touchY + shakeY,
       position.z,
     );
     // Le regard reste ancre sur le cerf, y compris pendant l'orbite
     // Nepantla : le sujet ne quitte jamais le cadre, le monde defile.
-    camera.lookAt(target.x, target.y, target.z);
+    camera.lookAt(target.x + shakeX * 0.5, target.y + shakeY * 0.5, target.z);
   });
 
   return null;

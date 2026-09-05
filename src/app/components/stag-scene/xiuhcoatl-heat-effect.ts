@@ -21,6 +21,8 @@ uniform float uTime;
 uniform float uAmplitude;
 uniform float uAspect;
 uniform float uGroundHeat;
+uniform float uFlash;
+uniform float uTint;
 
 float hash2(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -54,7 +56,13 @@ void mainUv(inout vec2 uv) {
 }
 
 void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
-  outputColor = inputColor;
+  // La frappe : eclair turquoise plein cadre (uFlash, < 300 ms), ou montee
+  // turquoise lente en reduced-motion (uTint).
+  vec3 turq = vec3(0.25, 0.95, 0.9);
+  vec3 col = mix(inputColor.rgb, inputColor.rgb * 0.6 + turq * 0.7, uTint);
+  // Un eclair TURQUOISE, pas blanc : la couleur prend le cadre, puis surexpose.
+  col = mix(col, turq * 1.15, uFlash * 0.85) + turq * uFlash * 0.5;
+  outputColor = vec4(col, inputColor.a);
 }
 `;
 
@@ -69,6 +77,8 @@ export class XiuhcoatlHeatEffect extends Effect {
         ["uAmplitude", new Uniform(0.012)],
         ["uAspect", new Uniform(1.6)],
         ["uGroundHeat", new Uniform(0)],
+        ["uFlash", new Uniform(0)],
+        ["uTint", new Uniform(0)],
       ]),
     });
   }

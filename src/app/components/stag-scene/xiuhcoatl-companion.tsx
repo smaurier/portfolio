@@ -260,6 +260,14 @@ export default function XiuhcoatlCompanion() {
     }
     wanderRef.current = s;
 
+    // La frappe : le serpent se RAIDIT en trait (le xiuhcoatl comme rayon,
+    // lecture de Seler) : l'ondulation Slither perd son poids, le mixer
+    // revient vers la pose de repos (droite), et la braise monte.
+    const stiffen = xiuhcoatlStore.strike.stiffen;
+    const slither = actions["Slither"];
+    if (slither) slither.setEffectiveWeight(1 - stiffen);
+    uniforms.uEmber.value = 1 + 2.5 * stiffen;
+
     const now = performance.now();
     const fade = Math.min(1, (now - bornAtRef.current) / FADE_IN_MS);
     g.visible = true;

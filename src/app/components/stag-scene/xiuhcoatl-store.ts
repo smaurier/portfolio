@@ -42,6 +42,11 @@ export const xiuhcoatlStore = {
    * serpent : avant l'impact, le xiuhcoatl est une pierre de turquoise
    * aux braises muettes ; l'air ne tremble qu'une fois le feu sorti. */
   heatGate: 0,
+  /** L'ENVELOPPE DE LA FRAPPE (05/09, lib strike-sequence) : ecrite chaque
+   * frame par XiuhcoatlStrikeDirector, lue par le serpent (raideur), la
+   * passe de chaleur (flash, teinte), la camera et le decor (secousse),
+   * l'anneau (soulevement) et la gerbe de feu. Tout a 0 hors frappe. */
+  strike: { stiffen: 0, flash: 0, shake: 0, lift: 0, fire: 0, tint: 0 },
 };
 
 /** Ajoute un point, borne la file, purge les morts. */

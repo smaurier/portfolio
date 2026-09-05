@@ -25,6 +25,8 @@ import SudSkyBodies from "./sud-sky-bodies";
 import CentzonStars from "./centzon-stars";
 import HuitzilinBirds from "./huitzilin-birds";
 import PiedraXiuhcoatlRing from "./piedra-xiuhcoatl-ring";
+import PiedraRingFire from "./piedra-ring-fire";
+import XiuhcoatlStrikeDirector from "./xiuhcoatl-strike-director";
 import SudSpines from "./sud-spines";
 import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
@@ -149,6 +151,9 @@ export default function SceneContent({
       {/* Le ciel de midi du Sud (04/09) : dome hors fog, horizon = couleur
        * du brouillard, zenith plus profond ; noir en haut de page. */}
       <SudSky />
+      {/* La frappe (05/09) : enveloppe calculee une fois par frame. */}
+      <XiuhcoatlStrikeDirector />
+      <PiedraRingFire />
       {/* La lune et les nuages du Sud (05/09) : la lune s'efface quand le
        * soleil monte, les nuages derivent et blanchissent au midi. */}
       <SudSkyBodies />

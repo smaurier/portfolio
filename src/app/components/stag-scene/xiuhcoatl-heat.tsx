@@ -26,9 +26,13 @@ export default function XiuhcoatlHeat() {
     const uTime = effect.uniforms.get("uTime");
     const uAspect = effect.uniforms.get("uAspect");
     const uGround = effect.uniforms.get("uGroundHeat");
-    if (!uPoints || !uTime || !uAspect || !uGround) return;
+    const uFlash = effect.uniforms.get("uFlash");
+    const uTint = effect.uniforms.get("uTint");
+    if (!uPoints || !uTime || !uAspect || !uGround || !uFlash || !uTint) return;
     uTime.value = state.clock.elapsedTime;
     uGround.value = xiuhcoatlStore.groundHeat;
+    uFlash.value = xiuhcoatlStore.strike.flash;
+    uTint.value = xiuhcoatlStore.strike.tint;
     uAspect.value = state.size.width / Math.max(1, state.size.height);
     const points = uPoints.value as Vector4[];
     const now = performance.now();

@@ -7,6 +7,7 @@ import { orientationAngle, stepAngle, toDecorLocal } from "@/lib/cardinal-orient
 import { getTerrainHeight } from "@/lib/terrain-height";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { xiuhcoatlStore } from "./xiuhcoatl-store";
 
 /**
  * CardinalOrientation (05/09). Le groupe qui TOURNE le decor neutre pour
@@ -50,7 +51,13 @@ export default function CardinalOrientation({ children }: { children: ReactNode 
     angleRef.current = stepAngle(angleRef.current, target, k);
     orientationStore.angle = angleRef.current;
     const g = groupRef.current;
-    if (g) g.rotation.y = angleRef.current;
+    if (g) {
+      g.rotation.y = angleRef.current;
+      // La frappe (05/09) : le sol tremble, vibration verticale amortie.
+      const shake = xiuhcoatlStore.strike.shake;
+      const st = performance.now() / 1000;
+      g.position.y = shake * 0.045 * (Math.sin(st * 53.0) * 0.6 + Math.sin(st * 89.0) * 0.4);
+    }
   });
 
   return <group ref={groupRef}>{children}</group>;
