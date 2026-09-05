@@ -1,6 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { approachRig, DIRECTION_LIGHT_RIG, getLightRig, moonDirection, NEUTRAL_RIG, rigAtArc, sunDirection, sunUp } from "./direction-light";
 import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import { getOrbitCameraPosition } from "./camera-path";
+import { getRevealFloor } from "./reveal-arc";
+
+/** Azimut d'un astre par rapport au regard de la camera au progres p
+ * (degres, positif a droite) : la camera orbite autour du cerf et regarde
+ * l'origine. */
+function relativeAzimuth(dir: { x: number; z: number }, progress: number): number {
+  const cam = getOrbitCameraPosition(progress);
+  const gaze = Math.atan2(-cam.x, -cam.z);
+  const body = Math.atan2(dir.x, dir.z);
+  const d = body - gaze;
+  return (Math.atan2(Math.sin(d), Math.cos(d)) * 180) / Math.PI;
+}
+const HALF_FIELD_DEG = 36; // demi-champ horizontal mesure sur 1440x900
 
 const DIRECTIONS = Object.keys(DIRECTION_LIGHT_RIG) as DirectionKey[];
 
@@ -138,8 +152,13 @@ describe("astronomie du Sud (sunDirection / moonDirection)", () => {
   it("le soleil est sous l'horizon la nuit, se leve a l'est (+x) et finit au zenith", () => {
     expect(sunUp(0)).toBe(false);
     expect(sunUp(0.3)).toBe(true);
-    const rise = sunDirection(0.3);
-    expect(rise.x).toBeGreaterThan(0.3); // a l est (28 deg a droite du regard)
+    // Le lever (elevation 0 -> 17 deg) doit se voir : dans le demi-champ de
+    // la camera, qui a tourne d'un bon quart de tour a ce moment-la.
+    for (const progress of [0.27, 0.3, 0.33]) {
+      const day = getRevealFloor(progress);
+      expect(sunDirection(day).y).toBeGreaterThan(0);
+      expect(Math.abs(relativeAzimuth(sunDirection(day), progress))).toBeLessThan(HALF_FIELD_DEG);
+    }
     const noon = sunDirection(1);
     expect(noon.y).toBeGreaterThan(0.95); // au zenith
     let prev = sunDirection(0).y;
@@ -150,12 +169,15 @@ describe("astronomie du Sud (sunDirection / moonDirection)", () => {
     }
   });
 
-  it("la lune est a l'ouest (-x), basse la nuit, et se couche quand le soleil monte", () => {
+  it("la lune est dans le cadre en tete de page, basse, et se couche avant de sortir du cadre", () => {
     const night = moonDirection(0);
-    expect(night.x).toBeLessThan(0);
-    expect(night.y).toBeGreaterThan(0.15);
+    expect(night.y).toBeGreaterThan(0.1);
     expect(night.y).toBeLessThan(0.45);
-    expect(moonDirection(0.6).y).toBeLessThan(0); // couchee
+    for (const progress of [0, 0.05, 0.1]) {
+      expect(Math.abs(relativeAzimuth(moonDirection(getRevealFloor(progress)), progress))).toBeLessThan(HALF_FIELD_DEG);
+    }
+    expect(moonDirection(getRevealFloor(0.2)).y).toBeLessThan(0); // couchee avant que la camera l'ait perdue
+    expect(moonDirection(0.6).y).toBeLessThan(0);
     let prev = moonDirection(0).y;
     for (let k = 1; k <= 20; k++) {
       const y = moonDirection(k / 20).y;

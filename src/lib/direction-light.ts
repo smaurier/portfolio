@@ -107,30 +107,47 @@ function smooth(u: number): number {
   return c * c * (3 - 2 * c);
 }
 
-/** Direction du soleil : sous l'horizon a l'est la nuit, il se leve vers
- * t = 0.15, monte en arc et atteint le zenith a t = 1 (un peu vers la
- * camera pour que les faces se lisent). */
-/** Azimut de l'est et de l'ouest par rapport au regard de tete de page
- * (la camera regarde -z) : 35 deg a droite / a gauche. Plein est (+x) et
- * plein ouest (-x) sortiraient du cadre (demi-champ ~30 deg) : le lever et
- * le coucher ne se verraient jamais. */
-const EAST_AZIMUTH = (28 * Math.PI) / 180;
+/**
+ * Azimuts MONDE des deux astres (05/09). La camera fait un tour complet
+ * autour du cerf pendant l'arc (camera-path : azimut = progres x 360 deg),
+ * donc « a droite du regard » n'a pas de sens fixe : chaque astre est place
+ * la ou la camera REGARDE au moment ou il compte.
+ *  - Le soleil se leve (elevation 0 -> 17 deg, la bande de ciel visible)
+ *    pour un progres de 0.27 a 0.33, camera a 96-120 deg, regard vers
+ *    276-300 deg : soleil a 300 deg, il apparait a droite et glisse vers
+ *    le centre en montant.
+ *  - La lune doit etre dans le cadre en tete de page (regard 180 deg) et
+ *    y rester pendant qu'elle se couche (progres 0 -> 0.15, regard
+ *    180 -> 234 deg) : lune a 203 deg, elle traverse le cadre de droite a
+ *    gauche et passe sous l'horizon a la sortie du cadre.
+ * Les deux sont donc a ~97 deg l'un de l'autre : une lune de dernier
+ * quartier qui se couche apres le lever du soleil, pas une pleine lune
+ * (impossible : a 180 deg du soleil elle serait hors cadre en tete de page).
+ * Angle monde = atan2(x, z) ; la camera de tete de page est en +z et
+ * regarde vers 180 deg (-z).
+ */
+const SUN_AZIMUTH = (300 * Math.PI) / 180;
+const MOON_AZIMUTH = (203 * Math.PI) / 180;
 
-export function sunDirection(t: number): Dir3 {
-  const u = smooth((t - 0.12) / 0.88);
-  // Arc est -> zenith : angle d'elevation de -8 deg (sous l'horizon) a 86 deg.
-  const elev = (-8 + 94 * u) * (Math.PI / 180);
+function fromAngles(azimuth: number, elev: number): Dir3 {
   const c = Math.cos(elev);
-  return normalize({ x: Math.sin(EAST_AZIMUTH) * c, y: Math.sin(elev), z: -Math.cos(EAST_AZIMUTH) * c });
+  return normalize({ x: Math.sin(azimuth) * c, y: Math.sin(elev), z: Math.cos(azimuth) * c });
 }
 
-/** Direction de la lune : a l'ouest, 16 deg au-dessus de l'horizon la
- * nuit, elle se couche (passe sous l'horizon) entre t = 0.2 et t = 0.55. */
+/** Direction du soleil : sous l'horizon la nuit, il se leve vers t = 0.27
+ * (progres), monte en arc et atteint le zenith a t = 1. */
+export function sunDirection(t: number): Dir3 {
+  const u = smooth((t - 0.12) / 0.88);
+  // Arc horizon -> zenith : angle d'elevation de -8 deg (sous l'horizon) a 86 deg.
+  return fromAngles(SUN_AZIMUTH, (-8 + 94 * u) * (Math.PI / 180));
+}
+
+/** Direction de la lune : 9 deg au-dessus de l'horizon la nuit (sous le
+ * bandeau de navigation : le cadre s'arrete vers 19 deg), elle se couche
+ * entre t = 0.02 et t = 0.18, pendant qu'elle est encore dans le cadre. */
 export function moonDirection(t: number): Dir3 {
-  const set = smooth((t - 0.2) / 0.35);
-  const elev = (9 - 22 * set) * (Math.PI / 180); // 9 deg : sous le bandeau de navigation (le cadre s arrete vers 19 deg)
-  const c = Math.cos(elev);
-  return normalize({ x: -Math.sin(EAST_AZIMUTH) * c, y: Math.sin(elev), z: -Math.cos(EAST_AZIMUTH) * c });
+  const set = smooth((t - 0.02) / 0.16);
+  return fromAngles(MOON_AZIMUTH, (9 - 22 * set) * (Math.PI / 180));
 }
 
 /** Le soleil est-il leve (au-dessus de l'horizon) a t ? */
