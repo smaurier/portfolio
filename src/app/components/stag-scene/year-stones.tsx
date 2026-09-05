@@ -10,6 +10,7 @@ import { createTurquoiseMaterial, createXiuhcoatlUniforms } from "./xiuhcoatl-ma
 import { getMictlanSky } from "./mictlan-sky";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { useCurrentDirection } from "./use-current-direction";
+import { terrainHeightWorld } from "./cardinal-orientation";
 
 /**
  * YearStones (05/09, Sylvain : « oui on met la date sur l'anneau, mais ca
@@ -30,10 +31,12 @@ import { useCurrentDirection } from "./use-current-direction";
  */
 
 const MODEL_PATH = "/models/xiuhcoatl.glb";
-/** Rayon de l'arc (u), sur la Piedra, entre le cerf et la bande gravee. */
-const ARC_RADIUS = 2.25;
-/** Pas angulaire entre deux galets (rad). */
-const PEBBLE_STEP = 0.085;
+/** Rayon de l'arc (u) : HORS du cercle (Piedra 3 + anneau), dans l'herbe,
+ * devant le cerf (retour Sylvain 05/09 : « la meme disposition, a meme le
+ * sol, dans l'herbe, en dehors du cercle, en 5-6 fois sa taille »). */
+const ARC_RADIUS = 4.4;
+/** Pas angulaire entre deux pierres (rad) : ~0.33 u a ce rayon. */
+const PEBBLE_STEP = 0.075;
 const STONE_COLOR = "#17140f"; // basalte sombre : la lueur portee du serpent ne doit pas en faire une enseigne
 const EMBER = new Color("#ff7a1e");
 
@@ -42,7 +45,8 @@ function hash(i: number, k: number): number {
   return v - Math.floor(v);
 }
 
-/** Un galet : icosaedre dont les sommets sont pousses par un bruit. */
+/** Une pierre levee : icosaedre bruite, plus haut que large (debout, pas
+ * couche : retour Sylvain « les cailloux a la verticale »). */
 function pebbleGeometry(seed: number): IcosahedronGeometry {
   const g = new IcosahedronGeometry(1, 1);
   const pos = g.getAttribute("position");
@@ -51,7 +55,7 @@ function pebbleGeometry(seed: number): IcosahedronGeometry {
     v.fromBufferAttribute(pos, i);
     const n = 0.78 + 0.32 * hash(seed, Math.round(v.x * 7 + v.y * 13 + v.z * 17));
     v.multiplyScalar(n);
-    pos.setXYZ(i, v.x, v.y * 0.7, v.z);
+    pos.setXYZ(i, v.x * 0.55, v.y, v.z * 0.45);
   }
   g.computeVertexNormals();
   return g;
@@ -78,12 +82,15 @@ export default function YearStones() {
         // De part et d'autre de la stele, en alternance, sur l'arc.
         const side = i % 2 === 0 ? -1 : 1;
         const rank = Math.floor(i / 2) + 1;
-        const a = side * rank * PEBBLE_STEP * 1.15 + 0.3 * side; // la stele occupe ~0.3 rad
-        return { geometry: pebbleGeometry(i + 1), x: Math.sin(a) * ARC_RADIUS, z: Math.cos(a) * ARC_RADIUS, rot: hash(i, 3) * Math.PI, scale: 0.065 + 0.03 * hash(i, 4) };
+        const a = side * rank * PEBBLE_STEP * 1.15 + 0.17 * side; // la stele occupe ~0.17 rad a ce rayon
+        const x = Math.sin(a) * ARC_RADIUS, z = Math.cos(a) * ARC_RADIUS;
+        // Hauteur ~0.4-0.55 u : au-dessus de l'herbe (0.2-0.36), 5-6 fois les galets d'avant.
+        return { geometry: pebbleGeometry(i + 1), x, z, y: terrainHeightWorld(x, z), rot: hash(i, 3) * Math.PI, scale: 0.4 + 0.15 * hash(i, 4) };
       }),
     [year.number]
   );
-  const steleGeometry = useMemo(() => new BoxGeometry(0.46, 0.36, 0.1), []);
+  const steleGeometry = useMemo(() => new BoxGeometry(0.9, 0.7, 0.18), []);
+  const steleY = useMemo(() => terrainHeightWorld(0, ARC_RADIUS), []);
 
   // Le glyphe : l'embleme du porteur, extrait du GLB du serpent (bind
   // pose, mesh statique), centre, ramene a 0.34 u de large, monte sur la
@@ -102,7 +109,7 @@ export default function YearStones() {
     const center = new Vector3();
     box.getSize(size);
     box.getCenter(center);
-    const s = 0.3 / Math.max(size.x, size.y, 1e-3);
+    const s = 0.58 / Math.max(size.x, size.y, 1e-3);
     g.children.forEach((c) => c.position.sub(center));
     g.scale.setScalar(s);
     holder.add(g);
@@ -131,12 +138,12 @@ export default function YearStones() {
   return (
     <group ref={groupRef} visible={false}>
       {/* La stele, face a la camera de tete de page (+z), posee sur la Piedra. */}
-      <group position={[0, 0, ARC_RADIUS]}>
-        <mesh geometry={steleGeometry} material={stoneMaterial} position={[0, 0.18, 0]} castShadow receiveShadow />
-        <group ref={glyphRef} position={[0, 0.2, 0.052]} />
+      <group position={[0, steleY, ARC_RADIUS]}>
+        <mesh geometry={steleGeometry} material={stoneMaterial} position={[0, 0.33, 0]} castShadow receiveShadow />
+        <group ref={glyphRef} position={[0, 0.37, 0.092]} />
       </group>
       {pebbles.map((p, i) => (
-        <mesh key={i} geometry={p.geometry} material={stoneMaterial} position={[p.x, p.scale * 0.55, p.z]} rotation={[0, p.rot, 0]} scale={p.scale} castShadow receiveShadow />
+        <mesh key={i} geometry={p.geometry} material={stoneMaterial} position={[p.x, p.y + p.scale * 0.42, p.z]} rotation={[0, p.rot, 0]} scale={p.scale} castShadow receiveShadow />
       ))}
     </group>
   );
