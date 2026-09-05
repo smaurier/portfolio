@@ -23,7 +23,7 @@ import { useSceneRefs } from "./scene-refs-context";
 
 const RADIUS = 80;
 /** Direction de la lune = direction de la source de nuit du rig Sud. */
-const MOON_DIR = { x: -7, y: 3, z: -6 }; // elevation ~18 deg : dans le cadre (a 4.5 elle passait au-dessus du bandeau)
+const MOON_DIR = { x: -3.2, y: 2.2, z: -7 }; // ~16 deg d'elevation, ~25 deg a gauche : dans le cadre de tete de page (plus a gauche ou plus haut, elle sortait du champ)
 const CLOUD_COUNT = 7;
 
 function radialTexture(size: number, inner: number, outer: number, noise: number, seed: number): CanvasTexture {
@@ -127,8 +127,8 @@ export default function SudSkyBodies() {
       const r = Math.cos(c.elev);
       // Devant la camera : la camera regarde -z en tete de page.
       s.position.set(Math.sin(az) * r * RADIUS, y * RADIUS, -Math.cos(az) * r * RADIUS);
-      s.scale.set(c.width, c.width * 0.42, 1);
-      c.material.opacity = blend * (0.12 + 0.68 * day);
+      s.scale.set(c.width, c.width * (0.3 + 0.12 * (i % 3)), 1);
+      c.material.opacity = blend * (0.04 + 0.76 * day); // la nuit, a peine devinables (des soucoupes grises sinon)
       c.material.color.setRGB(0.55 + 0.45 * day, 0.6 + 0.4 * day, 0.75 + 0.25 * day);
     }
   });
