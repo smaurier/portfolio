@@ -11,6 +11,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { sudCamera } from "@/lib/sud-camera";
+import { tiltToParallax } from "@/lib/tilt";
 import { getRevealFloor } from "@/lib/reveal-arc";
 
 /**
@@ -141,7 +142,42 @@ export default function OrbitCamera({
     window.addEventListener("pointerdown", onPointerDown, { passive: true });
     window.addEventListener("pointerup", onPointerUp, { passive: true });
     window.addEventListener("pointercancel", onPointerUp, { passive: true });
+
+    // Gyroscope (05/09, controles de scene) : sur petit ecran, incliner le
+    // telephone remplace la parallaxe souris (lib/tilt). La reference est
+    // le premier releve (comment on tient le telephone). iOS exige une
+    // permission demandee dans un geste : on la demande au premier toucher.
+    let tiltRef: { beta: number; gamma: number } | null = null;
+    let tiltActive = false;
+    function onOrientation(e: DeviceOrientationEvent) {
+      if (reducedMotionRef.current || window.innerWidth >= 768) return;
+      if (e.beta === null || e.gamma === null) return;
+      if (!tiltRef) tiltRef = { beta: e.beta, gamma: e.gamma };
+      const t = tiltToParallax({ beta: e.beta, gamma: e.gamma }, tiltRef);
+      mouseTargetRef.current.x = t.x;
+      mouseTargetRef.current.y = t.y;
+    }
+    function armTilt() {
+      if (tiltActive) return;
+      tiltActive = true;
+      window.addEventListener("deviceorientation", onOrientation, { passive: true });
+    }
+    function requestTilt() {
+      if (window.innerWidth >= 768 || reducedMotionRef.current) return;
+      const DOE = (window as unknown as { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
+      if (DOE?.requestPermission) {
+        DOE.requestPermission().then((r) => {
+          if (r === "granted") armTilt();
+        }, () => {});
+      } else {
+        armTilt();
+      }
+      window.removeEventListener("touchend", requestTilt);
+    }
+    if (window.innerWidth < 768) window.addEventListener("touchend", requestTilt, { passive: true });
     return () => {
+      window.removeEventListener("touchend", requestTilt);
+      window.removeEventListener("deviceorientation", onOrientation);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointerup", onPointerUp);

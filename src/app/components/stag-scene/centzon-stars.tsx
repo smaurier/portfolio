@@ -6,6 +6,7 @@ import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, LineSegments, Points, ShaderMaterial, type Group } from "three";
 import { CENTZON_COUNT, killedState, makeStarField, starState, throwFactor, thrownDir } from "@/lib/centzon-stars";
 import { centzonStore } from "./centzon-store";
+import { markTrace } from "../traces-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -145,6 +146,7 @@ export default function CentzonStars() {
     }
     // reduced-motion : pas de jet, elles sont en place tout de suite.
     const since = reduced ? 1e9 : state.clock.elapsedTime - arrivedAtRef.current;
+    if (since > 2.5) markTrace("centzon-thrown"); // une trace : les 400 ont ete jetees devant vous
 
     const pos = pointsGeometry.getAttribute("position") as BufferAttribute;
     const size = pointsGeometry.getAttribute("aSize") as BufferAttribute;

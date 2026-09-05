@@ -8,6 +8,7 @@ import { buildInstantSearch, parseInstant, shouldOfferResume, type LastVisit } f
 import { isShortcutsEnabled, subscribeShortcuts } from "@/lib/shortcuts";
 import { useReadingMode } from "../../lib/reading-mode-context";
 import { getSceneControls, hydrateSceneControls, setSceneControls, subscribeSceneControls, type SceneControlsState } from "./scene-controls-store";
+import TracesPanel, { type TracesLabels } from "./traces-panel";
 
 /**
  * SceneControls (05/09). Le bloc de controles de l'experience, au-dessus
@@ -44,6 +45,7 @@ export type SceneControlsLabels = {
   linkCopied: string;
   resume: string;
   resumeDismiss: string;
+  traces: string;
 };
 
 const ARC_SCROLL_VIEWPORTS = 2;
@@ -68,7 +70,8 @@ function isHomePath(path: string): boolean {
   return /^\/[a-z]{2}\/?$/.test(path);
 }
 
-export default function SceneControls({ labels }: { labels: SceneControlsLabels }) {
+export default function SceneControls({ labels, traces, locale }: { labels: SceneControlsLabels; traces: TracesLabels; locale: string }) {
+  const [tracesOpen, setTracesOpen] = useState(false);
   const readingMode = useReadingMode();
   const pathname = usePathname();
   const router = useRouter();
@@ -262,7 +265,7 @@ export default function SceneControls({ labels }: { labels: SceneControlsLabels 
 
   if (readingMode.active) return null;
 
-  const buttons: { action: SceneAction; pressed: boolean | null; label: string; icon: React.ReactNode }[] = [
+  const buttons: { action: SceneAction | "traces"; pressed: boolean | null; label: string; icon: React.ReactNode }[] = [
     {
       action: "text",
       pressed: state.sceneOnly,
@@ -324,6 +327,16 @@ export default function SceneControls({ labels }: { labels: SceneControlsLabels 
       ),
     },
     {
+      action: "traces",
+      pressed: tracesOpen,
+      label: labels.traces,
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 4c-6 0-11 3-13 9l-3 7 2 0 2-4c5 1 9-1 11-6l1-6zM8 15c3-4 6-6 9-8" />
+        </svg>
+      ),
+    },
+    {
       action: "eco",
       pressed: state.eco,
       label: state.eco ? labels.ecoOff : labels.ecoOn,
@@ -343,7 +356,7 @@ export default function SceneControls({ labels }: { labels: SceneControlsLabels 
             key={b.action}
             type="button"
             className={styles.button}
-            onClick={() => act(b.action)}
+            onClick={() => (b.action === "traces" ? setTracesOpen(true) : act(b.action))}
             aria-label={b.label}
             title={b.label}
             aria-pressed={b.pressed === null ? undefined : b.pressed}
@@ -376,6 +389,7 @@ export default function SceneControls({ labels }: { labels: SceneControlsLabels 
         </div>
       )}
       {flashKey > 0 && <div key={flashKey} className={styles.flash} aria-hidden="true" />}
+      {tracesOpen && <TracesPanel labels={traces} locale={locale} onClose={() => setTracesOpen(false)} />}
     </>
   );
 }

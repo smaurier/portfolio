@@ -50,3 +50,67 @@
     opacity: 1;
   }
 }
+
+/* Volume (05/09) : le reglage apparait au survol / focus du bouton son,
+   glisse vers la droite. */
+.dock {
+  position: fixed;
+  bottom: 3rem;
+  left: 2rem;
+  z-index: 9200;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dock .toggle {
+  position: static;
+}
+.volume {
+  order: 2;
+  width: 0;
+  opacity: 0;
+  height: 22px;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+  transition: width 0.25s ease, opacity 0.25s ease;
+}
+.dock:hover .volume,
+.dock:focus-within .volume {
+  width: 90px;
+  opacity: 1;
+}
+.volume::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(244, 234, 213, 0.45);
+}
+.volume::-moz-range-track {
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(244, 234, 213, 0.45);
+}
+.volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: #f4ead5;
+}
+.volume::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: #f4ead5;
+}
+@media (max-width: 767px) {
+  .dock {
+    bottom: 1.2rem;
+    left: 1rem;
+  }
+}

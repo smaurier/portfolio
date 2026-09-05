@@ -8,6 +8,7 @@ import { Group, Mesh, MeshStandardMaterial, Quaternion, Vector3 } from "three";
 import { birdTangent, HUITZILIN_SPEC, HUITZILIN_SPECIES, initialBird, stepBird, type BirdState, type Prey } from "@/lib/huitzilin";
 import { CENTZON_COUNT, CENTZON_SPEC, makeStarField, throwFactor } from "@/lib/centzon-stars";
 import { centzonStore } from "./centzon-store";
+import { markTrace } from "../traces-store";
 import { addShaderModifier } from "./shader-patch";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -191,7 +192,10 @@ export default function HuitzilinBirds() {
       const mesh = birds[i];
       const s = (statesRef.current[i] = dt > 0 ? stepBird(statesRef.current[i], dt, p, HUITZILIN_SPEC, pickPrey) : statesRef.current[i]);
       // Le geste du mythe : a l'arrivee de sa fleche, l'etoile visee tombe.
-      if (s.justKilled !== null && centzonStore.killedAt[s.justKilled] < 0) centzonStore.killedAt[s.justKilled] = state.clock.elapsedTime;
+      if (s.justKilled !== null && centzonStore.killedAt[s.justKilled] < 0) {
+        centzonStore.killedAt[s.justKilled] = state.clock.elapsedTime;
+        markTrace("huitzilin-catch"); // une trace : un colibri a pris une etoile
+      }
       mesh.position.set(s.x, s.y, s.z);
       // Le modele regarde +z : cap = rotation autour de Y telle que +z -> tangente.
       const d = birdTangent(s);

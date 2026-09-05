@@ -416,7 +416,7 @@ export default async function LocaleLayout({
           <SoundDesign label={dict.common.sound} />
           {/* Controles de scene (05/09) : texte, plein ecran, contemplation,
               photo, eco ; raccourcis H F T P E. Au-dessus du bouton son. */}
-          <SceneControls labels={dict.common.sceneControls} />
+          <SceneControls labels={dict.common.sceneControls} traces={dict.common.traces} locale={locale} />
           {/* La barre du temps (05/09) : l arc au clavier et au doigt. */}
           <TimeBar labels={dict.common.timeBar} />
           {/* Mode recit accessible opt-in (29/08 chantier a11y) :

@@ -19,6 +19,7 @@ import styles from "./sound-design.module.css";
  */
 
 const STORAGE_KEY = "nahual-sound-muted";
+const VOLUME_KEY = "nahual-sound-volume";
 
 const CHIME_FREQ: Record<string, number[]> = {
   jade: [432, 648], // Centre : bell claire
@@ -28,9 +29,12 @@ const CHIME_FREQ: Record<string, number[]> = {
   obsidienne: [110, 165, 220], // Nord : gong grave
 };
 
-export default function SoundDesign({ label }: { label: { on: string; off: string } }) {
+export default function SoundDesign({ label }: { label: { on: string; off: string; volume: string } }) {
   const [muted, setMuted] = useState(true);
+  // Volume (05/09, controles de scene) : un vrai reglage, 0..1, persiste.
+  const [volume, setVolume] = useState(0.5);
   const ctxRef = useRef<AudioContext | null>(null);
+  const volumeRef = useRef(0.5);
   const ambientNodesRef = useRef<{ osc: OscillatorNode; gain: GainNode }[]>([]);
   const masterGainRef = useRef<GainNode | null>(null);
 
@@ -44,8 +48,20 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
       // Default true (muté). Seul "0" = unmute persisté.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (saved === "0") setMuted(false);
+      const v = Number(window.localStorage.getItem(VOLUME_KEY));
+      if (Number.isFinite(v) && v >= 0 && v <= 1 && window.localStorage.getItem(VOLUME_KEY) !== null) setVolume(v);
     } catch {}
   }, []);
+
+  // Applique et persiste le volume.
+  useEffect(() => {
+    volumeRef.current = volume;
+    const master = masterGainRef.current;
+    if (master) master.gain.value = volume;
+    try {
+      window.localStorage.setItem(VOLUME_KEY, String(volume));
+    } catch {}
+  }, [volume]);
 
   // Écrit l'état muté à chaque changement
   useEffect(() => {
@@ -70,7 +86,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     if (!Ctor) return null;
     const ctx = new Ctor();
     const master = ctx.createGain();
-    master.gain.value = 0.5;
+    master.gain.value = volumeRef.current;
     // Analyser insert entre master et destination (28/08 boite outil
     // #3 sound-reactive visuals). getByteFrequencyData chaque frame
     // via une rAF dediee → poste level normalise 0..1 dans un ref
@@ -189,6 +205,17 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
   }
 
   return (
+    <div className={styles.dock}>
+    <input
+      type="range"
+      className={styles.volume}
+      min={0}
+      max={100}
+      step={5}
+      value={Math.round(volume * 100)}
+      aria-label={label.volume}
+      onChange={(e) => setVolume(Number(e.target.value) / 100)}
+    />
     <button
       type="button"
       className={styles.toggle}
@@ -207,5 +234,6 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
         </svg>
       )}
     </button>
+    </div>
   );
 }

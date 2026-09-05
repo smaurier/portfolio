@@ -24,7 +24,8 @@
     "skipNav": "Aller au contenu principal",
     "sound": {
       "on": "Activer le son",
-      "off": "Couper le son"
+      "off": "Couper le son",
+      "volume": "Volume"
     },
     "sceneControls": {
       "textHide": "Masquer le texte",
@@ -39,7 +40,8 @@
       "link": "Copier le lien de cet instant",
       "linkCopied": "Lien copié",
       "resume": "Reprendre où vous étiez",
-      "resumeDismiss": "Non merci"
+      "resumeDismiss": "Non merci",
+      "traces": "Ce que la scène vous a montré"
     },
     "timeBar": {
       "label": "Moment du jour",
@@ -47,6 +49,21 @@
       "dawn": "Aube",
       "morning": "Matin",
       "noon": "Midi"
+    },
+    "traces": {
+      "title": "Ce que la scène vous a montré",
+      "intro": "Certaines choses n'arrivent qu'à qui regarde. Voici celles qui vous sont arrivées.",
+      "close": "Fermer",
+      "count": "{n} traces sur {total}",
+      "hidden": "Une trace encore à trouver",
+      "lines": {
+        "centzon-thrown": "Les quatre cents étoiles ont été jetées dans le ciel devant vous.",
+        "huitzilin-catch": "Un colibri a pris une étoile.",
+        "sunrise": "Vous avez vu le soleil se lever à l'est.",
+        "xiuhcoatl-strike": "Le xiuhcoatl a frappé la pierre.",
+        "glyph-lit": "Le glyphe de l'année s'est embrasé.",
+        "xolotl": "Xolotl est passé, et vous l'avez vu."
+      }
     },
     "readingMode": {
       "on": "Activer le mode récit accessible",

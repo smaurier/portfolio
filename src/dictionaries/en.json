@@ -24,7 +24,8 @@
     "skipNav": "Skip to main content",
     "sound": {
       "on": "Turn sound on",
-      "off": "Turn sound off"
+      "off": "Turn sound off",
+      "volume": "Volume"
     },
     "sceneControls": {
       "textHide": "Hide the text",
@@ -39,7 +40,8 @@
       "link": "Copy the link to this moment",
       "linkCopied": "Link copied",
       "resume": "Pick up where you left off",
-      "resumeDismiss": "No thanks"
+      "resumeDismiss": "No thanks",
+      "traces": "What the scene has shown you"
     },
     "timeBar": {
       "label": "Time of day",
@@ -47,6 +49,21 @@
       "dawn": "Dawn",
       "morning": "Morning",
       "noon": "Noon"
+    },
+    "traces": {
+      "title": "What the scene has shown you",
+      "intro": "Some things only happen to those who watch. Here are the ones that happened to you.",
+      "close": "Close",
+      "count": "{n} traces out of {total}",
+      "hidden": "A trace still to be found",
+      "lines": {
+        "centzon-thrown": "The four hundred stars were thrown into the sky before you.",
+        "huitzilin-catch": "A hummingbird took a star.",
+        "sunrise": "You saw the sun rise in the east.",
+        "xiuhcoatl-strike": "The xiuhcoatl struck the stone.",
+        "glyph-lit": "The year glyph caught fire.",
+        "xolotl": "Xolotl passed by, and you saw him."
+      }
     },
     "readingMode": {
       "on": "Enable accessible reading mode",

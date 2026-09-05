@@ -4,6 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { strikeState } from "@/lib/strike-sequence";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { useSceneRefs } from "./scene-refs-context";
+import { markTrace } from "../traces-store";
 
 /**
  * XiuhcoatlStrikeDirector (05/09). Un seul endroit calcule l'enveloppe de
@@ -24,6 +25,7 @@ export default function XiuhcoatlStrikeDirector() {
     t.lift = s.lift;
     t.fire = s.fire;
     t.tint = s.tint;
+    if (s.fire > 0.5 || s.tint > 0.2) markTrace("xiuhcoatl-strike"); // une trace : la frappe
   });
   return null;
 }

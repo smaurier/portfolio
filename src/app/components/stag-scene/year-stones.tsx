@@ -13,6 +13,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import { terrainHeightWorld } from "./cardinal-orientation";
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { useSceneRefs } from "./scene-refs-context";
+import { markTrace } from "../traces-store";
 
 /**
  * YearStones (05/09, v3 apres deux retours de Sylvain : « vire la stele
@@ -152,6 +153,7 @@ export default function YearStones() {
     const igniteU = Math.min(1, Math.max(0, (day - 0.55) / 0.25));
     const lit = Math.max(igniteU * igniteU * (3 - 2 * igniteU), gate, Math.min(1, fire * 3));
     material.color.copy(STONE_GREY).lerp(TURQUOISE, lit);
+    if (lit > 0.9) markTrace("glyph-lit"); // une trace : le glyphe de l'annee embrase
     material.sheen = 0.35 * lit;
     uniforms.uTime.value = state.clock.elapsedTime;
     uniforms.uEmber.value = lit * (0.33 + 0.67 * day) * (0.25 + 0.6 * gate) + 2.6 * fire;

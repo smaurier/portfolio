@@ -8,6 +8,7 @@ import { getRevealFloor } from "@/lib/reveal-arc";
 import { moonDirection, sunDirection } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { markTrace } from "../traces-store";
 
 /**
  * SudSkyBodies (05/09, Sylvain en direct). Deux corps dans le ciel du Sud :
@@ -113,6 +114,7 @@ export default function SudSkyBodies() {
       sun.position.set(sd.x * RADIUS, sd.y * RADIUS, sd.z * RADIUS);
       halo.position.copy(sun.position);
       const up = Math.max(0, Math.min(1, (sd.y + 0.02) / 0.12));
+      if (sd.y > 0.08 && blend > 0.5) markTrace("sunrise"); // une trace : le soleil s'est leve devant vous
       sun.scale.setScalar(7);
       halo.scale.setScalar(26 + 10 * day);
       sunMaterial.opacity = blend * up;

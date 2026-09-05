@@ -24,7 +24,8 @@
     "skipNav": "Ir al contenido principal",
     "sound": {
       "on": "Activar sonido",
-      "off": "Silenciar"
+      "off": "Silenciar",
+      "volume": "Volumen"
     },
     "sceneControls": {
       "textHide": "Ocultar el texto",
@@ -39,7 +40,8 @@
       "link": "Copiar el enlace de este instante",
       "linkCopied": "Enlace copiado",
       "resume": "Retomar donde lo dejó",
-      "resumeDismiss": "No, gracias"
+      "resumeDismiss": "No, gracias",
+      "traces": "Lo que la escena le ha mostrado"
     },
     "timeBar": {
       "label": "Momento del día",
@@ -47,6 +49,21 @@
       "dawn": "Amanecer",
       "morning": "Mañana",
       "noon": "Mediodía"
+    },
+    "traces": {
+      "title": "Lo que la escena le ha mostrado",
+      "intro": "Algunas cosas solo le ocurren a quien mira. Estas son las que le ocurrieron a usted.",
+      "close": "Cerrar",
+      "count": "{n} huellas de {total}",
+      "hidden": "Una huella todavía por encontrar",
+      "lines": {
+        "centzon-thrown": "Las cuatrocientas estrellas fueron lanzadas al cielo ante usted.",
+        "huitzilin-catch": "Un colibrí tomó una estrella.",
+        "sunrise": "Vio salir el sol por el este.",
+        "xiuhcoatl-strike": "La xiuhcoatl golpeó la piedra.",
+        "glyph-lit": "El glifo del año se encendió.",
+        "xolotl": "Xolotl pasó, y usted lo vio."
+      }
     },
     "readingMode": {
       "on": "Activar el modo lectura accesible",
