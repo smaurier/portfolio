@@ -19,7 +19,7 @@
  * (scene-controls.tsx) ne fait que brancher le navigateur dessus.
  */
 
-export type SceneAction = "text" | "fullscreen" | "cinematic" | "photo" | "eco" | "link";
+export type SceneAction = "text" | "fullscreen" | "cinematic" | "photo" | "eco" | "link" | "tenochtitlan";
 
 /** Raccourcis de scene : lettres LIBRES (la navigation cardinale prend
  * WASD / ZQSD / C, et Echap ramene a l'accueil). */
@@ -30,6 +30,7 @@ export const SCENE_SHORTCUTS: Record<string, SceneAction> = {
   p: "photo",
   e: "eco",
   l: "link",
+  n: "tenochtitlan",
 };
 
 export function shortcutAction(key: string): SceneAction | null {

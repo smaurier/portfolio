@@ -9,6 +9,7 @@ import { moonDirection, sunDirection } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { markTrace } from "../traces-store";
+import { getSceneControls } from "../scene-controls-store";
 
 /**
  * SudSkyBodies (05/09, Sylvain en direct). Deux corps dans le ciel du Sud :
@@ -110,7 +111,8 @@ export default function SudSkyBodies() {
     // direction que la lumiere de jour). Disque + halo, plus forts en montant.
     const sun = sunRef.current, halo = sunHaloRef.current;
     if (sun && halo) {
-      const sd = sunDirection(day);
+      const sc = getSceneControls();
+      const sd = sunDirection(day, sc.tenochtitlan && sc.tenochtitlanAfternoon);
       sun.position.set(sd.x * RADIUS, sd.y * RADIUS, sd.z * RADIUS);
       halo.position.copy(sun.position);
       const up = Math.max(0, Math.min(1, (sd.y + 0.02) / 0.12));

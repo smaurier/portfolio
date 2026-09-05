@@ -18,6 +18,7 @@ import { approachRig, getLightRig, rigAtArc, type LightRig } from "@/lib/directi
 import { useCurrentDirection } from "./use-current-direction";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { useSceneRefs } from "./scene-refs-context";
+import { getSceneControls } from "../scene-controls-store";
 
 /**
  * Lumière (+ brouillard, depuis le 20/08) de l'arc de reveal (palier 1, cf
@@ -90,7 +91,7 @@ export default function RevealLighting({
     // snap direct si prefers-reduced-motion, meme convention que le fog.
     // Lune -> soleil (05/09) : le rig de la direction a un etat de nuit ; l'arc
     // de revelation l'emmene vers le jour (rigAtArc, identite pour les autres).
-    const rigTarget = rigAtArc(getLightRig(hour), getRevealFloor(p));
+    const rigTarget = rigAtArc(getLightRig(hour), getRevealFloor(p), getSceneControls().tenochtitlan && getSceneControls().tenochtitlanAfternoon);
     lightRigRef.current = sceneRefs?.reducedMotionRef.current
       ? { ...rigTarget }
       : approachRig(lightRigRef.current, rigTarget, 0.06);

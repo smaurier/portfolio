@@ -12,6 +12,7 @@ import { useSceneRefs } from "./scene-refs-context";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { sudCamera } from "@/lib/sud-camera";
 import { tiltToParallax } from "@/lib/tilt";
+import { getSceneControls } from "../scene-controls-store";
 import { getRevealFloor } from "@/lib/reveal-arc";
 
 /**
@@ -73,6 +74,8 @@ const TOUCH_DECAY = 0.02; // retour à 0 par frame
 const SWING_DOLLY = 0.35; // recul relatif du rayon au pic de vitesse
 const SWING_LIFT = 0.9; // montee (unites monde) au pic de vitesse
 const SWING_FOV = 10; // ouverture FOV (degres) au pic de vitesse
+/** Vitesse de l'orbite de l'heure de Tenochtitlan (rad/s) : un tour en ~100 s. */
+const TENOCHTITLAN_SPIN = 0.063;
 
 export default function OrbitCamera({
   progressRef,
@@ -113,6 +116,11 @@ export default function OrbitCamera({
   // c'est là que passe le xiuhcoatl. Le cerf reste entier dans le cadre
   // (sabots juste au-dessus du titre).
   const southBlendRef = useRef(direction === "turquoise" ? 1 : 0);
+  // L'heure de Tenochtitlan (05/09) : la camera orbite lentement autour du
+  // cerf tant que le mode est actif (angle cumule, qui revient a zero en
+  // douceur quand on en sort).
+  const tenochtitlanSpinRef = useRef(0);
+  const lastFrameRef = useRef(0);
 
   useEffect(() => {
     reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -222,6 +230,25 @@ export default function OrbitCamera({
               y: normal.y,
               z: normal.z + (mirrored.z - normal.z) * northEase,
             };
+    // L'heure de Tenochtitlan : orbite lente (un tour en ~100 s).
+    {
+      const nowMs = performance.now();
+      const dtSpin = lastFrameRef.current ? Math.min(0.1, (nowMs - lastFrameRef.current) / 1000) : 0;
+      lastFrameRef.current = nowMs;
+      if (getSceneControls().tenochtitlan && !reducedMotionRef.current) tenochtitlanSpinRef.current += dtSpin * TENOCHTITLAN_SPIN;
+      else if (tenochtitlanSpinRef.current !== 0) {
+        // Retour au repos par le plus court chemin.
+        const wrapped = Math.atan2(Math.sin(tenochtitlanSpinRef.current), Math.cos(tenochtitlanSpinRef.current));
+        tenochtitlanSpinRef.current = Math.abs(wrapped) < 0.002 ? 0 : wrapped * (1 - Math.min(1, dtSpin * 2.5));
+      }
+      const spin = tenochtitlanSpinRef.current;
+      if (spin !== 0) {
+        const c = Math.cos(spin), sn = Math.sin(spin);
+        const px = position.x, pz = position.z;
+        position.x = px * c + pz * sn;
+        position.z = -px * sn + pz * c;
+      }
+    }
     // Plongée légère Mictlampa : la caméra monte un peu, on regarde
     // vers le bas (on descend au Mictlan).
     position.y += nb * 0.45;

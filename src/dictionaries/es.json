@@ -41,7 +41,11 @@
       "linkCopied": "Enlace copiado",
       "resume": "Retomar donde lo dejó",
       "resumeDismiss": "No, gracias",
-      "traces": "Lo que la escena le ha mostrado"
+      "traces": "Lo que la escena le ha mostrado",
+      "tenochtitlanOn": "A la hora de Tenochtitlan",
+      "tenochtitlanOff": "Salir de la hora de Tenochtitlan",
+      "tenochtitlanClock": "Son las {time} en Tenochtitlan",
+      "tenochtitlanNight": "Son las {time} en Tenochtitlan, es de noche"
     },
     "timeBar": {
       "label": "Momento del día",
@@ -640,7 +644,7 @@
       },
       {
         "title": "Atajos de teclado",
-        "text": "Alt+Flecha arriba/derecha/abajo/izquierda: navegación cardinal directa (arriba=Memoria Norte, derecha=Servicios Este, abajo=Proyectos Sur, izquierda=Contacto Oeste). WASD (QWERTY) o ZQSD (AZERTY) · sin importar el layout físico · misma cuadrícula cardinal: W/Z=Memoria, D=Servicios, S=Proyectos, A/Q=Contacto, C=Inicio (Centro). Escape: volver al inicio. Controles de escena (letras solas): H oculta o muestra el texto, F pantalla completa, T contemplación (la escena avanza sola del atardecer al mediodía, cualquier gesto la detiene), P foto de la escena, L copia el enlace de este instante, E modo eco. Estos atajos obedecen al mismo interruptor que los demás."
+        "text": "Alt+Flecha arriba/derecha/abajo/izquierda: navegación cardinal directa (arriba=Memoria Norte, derecha=Servicios Este, abajo=Proyectos Sur, izquierda=Contacto Oeste). WASD (QWERTY) o ZQSD (AZERTY) · sin importar el layout físico · misma cuadrícula cardinal: W/Z=Memoria, D=Servicios, S=Proyectos, A/Q=Contacto, C=Inicio (Centro). Escape: volver al inicio. Controles de escena (letras solas): H oculta o muestra el texto, F pantalla completa, T contemplación (la escena avanza sola del atardecer al mediodía, cualquier gesto la detiene), P foto de la escena, L copia el enlace de este instante, E modo eco, N la hora de Tenochtitlan (la escena se fija a la altura real del sol sobre México y la cámara gira despacio). Estos atajos obedecen al mismo interruptor que los demás."
       },
       {
         "title": "Atajos de mando",

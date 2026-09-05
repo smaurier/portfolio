@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import styles from "./scene-controls.module.css";
 import { cinematicProgress, shortcutAction, type SceneAction } from "@/lib/scene-controls";
 import { buildInstantSearch, parseInstant, shouldOfferResume, type LastVisit } from "@/lib/instant-link";
+import { tenochtitlanNow } from "@/lib/solar";
 import { isShortcutsEnabled, subscribeShortcuts } from "@/lib/shortcuts";
 import { useReadingMode } from "../../lib/reading-mode-context";
 import { getSceneControls, hydrateSceneControls, setSceneControls, subscribeSceneControls, type SceneControlsState } from "./scene-controls-store";
@@ -46,6 +47,11 @@ export type SceneControlsLabels = {
   resume: string;
   resumeDismiss: string;
   traces: string;
+  tenochtitlanOn: string;
+  tenochtitlanOff: string;
+  /** « Il est {time} à Tenochtitlan » */
+  tenochtitlanClock: string;
+  tenochtitlanNight: string;
 };
 
 const ARC_SCROLL_VIEWPORTS = 2;
@@ -186,10 +192,26 @@ export default function SceneControls({ labels, traces, locale }: { labels: Scen
     cinematicRef.current = { start, from, raf: requestAnimationFrame(tick) };
   }, []);
 
-  // Le moindre geste de l'utilisateur arrete la contemplation.
+  // L'heure de Tenochtitlan : on recalcule l'heure et la hauteur du soleil
+  // a l'entree puis toutes les 30 s ; le mode se coupe au moindre geste.
   useEffect(() => {
-    if (!state.cinematic) return;
-    const stop = () => stopCinematic();
+    if (!state.tenochtitlan) return;
+    const tick = () => {
+      const n = tenochtitlanNow();
+      setSceneControls({ tenochtitlanArc: n.arc, tenochtitlanAfternoon: n.afternoon });
+    };
+    tick();
+    const id = window.setInterval(tick, 30000);
+    return () => window.clearInterval(id);
+  }, [state.tenochtitlan]);
+
+  // Le moindre geste de l'utilisateur arrete la contemplation (les deux).
+  useEffect(() => {
+    if (!state.cinematic && !state.tenochtitlan) return;
+    const stop = () => {
+      stopCinematic();
+      if (getSceneControls().tenochtitlan) setSceneControls({ tenochtitlan: false });
+    };
     const opts: AddEventListenerOptions = { passive: true };
     window.addEventListener("wheel", stop, opts);
     window.addEventListener("touchstart", stop, opts);
@@ -201,7 +223,7 @@ export default function SceneControls({ labels, traces, locale }: { labels: Scen
       window.removeEventListener("keydown", stop);
       window.removeEventListener("pointerdown", stop);
     };
-  }, [state.cinematic, stopCinematic]);
+  }, [state.cinematic, state.tenochtitlan, stopCinematic]);
 
   const takePhoto = useCallback(() => {
     const canvas = document.querySelector("canvas");
@@ -243,6 +265,14 @@ export default function SceneControls({ labels, traces, locale }: { labels: Scen
       else if (action === "photo") takePhoto();
       else if (action === "eco") setSceneControls({ eco: !s.eco });
       else if (action === "link") copyLink();
+      else if (action === "tenochtitlan") {
+        if (s.tenochtitlan) setSceneControls({ tenochtitlan: false });
+        else {
+          stopCinematic();
+          const n = tenochtitlanNow();
+          setSceneControls({ tenochtitlan: true, tenochtitlanArc: n.arc, tenochtitlanAfternoon: n.afternoon });
+        }
+      }
     },
     [toggleFullscreen, stopCinematic, startCinematic, takePhoto, copyLink]
   );
@@ -327,6 +357,17 @@ export default function SceneControls({ labels, traces, locale }: { labels: Scen
       ),
     },
     {
+      action: "tenochtitlan",
+      pressed: state.tenochtitlan,
+      label: state.tenochtitlan ? labels.tenochtitlanOff : labels.tenochtitlanOn,
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.5" />
+          <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8M12 9.5v2.5l1.6 1" />
+        </svg>
+      ),
+    },
+    {
       action: "traces",
       pressed: tracesOpen,
       label: labels.traces,
@@ -368,6 +409,15 @@ export default function SceneControls({ labels, traces, locale }: { labels: Scen
       {toast && (
         <div className={styles.toast} role="status">
           {toast}
+        </div>
+      )}
+      {state.tenochtitlan && !toast && (
+        <div className={styles.toast} role="status">
+          {(() => {
+            const n = tenochtitlanNow();
+            const time = `${n.clock.hours} h ${String(n.clock.minutes).padStart(2, "0")}`;
+            return (n.arc <= 0 ? labels.tenochtitlanNight : labels.tenochtitlanClock).replace("{time}", time);
+          })()}
         </div>
       )}
       {resume && (

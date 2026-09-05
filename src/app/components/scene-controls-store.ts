@@ -13,6 +13,13 @@ export type SceneControlsState = {
   cinematic: boolean;
   /** Profil de rendu leger force. */
   eco: boolean;
+  /** L'heure de Tenochtitlan : la scene figee a la hauteur reelle du
+   * soleil sur Mexico, la camera qui orbite (lib solar). */
+  tenochtitlan: boolean;
+  /** Progres de l'arc impose par l'heure reelle (0 la nuit .. 1 le zenith). */
+  tenochtitlanArc: number;
+  /** Apres le midi solaire : soleil a l'ouest. */
+  tenochtitlanAfternoon: boolean;
 };
 
 type Listener = (state: SceneControlsState) => void;
@@ -33,7 +40,7 @@ function readStored(): Partial<SceneControlsState> {
   return out;
 }
 
-const state: SceneControlsState = { sceneOnly: false, cinematic: false, eco: false };
+const state: SceneControlsState = { sceneOnly: false, cinematic: false, eco: false, tenochtitlan: false, tenochtitlanArc: 0, tenochtitlanAfternoon: false };
 const listeners = new Set<Listener>();
 let hydrated = false;
 

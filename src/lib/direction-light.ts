@@ -136,10 +136,14 @@ function fromAngles(azimuth: number, elev: number): Dir3 {
 
 /** Direction du soleil : sous l'horizon la nuit, il se leve vers t = 0.27
  * (progres), monte en arc et atteint le zenith a t = 1. */
-export function sunDirection(t: number): Dir3 {
+export function sunDirection(t: number, afternoon = false): Dir3 {
   const u = smooth((t - 0.12) / 0.88);
   // Arc horizon -> zenith : angle d'elevation de -8 deg (sous l'horizon) a 86 deg.
-  return fromAngles(SUN_AZIMUTH, (-8 + 94 * u) * (Math.PI / 180));
+  const d = fromAngles(SUN_AZIMUTH, (-8 + 94 * u) * (Math.PI / 180));
+  // L'heure de Tenochtitlan (05/09) : l'apres-midi, le vrai soleil est a
+  // l'OUEST ; notre arc ne connait que l'est, on le renvoie en miroir
+  // (meme hauteur, azimut symetrique par rapport a l'axe nord-sud).
+  return afternoon ? { x: -d.x, y: d.y, z: d.z } : d;
 }
 
 /** Direction de la lune : 9 deg au-dessus de l'horizon la nuit (sous le
@@ -170,7 +174,7 @@ function lerp(a: number, b: number, t: number): number {
 /** Le rig au point `floor` (0..1) de l'arc de revelation : de l'etat de
  * nuit (lune) a l'etat de jour. Sans etat de nuit, le rig est rendu tel
  * quel. Lissage smoothstep : la lune s'efface doucement, le soleil monte. */
-export function rigAtArc(rig: LightRig, floor: number): LightRig {
+export function rigAtArc(rig: LightRig, floor: number, afternoon = false): LightRig {
   if (!rig.night) return rig;
   const u = Math.min(1, Math.max(0, floor));
   // La source passe de la LUNE au SOLEIL quand celui-ci se leve (t 0.15 ->
@@ -181,7 +185,7 @@ export function rigAtArc(rig: LightRig, floor: number): LightRig {
   const [nr, ng, nb] = hexToRgb(n.color);
   const [dr, dg, db] = hexToRgb(rig.color);
   const moon = moonDirection(u);
-  const sun = sunDirection(u);
+  const sun = sunDirection(u, afternoon);
   const dir = normalize({ x: lerp(moon.x, sun.x, t), y: lerp(Math.max(0.08, moon.y), Math.max(0.08, sun.y), t), z: lerp(moon.z, sun.z, t) });
   return {
     position: [dir.x * LIGHT_DISTANCE, dir.y * LIGHT_DISTANCE, dir.z * LIGHT_DISTANCE],

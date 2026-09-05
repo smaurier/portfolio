@@ -194,4 +194,13 @@ describe("astronomie du Sud (sunDirection / moonDirection)", () => {
     expect(noon.position[1]).toBeGreaterThan(9);
     for (let k = 0; k <= 20; k++) expect(rigAtArc(sud, k / 20).position[1]).toBeGreaterThan(0);
   });
+
+  it("l'apres-midi (heure de Tenochtitlan), le soleil est en miroir a l'ouest, meme hauteur", () => {
+    const am = sunDirection(0.6);
+    const pm = sunDirection(0.6, true);
+    expect(pm.y).toBeCloseTo(am.y, 12);
+    expect(pm.x).toBeCloseTo(-am.x, 12);
+    expect(pm.z).toBeCloseTo(am.z, 12);
+    expect(rigAtArc(getLightRig("turquoise"), 0.6, true).position[0]).toBeCloseTo(-rigAtArc(getLightRig("turquoise"), 0.6).position[0], 9);
+  });
 });

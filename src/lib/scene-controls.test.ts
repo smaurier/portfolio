@@ -72,6 +72,7 @@ describe("les raccourcis de scene", () => {
     expect(shortcutAction("p")).toBe("photo");
     expect(shortcutAction("e")).toBe("eco");
     expect(shortcutAction("l")).toBe("link");
+    expect(shortcutAction("n")).toBe("tenochtitlan");
     expect(shortcutAction("w")).toBeNull(); // WASD reste a la navigation
     expect(shortcutAction("Escape")).toBeNull(); // Echap reste au retour accueil
   });
