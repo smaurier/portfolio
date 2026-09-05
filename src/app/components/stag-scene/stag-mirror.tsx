@@ -22,6 +22,8 @@ import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUti
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { TEZCATL_EXTENT, tezcatlStore } from "./tezcatl-store";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createStagMirrorNodeMaterial, type StagMirrorUniforms } from "./webgpu/stag-mirror-tsl";
 
 /**
  * StagMirror (01/09, etage 4 sprint identites : element B de la fiche
@@ -91,6 +93,63 @@ const RIPPLE_REFRACT = 0.4;
  * inversees noyees dans la fumee du plan de contact). */
 const CONTACT_FADE_DEPTH = 0.9;
 const CONTACT_FADE_EDGE = 0.08;
+
+/** Le reflet : GLSL en WebGL, TSL en WebGPU (stag-mirror-tsl.ts). */
+function createStagMirrorMaterial(uniforms: StagMirrorUniforms) {
+  if (isWebGpu()) return createStagMirrorNodeMaterial(uniforms);
+  return Object.assign(
+    new ShaderMaterial({
+      uniforms,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      side: DoubleSide,
+      vertexShader: `
+        uniform sampler2D uRipple;
+        uniform float uTexel;
+        uniform float uExtent;
+        uniform float uRefract;
+        varying vec3 vWorldPos;
+        void main() {
+          vec4 world = modelMatrix * vec4(position, 1.0);
+          // Ondes de la nappe : le gradient de hauteur refracte le reflet
+          // (echantillonne en espace sol). Eau calme = reflet immobile.
+          vec2 suv = world.xz / (2.0 * uExtent) + 0.5;
+          float hL = texture2D(uRipple, suv - vec2(uTexel, 0.0)).x;
+          float hR = texture2D(uRipple, suv + vec2(uTexel, 0.0)).x;
+          float hB = texture2D(uRipple, suv - vec2(0.0, uTexel)).x;
+          float hT = texture2D(uRipple, suv + vec2(0.0, uTexel)).x;
+          world.xz += vec2(hR - hL, hT - hB) * uRefract;
+          vWorldPos = world.xyz;
+          gl_Position = projectionMatrix * viewMatrix * world;
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        uniform float uOpacity;
+        uniform float uRadiusInner;
+        uniform float uRadiusOuter;
+        uniform float uContactY;
+        uniform float uFadeDepth;
+        uniform float uFadeEdge;
+        varying vec3 vWorldPos;
+        void main() {
+          float mask = 1.0 - smoothstep(uRadiusInner, uRadiusOuter, length(vWorldPos.xz));
+          // Fade de contact (retour Sylvain 01/09) : pres du plan du
+          // miroir, les jambes inversees se lisaient comme des bois
+          // incoherents. La fumee du tezcatl brouille la ligne de
+          // contact : le reflet emerge en s'eloignant du plan. Bande
+          // exprimee a l'echelle compressee (MIRROR_DEPTH_SCALE).
+          float contactFade = 1.0 - smoothstep(uContactY - uFadeDepth, uContactY - uFadeEdge, vWorldPos.y);
+          float a = uOpacity * mask * contactFade;
+          if (a < 0.002) discard;
+          gl_FragColor = vec4(uColor, a);
+        }
+      `,
+    }),
+    { uniforms }
+  );
+}
 
 export default function StagMirror() {
   const groupRef = useRef<Group>(null);
@@ -185,71 +244,23 @@ export default function StagMirror() {
   // en prop JSX <shaderMaterial> (constate le 01/09 : les ecritures sur
   // l'objet source n'atteignaient jamais le GPU). Reference unique =
   // ecriture directe garantie, un seul programme.
-  const material = useMemo(
-    () =>
-      new ShaderMaterial({
-        uniforms: {
-          uColor: { value: MIRROR_COLOR },
-          uOpacity: { value: 0 },
-          uRadiusInner: { value: MIRROR_RADIUS * 0.55 },
-          uRadiusOuter: { value: MIRROR_RADIUS },
-          uContactY: { value: MIRROR_PLANE_Y }, // = position Y du groupe (plan du miroir)
-          uFadeDepth: { value: CONTACT_FADE_DEPTH * MIRROR_DEPTH_SCALE },
-          uFadeEdge: { value: CONTACT_FADE_EDGE * MIRROR_DEPTH_SCALE },
-          uRipple: { value: tezcatlStore.ripple },
-          uTexel: { value: tezcatlStore.rippleTexel },
-          uExtent: { value: TEZCATL_EXTENT },
-          uRefract: { value: RIPPLE_REFRACT },
-        },
-        transparent: true,
-        depthWrite: false,
-        depthTest: false,
-        side: DoubleSide,
-        vertexShader: `
-          uniform sampler2D uRipple;
-          uniform float uTexel;
-          uniform float uExtent;
-          uniform float uRefract;
-          varying vec3 vWorldPos;
-          void main() {
-            vec4 world = modelMatrix * vec4(position, 1.0);
-            // Ondes de la nappe : le gradient de hauteur refracte le reflet
-            // (echantillonne en espace sol). Eau calme = reflet immobile.
-            vec2 suv = world.xz / (2.0 * uExtent) + 0.5;
-            float hL = texture2D(uRipple, suv - vec2(uTexel, 0.0)).x;
-            float hR = texture2D(uRipple, suv + vec2(uTexel, 0.0)).x;
-            float hB = texture2D(uRipple, suv - vec2(0.0, uTexel)).x;
-            float hT = texture2D(uRipple, suv + vec2(0.0, uTexel)).x;
-            world.xz += vec2(hR - hL, hT - hB) * uRefract;
-            vWorldPos = world.xyz;
-            gl_Position = projectionMatrix * viewMatrix * world;
-          }
-        `,
-        fragmentShader: `
-          uniform vec3 uColor;
-          uniform float uOpacity;
-          uniform float uRadiusInner;
-          uniform float uRadiusOuter;
-          uniform float uContactY;
-          uniform float uFadeDepth;
-          uniform float uFadeEdge;
-          varying vec3 vWorldPos;
-          void main() {
-            float mask = 1.0 - smoothstep(uRadiusInner, uRadiusOuter, length(vWorldPos.xz));
-            // Fade de contact (retour Sylvain 01/09) : pres du plan du
-            // miroir, les jambes inversees se lisaient comme des bois
-            // incoherents. La fumee du tezcatl brouille la ligne de
-            // contact : le reflet emerge en s'eloignant du plan. Bande
-            // exprimee a l'echelle compressee (MIRROR_DEPTH_SCALE).
-            float contactFade = 1.0 - smoothstep(uContactY - uFadeDepth, uContactY - uFadeEdge, vWorldPos.y);
-            float a = uOpacity * mask * contactFade;
-            if (a < 0.002) discard;
-            gl_FragColor = vec4(uColor, a);
-          }
-        `,
-      }),
+  const uniforms = useMemo<StagMirrorUniforms>(
+    () => ({
+      uColor: { value: MIRROR_COLOR },
+      uOpacity: { value: 0 },
+      uRadiusInner: { value: MIRROR_RADIUS * 0.55 },
+      uRadiusOuter: { value: MIRROR_RADIUS },
+      uContactY: { value: MIRROR_PLANE_Y }, // = position Y du groupe (plan du miroir)
+      uFadeDepth: { value: CONTACT_FADE_DEPTH * MIRROR_DEPTH_SCALE },
+      uFadeEdge: { value: CONTACT_FADE_EDGE * MIRROR_DEPTH_SCALE },
+      uRipple: { value: tezcatlStore.ripple },
+      uTexel: { value: tezcatlStore.rippleTexel },
+      uExtent: { value: TEZCATL_EXTENT },
+      uRefract: { value: RIPPLE_REFRACT },
+    }),
     []
   );
+  const material = useMemo(() => createStagMirrorMaterial(uniforms), [uniforms]);
 
   useFrame((state) => {
     // Gate de scroll : profondeur de page 0..1, le Mictlan se revele

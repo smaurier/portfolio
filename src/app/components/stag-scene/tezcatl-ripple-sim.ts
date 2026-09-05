@@ -139,7 +139,17 @@ export const DEFAULT_RIPPLE_PARAMS: RippleParams = {
   dropRadius: 0.0001,
 };
 
-export class TezcatlRippleSim {
+/** L'API du simulateur, commune aux deux moteurs (GLSL ici, TSL dans
+ * webgpu/ripple-sim-tsl.ts). */
+export interface RippleSim {
+  readonly texel: number;
+  params: RippleParams;
+  readonly heightTexture: Texture;
+  step(drops: RippleDrop[], substeps?: number, hulls?: RippleHull[]): void;
+  dispose(): void;
+}
+
+export class TezcatlRippleSim implements RippleSim {
   private gl: WebGLRenderer;
   private read: WebGLRenderTarget;
   private write: WebGLRenderTarget;

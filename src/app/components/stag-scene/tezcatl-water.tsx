@@ -6,7 +6,10 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Color, DoubleSide, Matrix4, MeshPhysicalMaterial, PerspectiveCamera, Plane, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderTarget, type Camera, type Mesh, type Object3D, type WebGLRenderer } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { hoofDrop, pointerSplat, smokeGate, worldToSimUv, type SimUv } from "@/lib/tezcatl-fluid";
-import { TezcatlRippleSim, type RippleHull } from "./tezcatl-ripple-sim";
+import type { RippleHull } from "./tezcatl-ripple-sim";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createRippleSim } from "./webgpu/sims";
+import { createTezcatlWaterNodeMaterial, type TezcatlWaterUniforms } from "./webgpu/tezcatl-water-tsl";
 import { TEZCATL_EXTENT, WATER_LEVEL, ZERO_TEXTURE, tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -115,6 +118,7 @@ function makeReflection(width: number, height: number): Reflection {
   const camera = new PerspectiveCamera();
   camera.layers.set(REFLECTION_LAYER);
   return {
+    // WebGLRenderTarget est une RenderTarget : le WebGPURenderer y rend aussi.
     target: new WebGLRenderTarget(width, height, { depthBuffer: true, stencilBuffer: false }),
     camera,
     textureMatrix: new Matrix4(),
@@ -168,6 +172,95 @@ function renderReflection(gl: WebGLRenderer, scene: Scene, mainCamera: Camera, r
   return true;
 }
 
+/** La nappe : GLSL en WebGL, TSL en WebGPU (tezcatl-water-tsl.ts). */
+function createTezcatlWaterMaterial(uniforms: TezcatlWaterUniforms) {
+  if (isWebGpu()) return createTezcatlWaterNodeMaterial(uniforms, EXTENT, WATER_RADIUS);
+  return Object.assign(
+    new ShaderMaterial({
+      uniforms,
+      transparent: true,
+      depthWrite: false,
+      side: DoubleSide,
+      vertexShader: `
+        uniform mat4 uTextureMatrix;
+        varying vec3 vWorldPos;
+        varying vec4 vReflUv;
+        void main() {
+          vec4 world = modelMatrix * vec4(position, 1.0);
+          vWorldPos = world.xyz;
+          vReflUv = uTextureMatrix * world;
+          gl_Position = projectionMatrix * viewMatrix * world;
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D uHeight;
+        uniform float uTexel;
+        uniform float uOpacity;
+        uniform vec3 uColor;
+        uniform vec3 uSpec;
+        uniform vec3 uRim;
+        uniform vec3 uLightDir;
+        uniform float uNormalGain;
+        uniform vec3 uEmberPos;
+        uniform float uEmberStrength;
+        uniform vec3 uEmberColor;
+        uniform sampler2D uReflection;
+        uniform float uReflStrength;
+        uniform float uReflRefract;
+        varying vec3 vWorldPos;
+        varying vec4 vReflUv;
+        const float EXTENT = ${EXTENT.toFixed(1)};
+        const float RADIUS = ${WATER_RADIUS.toFixed(1)};
+        void main() {
+          vec2 uv = vWorldPos.xz / (2.0 * EXTENT) + 0.5;
+          float hL = texture2D(uHeight, uv - vec2(uTexel, 0.0)).x;
+          float hR = texture2D(uHeight, uv + vec2(uTexel, 0.0)).x;
+          float hB = texture2D(uHeight, uv - vec2(0.0, uTexel)).x;
+          float hT = texture2D(uHeight, uv + vec2(0.0, uTexel)).x;
+          vec3 n = normalize(vec3(-(hR - hL) * uNormalGain, 1.0, -(hT - hB) * uNormalGain));
+          vec3 view = normalize(cameraPosition - vWorldPos);
+          float fresnel = pow(1.0 - max(dot(n, view), 0.0), 3.0);
+          vec3 h = normalize(uLightDir + view);
+          float spec = pow(max(dot(n, h), 0.0), 90.0);
+          // Les cretes accrochent un peu de lumiere diffuse : l'anneau
+          // reste lisible hors du reflet speculaire, sans white-out.
+          float slope = clamp((1.0 - n.y) * 4.0, 0.0, 1.0);
+          float d = length(vWorldPos.xz) / RADIUS;
+          // Bassin net (03/09) : l'eau s'arrete contre la margelle (coupe
+          // franche, plus de fondu), et une bande de RIVE plus claire et
+          // plus opaque longe le bord : la limite de l'eau se lit.
+          float mask = 1.0 - smoothstep(0.985, 1.0, d);
+          float shore = smoothstep(0.9, 0.985, d);
+          // Reflet de la braise (03/09, retour Sylvain "un reflet de
+          // braises") : speculaire chaud de la lumiere portee par Xolotl,
+          // deforme par les ondes, plus une lueur qui tombe a ses pieds.
+          vec3 toEmber = uEmberPos - vWorldPos;
+          float emberDist = length(toEmber);
+          vec3 hEmber = normalize(normalize(toEmber) + view);
+          // 3.0 -> 1.0 (03/09) : le reflet de Xolotl est desormais un corps de
+          // braise (xolotl-companion), la trainee speculaire ne fait que l'accompagner.
+          float emberSpec = pow(max(dot(n, hEmber), 0.0), 40.0) * uEmberStrength * 1.0 / (1.0 + emberDist * emberDist * 0.15);
+          float emberGlow = uEmberStrength * 0.35 / (1.0 + emberDist * emberDist * 0.6);
+          vec3 col = uColor + uRim * fresnel * 0.35 + uSpec * (spec * 0.5 + slope * 0.18) + uRim * shore * 0.55 + uEmberColor * (emberSpec + emberGlow);
+          float a = (uOpacity + fresnel * 0.15 + spec * 0.3 + slope * 0.15 + shore * 0.35 + emberSpec * 0.8 + emberGlow * 0.6) * mask;
+          // Reflet planaire (le Xolotl de braise) : echantillonnage projectif,
+          // decale par la pente des ondes (le sillage deforme le reflet, c'est
+          // aussi ce qui rend le sillage lisible). Couleur premultipliee.
+          if (uReflStrength > 0.0) {
+            vec2 ruv = vReflUv.xy / vReflUv.w + vec2(hR - hL, hT - hB) * uReflRefract;
+            float inside = step(0.0, ruv.x) * step(ruv.x, 1.0) * step(0.0, ruv.y) * step(ruv.y, 1.0);
+            vec4 refl = texture2D(uReflection, ruv) * inside * uReflStrength;
+            col += refl.rgb;
+            a += refl.a * 0.9;
+          }
+          gl_FragColor = vec4(col, clamp(a, 0.0, 0.9));
+        }
+      `,
+    }),
+    { uniforms }
+  );
+}
+
 export default function TezcatlWater() {
   const meshRef = useRef<Mesh>(null);
   const direction = useCurrentDirection();
@@ -198,7 +291,7 @@ export default function TezcatlWater() {
   const hoofPosRef = useRef(new Vector3());
 
   const lowPerf = sceneRefs ? !sceneRefs.perfProfile.postFx : false;
-  const sim = useMemo(() => new TezcatlRippleSim(gl, lowPerf ? 256 : 512), [gl, lowPerf]);
+  const sim = useMemo(() => createRippleSim(gl, lowPerf ? 256 : 512), [gl, lowPerf]);
   const reflection = useMemo(() => {
     const k = Math.min(1, REFLECTION_MAX / Math.max(1, size.width));
     return makeReflection(Math.max(2, Math.round(size.width * REFLECTION_SCALE * k)), Math.max(2, Math.round(size.height * REFLECTION_SCALE * k)));
@@ -231,109 +324,29 @@ export default function TezcatlWater() {
     [sim]
   );
 
-  const material = useMemo(
-    () =>
-      new ShaderMaterial({
-        uniforms: {
-          uHeight: { value: sim.heightTexture },
-          uTexel: { value: sim.texel },
-          uOpacity: { value: 0 },
-          uColor: { value: WATER_COLOR },
-          uSpec: { value: SPEC_COLOR },
-          uRim: { value: RIM_COLOR },
-          uLightDir: { value: LIGHT_DIR },
-          uNormalGain: { value: NORMAL_GAIN },
-          // Reflet de la braise de Xolotl (03/09) : position monde + force.
-          uEmberPos: { value: new Vector3(0, 0, 0) },
-          uEmberStrength: { value: 0 },
-          uEmberColor: { value: new Color("#ff8a1a") },
-          // Reflet planaire (couche 3) : texture + matrice de projection.
-          uReflection: { value: null },
-          uTextureMatrix: { value: new Matrix4() },
-          uReflStrength: { value: 0 },
-          uReflRefract: { value: REFLECTION_REFRACT },
-        },
-        transparent: true,
-        depthWrite: false,
-        side: DoubleSide,
-        vertexShader: `
-          uniform mat4 uTextureMatrix;
-          varying vec3 vWorldPos;
-          varying vec4 vReflUv;
-          void main() {
-            vec4 world = modelMatrix * vec4(position, 1.0);
-            vWorldPos = world.xyz;
-            vReflUv = uTextureMatrix * world;
-            gl_Position = projectionMatrix * viewMatrix * world;
-          }
-        `,
-        fragmentShader: `
-          uniform sampler2D uHeight;
-          uniform float uTexel;
-          uniform float uOpacity;
-          uniform vec3 uColor;
-          uniform vec3 uSpec;
-          uniform vec3 uRim;
-          uniform vec3 uLightDir;
-          uniform float uNormalGain;
-          uniform vec3 uEmberPos;
-          uniform float uEmberStrength;
-          uniform vec3 uEmberColor;
-          uniform sampler2D uReflection;
-          uniform float uReflStrength;
-          uniform float uReflRefract;
-          varying vec3 vWorldPos;
-          varying vec4 vReflUv;
-          const float EXTENT = ${EXTENT.toFixed(1)};
-          const float RADIUS = ${WATER_RADIUS.toFixed(1)};
-          void main() {
-            vec2 uv = vWorldPos.xz / (2.0 * EXTENT) + 0.5;
-            float hL = texture2D(uHeight, uv - vec2(uTexel, 0.0)).x;
-            float hR = texture2D(uHeight, uv + vec2(uTexel, 0.0)).x;
-            float hB = texture2D(uHeight, uv - vec2(0.0, uTexel)).x;
-            float hT = texture2D(uHeight, uv + vec2(0.0, uTexel)).x;
-            vec3 n = normalize(vec3(-(hR - hL) * uNormalGain, 1.0, -(hT - hB) * uNormalGain));
-            vec3 view = normalize(cameraPosition - vWorldPos);
-            float fresnel = pow(1.0 - max(dot(n, view), 0.0), 3.0);
-            vec3 h = normalize(uLightDir + view);
-            float spec = pow(max(dot(n, h), 0.0), 90.0);
-            // Les cretes accrochent un peu de lumiere diffuse : l'anneau
-            // reste lisible hors du reflet speculaire, sans white-out.
-            float slope = clamp((1.0 - n.y) * 4.0, 0.0, 1.0);
-            float d = length(vWorldPos.xz) / RADIUS;
-            // Bassin net (03/09) : l'eau s'arrete contre la margelle (coupe
-            // franche, plus de fondu), et une bande de RIVE plus claire et
-            // plus opaque longe le bord : la limite de l'eau se lit.
-            float mask = 1.0 - smoothstep(0.985, 1.0, d);
-            float shore = smoothstep(0.9, 0.985, d);
-            // Reflet de la braise (03/09, retour Sylvain "un reflet de
-            // braises") : speculaire chaud de la lumiere portee par Xolotl,
-            // deforme par les ondes, plus une lueur qui tombe a ses pieds.
-            vec3 toEmber = uEmberPos - vWorldPos;
-            float emberDist = length(toEmber);
-            vec3 hEmber = normalize(normalize(toEmber) + view);
-            // 3.0 -> 1.0 (03/09) : le reflet de Xolotl est desormais un corps de
-            // braise (xolotl-companion), la trainee speculaire ne fait que l'accompagner.
-            float emberSpec = pow(max(dot(n, hEmber), 0.0), 40.0) * uEmberStrength * 1.0 / (1.0 + emberDist * emberDist * 0.15);
-            float emberGlow = uEmberStrength * 0.35 / (1.0 + emberDist * emberDist * 0.6);
-            vec3 col = uColor + uRim * fresnel * 0.35 + uSpec * (spec * 0.5 + slope * 0.18) + uRim * shore * 0.55 + uEmberColor * (emberSpec + emberGlow);
-            float a = (uOpacity + fresnel * 0.15 + spec * 0.3 + slope * 0.15 + shore * 0.35 + emberSpec * 0.8 + emberGlow * 0.6) * mask;
-            // Reflet planaire (le Xolotl de braise) : echantillonnage projectif,
-            // decale par la pente des ondes (le sillage deforme le reflet, c'est
-            // aussi ce qui rend le sillage lisible). Couleur premultipliee.
-            if (uReflStrength > 0.0) {
-              vec2 ruv = vReflUv.xy / vReflUv.w + vec2(hR - hL, hT - hB) * uReflRefract;
-              float inside = step(0.0, ruv.x) * step(ruv.x, 1.0) * step(0.0, ruv.y) * step(ruv.y, 1.0);
-              vec4 refl = texture2D(uReflection, ruv) * inside * uReflStrength;
-              col += refl.rgb;
-              a += refl.a * 0.9;
-            }
-            gl_FragColor = vec4(col, clamp(a, 0.0, 0.9));
-          }
-        `,
-      }),
+  const uniforms = useMemo<TezcatlWaterUniforms>(
+    () => ({
+      uHeight: { value: sim.heightTexture },
+      uTexel: { value: sim.texel },
+      uOpacity: { value: 0 },
+      uColor: { value: WATER_COLOR },
+      uSpec: { value: SPEC_COLOR },
+      uRim: { value: RIM_COLOR },
+      uLightDir: { value: LIGHT_DIR },
+      uNormalGain: { value: NORMAL_GAIN },
+      // Reflet de la braise de Xolotl (03/09) : position monde + force.
+      uEmberPos: { value: new Vector3(0, 0, 0) },
+      uEmberStrength: { value: 0 },
+      uEmberColor: { value: new Color("#ff8a1a") },
+      // Reflet planaire (couche 3) : texture + matrice de projection.
+      uReflection: { value: null },
+      uTextureMatrix: { value: new Matrix4() },
+      uReflStrength: { value: 0 },
+      uReflRefract: { value: REFLECTION_REFRACT },
+    }),
     [sim]
   );
+  const material = useMemo(() => createTezcatlWaterMaterial(uniforms), [uniforms]);
 
   useFrame((state, delta) => {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
@@ -430,12 +443,12 @@ export default function TezcatlWater() {
     material.uniforms.uHeight.value = sim.heightTexture;
     material.uniforms.uOpacity.value = opacityRef.current;
     const ember = tezcatlStore.ember;
-    (material.uniforms.uEmberPos.value as Vector3).set(ember.x, ember.y, ember.z);
+    material.uniforms.uEmberPos.value.set(ember.x, ember.y, ember.z);
     material.uniforms.uEmberStrength.value = ember.intensity;
     // Reflet planaire : seulement quand le Xolotl de braise est la.
     const reflecting = ember.intensity > 0.001 && renderReflection(gl, state.scene, state.camera, reflection);
     material.uniforms.uReflection.value = reflecting ? reflection.target.texture : null;
-    (material.uniforms.uTextureMatrix.value as Matrix4).copy(reflection.textureMatrix);
+    material.uniforms.uTextureMatrix.value.copy(reflection.textureMatrix);
     material.uniforms.uReflStrength.value = reflecting ? 1 : 0;
   });
 

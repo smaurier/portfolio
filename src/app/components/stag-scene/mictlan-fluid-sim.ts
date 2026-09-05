@@ -235,7 +235,19 @@ export const DEFAULT_FLUID_PARAMS: FluidParams = {
   pointerPush: 0.7,
 };
 
-export class TezcatlFluidSim {
+/** L'API du simulateur, commune aux deux moteurs (GLSL ici, TSL dans
+ * webgpu/fluid-sim-tsl.ts). */
+export interface FluidSim {
+  params: FluidParams;
+  readonly dyeTexture: Texture;
+  readonly velocityTexture: Texture;
+  readonly pressureTexture: Texture;
+  readonly texel: number;
+  step(dt: number, emitters: FluidSplat[], pointer: FluidSplat | null): void;
+  dispose(): void;
+}
+
+export class TezcatlFluidSim implements FluidSim {
   private gl: WebGLRenderer;
   private velocity: DoubleFBO;
   private dye: DoubleFBO;

@@ -6,7 +6,9 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Color, DoubleSide, ShaderMaterial, type Mesh } from "three";
 import { mistEmitters } from "@/lib/mictlan-mist";
 import { smokeGate } from "@/lib/tezcatl-fluid";
-import { TezcatlFluidSim } from "./mictlan-fluid-sim";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createFluidSim } from "./webgpu/sims";
+import { createMictlanMistNodeMaterial, type MictlanMistUniforms } from "./webgpu/mictlan-mist-tsl";
 import { TEZCATL_EXTENT, WATER_LEVEL } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -45,6 +47,51 @@ const MIST_SHADOW = new Color("#2a2140");
 /** Rayon (monde) en deca duquel la nappe est masquee : le cerf reste net. */
 const CLEAR_RADIUS = 2.6;
 
+/** Une couche de brume : GLSL en WebGL, TSL en WebGPU (mictlan-mist-tsl.ts). */
+function createMistMaterial(uniforms: MictlanMistUniforms) {
+  if (isWebGpu()) return createMictlanMistNodeMaterial(uniforms, EXTENT, CLEAR_RADIUS);
+  return Object.assign(
+    new ShaderMaterial({
+      uniforms,
+      transparent: true,
+      depthWrite: false,
+      side: DoubleSide,
+      vertexShader: `
+        varying vec3 vWorldPos;
+        void main() {
+          vec4 world = modelMatrix * vec4(position, 1.0);
+          vWorldPos = world.xyz;
+          gl_Position = projectionMatrix * viewMatrix * world;
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D uDye;
+        uniform float uOpacity;
+        uniform float uLayer;
+        uniform vec3 uColor;
+        uniform vec3 uShadow;
+        varying vec3 vWorldPos;
+        const float EXTENT = ${EXTENT.toFixed(1)};
+        const float CLEAR = ${CLEAR_RADIUS.toFixed(1)};
+        void main() {
+          vec2 uv = vWorldPos.xz / (2.0 * EXTENT) + 0.5;
+          float dens = texture2D(uDye, uv).r;
+          float body = smoothstep(0.02, 0.7, dens);
+          float r = length(vWorldPos.xz);
+          // Centre net (le cerf), nappe qui monte vers les bords.
+          float ring = smoothstep(CLEAR, CLEAR + 1.6, r);
+          float edge = 1.0 - smoothstep(0.86, 0.99, max(abs(vWorldPos.x), abs(vWorldPos.z)) / EXTENT);
+          float a = uOpacity * uLayer * body * ring * edge;
+          if (a < 0.003) discard;
+          vec3 col = mix(uShadow, uColor, smoothstep(0.1, 0.9, dens));
+          gl_FragColor = vec4(col, a);
+        }
+      `,
+    }),
+    { uniforms }
+  );
+}
+
 export default function MictlanMist() {
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
@@ -56,7 +103,7 @@ export default function MictlanMist() {
   const lowPerf = sceneRefs ? !sceneRefs.perfProfile.postFx : false;
   const sim = useMemo(
     () =>
-      new TezcatlFluidSim(gl, lowPerf ? 64 : 128, lowPerf ? 128 : 256, {
+      createFluidSim(gl, lowPerf ? 64 : 128, lowPerf ? 128 : 256, {
         curl: 6,
         velocityDissipation: 0.35,
         dyeDissipation: 0.22,
@@ -73,51 +120,14 @@ export default function MictlanMist() {
 
   const materials = useMemo(
     () =>
-      LAYERS.map(
-        (layer) =>
-          new ShaderMaterial({
-            uniforms: {
-              uDye: { value: sim.dyeTexture },
-              uOpacity: { value: 0 },
-              uLayer: { value: layer.opacity },
-              uColor: { value: MIST_COLOR },
-              uShadow: { value: MIST_SHADOW },
-            },
-            transparent: true,
-            depthWrite: false,
-            side: DoubleSide,
-            vertexShader: `
-              varying vec3 vWorldPos;
-              void main() {
-                vec4 world = modelMatrix * vec4(position, 1.0);
-                vWorldPos = world.xyz;
-                gl_Position = projectionMatrix * viewMatrix * world;
-              }
-            `,
-            fragmentShader: `
-              uniform sampler2D uDye;
-              uniform float uOpacity;
-              uniform float uLayer;
-              uniform vec3 uColor;
-              uniform vec3 uShadow;
-              varying vec3 vWorldPos;
-              const float EXTENT = ${EXTENT.toFixed(1)};
-              const float CLEAR = ${CLEAR_RADIUS.toFixed(1)};
-              void main() {
-                vec2 uv = vWorldPos.xz / (2.0 * EXTENT) + 0.5;
-                float dens = texture2D(uDye, uv).r;
-                float body = smoothstep(0.02, 0.7, dens);
-                float r = length(vWorldPos.xz);
-                // Centre net (le cerf), nappe qui monte vers les bords.
-                float ring = smoothstep(CLEAR, CLEAR + 1.6, r);
-                float edge = 1.0 - smoothstep(0.86, 0.99, max(abs(vWorldPos.x), abs(vWorldPos.z)) / EXTENT);
-                float a = uOpacity * uLayer * body * ring * edge;
-                if (a < 0.003) discard;
-                vec3 col = mix(uShadow, uColor, smoothstep(0.1, 0.9, dens));
-                gl_FragColor = vec4(col, a);
-              }
-            `,
-          })
+      LAYERS.map((layer) =>
+        createMistMaterial({
+          uDye: { value: sim.dyeTexture },
+          uOpacity: { value: 0 },
+          uLayer: { value: layer.opacity },
+          uColor: { value: MIST_COLOR },
+          uShadow: { value: MIST_SHADOW },
+        })
       ),
     [sim]
   );
