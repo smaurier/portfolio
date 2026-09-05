@@ -1,4 +1,6 @@
 import { Color, DoubleSide, MeshPhysicalMaterial, ShaderMaterial, type Material, type Texture } from "three";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createEmberFireNodeMaterial, createTurquoiseNodeMaterial, type TurquoiseOptions } from "./webgpu/xiuhcoatl-tsl";
 
 /**
  * Les matieres du xiuhcoatl (04/09, retours Sylvain) :
@@ -50,6 +52,7 @@ const FOG_CHUNK = /* glsl */ `
 /** Brouillard attenue sur une matiere standard/physique de three (le decor
  * garde le sien) : remplace le chunk de fog par une version ponderee. */
 export function softenFog(mat: Material & { onBeforeCompile?: unknown; customProgramCacheKey?: () => string }, uniforms: XiuhcoatlUniforms, key: string) {
+  if (isWebGpu()) return; // WebGPU : le brouillard attenue viendra en TSL (phase suivante)
   // Une matiere du GLB est PARTAGEE par plusieurs meshes (os, perles,
   // emblemes, points) : ne patcher qu'une fois, sinon l'uniform est
   // redefini et le shader ne compile plus.
@@ -102,7 +105,9 @@ vec3 xEmberColor(float glow, float t, float phase) {
 `;
 
 /** Pierre turquoise polie en mosaique, feu dans les joints. */
-export function createTurquoiseMaterial(base: Color, sky: Texture | null, uniforms: XiuhcoatlUniforms): MeshPhysicalMaterial {
+export function createTurquoiseMaterial(base: Color, sky: Texture | null, uniforms: XiuhcoatlUniforms, options: TurquoiseOptions = {}): MeshPhysicalMaterial {
+  // WebGPU (05/09) : le jumeau TSL (xiuhcoatl-tsl.ts), memes uniformes.
+  if (isWebGpu()) return createTurquoiseNodeMaterial(base, sky, uniforms, options) as unknown as MeshPhysicalMaterial;
   const mat = new MeshPhysicalMaterial({
     color: base,
     roughness: 0.3,
@@ -169,6 +174,7 @@ totalEmissiveRadiance += xEmber * uEmber * (xGrout * 0.9 + 0.07 * xGlow);`
 
 /** Les flammes : la braise du reflet de Xolotl, skinnee, sans clip. */
 export function createEmberFireMaterial(uniforms: XiuhcoatlUniforms): ShaderMaterial {
+  if (isWebGpu()) return createEmberFireNodeMaterial(uniforms) as unknown as ShaderMaterial;
   return new ShaderMaterial({
     uniforms: { uTime: uniforms.uTime, uOpacity: uniforms.uOpacity, uEmber: uniforms.uEmber, uCrackle: uniforms.uCrackle },
     transparent: true,

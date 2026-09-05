@@ -9,6 +9,7 @@ import { Color, PlaneGeometry, RepeatWrapping, type MeshPhysicalMaterial } from 
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { createTurquoiseMaterial, createXiuhcoatlUniforms } from "./xiuhcoatl-materials";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
+import { isWebGpu } from "./webgpu/renderer-kind";
 import { getMictlanSky } from "./mictlan-sky";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -56,7 +57,7 @@ export default function PiedraXiuhcoatlRing() {
   const material = useMemo(() => {
     heightMap.wrapS = RepeatWrapping;
     heightMap.wrapT = RepeatWrapping;
-    const mat = createTurquoiseMaterial(new Color("#2aa6b8"), getMictlanSky(), uniforms) as MeshPhysicalMaterial;
+    const mat = createTurquoiseMaterial(new Color("#2aa6b8"), getMictlanSky(), uniforms, { ringBand: { inner: RING_INNER * GROUND_RADIUS, outer: RING_OUTER * GROUND_RADIUS } }) as MeshPhysicalMaterial;
     mat.name = "piedra_xiuhcoatl_ring";
     mat.alphaMap = heightMap;
     mat.transparent = true;
@@ -64,28 +65,32 @@ export default function PiedraXiuhcoatlRing() {
     mat.opacity = 0;
     mat.polygonOffset = true;
     mat.polygonOffsetFactor = -2;
-    // Masque radial : seule la bande exterieure (les deux serpents).
-    // On ENVELOPPE l'onBeforeCompile pose par createTurquoiseMaterial (mosaique
-    // + fog attenue) : passer par addShaderModifier ici l'ecraserait, la
-    // matiere turquoise n'est pas enregistree dans son registre (constate :
-    // « vXLocal undeclared », shader invalide).
-    const previous = mat.onBeforeCompile;
-    mat.onBeforeCompile = (shader, renderer) => {
-      previous(shader, renderer);
-      shader.uniforms.uRingInner = { value: RING_INNER * GROUND_RADIUS };
-      shader.uniforms.uRingOuter = { value: RING_OUTER * GROUND_RADIUS };
-      shader.fragmentShader = shader.fragmentShader
-        .replace("#include <common>", "#include <common>\nuniform float uRingInner;\nuniform float uRingOuter;")
-        .replace(
-          "#include <alphamap_fragment>",
-          `#include <alphamap_fragment>
-{
-  float xr = length(vXLocal.xz);
-  float band = smoothstep(uRingInner - 0.05, uRingInner + 0.03, xr) * (1.0 - smoothstep(uRingOuter - 0.02, uRingOuter + 0.02, xr));
-  diffuseColor.a *= band;
-}`
-        );
-    };
+    // Masque radial : en WebGL, on enveloppe l'onBeforeCompile ; en WebGPU la
+    // bande est une option de la fabrique (opacityNode).
+    if (!isWebGpu()) {
+      // Masque radial : seule la bande exterieure (les deux serpents).
+      // On ENVELOPPE l'onBeforeCompile pose par createTurquoiseMaterial (mosaique
+      // + fog attenue) : passer par addShaderModifier ici l'ecraserait, la
+      // matiere turquoise n'est pas enregistree dans son registre (constate :
+      // « vXLocal undeclared », shader invalide).
+      const previous = mat.onBeforeCompile;
+      mat.onBeforeCompile = (shader, renderer) => {
+        previous(shader, renderer);
+        shader.uniforms.uRingInner = { value: RING_INNER * GROUND_RADIUS };
+        shader.uniforms.uRingOuter = { value: RING_OUTER * GROUND_RADIUS };
+        shader.fragmentShader = shader.fragmentShader
+          .replace("#include <common>", "#include <common>\nuniform float uRingInner;\nuniform float uRingOuter;")
+          .replace(
+            "#include <alphamap_fragment>",
+            `#include <alphamap_fragment>
+  {
+    float xr = length(vXLocal.xz);
+    float band = smoothstep(uRingInner - 0.05, uRingInner + 0.03, xr) * (1.0 - smoothstep(uRingOuter - 0.02, uRingOuter + 0.02, xr));
+    diffuseColor.a *= band;
+  }`
+          );
+      };
+    }
     mat.customProgramCacheKey = () => "piedra-xiuhcoatl-ring";
     return mat;
   }, [heightMap, uniforms]);

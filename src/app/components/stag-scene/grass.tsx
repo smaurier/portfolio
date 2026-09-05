@@ -35,6 +35,8 @@ import { addShaderModifier } from "./shader-patch";
 import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createGrassNodeMaterial } from "./webgpu/grass-material";
 
 /**
  * La prairie (05/09, refonte : retour Sylvain « un vrai simulateur
@@ -166,6 +168,8 @@ export default function Grass() {
     [bendMap]
   );
   const material = useMemo(() => {
+    // WebGPU (05/09) : le jumeau TSL, memes uniformes (grass-material.ts).
+    if (isWebGpu()) return createGrassNodeMaterial(bendMap, GRID_EXTENT, uniforms);
     const m = new MeshStandardMaterial({ color: "#ffffff", side: DoubleSide, roughness: 0.92, metalness: 0 });
     addShaderModifier(m, (shader) => {
       Object.assign(shader.uniforms, uniforms);
@@ -217,7 +221,7 @@ export default function Grass() {
         );
     });
     return m;
-  }, [uniforms]);
+  }, [uniforms, bendMap]);
 
   // Pose des brins (une fois) : matrices + couleurs.
   useEffect(() => {
