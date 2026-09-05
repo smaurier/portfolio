@@ -41,6 +41,13 @@
       "resume": "Reprendre où vous étiez",
       "resumeDismiss": "Non merci"
     },
+    "timeBar": {
+      "label": "Moment du jour",
+      "night": "Nuit",
+      "dawn": "Aube",
+      "morning": "Matin",
+      "noon": "Midi"
+    },
     "readingMode": {
       "on": "Activer le mode récit accessible",
       "off": "Désactiver le mode récit accessible"

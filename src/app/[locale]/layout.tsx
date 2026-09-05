@@ -15,6 +15,7 @@ import RouteAnnouncer from "../components/route-announcer";
 import XolotlWitnessMessage from "../components/xolotl-witness";
 import SoundDesign from "../components/sound-design";
 import SceneControls from "../components/scene-controls";
+import TimeBar from "../components/time-bar";
 import TiltCards from "../components/tilt-cards";
 import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
@@ -416,6 +417,8 @@ export default async function LocaleLayout({
           {/* Controles de scene (05/09) : texte, plein ecran, contemplation,
               photo, eco ; raccourcis H F T P E. Au-dessus du bouton son. */}
           <SceneControls labels={dict.common.sceneControls} />
+          {/* La barre du temps (05/09) : l arc au clavier et au doigt. */}
+          <TimeBar labels={dict.common.timeBar} />
           {/* Mode recit accessible opt-in (29/08 chantier a11y) :
               bouton bas gauche, symetrique du bouton son. Toggle
               persist localStorage via ReadingModeProvider. Cache le

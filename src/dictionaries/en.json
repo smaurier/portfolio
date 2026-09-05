@@ -41,6 +41,13 @@
       "resume": "Pick up where you left off",
       "resumeDismiss": "No thanks"
     },
+    "timeBar": {
+      "label": "Time of day",
+      "night": "Night",
+      "dawn": "Dawn",
+      "morning": "Morning",
+      "noon": "Noon"
+    },
     "readingMode": {
       "on": "Enable accessible reading mode",
       "off": "Disable accessible reading mode"

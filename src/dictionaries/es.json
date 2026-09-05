@@ -41,6 +41,13 @@
       "resume": "Retomar donde lo dejó",
       "resumeDismiss": "No, gracias"
     },
+    "timeBar": {
+      "label": "Momento del día",
+      "night": "Noche",
+      "dawn": "Amanecer",
+      "morning": "Mañana",
+      "noon": "Mediodía"
+    },
     "readingMode": {
       "on": "Activar el modo lectura accesible",
       "off": "Desactivar el modo lectura accesible"
