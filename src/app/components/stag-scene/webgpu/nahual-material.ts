@@ -34,7 +34,9 @@ export class NahualStandardMaterial extends MeshStandardNodeMaterial implements 
     this.needsUpdate = true;
   }
   setupOutput(builder: NodeBuilder, outputNode: Node<"vec4">): Node<"vec4"> {
-    return super.setupOutput(builder, applyStages(this.stages, outputNode)) as Node<"vec4">;
+    // Le brouillard d'abord (super.setupOutput), les etages ensuite :
+    // les patches GLSL s'inserent a dithering_fragment, APRES fog_fragment.
+    return applyStages(this.stages, super.setupOutput(builder, outputNode) as Node<"vec4">);
   }
 }
 
@@ -45,7 +47,9 @@ export class NahualPhysicalMaterial extends MeshPhysicalNodeMaterial implements 
     this.needsUpdate = true;
   }
   setupOutput(builder: NodeBuilder, outputNode: Node<"vec4">): Node<"vec4"> {
-    return super.setupOutput(builder, applyStages(this.stages, outputNode)) as Node<"vec4">;
+    // Le brouillard d'abord (super.setupOutput), les etages ensuite :
+    // les patches GLSL s'inserent a dithering_fragment, APRES fog_fragment.
+    return applyStages(this.stages, super.setupOutput(builder, outputNode) as Node<"vec4">);
   }
 }
 

@@ -68,11 +68,17 @@ export function particleAttribute<K extends "float" | "vec2" | "vec3" | "vec4">(
 
 /** Taille en pixels d'une particule comme gl_PointSize = size * scale /
  * max(1, -mv.z) (la perspective a la main, sizeAttenuation a false). */
-export function pointSizeNode(position: Node<"vec3">, size: Node<"float">, scale: Node<"float">) {
+export function pointSizeNode(position: Node<"vec3">, size: Node<"float">, scale: Node<"float">, minDepth = 1) {
   return Fn(() => {
     const mv = modelViewMatrix.mul(vec4(position, 1));
-    return size.mul(scale).div(max(1, mv.z.negate()));
+    return size.mul(scale).div(max(minDepth, mv.z.negate()));
   })();
+}
+
+/** Combien de particules dessiner : instances en WebGPU, drawRange en WebGL. */
+export function setParticleCount(geometry: BufferGeometry, count: number): void {
+  if (isWebGpu()) (geometry as InstancedBufferGeometry).instanceCount = count;
+  else geometry.setDrawRange(0, count);
 }
 
 /** L'equivalent de gl_PointCoord (0..1) sur un sprite instancie. */

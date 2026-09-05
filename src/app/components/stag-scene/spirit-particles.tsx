@@ -1,17 +1,12 @@
 /* eslint-disable react-hooks/immutability, react-hooks/purity -- fichier 3D r3f : useFrame mutations 60 fps, refs pour valeurs frame-based, Math.random init particules. Patterns gamedev legitimes. */
 "use client";
 
-import { useMemo, useRef, type MutableRefObject } from "react";
+import { useMemo, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
-import {
-  AdditiveBlending,
-  BufferAttribute,
-  BufferGeometry,
-  Color,
-  Vector3,
-  type Points,
-  type ShaderMaterial,
-} from "three";
+import { AdditiveBlending, Color, ShaderMaterial, Vector3, type BufferGeometry } from "three";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createParticleGeometry, createParticleObject } from "./webgpu/particles";
+import { createSpiritNodeMaterial, type SpiritUniforms } from "./webgpu/spirit-particles-tsl";
 import { getRimColorBlend } from "@/lib/reveal-arc";
 import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
 
@@ -56,6 +51,140 @@ const EMISSION_HEIGHT_CENTER = 1.0;
 // chromatique, trop peu pour concurrencer la cardinale dominante.
 const ACCENT_RATIO = 0.15;
 
+/** Les petales : GLSL en WebGL (Points), TSL en WebGPU (sprites instancies). */
+function createSpiritMaterial(geometry: BufferGeometry, uniforms: SpiritUniforms) {
+  if (isWebGpu()) return createSpiritNodeMaterial(geometry, uniforms);
+  return new ShaderMaterial({
+    uniforms,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    vertexShader: `
+      attribute float aSeed;
+      attribute float aLifespan;
+      attribute float aAccent;
+      uniform float uTime;
+      uniform vec3 uCardinalWind;
+      uniform float uWindStrength;
+      varying float vAlpha;
+      varying float vRotation;
+      varying float vAccent;
+      varying float vWindStretch;
+
+      // Curl-ish flow field : trois sinus croisés sur des axes
+      // couplés. Pas divergence-free au sens strict d'un vrai
+      // curl noise, mais donne des lignes de courant visuellement
+      // fluides à peu de coût (contre un simplex noise à 6+
+      // iterations dans le shader).
+      vec3 flow(vec3 p) {
+        return vec3(
+          sin(p.y * 1.3 + p.z * 0.7),
+          cos(p.z * 1.1 + p.x * 0.9),
+          sin(p.x * 1.5 + p.y * 0.5)
+        );
+      }
+
+      void main() {
+        // Cycle de vie normalisé sur [0, 1) via mod. Chaque
+        // pétale démarre à sa propre phase (aSeed) pour éviter
+        // un "reset collectif" toutes les N secondes.
+        float phaseOffset = aSeed * aLifespan;
+        float t = mod(uTime + phaseOffset, aLifespan) / aLifespan;
+
+        vec3 pos = position;
+        // Dérive : le flow field échantillonné à la position
+        // initiale + une lente évolution du champ dans le temps
+        // (uTime * 0.05) : le champ "respire" doucement, les
+        // trajectoires ne sont pas rigidement fixes.
+        vec3 drift = flow(pos * 0.5 + uTime * 0.05);
+        pos += drift * t * 0.9;
+        // Montée légère (les pétales tombent lentement vers le
+        // haut, comme aspirés : signal "esprit qui s'élève").
+        pos.y += t * 0.6;
+        // Vent cardinal Ehecatl (28/08) : pendant le burst de
+        // transition, uCardinalWind pousse toutes les pétales
+        // dans la direction cible. Multiplié par une phase
+        // continue par pétale (aSeed) pour que la réponse ne soit
+        // pas plaquée uniforme : certaines pétales sont plus vite
+        // emportées que d'autres, comme dans un vrai souffle.
+        pos += uCardinalWind * (0.6 + 0.8 * aSeed);
+
+        // Fade in-out sur la lifespan : rampe rapide au début
+        // (0→0.15 de la vie), plateau, rampe descendante en fin
+        // (0.7→1.0). smoothstep pour dérivées nulles aux bornes.
+        float fadeIn = smoothstep(0.0, 0.15, t);
+        float fadeOut = 1.0 - smoothstep(0.7, 1.0, t);
+        vAlpha = fadeIn * fadeOut;
+
+        // Rotation individuelle : orientation fixe par pétale
+        // (aSeed) : chaque pétale garde son angle pendant sa vie
+        // (pas de spin frénétique). Suffit à casser l'uniformité
+        // d'un disque radial.
+        vRotation = aSeed * 6.2831853;
+        // Marquage cardinal/accent transmis au fragment.
+        vAccent = aAccent;
+
+        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+        // Taille en pixels : décroît avec la distance
+        // (perspective réaliste). ×90 base, boost pendant burst
+        // Ehecatl (uWindStrength 0..1) : pétales gonflent quand
+        // le vent souffle, signature dispersion plus visible.
+        gl_PointSize = (90.0 + 55.0 * uWindStrength) / -mvPosition.z;
+        // Transmis au fragment pour étirer la forme pétale dans
+        // le sens du vent (trail visuel simulé, motion blur
+        // naïf sans rendu multi-passes).
+        vWindStretch = uWindStrength;
+      }
+        `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform vec3 uAccentColor;
+      uniform float uIntensity;
+      varying float vAlpha;
+      varying float vRotation;
+      varying float vAccent;
+      varying float vWindStretch;
+
+      void main() {
+        // Rotation du gl_PointCoord autour du centre (0.5, 0.5).
+        vec2 uv = gl_PointCoord - 0.5;
+        float c = cos(vRotation);
+        float s = sin(vRotation);
+        uv = mat2(c, -s, s, c) * uv;
+
+        // Forme pétale : ellipse allongée verticalement +
+        // pointue en haut (y positif), plus large en bas. Une
+        // décentrage de l'origine en Y donne l'asymétrie
+        // caractéristique cempasúchil.
+        // Pendant burst wind (vWindStretch 0..1) : étirement Y
+        // supplémentaire × 1→1.8 = pétale plus longue, effet
+        // "trail" naïf sans rendu multi-passes (signature dispersion
+        // visible).
+        uv.y *= 1.8 + vWindStretch * 0.9;
+        uv.y -= 0.08;
+        float r = length(uv);
+        // Bord doux ; rayon max 0.45 (garde une marge dans le
+        // point 32×32 pour éviter le clip du bord de sprite).
+        float shape = 1.0 - smoothstep(0.15, 0.42, r);
+
+        // 15% des pétales portent la teinte accent complémentaire
+        // (Phase 4, cf direction-colors.ts DIRECTION_ACCENT_
+        // COMPLEMENTARY). Duo chromatique cardinal ↔ accent pour
+        // rompre le monochrome.
+        vec3 petalColor = mix(uColor, uAccentColor, vAccent);
+
+        float alpha = shape * vAlpha * uIntensity;
+        // Prémultiplié + alpha=1 pour AdditiveBlending (le
+        // srcFactor SrcAlpha default squasherait uColor*alpha²
+        // au lieu de uColor*alpha : même correction que
+        // stag-aura.tsx).
+        gl_FragColor = vec4(petalColor * alpha, 1.0);
+      }
+        `,
+  });
+}
+
 export default function SpiritParticles({
   progressRef,
   climaxRimColor,
@@ -65,11 +194,7 @@ export default function SpiritParticles({
   climaxRimColor: string;
   climaxAccentColor: string;
 }) {
-  const pointsRef = useRef<Points>(null);
-  const materialRef = useRef<ShaderMaterial>(null);
-
   const { geometry, uniforms } = useMemo(() => {
-    const geo = new BufferGeometry();
     const positions = new Float32Array(PETAL_COUNT * 3);
     const seeds = new Float32Array(PETAL_COUNT);      // phase de vie + rotation
     const lifespans = new Float32Array(PETAL_COUNT);  // durée de vie individuelle
@@ -101,14 +226,15 @@ export default function SpiritParticles({
       // fragment shader via mix(uColor, uAccentColor, aAccent).
       accents[i] = Math.random() < ACCENT_RATIO ? 1.0 : 0.0;
     }
-    geo.setAttribute("position", new BufferAttribute(positions, 3));
-    geo.setAttribute("aSeed", new BufferAttribute(seeds, 1));
-    geo.setAttribute("aLifespan", new BufferAttribute(lifespans, 1));
-    geo.setAttribute("aAccent", new BufferAttribute(accents, 1));
+    // Particules sur les deux moteurs (webgpu/particles.ts).
+    const geo = createParticleGeometry({
+      position: { array: positions, itemSize: 3 },
+      aSeed: { array: seeds, itemSize: 1 },
+      aLifespan: { array: lifespans, itemSize: 1 },
+      aAccent: { array: accents, itemSize: 1 },
+    });
 
-    return {
-      geometry: geo,
-      uniforms: {
+    const spiritUniforms: SpiritUniforms = {
         uColor: { value: new Color(climaxRimColor) },
         uAccentColor: { value: new Color(climaxAccentColor) },
         uIntensity: { value: 0 },
@@ -123,15 +249,16 @@ export default function SpiritParticles({
         // (dispersion visible plus prononcée) et au fragment d'étirer
         // la forme pétale dans la direction du vent (trail visuel).
         uWindStrength: { value: 0 },
-      },
     };
+    return { geometry: geo, uniforms: spiritUniforms };
   }, [climaxRimColor, climaxAccentColor]);
+  const material = useMemo(() => createSpiritMaterial(geometry, uniforms), [geometry, uniforms]);
+  const spiritObject = useMemo(() => createParticleObject(geometry, material, PETAL_COUNT), [geometry, material]);
 
   const transition = useCardinalTransition();
   const windScratch = useMemo(() => new Vector3(), []);
 
   useFrame((state) => {
-    if (!materialRef.current) return;
     const p = progressRef.current;
     const blend = getRimColorBlend(p);
     // Pulse partagé avec rim/edge/aura : les pétales respirent en
@@ -167,138 +294,5 @@ export default function SpiritParticles({
     }
   });
 
-  return (
-    <points ref={pointsRef} geometry={geometry} raycast={() => null}>
-      <shaderMaterial
-        ref={materialRef}
-        uniforms={uniforms}
-        transparent
-        depthWrite={false}
-        blending={AdditiveBlending}
-        vertexShader={`
-          attribute float aSeed;
-          attribute float aLifespan;
-          attribute float aAccent;
-          uniform float uTime;
-          uniform vec3 uCardinalWind;
-          uniform float uWindStrength;
-          varying float vAlpha;
-          varying float vRotation;
-          varying float vAccent;
-          varying float vWindStretch;
-
-          // Curl-ish flow field : trois sinus croisés sur des axes
-          // couplés. Pas divergence-free au sens strict d'un vrai
-          // curl noise, mais donne des lignes de courant visuellement
-          // fluides à peu de coût (contre un simplex noise à 6+
-          // iterations dans le shader).
-          vec3 flow(vec3 p) {
-            return vec3(
-              sin(p.y * 1.3 + p.z * 0.7),
-              cos(p.z * 1.1 + p.x * 0.9),
-              sin(p.x * 1.5 + p.y * 0.5)
-            );
-          }
-
-          void main() {
-            // Cycle de vie normalisé sur [0, 1) via mod. Chaque
-            // pétale démarre à sa propre phase (aSeed) pour éviter
-            // un "reset collectif" toutes les N secondes.
-            float phaseOffset = aSeed * aLifespan;
-            float t = mod(uTime + phaseOffset, aLifespan) / aLifespan;
-
-            vec3 pos = position;
-            // Dérive : le flow field échantillonné à la position
-            // initiale + une lente évolution du champ dans le temps
-            // (uTime * 0.05) : le champ "respire" doucement, les
-            // trajectoires ne sont pas rigidement fixes.
-            vec3 drift = flow(pos * 0.5 + uTime * 0.05);
-            pos += drift * t * 0.9;
-            // Montée légère (les pétales tombent lentement vers le
-            // haut, comme aspirés : signal "esprit qui s'élève").
-            pos.y += t * 0.6;
-            // Vent cardinal Ehecatl (28/08) : pendant le burst de
-            // transition, uCardinalWind pousse toutes les pétales
-            // dans la direction cible. Multiplié par une phase
-            // continue par pétale (aSeed) pour que la réponse ne soit
-            // pas plaquée uniforme : certaines pétales sont plus vite
-            // emportées que d'autres, comme dans un vrai souffle.
-            pos += uCardinalWind * (0.6 + 0.8 * aSeed);
-
-            // Fade in-out sur la lifespan : rampe rapide au début
-            // (0→0.15 de la vie), plateau, rampe descendante en fin
-            // (0.7→1.0). smoothstep pour dérivées nulles aux bornes.
-            float fadeIn = smoothstep(0.0, 0.15, t);
-            float fadeOut = 1.0 - smoothstep(0.7, 1.0, t);
-            vAlpha = fadeIn * fadeOut;
-
-            // Rotation individuelle : orientation fixe par pétale
-            // (aSeed) : chaque pétale garde son angle pendant sa vie
-            // (pas de spin frénétique). Suffit à casser l'uniformité
-            // d'un disque radial.
-            vRotation = aSeed * 6.2831853;
-            // Marquage cardinal/accent transmis au fragment.
-            vAccent = aAccent;
-
-            vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-            gl_Position = projectionMatrix * mvPosition;
-            // Taille en pixels : décroît avec la distance
-            // (perspective réaliste). ×90 base, boost pendant burst
-            // Ehecatl (uWindStrength 0..1) : pétales gonflent quand
-            // le vent souffle, signature dispersion plus visible.
-            gl_PointSize = (90.0 + 55.0 * uWindStrength) / -mvPosition.z;
-            // Transmis au fragment pour étirer la forme pétale dans
-            // le sens du vent (trail visuel simulé, motion blur
-            // naïf sans rendu multi-passes).
-            vWindStretch = uWindStrength;
-          }
-        `}
-        fragmentShader={`
-          uniform vec3 uColor;
-          uniform vec3 uAccentColor;
-          uniform float uIntensity;
-          varying float vAlpha;
-          varying float vRotation;
-          varying float vAccent;
-          varying float vWindStretch;
-
-          void main() {
-            // Rotation du gl_PointCoord autour du centre (0.5, 0.5).
-            vec2 uv = gl_PointCoord - 0.5;
-            float c = cos(vRotation);
-            float s = sin(vRotation);
-            uv = mat2(c, -s, s, c) * uv;
-
-            // Forme pétale : ellipse allongée verticalement +
-            // pointue en haut (y positif), plus large en bas. Une
-            // décentrage de l'origine en Y donne l'asymétrie
-            // caractéristique cempasúchil.
-            // Pendant burst wind (vWindStretch 0..1) : étirement Y
-            // supplémentaire × 1→1.8 = pétale plus longue, effet
-            // "trail" naïf sans rendu multi-passes (signature dispersion
-            // visible).
-            uv.y *= 1.8 + vWindStretch * 0.9;
-            uv.y -= 0.08;
-            float r = length(uv);
-            // Bord doux ; rayon max 0.45 (garde une marge dans le
-            // point 32×32 pour éviter le clip du bord de sprite).
-            float shape = 1.0 - smoothstep(0.15, 0.42, r);
-
-            // 15% des pétales portent la teinte accent complémentaire
-            // (Phase 4, cf direction-colors.ts DIRECTION_ACCENT_
-            // COMPLEMENTARY). Duo chromatique cardinal ↔ accent pour
-            // rompre le monochrome.
-            vec3 petalColor = mix(uColor, uAccentColor, vAccent);
-
-            float alpha = shape * vAlpha * uIntensity;
-            // Prémultiplié + alpha=1 pour AdditiveBlending (le
-            // srcFactor SrcAlpha default squasherait uColor*alpha²
-            // au lieu de uColor*alpha : même correction que
-            // stag-aura.tsx).
-            gl_FragColor = vec4(petalColor * alpha, 1.0);
-          }
-        `}
-      />
-    </points>
-  );
+  return <primitive object={spiritObject} raycast={() => null} />;
 }

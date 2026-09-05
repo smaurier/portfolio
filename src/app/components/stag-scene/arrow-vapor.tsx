@@ -4,7 +4,10 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
-import { BufferAttribute, BufferGeometry, Color, NormalBlending, ShaderMaterial, type Points } from "three";
+import { Color, NormalBlending, ShaderMaterial, type BufferGeometry } from "three";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createParticleGeometry, createParticleObject, particleBuffer, setParticleCount } from "./webgpu/particles";
+import { createArrowVaporNodeMaterial, type ArrowVaporUniforms } from "./webgpu/arrow-vapor-tsl";
 import {
   isVaporAlive,
   PARTICLES_PER_ARROW,
@@ -42,99 +45,113 @@ const EMBER_COLOR = new Color("#ff7a1a");
 const SPARK_COLOR = new Color("#ffd27a");
 const SPARK_DYING = new Color("#7a1200");
 
+/** La vapeur : GLSL en WebGL (Points), TSL en WebGPU (sprites instancies). */
+function createArrowVaporMaterial(geometry: BufferGeometry, uniforms: ArrowVaporUniforms) {
+  if (isWebGpu()) return createArrowVaporNodeMaterial(geometry, uniforms);
+  return Object.assign(
+    new ShaderMaterial({
+            uniforms,
+          transparent: true,
+          depthWrite: false,
+          blending: NormalBlending,
+          vertexShader: `
+            attribute float aSize;
+            attribute float aAlpha;
+            attribute float aKind;
+            attribute float aHeat;
+            uniform float uScale;
+            varying float vAlpha;
+            varying float vKind;
+            varying float vHeat;
+            void main() {
+              vAlpha = aAlpha;
+              vKind = aKind;
+              vHeat = aHeat;
+              vec4 mv = modelViewMatrix * vec4(position, 1.0);
+              // Taille en pixels proportionnelle a la taille monde (diametre).
+              gl_PointSize = aSize * uScale / max(0.1, -mv.z);
+              gl_Position = projectionMatrix * mv;
+            }
+          `,
+          fragmentShader: `
+            uniform sampler2D uSprite;
+            uniform vec3 uSmoke;
+            uniform vec3 uShard;
+            uniform vec3 uEmber;
+            uniform vec3 uSpark;
+            uniform vec3 uSparkDying;
+            varying float vAlpha;
+            varying float vKind;
+            varying float vHeat;
+            void main() {
+              if (vAlpha <= 0.001) discard;
+              if (vKind < 0.5) {
+                float sprite = texture2D(uSprite, gl_PointCoord).a;
+                float a = sprite * vAlpha;
+                if (a < 0.01) discard;
+                // Fumee noire, ou braise chaude, plus lumineuse au coeur.
+                vec3 col = mix(uSmoke, uEmber * (1.0 + 0.8 * sprite), vHeat);
+                gl_FragColor = vec4(col, a);
+              } else {
+                // Eclat : petit disque dur, legerement plus clair au centre.
+                vec2 d = gl_PointCoord - 0.5;
+                float r = length(d);
+                if (r > 0.5) discard;
+                // Etincelle : jaune vif qui rougit en mourant (vAlpha decroit).
+                vec3 spark = mix(uSparkDying, uSpark * (1.0 + 0.6 * (1.0 - r * 2.0)), vAlpha);
+                vec3 col = mix(uShard + 0.12 * (1.0 - r * 2.0), spark, vHeat);
+                gl_FragColor = vec4(col, vHeat > 0.5 ? 1.0 : vAlpha);
+              }
+            }
+          `,
+        }),
+    { uniforms }
+  );
+}
+
 export default function ArrowVapor() {
-  const pointsRef = useRef<Points>(null);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   const smokeTexture = useTexture(SMOKE_SPRITE);
   const particlesRef = useRef<VaporParticle[]>([]);
   const seedRef = useRef(1);
 
-  const geometry = useMemo(() => {
-    const g = new BufferGeometry();
-    g.setAttribute("position", new BufferAttribute(new Float32Array(POOL * 3), 3));
-    g.setAttribute("aSize", new BufferAttribute(new Float32Array(POOL), 1));
-    g.setAttribute("aAlpha", new BufferAttribute(new Float32Array(POOL), 1));
-    g.setAttribute("aKind", new BufferAttribute(new Float32Array(POOL), 1));
-    g.setAttribute("aHeat", new BufferAttribute(new Float32Array(POOL), 1));
-    // Jamais de culling : les positions changent a chaque frame.
-    g.boundingSphere = null;
-    return g;
-  }, []);
-
-  const material = useMemo(
+  // Particules sur les deux moteurs (webgpu/particles.ts). Jamais de
+  // culling : les positions changent a chaque frame.
+  const geometry = useMemo(
     () =>
-      new ShaderMaterial({
-        uniforms: {
-          uSprite: { value: smokeTexture },
-          uSmoke: { value: SMOKE_COLOR },
-          uShard: { value: SHARD_COLOR },
-          uEmber: { value: EMBER_COLOR },
-          uSpark: { value: SPARK_COLOR },
-          uSparkDying: { value: SPARK_DYING },
-          uScale: { value: 1 },
-        },
-        transparent: true,
-        depthWrite: false,
-        blending: NormalBlending,
-        vertexShader: `
-          attribute float aSize;
-          attribute float aAlpha;
-          attribute float aKind;
-          attribute float aHeat;
-          uniform float uScale;
-          varying float vAlpha;
-          varying float vKind;
-          varying float vHeat;
-          void main() {
-            vAlpha = aAlpha;
-            vKind = aKind;
-            vHeat = aHeat;
-            vec4 mv = modelViewMatrix * vec4(position, 1.0);
-            // Taille en pixels proportionnelle a la taille monde (diametre).
-            gl_PointSize = aSize * uScale / max(0.1, -mv.z);
-            gl_Position = projectionMatrix * mv;
-          }
-        `,
-        fragmentShader: `
-          uniform sampler2D uSprite;
-          uniform vec3 uSmoke;
-          uniform vec3 uShard;
-          uniform vec3 uEmber;
-          uniform vec3 uSpark;
-          uniform vec3 uSparkDying;
-          varying float vAlpha;
-          varying float vKind;
-          varying float vHeat;
-          void main() {
-            if (vAlpha <= 0.001) discard;
-            if (vKind < 0.5) {
-              float sprite = texture2D(uSprite, gl_PointCoord).a;
-              float a = sprite * vAlpha;
-              if (a < 0.01) discard;
-              // Fumee noire, ou braise chaude, plus lumineuse au coeur.
-              vec3 col = mix(uSmoke, uEmber * (1.0 + 0.8 * sprite), vHeat);
-              gl_FragColor = vec4(col, a);
-            } else {
-              // Eclat : petit disque dur, legerement plus clair au centre.
-              vec2 d = gl_PointCoord - 0.5;
-              float r = length(d);
-              if (r > 0.5) discard;
-              // Etincelle : jaune vif qui rougit en mourant (vAlpha decroit).
-              vec3 spark = mix(uSparkDying, uSpark * (1.0 + 0.6 * (1.0 - r * 2.0)), vAlpha);
-              vec3 col = mix(uShard + 0.12 * (1.0 - r * 2.0), spark, vHeat);
-              gl_FragColor = vec4(col, vHeat > 0.5 ? 1.0 : vAlpha);
-            }
-          }
-        `,
+      createParticleGeometry({
+        position: { array: new Float32Array(POOL * 3), itemSize: 3 },
+        aSize: { array: new Float32Array(POOL), itemSize: 1 },
+        aAlpha: { array: new Float32Array(POOL), itemSize: 1 },
+        aKind: { array: new Float32Array(POOL), itemSize: 1 },
+        aHeat: { array: new Float32Array(POOL), itemSize: 1 },
       }),
+    []
+  );
+
+  const uniforms = useMemo<ArrowVaporUniforms>(
+    () => ({
+      uSprite: { value: smokeTexture },
+      uSmoke: { value: SMOKE_COLOR },
+      uShard: { value: SHARD_COLOR },
+      uEmber: { value: EMBER_COLOR },
+      uSpark: { value: SPARK_COLOR },
+      uSparkDying: { value: SPARK_DYING },
+      uScale: { value: 1 },
+    }),
     [smokeTexture]
   );
+  const material = useMemo(() => createArrowVaporMaterial(geometry, uniforms), [geometry, uniforms]);
+  const vaporObject = useMemo(() => {
+    const o = createParticleObject(geometry, material, POOL);
+    o.visible = false;
+    return o;
+  }, [geometry, material]);
   useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
 
   useFrame((state, delta) => {
-    const points = pointsRef.current;
-    if (!points) return;
+    const points = vaporObject;
     // Nord : les fleches qui se vaporisent ; Sud : les braises du xiuhcoatl.
     const active = direction === "obsidienne" || direction === "turquoise";
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
@@ -159,11 +176,11 @@ export default function ArrowVapor() {
     for (let i = 0; i < particles.length; i++) if (isVaporAlive(particles[i])) particles[n++] = particles[i];
     particles.length = n;
 
-    const pos = geometry.getAttribute("position") as BufferAttribute;
-    const size = geometry.getAttribute("aSize") as BufferAttribute;
-    const alpha = geometry.getAttribute("aAlpha") as BufferAttribute;
-    const kind = geometry.getAttribute("aKind") as BufferAttribute;
-    const heat = geometry.getAttribute("aHeat") as BufferAttribute;
+    const pos = particleBuffer(geometry, "position");
+    const size = particleBuffer(geometry, "aSize");
+    const alpha = particleBuffer(geometry, "aAlpha");
+    const kind = particleBuffer(geometry, "aKind");
+    const heat = particleBuffer(geometry, "aHeat");
     for (let i = 0; i < POOL; i++) {
       if (i < n) {
         const p = particles[i];
@@ -181,7 +198,7 @@ export default function ArrowVapor() {
     alpha.needsUpdate = true;
     kind.needsUpdate = true;
     heat.needsUpdate = true;
-    geometry.setDrawRange(0, n);
+    setParticleCount(geometry, n);
     // Echelle pixel : hauteur du viewport en pixels physiques / tangente
     // du demi-FOV, comme un PointsMaterial a attenuation.
     const cam = state.camera as { fov?: number };
@@ -189,7 +206,7 @@ export default function ArrowVapor() {
     material.uniforms.uScale.value = (state.size.height * state.viewport.dpr) / (2 * Math.tan(fovRad / 2));
   });
 
-  return <points ref={pointsRef} geometry={geometry} material={material} frustumCulled={false} raycast={() => null} renderOrder={1001} visible={false} />;
+  return <primitive object={vaporObject} raycast={() => null} renderOrder={1001} />;
 }
 
 useTexture.preload(SMOKE_SPRITE);
