@@ -3,7 +3,10 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, LineSegments, Points, ShaderMaterial, type Group } from "three";
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, LineSegments, ShaderMaterial, type Group } from "three";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createParticleGeometry, createParticleObject, particleBuffer } from "./webgpu/particles";
+import { createStarPointsNodeMaterial, createStreakLinesNodeMaterial } from "./webgpu/centzon-tsl";
 import { CENTZON_COUNT, killedState, makeStarField, starState, throwFactor, thrownDir } from "@/lib/centzon-stars";
 import { centzonStore } from "./centzon-store";
 import { markTrace } from "../traces-store";
@@ -26,39 +29,15 @@ const STAR_COLOR = new Color("#eaf4ff");
 const STREAK_COLOR = new Color("#fff1c8");
 const SEED = 400;
 
-export default function CentzonStars() {
-  const groupRef = useRef<Group>(null);
-  const pointsRef = useRef<Points>(null);
-  const linesRef = useRef<LineSegments>(null);
-  const direction = useCurrentDirection();
-  const sceneRefs = useSceneRefs();
-  const blendRef = useRef(direction === "turquoise" ? 1 : 0);
-  const stars = useMemo(() => makeStarField(SEED), []);
-  // Le jet des 400 a l'arrivee : chronometre depuis le moment ou le champ
-  // devient visible (arrivee au Sud), remis a zero quand on le quitte.
-  const arrivedAtRef = useRef<number | null>(null);
-
-  const pointsGeometry = useMemo(() => {
-    const g = new BufferGeometry();
-    g.setAttribute("position", new BufferAttribute(new Float32Array(CENTZON_COUNT * 3), 3));
-    g.setAttribute("aSize", new BufferAttribute(new Float32Array(CENTZON_COUNT), 1));
-    g.setAttribute("aAlpha", new BufferAttribute(new Float32Array(CENTZON_COUNT), 1));
-    return g;
-  }, []);
-  const linesGeometry = useMemo(() => {
-    const g = new BufferGeometry();
-    g.setAttribute("position", new BufferAttribute(new Float32Array(CENTZON_COUNT * 6), 3));
-    g.setAttribute("aAlpha", new BufferAttribute(new Float32Array(CENTZON_COUNT * 2), 1));
-    return g;
-  }, []);
-
-  const pointsMaterial = useMemo(
-    () =>
-      new ShaderMaterial({
+/** Les etoiles : GLSL en WebGL (Points, gl_PointSize), TSL en WebGPU (sprites). */
+function createStarPointsMaterial(geometry: BufferGeometry, uniforms: { uColor: { value: Color }; uScale: { value: number }; uOpacity: { value: number } }) {
+  if (isWebGpu()) return createStarPointsNodeMaterial(geometry, uniforms);
+  return Object.assign(
+    new ShaderMaterial({
         transparent: true,
         depthWrite: false,
         blending: AdditiveBlending,
-        uniforms: { uColor: { value: STAR_COLOR }, uScale: { value: 1 }, uOpacity: { value: 0 } },
+        uniforms,
         vertexShader: /* glsl */ `
           attribute float aSize;
           attribute float aAlpha;
@@ -80,22 +59,26 @@ export default function CentzonStars() {
             float r = length(d) * 2.0;
             if (r > 1.0) discard;
             // Coeur net, halo doux : une etoile, pas un disque.
-            float core = smoothstep(1.0, 0.0, r);
+            float core = smoothstep(0.0, 1.0, 1.0 - r);
             float a = core * core * vAlpha * uOpacity;
             if (a < 0.003) discard;
             gl_FragColor = vec4(uColor, a);
           }
         `,
       }),
-    []
+    { uniforms }
   );
-  const linesMaterial = useMemo(
-    () =>
-      new ShaderMaterial({
+}
+
+/** Les traits de chute : idem. */
+function createStreakLinesMaterial(uniforms: { uColor: { value: Color }; uOpacity: { value: number } }) {
+  if (isWebGpu()) return createStreakLinesNodeMaterial(uniforms);
+  return Object.assign(
+    new ShaderMaterial({
         transparent: true,
         depthWrite: false,
         blending: AdditiveBlending,
-        uniforms: { uColor: { value: STREAK_COLOR }, uOpacity: { value: 0 } },
+        uniforms,
         vertexShader: /* glsl */ `
           attribute float aAlpha;
           varying float vAlpha;
@@ -115,8 +98,44 @@ export default function CentzonStars() {
           }
         `,
       }),
+    { uniforms }
+  );
+}
+
+export default function CentzonStars() {
+  const groupRef = useRef<Group>(null);
+  const linesRef = useRef<LineSegments>(null);
+  const direction = useCurrentDirection();
+  const sceneRefs = useSceneRefs();
+  const blendRef = useRef(direction === "turquoise" ? 1 : 0);
+  const stars = useMemo(() => makeStarField(SEED), []);
+  // Le jet des 400 a l'arrivee : chronometre depuis le moment ou le champ
+  // devient visible (arrivee au Sud), remis a zero quand on le quitte.
+  const arrivedAtRef = useRef<number | null>(null);
+
+  // Particules sur les deux moteurs (webgpu/particles.ts) : attributs de
+  // sommet pour Points en WebGL, d'instance pour les sprites en WebGPU.
+  const pointsGeometry = useMemo(
+    () =>
+      createParticleGeometry({
+        position: { array: new Float32Array(CENTZON_COUNT * 3), itemSize: 3 },
+        aSize: { array: new Float32Array(CENTZON_COUNT), itemSize: 1 },
+        aAlpha: { array: new Float32Array(CENTZON_COUNT), itemSize: 1 },
+      }),
     []
   );
+  const linesGeometry = useMemo(() => {
+    const g = new BufferGeometry();
+    g.setAttribute("position", new BufferAttribute(new Float32Array(CENTZON_COUNT * 6), 3));
+    g.setAttribute("aAlpha", new BufferAttribute(new Float32Array(CENTZON_COUNT * 2), 1));
+    return g;
+  }, []);
+
+  const starUniforms = useMemo(() => ({ uColor: { value: STAR_COLOR }, uScale: { value: 1 }, uOpacity: { value: 0 } }), []);
+  const streakUniforms = useMemo(() => ({ uColor: { value: STREAK_COLOR }, uOpacity: { value: 0 } }), []);
+  const pointsMaterial = useMemo(() => createStarPointsMaterial(pointsGeometry, starUniforms), [pointsGeometry, starUniforms]);
+  const linesMaterial = useMemo(() => createStreakLinesMaterial(streakUniforms), [streakUniforms]);
+  const pointsObject = useMemo(() => createParticleObject(pointsGeometry, pointsMaterial, CENTZON_COUNT), [pointsGeometry, pointsMaterial]);
 
   useFrame((state) => {
     const south = direction === "turquoise";
@@ -148,9 +167,9 @@ export default function CentzonStars() {
     const since = reduced ? 1e9 : state.clock.elapsedTime - arrivedAtRef.current;
     if (since > 2.5) markTrace("centzon-thrown"); // une trace : les 400 ont ete jetees devant vous
 
-    const pos = pointsGeometry.getAttribute("position") as BufferAttribute;
-    const size = pointsGeometry.getAttribute("aSize") as BufferAttribute;
-    const alpha = pointsGeometry.getAttribute("aAlpha") as BufferAttribute;
+    const pos = particleBuffer(pointsGeometry, "position");
+    const size = particleBuffer(pointsGeometry, "aSize");
+    const alpha = particleBuffer(pointsGeometry, "aAlpha");
     const lpos = linesGeometry.getAttribute("position") as BufferAttribute;
     const lalpha = linesGeometry.getAttribute("aAlpha") as BufferAttribute;
     for (let i = 0; i < CENTZON_COUNT; i++) {
@@ -190,7 +209,7 @@ export default function CentzonStars() {
 
   return (
     <group ref={groupRef} visible={false}>
-      <points ref={pointsRef} geometry={pointsGeometry} material={pointsMaterial} frustumCulled={false} raycast={() => null} renderOrder={-99} />
+      <primitive object={pointsObject} raycast={() => null} renderOrder={-99} />
       <lineSegments ref={linesRef} geometry={linesGeometry} material={linesMaterial} frustumCulled={false} raycast={() => null} renderOrder={-98} />
     </group>
   );

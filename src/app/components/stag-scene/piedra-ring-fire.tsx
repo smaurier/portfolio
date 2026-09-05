@@ -3,7 +3,10 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { AdditiveBlending, BufferGeometry, CanvasTexture, Color, Float32BufferAttribute, Points, ShaderMaterial } from "three";
+import { AdditiveBlending, CanvasTexture, Color, ShaderMaterial } from "three";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createParticleGeometry, createParticleObject, particleBuffer } from "./webgpu/particles";
+import { createRingFireNodeMaterial } from "./webgpu/ring-fire-tsl";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 
@@ -48,26 +51,27 @@ function hash(i: number, k: number): number {
 type Particle = { alive: boolean; x: number; y: number; z: number; vx: number; vy: number; vz: number; age: number; life: number; size: number };
 
 export default function PiedraRingFire() {
-  const pointsRef = useRef<Points>(null);
   const direction = useCurrentDirection();
   const particles = useMemo<Particle[]>(
     () => Array.from({ length: POOL }, () => ({ alive: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, age: 0, life: 1, size: 1 })),
     []
   );
   const geometry = useMemo(() => {
-    const g = new BufferGeometry();
-    g.setAttribute("position", new Float32BufferAttribute(new Float32Array(POOL * 3), 3));
-    g.setAttribute("aColor", new Float32BufferAttribute(new Float32Array(POOL * 3), 3));
-    g.setAttribute("aSize", new Float32BufferAttribute(new Float32Array(POOL), 1));
-    return g;
+    return createParticleGeometry({
+      position: { array: new Float32Array(POOL * 3), itemSize: 3 },
+      aColor: { array: new Float32Array(POOL * 3), itemSize: 3 },
+      aSize: { array: new Float32Array(POOL), itemSize: 1 },
+    });
   }, []);
+  const fireUniforms = useMemo(() => ({ uMap: { value: spriteTexture() }, uScale: { value: 300 } }), []);
   const material = useMemo(
     () =>
+      isWebGpu() ? createRingFireNodeMaterial(geometry, fireUniforms) :
       new ShaderMaterial({
         transparent: true,
         depthWrite: false,
         blending: AdditiveBlending,
-        uniforms: { uMap: { value: spriteTexture() }, uScale: { value: 300 } },
+        uniforms: fireUniforms,
         vertexShader: /* glsl */ `
           attribute vec3 aColor;
           attribute float aSize;
@@ -89,15 +93,15 @@ export default function PiedraRingFire() {
           }
         `,
       }),
-    []
+    [geometry, fireUniforms]
   );
+  const fireObject = useMemo(() => createParticleObject(geometry, material, POOL), [geometry, material]);
   const spawnAcc = useRef(0);
   const seed = useRef(0);
   const colorScratch = useMemo(() => new Color(), []);
 
   useFrame((state, delta) => {
-    const pts = pointsRef.current;
-    if (!pts) return;
+    const pts = fireObject;
     const south = direction === "turquoise";
     const fire = south ? xiuhcoatlStore.strike.fire : 0;
     const dt = Math.min(delta, 1 / 30);
@@ -127,9 +131,9 @@ export default function PiedraRingFire() {
       toSpawn--;
     }
     // Integration + ecriture des buffers.
-    const pos = geometry.getAttribute("position") as Float32BufferAttribute;
-    const col = geometry.getAttribute("aColor") as Float32BufferAttribute;
-    const siz = geometry.getAttribute("aSize") as Float32BufferAttribute;
+    const pos = particleBuffer(geometry, "position");
+    const col = particleBuffer(geometry, "aColor");
+    const siz = particleBuffer(geometry, "aSize");
     let visible = 0;
     for (let i = 0; i < POOL; i++) {
       const p = particles[i];
@@ -165,5 +169,5 @@ export default function PiedraRingFire() {
     pts.visible = visible > 0;
   });
 
-  return <points ref={pointsRef} geometry={geometry} material={material} frustumCulled={false} raycast={() => null} renderOrder={3} />;
+  return <primitive object={fireObject} raycast={() => null} renderOrder={3} />;
 }

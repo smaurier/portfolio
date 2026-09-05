@@ -17,6 +17,7 @@ import { useReadingMode } from "@/lib/reading-mode-context";
 import XolotlCompanion from "./xolotl-companion";
 import EhecatlWind from "./ehecatl-wind";
 import styles from "./scene-stage.module.css";
+import { xiuhcoatlStore } from "./xiuhcoatl-store";
 
 /**
  * Scène 3D persistante montée UNE seule fois dans layout.tsx
@@ -108,9 +109,10 @@ export default function PersistentScene() {
         // (diagnostics visuels), jamais en production.
         onCreated={(state) => {
           if (process.env.NODE_ENV !== "production") {
-            const w = window as unknown as { __nahualScene?: unknown; __nahualR3f?: unknown };
+            const w = window as unknown as { __nahualScene?: unknown; __nahualR3f?: unknown; __nahualXiuhcoatl?: unknown };
             w.__nahualScene = state.scene;
             w.__nahualR3f = state;
+            w.__nahualXiuhcoatl = xiuhcoatlStore; // rejouer la frappe a la demande
           }
         }}
         // Ombres (05/09, Sud : « un jeu d'ombres delicats ») : shadow map
