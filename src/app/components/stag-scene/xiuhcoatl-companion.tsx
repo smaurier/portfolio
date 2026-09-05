@@ -4,11 +4,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { Quaternion, Vector3, type Group, type Material, type Mesh, type MeshStandardMaterial, type PointLight } from "three";
+import { Object3D, Quaternion, Vector3, type Group, type Material, type Mesh, type MeshStandardMaterial, type SpotLight } from "three";
 import { initialWander, stepWander, wanderTangent, XIUHCOATL_WANDER, type WanderState } from "@/lib/xiuhcoatl-wander";
 import { aztecYear, YEAR_BEARERS } from "aztec-year";
 import { getMictlanSky } from "./mictlan-sky";
 import { createEmberFireMaterial, createTurquoiseMaterial, createXiuhcoatlUniforms, softenFog, type XiuhcoatlUniforms } from "./xiuhcoatl-materials";
+import { getRevealFloor } from "@/lib/reveal-arc";
 import { pushHeat, xiuhcoatlStore } from "./xiuhcoatl-store";
 import { isBot } from "@/lib/is-bot";
 import { useReadingMode } from "@/lib/reading-mode-context";
@@ -46,6 +47,13 @@ const BODY_LENGTH = 5.2;
 const EMBER_BURST_EVERY = 11; // une salve de braises toutes les N unites de budget
 const EMBERS_PER_SECOND = 22;
 const LIGHT_INTENSITY = 6;
+/** La nuit, la lueur portee est ce qui integre le serpent au decor :
+ * intensite x (1 + boost), portee plus courte et chute rapide pour que le
+ * halo suive le corps sans eclairer toute la prairie. */
+const NIGHT_LIGHT_BOOST = 7;
+const STRIKE_LIGHT_BOOST = 6;
+const LIGHT_DISTANCE_DAY = 16;
+const LIGHT_DISTANCE_NIGHT = 13;
 const BANK_GAIN = 0.45;
 const BANK_MAX = 0.35;
 /** LA CHARGE (05/09) : duree du pique sur la Piedra, point d'impact (bord
@@ -95,6 +103,7 @@ function dressMaterials(root: Group, uniforms: XiuhcoatlUniforms) {
     if (mat.name.includes("scale")) {
       const stone = createTurquoiseMaterial(mat.color.clone(), sky, uniforms);
       stone.name = "xiuh_scale_turquoise";
+      stone.userData.xiuhStone = true;
       mesh.material = stone;
     } else if (mat.name.includes("fire")) {
       const ember = createEmberFireMaterial(uniforms);
@@ -145,7 +154,10 @@ function decidePresence(): boolean {
 
 export default function XiuhcoatlCompanion() {
   const groupRef = useRef<Group>(null);
-  const lightRef = useRef<PointLight>(null);
+  const lightRef = useRef<SpotLight>(null);
+  // La cible du projecteur : le sol sous le serpent (objet de la scene,
+  // mis a jour chaque frame).
+  const lightTarget = useMemo(() => new Object3D(), []);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   const readingMode = useReadingMode();
@@ -266,7 +278,22 @@ export default function XiuhcoatlCompanion() {
     const stiffen = xiuhcoatlStore.strike.stiffen;
     const slither = actions["Slither"];
     if (slither) slither.setEffectiveWeight(1 - stiffen);
-    uniforms.uEmber.value = 1 + 2.5 * stiffen;
+    // LA NUIT (05/09, retour Sylvain « trop voyant lorsque c'est la nuit,
+    // les scenes devaient etre tres sombres ») : un feu dans la nuit, c'est
+    // surtout ce qu'il eclaire. En tete de page ses braises et ses flammes
+    // sont a un tiers, son vernis presque eteint, son brouillard au niveau
+    // du decor (il s'y enfonce au lieu de s'en detacher) ; tout monte avec
+    // l'arc, et la frappe emporte tout. En echange sa lumiere portee est
+    // forte la nuit : l'herbe, les nopals, le cerf prennent sa lueur.
+    const day = getRevealFloor(sceneRefs?.progressRef.current ?? 0);
+    const night = 1 - day;
+    uniforms.uEmber.value = (0.33 + 0.67 * day) * (1 + 2.5 * stiffen) + 1.5 * xiuhcoatlStore.strike.fire;
+    uniforms.uFogScale.value = 0.3 + 0.7 * night;
+    const gloss = 0.15 + 0.95 * day;
+    scene.traverse((o) => {
+      const m = (o as Mesh).material as (Material & { envMapIntensity?: number; userData: Record<string, unknown> }) | undefined;
+      if (m && m.userData && m.userData.xiuhStone && m.envMapIntensity !== undefined) m.envMapIntensity = gloss;
+    });
 
     const now = performance.now();
     const fade = Math.min(1, (now - bornAtRef.current) / FADE_IN_MS);
@@ -291,7 +318,19 @@ export default function XiuhcoatlCompanion() {
     g.quaternion.copy(q);
     g.scale.setScalar(SCALE);
 
-    if (lightRef.current) lightRef.current.intensity = LIGHT_INTENSITY * fade;
+    if (lightRef.current) {
+      const l = lightRef.current;
+      l.intensity = LIGHT_INTENSITY * fade * (1 + NIGHT_LIGHT_BOOST * night + STRIKE_LIGHT_BOOST * xiuhcoatlStore.strike.fire);
+      l.distance = LIGHT_DISTANCE_DAY + (LIGHT_DISTANCE_NIGHT - LIGHT_DISTANCE_DAY) * night;
+      // Le projecteur vise le sol sous lui ; son ombre (retour Sylvain
+      // « un travail leger sur les ombres ») ne coute qu'une passe de
+      // profondeur en 512, et seulement la nuit, quand elle se voit.
+      lightTarget.position.set(s.x, 0, s.z);
+      lightTarget.updateMatrixWorld();
+      if (!l.target) l.target = lightTarget;
+      const wantShadow = night > 0.15;
+      if (l.castShadow !== wantShadow) l.castShadow = wantShadow;
+    }
 
     // Trainee chaude : un point de chaleur derriere lui a cadence fixe,
     // le long de la moitie arriere du corps (post-fx xiuhcoatl-heat).
@@ -324,7 +363,25 @@ export default function XiuhcoatlCompanion() {
   return (
     <group ref={groupRef} visible={false}>
       <primitive object={scene} />
-      <pointLight ref={lightRef} color="#ff7a1a" intensity={0} distance={16} decay={2} position={[0, 0.2, 0]} />
+      {/* Lueur portee : un projecteur vers le sol (05/09, ombres legeres) :
+          large cone, penombre douce, carte d'ombre 512, coupee le jour. */}
+      <spotLight
+        ref={lightRef}
+        color="#ff7a1a"
+        intensity={0}
+        distance={16}
+        decay={2}
+        angle={1.05}
+        penumbra={0.7}
+        position={[0, 0.2, 0]}
+        target={lightTarget}
+        castShadow={false}
+        shadow-mapSize={[512, 512]}
+        shadow-bias={-0.0005}
+        shadow-normalBias={0.05}
+        shadow-camera-near={0.5}
+        shadow-camera-far={45}
+      />
     </group>
   );
 }
