@@ -730,6 +730,8 @@ export default function XolotlCompanion() {
       shouldSpawn = Math.random() < prob;
       sessionStorage.setItem(key, shouldSpawn ? "1" : "0");
     }
+    // Forcer la presence pour verifier (comme ?xiuhcoatl=1) : ?xolotl=1.
+    if (window.location.search.includes("xolotl=1")) shouldSpawn = true;
     setSpawn(shouldSpawn);
     setStartedAt(null);
   }, [direction, readingMode.active]);
