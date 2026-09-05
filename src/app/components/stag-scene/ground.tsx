@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { PlaneGeometry } from "three";
 import { getTerrainHeight } from "@/lib/terrain-height";
+import { createContactShadowMaterial } from "./webgpu/contact-shadow-material";
 
 /**
  * Sol du fond : retour de Sylvain le 18/08 : la scène flottait dans un vide
@@ -53,6 +54,8 @@ const GROUND_SEGMENTS = 128;
 const CONTACT_SHADOW_RADIUS = 0.85;
 
 export default function Ground() {
+  // Ombre de contact : GLSL en WebGL, TSL en WebGPU (05/09).
+  const contactShadowMaterial = useMemo(() => createContactShadowMaterial(), []);
   const geometry = useMemo(() => {
     const geo = new PlaneGeometry(GROUND_SIZE, GROUND_SIZE, GROUND_SEGMENTS, GROUND_SEGMENTS);
     // Couché à plat une fois pour toutes dans la géométrie elle-même (pas
@@ -85,33 +88,7 @@ export default function Ground() {
           contact" naturelle vs disque plaque. */}
       <mesh position={[0, 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[CONTACT_SHADOW_RADIUS, 32]} />
-        <shaderMaterial
-          transparent
-          depthWrite={false}
-          uniforms={{}}
-          vertexShader={`
-            varying vec2 vUv;
-            void main() {
-              vUv = uv;
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-          `}
-          fragmentShader={`
-            varying vec2 vUv;
-            void main() {
-              vec2 c = vUv - 0.5;
-              float r = length(c) * 2.0;
-              float alpha = 1.0 - smoothstep(0.0, 1.0, r);
-              alpha = pow(alpha, 1.6);
-              // Additive blend NOIR = darken subtile (le noir additif
-              // = 0, donc en pratique on soustrait via -alpha impossible
-              // ; on utilise plutot NormalBlending equivalent via mix
-              // qui pose noir semi opaque). Fallback : couleur noir +
-              // alpha, gl_FragColor.a fait le job en NormalBlending.
-              gl_FragColor = vec4(0.0, 0.0, 0.0, alpha * 0.35);
-            }
-          `}
-        />
+        <primitive object={contactShadowMaterial} attach="material" />
       </mesh>
     </>
   );

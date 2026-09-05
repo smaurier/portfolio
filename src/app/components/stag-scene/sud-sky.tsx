@@ -8,6 +8,8 @@ import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createSudSkyNodeMaterial, createSudSkyUniforms } from "./webgpu/sud-sky-material";
 
 /**
  * SudSky (04/09, tissu du Sud). Le ciel de midi. Jusqu'ici le fond de la
@@ -46,64 +48,63 @@ export default function SudSky() {
   const sceneRefs = useSceneRefs();
   const blendRef = useRef(direction === "turquoise" ? 1 : 0);
   const scratch = useMemo(() => new Color(), []);
+  // Un seul jeu d'uniformes, deux materiaux (05/09, migration WebGPU) :
+  // le ShaderMaterial GLSL en WebGL, son jumeau TSL en WebGPU. Le
+  // composant ne mute que `material.uniforms.*`, identique des deux cotes.
+  const uniforms = useMemo(() => createSudSkyUniforms(SKY_TINT, SKY_TINT_MIX), []);
   const material = useMemo(
     () =>
-      new ShaderMaterial({
-        side: BackSide,
-        depthWrite: false,
-        fog: false,
-        transparent: true,
-        uniforms: {
-          uHorizon: { value: new Color("#000000") },
-          uZenith: { value: new Color("#000000") },
-          uOpacity: { value: 0 },
-          uSky: { value: null as Texture | null },
-          uHasSky: { value: 0 },
-          uDay: { value: 0 },
-          uTint: { value: SKY_TINT.clone() },
-          uTintMix: { value: SKY_TINT_MIX },
-          uSkyOffset: { value: 0 },
-        },
-        vertexShader: /* glsl */ `
-          varying vec3 vDir;
-          void main() {
-            vDir = normalize(position);
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: /* glsl */ `
-          uniform vec3 uHorizon;
-          uniform vec3 uZenith;
-          uniform float uOpacity;
-          uniform sampler2D uSky;
-          uniform float uHasSky;
-          uniform float uDay;
-          uniform vec3 uTint;
-          uniform float uTintMix;
-          uniform float uSkyOffset;
-          varying vec3 vDir;
-          void main() {
-            // Elevation 0 a l'horizon, 1 au zenith ; sous l'horizon on garde
-            // la couleur d'horizon (le sol est devant de toute facon).
-            float e = clamp(vDir.y, 0.0, 1.0);
-            float t = smoothstep(0.0, 0.85, e);
-            vec3 col = mix(uHorizon, uZenith, t);
-            // Le jour : la photographie de ciel, teintee turquoise, fondue
-            // dans la couleur d'horizon (le brouillard) sur les premiers
-            // degres pour que les montagnes s'y perdent comme avant.
-            if (uHasSky > 0.5) {
-              vec2 uv = vec2(fract(atan(vDir.z, vDir.x) / 6.2831853 + 0.5 + uSkyOffset), asin(clamp(vDir.y, -1.0, 1.0)) / 3.1415927 + 0.5);
-              vec3 sky = texture2D(uSky, uv).rgb;
-              sky = mix(sky, sky * uTint, uTintMix);
-              float band = smoothstep(0.0, 0.1, e);
-              vec3 day = mix(uHorizon, sky, band);
-              col = mix(col, day, uDay);
-            }
-            gl_FragColor = vec4(col, uOpacity);
-          }
-        `,
-      }),
-    []
+      isWebGpu()
+        ? createSudSkyNodeMaterial(uniforms)
+        : Object.assign(
+            new ShaderMaterial({
+            side: BackSide,
+            depthWrite: false,
+            fog: false,
+            transparent: true,
+            uniforms,
+            vertexShader: /* glsl */ `
+              varying vec3 vDir;
+              void main() {
+                vDir = normalize(position);
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              }
+            `,
+            fragmentShader: /* glsl */ `
+              uniform vec3 uHorizon;
+              uniform vec3 uZenith;
+              uniform float uOpacity;
+              uniform sampler2D uSky;
+              uniform float uHasSky;
+              uniform float uDay;
+              uniform vec3 uTint;
+              uniform float uTintMix;
+              uniform float uSkyOffset;
+              varying vec3 vDir;
+              void main() {
+                // Elevation 0 a l'horizon, 1 au zenith ; sous l'horizon on garde
+                // la couleur d'horizon (le sol est devant de toute facon).
+                float e = clamp(vDir.y, 0.0, 1.0);
+                float t = smoothstep(0.0, 0.85, e);
+                vec3 col = mix(uHorizon, uZenith, t);
+                // Le jour : la photographie de ciel, teintee turquoise, fondue
+                // dans la couleur d'horizon (le brouillard) sur les premiers
+                // degres pour que les montagnes s'y perdent comme avant.
+                if (uHasSky > 0.5) {
+                  vec2 uv = vec2(fract(atan(vDir.z, vDir.x) / 6.2831853 + 0.5 + uSkyOffset), asin(clamp(vDir.y, -1.0, 1.0)) / 3.1415927 + 0.5);
+                  vec3 sky = texture2D(uSky, uv).rgb;
+                  sky = mix(sky, sky * uTint, uTintMix);
+                  float band = smoothstep(0.0, 0.1, e);
+                  vec3 day = mix(uHorizon, sky, band);
+                  col = mix(col, day, uDay);
+                }
+                gl_FragColor = vec4(col, uOpacity);
+              }
+            `,
+          }),
+            { uniforms }
+          ),
+    [uniforms]
   );
 
   // La photographie de ciel, chargee une fois ; le dome reste en degrade
