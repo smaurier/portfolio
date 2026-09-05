@@ -7,7 +7,6 @@ import type { DirectionKey } from "../direction-colors";
 import { useAtmosphereHour } from "../use-atmosphere-hour";
 import { useSceneRefs } from "../scene-refs-context";
 import EastTonatiuh from "./east-tonatiuh";
-import SouthHuitzilopochtli from "./south-huitzilopochtli";
 import WestEhecatl from "./west-ehecatl";
 import NorthMictlantecuhtli from "./north-mictlantecuhtli";
 import CenterXiuhtecuhtli from "./center-xiuhtecuhtli";
@@ -87,7 +86,11 @@ export default function CardinalAmbience() {
   return (
     <>
       <EastTonatiuh alphaRef={alphaRefs.dore} />
-      <SouthHuitzilopochtli alphaRef={alphaRefs.turquoise} />
+      {/* Sud : plus d'ambiance en points depuis le 05/09 (retour Sylvain :
+          « les petites particules bleues qui devaient illustrer les
+          colibris n'ont plus lieu d'etre ») : les vrais colibris
+          (huitzilin-birds) et les 400 etoiles portent le Sud.
+          south-huitzilopochtli.tsx reste dans le repo, non monte. */}
       <WestEhecatl alphaRef={alphaRefs.cendre} />
       {/* Suspense : North charge le sprite de volute via useTexture. */}
       <Suspense fallback={null}>

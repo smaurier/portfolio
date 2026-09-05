@@ -29,7 +29,7 @@ import { useSceneRefs } from "./scene-refs-context";
  */
 
 const MODEL_PATH = "/models/hummingbird-poly.glb";
-const BASE_SCALE = 0.22;
+const BASE_SCALE = 0.08; // 0.22 -> 0.08 (05/09, Sylvain : « trop gros, c est tout petit normalement »)
 const MODEL_PITCH = 0.68; // rad, redresse le corps : +atan(0.63/0.78), le bec vient a l horizontale (05/09, retour Sylvain « ils volent a la verticale » : le signe etait inverse)
 const FLAP_HZ = 14;
 const FLAP_AMPLITUDE = 0.75; // rad
