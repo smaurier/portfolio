@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { deriveFogTint, readDirectionAccentColor, readDirectionColor } from "./direction-colors";
 import PostFX from "./post-fx";
+import PostFxWebgpu from "./webgpu/post-fx-webgpu";
+import { decideRendererKind } from "./webgpu/renderer-kind";
 import SceneContent from "./scene-content";
 import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
@@ -93,6 +95,7 @@ export default function PersistentScene() {
 
   if (!refs) return null;
   if (bot) return null;
+  const rendererKind = decideRendererKind();
   // Mode recit accessible : demonte le Canvas WebGL pour une lecture
   // calme sans layer 3D. Les rAF Three.js s'arretent, gains CPU et
   // batterie. Le contenu HTML reste visible sur fond noir opaque.
@@ -116,7 +119,21 @@ export default function PersistentScene() {
         shadows
         // Photo (05/09, controles de scene) : canvas.toBlob a besoin que le
         // tampon soit conserve apres la composition.
-        gl={{ preserveDrawingBuffer: true }}
+        // Migration WebGPU (05/09) : sous drapeau ?gpu=1, WebGPURenderer
+        // (repli WebGL 2 automatique cote three), sinon le WebGLRenderer
+        // de production. Decide une fois par session (renderer-kind).
+        gl={
+          rendererKind === "webgpu"
+            ? async (props) => {
+                const THREE = await import("three/webgpu");
+                const { extend } = await import("@react-three/fiber");
+                extend(THREE as unknown as Parameters<typeof extend>[0]);
+                const renderer = new THREE.WebGPURenderer({ ...(props as object), antialias: true } as ConstructorParameters<typeof THREE.WebGPURenderer>[0]);
+                await renderer.init();
+                return renderer;
+              }
+            : { preserveDrawingBuffer: true }
+        }
         camera={{ fov: 45, near: 0.1, far: 100 }}
         dpr={[1, refs.perfProfile.dprCap]}
         frameloop={frameloop}
@@ -137,7 +154,7 @@ export default function PersistentScene() {
             cardinal rendu visible : filaments qui balaient l'orbite
             plus vite que la camera. Invisible hors transition. */}
         <EhecatlWind />
-        {refs.perfProfile.postFx && <PostFX />}
+        {refs.perfProfile.postFx && (rendererKind === "webgpu" ? <PostFxWebgpu /> : <PostFX />)}
       </Canvas>
     </div>
   );

@@ -1,5 +1,8 @@
 import { Color, MeshStandardMaterial, type Material, type Object3D } from "three";
 import { addShaderModifier } from "./shader-patch";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { ensureNahualMaterials } from "./webgpu/nahual-material";
+import { rimLightStage } from "./webgpu/stages";
 
 /**
  * Liseré de lumière (fresnel) sur les matériaux standard d'un objet : retour
@@ -97,6 +100,31 @@ export function applyRimLight(
 ): RimLightUniforms[] {
   const { color, power, intensity } = { ...DEFAULT_OPTIONS, ...options };
   const allUniforms: RimLightUniforms[] = [];
+
+  // WebGPU (05/09) : un etage TSL par materiau, memes uniformes (les
+  // setters ci-dessous restent les memes).
+  if (isWebGpu()) {
+    for (const m of ensureNahualMaterials(root)) {
+      const existing = uniformsByMaterial.get(m);
+      if (existing) {
+        allUniforms.push(existing);
+        continue;
+      }
+      const uniforms: RimLightUniforms = {
+        uRimColor: { value: new Color(color) },
+        uRimIntensity: { value: intensity },
+        uRimPower: { value: power },
+        uBodyTintAmount: { value: 0 },
+        uNorthDark: { value: 0 },
+        uEdgeIntensity: { value: 0 },
+        uEdgePulse: { value: 0.65 },
+      };
+      uniformsByMaterial.set(m, uniforms);
+      allUniforms.push(uniforms);
+      m.addStage(rimLightStage(uniforms));
+    }
+    return allUniforms;
+  }
 
   root.traverse((child) => {
     const mesh = child as unknown as { material?: Material | Material[] };

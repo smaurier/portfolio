@@ -1,5 +1,8 @@
 import { MeshStandardMaterial, Vector2, type Material, type Object3D } from "three";
 import { addShaderModifier } from "./shader-patch";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { ensureNahualMaterials } from "./webgpu/nahual-material";
+import { cursorRevealStage } from "./webgpu/stages";
 
 /**
  * Révélation par curseur : retour de Sylvain le 18/08 : "au départ, tous
@@ -103,6 +106,16 @@ const patchedMaterials = new WeakSet<Material>();
  * raison que depth-fade.ts.
  */
 export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms): void {
+  // WebGPU (05/09) : un etage TSL, memes uniformes.
+  if (isWebGpu()) {
+    for (const m of ensureNahualMaterials(root)) {
+      if (patchedMaterials.has(m)) continue;
+      patchedMaterials.add(m);
+      m.transparent = true;
+      m.addStage(cursorRevealStage(uniforms));
+    }
+    return;
+  }
   root.traverse((child) => {
     const mesh = child as unknown as { material?: Material | Material[] };
     if (!mesh.material) return;

@@ -1,5 +1,8 @@
 import { MeshStandardMaterial, type Material, type Object3D } from "three";
 import { addShaderModifier } from "./shader-patch";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { ensureNahualMaterials } from "./webgpu/nahual-material";
+import { depthFadeStage } from "./webgpu/stages";
 
 /**
  * Perspective atmosphérique : retour de Sylvain le 18/08 : "plus on est
@@ -48,6 +51,16 @@ const patchedMaterials = new WeakSet<Material>();
  */
 export function applyDepthFade(root: Object3D, options: Partial<DepthFadeOptions> = {}) {
   const { near, far } = { ...DEFAULT_OPTIONS, ...options };
+
+  // WebGPU (05/09) : un etage TSL sur le materiau de noeuds, pas de patch.
+  if (isWebGpu()) {
+    for (const m of ensureNahualMaterials(root)) {
+      if (patchedMaterials.has(m)) continue;
+      patchedMaterials.add(m);
+      m.addStage(depthFadeStage(near, far));
+    }
+    return;
+  }
 
   root.traverse((child) => {
     const mesh = child as unknown as { material?: Material | Material[] };
