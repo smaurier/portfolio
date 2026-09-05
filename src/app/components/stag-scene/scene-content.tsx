@@ -27,6 +27,7 @@ import HuitzilinBirds from "./huitzilin-birds";
 import PiedraXiuhcoatlRing from "./piedra-xiuhcoatl-ring";
 import PiedraRingFire from "./piedra-ring-fire";
 import XiuhcoatlStrikeDirector from "./xiuhcoatl-strike-director";
+import ShaderQuarantine from "./webgpu/shader-quarantine";
 import YearStones from "./year-stones";
 import SudSpines from "./sud-spines";
 import AmateStrips from "./amate-strips";
@@ -154,6 +155,8 @@ export default function SceneContent({
       <SudSky />
       {/* La frappe (05/09) : enveloppe calculee une fois par frame. */}
       <XiuhcoatlStrikeDirector />
+      {/* Migration WebGPU (05/09, temporaire) : cache les ShaderMaterial non portes. */}
+      <ShaderQuarantine />
       <PiedraRingFire />
       {/* L'annee en pierres, face au cerf (05/09). */}
       <Suspense fallback={null}>

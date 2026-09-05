@@ -1,6 +1,6 @@
 import { Color, DoubleSide, type Texture } from "three";
 import { MeshBasicNodeMaterial, type Node } from "three/webgpu";
-import { Fn, float, vec3, mix, smoothstep, fract, floor, sin, pow, max, positionGeometry, positionLocal } from "three/tsl";
+import { Fn, float, vec3, mix, smoothstep, fract, floor, sin, pow, max, positionGeometry, materialColor, materialOpacity } from "three/tsl";
 import { NahualPhysicalMaterial } from "./nahual-material";
 import { boundFloat } from "./tsl-bind";
 import type { XiuhcoatlUniforms } from "../xiuhcoatl-materials";
@@ -83,12 +83,11 @@ export function createTurquoiseNodeMaterial(base: Color, sky: Texture | null, un
   const uTime = boundFloat(uniforms.uTime);
   const uEmber = boundFloat(uniforms.uEmber);
   const uCrackle = boundFloat(uniforms.uCrackle);
-  const uOpacity = boundFloat(uniforms.uOpacity);
-
-  const baseColor = vec3(base.r, base.g, base.b);
+  // La couleur de base est lue sur le materiau (materialColor) : les
+  // composants la font varier (le glyphe gris qui devient turquoise).
   mat.colorNode = Fn(() => {
     const m = mosaic(positionGeometry);
-    return baseColor.mul(m.x).mul(float(1).sub(m.y.mul(0.7)));
+    return vec3(materialColor).mul(m.x).mul(float(1).sub(m.y.mul(0.7)));
   })();
   mat.emissiveNode = Fn(() => {
     const m = mosaic(positionGeometry);
@@ -99,10 +98,12 @@ export function createTurquoiseNodeMaterial(base: Color, sky: Texture | null, un
   if (options.ringBand) {
     const { inner, outer } = options.ringBand;
     mat.transparent = true;
+    // materialOpacity = opacity du materiau x alphaMap (les traits graves),
+    // que le composant continue de piloter ; la bande s'y multiplie.
     mat.opacityNode = Fn(() => {
       const r = positionGeometry.xz.length();
       const band = smoothstep(inner - 0.05, inner + 0.03, r).mul(float(1).sub(smoothstep(outer - 0.02, outer + 0.02, r)));
-      return uOpacity.mul(band);
+      return materialOpacity.mul(band);
     })();
   }
   return mat;
@@ -113,6 +114,9 @@ export function createEmberFireNodeMaterial(uniforms: XiuhcoatlUniforms): MeshBa
   const mat = new MeshBasicNodeMaterial();
   mat.transparent = true;
   mat.side = DoubleSide;
+  // Comme le ShaderMaterial d'origine : pas de tone mapping (les flammes
+  // sont ecrites telles quelles, orange franc, pas jaune lave).
+  mat.toneMapped = false;
   const uTime = boundFloat(uniforms.uTime);
   const uEmber = boundFloat(uniforms.uEmber);
   const uCrackle = boundFloat(uniforms.uCrackle);
@@ -125,7 +129,5 @@ export function createEmberFireNodeMaterial(uniforms: XiuhcoatlUniforms): MeshBa
     const glow = emberGlow(positionGeometry, uTime);
     return uOpacity.mul(float(0.85).add(glow.mul(0.15)));
   })();
-  // Le materiau de base n'est pas eclaire : les flammes sont de la lumiere.
-  void positionLocal;
   return mat;
 }
