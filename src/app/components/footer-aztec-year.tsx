@@ -1,16 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { aztecYear, YEAR_BEARER_INFO } from "aztec-year";
 import { renderWithNahuatl } from "../../lib/nahuatl";
-
-/** « 1 Tochtli · Lapin » : numeral + nom nahuatl + glose dans la langue de la page. */
-export function formatFooterAztecYear(locale: string, date?: Date): string {
-  const year = aztecYear(date);
-  const info = YEAR_BEARER_INFO[year.bearer];
-  const gloss = locale === "en" ? info.en : locale === "es" ? info.es : info.fr;
-  return `${year.number} ${info.nahuatl} · ${gloss}`;
-}
+import { formatFooterAztecYear } from "../../lib/footer-aztec-year";
 
 /**
  * L'annee mexica du pied de page, calculee CHEZ LE VISITEUR (05/09, retour
