@@ -410,6 +410,122 @@
     "refs": {
       "title": "Ce qui m'a inspiré",
       "text": "Sacred Labs et Joseph Santamaria pour la sobriété WebGL, Lusion et Immersive Garden pour la cinématographie web, Bruno Simon pour l'audace narrative d'un portfolio 3D. Les codex Fejérváry-Mayer et Borgia pour la structure cosmologique. Les études de Miguel León-Portilla et Alfredo López Austin pour la profondeur philosophique nahua. Merci à Elda pour la patience, à Léo pour les micro-siestes qui ont sauvé quelques deadlines."
+    },
+    "sources": {
+      "title": "Sources",
+      "text": "Tout ce que ce Codex avance vient de quelque part. Voici où le lire, en ligne quand une numérisation existe, et où le voir ou l'acheter en vrai.",
+      "onlineLabel": "En ligne",
+      "physicalLabel": "En main",
+      "list": [
+        {
+          "name": "Codex de Florence · Sahagún, vers 1577",
+          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Livre III : la naissance de Huitzilopochtli à Coatepec (chapitre 1) et les neuf étapes vers Mictlán (appendice). Livre VII : le soleil créé à Teotihuacan et Xolotl.",
+          "online": [
+            {
+              "label": "Digital Florentine Codex, Getty Research Institute, livre III (nahuatl, espagnol, anglais)",
+              "url": "https://florentinecodex.getty.edu/book/3"
+            },
+            {
+              "label": "traduction française de Jourdanet et Siméon, Paris, 1880, sur archive.org",
+              "url": "https://archive.org/details/histoiregnralede00saha"
+            }
+          ],
+          "physical": "Original à la Biblioteca Medicea Laurenziana, Florence. Éditions : Anderson et Dibble, Florentine Codex, University of Utah Press, 12 volumes ; Porrúa, Mexico, collection Sepan cuantos, 1999, ISBN 9684322658."
+        },
+        {
+          "name": "Codex Vaticanus A · Codex Ríos, vers 1570 à 1589",
+          "text": "Les strates de Mictlán peintes folio par folio, et les soleils précédents. C'est la source picturale de la descente du Nord.",
+          "online": [
+            {
+              "label": "DigiVatLib, Bibliothèque apostolique vaticane, Vat. lat. 3738",
+              "url": "https://digi.vatlib.it/view/MSS_Vat.lat.3738"
+            },
+            {
+              "label": "pages commentées sur FAMSI",
+              "url": "http://www.famsi.org/research/graz/vaticanus3738/index.html"
+            }
+          ],
+          "physical": "Bibliothèque apostolique vaticane, Rome. Fac-similé : Akademische Druck- und Verlagsanstalt, Graz, 1979."
+        },
+        {
+          "name": "Codex Chimalpopoca · Leyenda de los Soles",
+          "text": "Les quatre soleils, leur fin, et Nahui Ollin. Le récit des cinq soleils de ce Codex en vient.",
+          "online": [
+            {
+              "label": "John Bierhorst, History and Mythology of the Aztecs: The Codex Chimalpopoca, prêt numérique sur archive.org",
+              "url": "https://archive.org/details/historymythology0000unse"
+            }
+          ],
+          "physical": "John Bierhorst, University of Arizona Press, 1992, ISBN 9780816502455."
+        },
+        {
+          "name": "Codex Borgia",
+          "text": "Manuscrit divinatoire, une des structures cosmologiques qui portent ce site.",
+          "online": [
+            {
+              "label": "DigiVatLib, Borg. mess. 1",
+              "url": "https://digi.vatlib.it/view/MSS_Borg.mess.1"
+            }
+          ],
+          "physical": "Bibliothèque apostolique vaticane, Rome. Édition commentée : Anders, Jansen et Reyes García, Fondo de Cultura Económica, Mexico, 1993, ISBN 9789681641542."
+        },
+        {
+          "name": "Codex Fejérváry-Mayer",
+          "text": "Sa première page, les quatre directions autour du centre, est le plan de ce site.",
+          "online": [
+            {
+              "label": "notice du World Museum, National Museums Liverpool",
+              "url": "https://www.liverpoolmuseums.org.uk/artifact/codex-fejervary-mayer"
+            }
+          ],
+          "physical": "World Museum, Liverpool."
+        },
+        {
+          "name": "La pierre de Coyolxauhqui",
+          "text": "Le monolithe découvert en 1978 au pied du Templo Mayor, la lune démembrée au bas de Coatepec. Le geste que rejoue la page Projets.",
+          "online": [
+            {
+              "label": "Museo del Templo Mayor, INAH",
+              "url": "https://www.templomayor.inah.gob.mx/"
+            }
+          ],
+          "physical": "Museo del Templo Mayor, Seminario 8, Centro Histórico, Mexico."
+        },
+        {
+          "name": "La Piedra del Sol",
+          "text": "Le glyphe Ollin au centre, les quatre soleils autour : la boussole en bas à droite en descend.",
+          "online": [
+            {
+              "label": "Museo Nacional de Antropología, INAH",
+              "url": "https://mna.inah.gob.mx/"
+            }
+          ],
+          "physical": "Museo Nacional de Antropología, Chapultepec, Mexico."
+        },
+        {
+          "name": "Alfredo López Austin · Cuerpo humano e ideología",
+          "text": "L'étude de référence sur teyolía, tonalli et ihíyotl, les trois entités de l'être nahua.",
+          "online": [],
+          "physical": "UNAM, Instituto de Investigaciones Antropológicas, Mexico, 1980. En anglais : The Human Body and Ideology, University of Utah Press, 1988, ISBN 9780874802603."
+        },
+        {
+          "name": "Miguel León-Portilla · La filosofía náhuatl",
+          "text": "La pensée nahua lue par un des siens : les tlamatinimeh, le temps, les soleils.",
+          "online": [],
+          "physical": "UNAM, Mexico, 1956, réédité depuis. En français : La pensée aztèque, Seuil, Paris, 1985, ISBN 9782020067126."
+        },
+        {
+          "name": "Dictionnaires du nahuatl",
+          "text": "Pour xihuitl, tezcatl, Huitztlampa et chaque mot glosé de ce Codex.",
+          "online": [
+            {
+              "label": "Gran Diccionario Náhuatl, UNAM",
+              "url": "https://gdn.iib.unam.mx/"
+            }
+          ],
+          "physical": "Frances Karttunen, An Analytical Dictionary of Nahuatl, University of Oklahoma Press, 1992, ISBN 9780806124216."
+        }
+      ]
     }
   },
   "mentionsLegales": {

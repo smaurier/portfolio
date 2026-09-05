@@ -367,6 +367,39 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
         <h2>{renderWithNahuatl(dict.refs.title)}</h2>
         <p>{renderWithNahuatl(dict.refs.text)}</p>
       </section>
+
+      {/* Sources (05/09, retour Sylvain « renvoyer aux vraies sources,
+          consultables en ligne et en physique ») : chaque source a sa
+          numerisation quand elle existe (liens verifies le 05/09) et
+          son lieu ou son edition papier. */}
+      <section className="codexSection">
+        <h2>{renderWithNahuatl(dict.sources.title)}</h2>
+        <p>{renderWithNahuatl(dict.sources.text)}</p>
+        <ul className="codexDirections codexSources">
+          {dict.sources.list.map((src) => (
+            <li key={src.name}>
+              <strong>{renderWithNahuatl(src.name)}</strong>
+              <span>{renderWithNahuatl(src.text)}</span>
+              {src.online.length > 0 && (
+                <span className="codexSourceWhere">
+                  {dict.sources.onlineLabel} :{" "}
+                  {src.online.map((o, i) => (
+                    <span key={o.url}>
+                      {i > 0 && " · "}
+                      <a href={o.url} target="_blank" rel="noopener noreferrer">
+                        {o.label}
+                      </a>
+                    </span>
+                  ))}
+                </span>
+              )}
+              <span className="codexSourceWhere">
+                {dict.sources.physicalLabel} : {renderWithNahuatl(src.physical)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }

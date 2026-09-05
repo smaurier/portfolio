@@ -1182,6 +1182,16 @@ body.reading-mode .projectCase {
   opacity: 0.85;
 }
 
+/* Sources du Codex (05/09) : ou lire, ou voir. */
+.codexSources .codexSourceWhere {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  opacity: 0.75;
+}
+.codexSources .codexSourceWhere a {
+  overflow-wrap: anywhere;
+}
+
 /* Footer link (28/08 task #52) — accès discret Codex. */
 .footerLink {
   color: inherit;
