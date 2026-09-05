@@ -293,6 +293,20 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
         </ul>
       </section>
 
+      {/* Les recits du Sud et du Nord (05/09, retour Sylvain « est-ce qu'on
+          raconte bien l'histoire du nord et du sud dans le codex ? ») :
+          Coatepec pour la page Projets, la descente au Mictlan pour la
+          page Memoire, chacun relie au geste visible a l'ecran. */}
+      <section className="codexSection">
+        <h2>{renderWithNahuatl(dict.huitztlampa.title)}</h2>
+        <p>{renderWithNahuatl(dict.huitztlampa.text)}</p>
+      </section>
+
+      <section className="codexSection">
+        <h2>{renderWithNahuatl(dict.mictlampa.title)}</h2>
+        <p>{renderWithNahuatl(dict.mictlampa.text)}</p>
+      </section>
+
       <section className="codexSection">
         <h2>{renderWithNahuatl(dict.suns.title)}</h2>
         <p>{renderWithNahuatl(dict.suns.text)}</p>
