@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type PointLight } from "three";
+import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Material, type Mesh, type MeshStandardMaterial, type Object3D, type PointLight } from "three";
+import { isWebGpu } from "./webgpu/renderer-kind";
+import { createEmberMirrorNodeMaterial, createFresnelNodeMaterial, createHaloNodeMaterial, type HaloUniforms } from "./webgpu/xolotl-tsl";
 import { getMictlanSky } from "./mictlan-sky";
 import { rimCrossing, rimSurface } from "@/lib/xolotl-rim";
 import { bodyFromFeet, fitSupportPlane, type SupportPoint } from "@/lib/quadruped-stance";
@@ -277,16 +279,11 @@ const WALK_TIME_SCALE = 1.0;
 // évite délai lag au premier spawn.
 useGLTF.preload("/models/xolotl.glb");
 
-// Uniforms halo : type + helper de mutation. Passe par une fonction
-// plutot qu'une assignation directe dans useFrame, sinon
-// react-hooks/immutability (React 19 compilateur) refuse la mutation
-// d'une valeur issue d'un hook : meme pattern que setRimLightIntensity
-// dans rim-light.ts.
-type HaloUniforms = {
-  uColor: { value: Color };
-  uOpacity: { value: number };
-  uPulse: { value: number };
-};
+// Uniforms halo (type dans webgpu/xolotl-tsl.ts) : helper de mutation.
+// Passe par une fonction plutot qu'une assignation directe dans useFrame,
+// sinon react-hooks/immutability (React 19 compilateur) refuse la
+// mutation d'une valeur issue d'un hook : meme pattern que
+// setRimLightIntensity dans rim-light.ts.
 
 function setHaloUniforms(uniforms: HaloUniforms, opacity: number, pulse: number) {
   uniforms.uOpacity.value = opacity;
@@ -305,7 +302,7 @@ function setMaterialOpacity(mat: MeshStandardMaterial, opacity: number) {
  * meme materiau que les lames et les fleches, envMap du ciel du Mictlan,
  * couche 0 pour que la braise qu'il porte accroche des reflets sur lui.
  * Plus de patch rim-light ni de pulsation (elle le blanchissait). */
-function dressXolotl(root: Group, north: boolean, obsidian: MeshPhysicalMaterial, fresnel: MeshBasicMaterial): void {
+function dressXolotl(root: Group, north: boolean, obsidian: MeshPhysicalMaterial, fresnel: Material): void {
   root.traverse((child) => {
     const mesh = child as Mesh;
     if (!mesh.isMesh) return;
@@ -344,7 +341,8 @@ function setFresnelUniform(uniforms: FresnelUniforms, key: "uOpacity" | "uTime",
 // Factory : cree un MeshBasicMaterial fresnel obsidienne avec le meme
 // shader partout, mais un jeu d'uniforms independant. Permet d'avoir la
 // silhouette primaire et l'afterimage avec des opacites decouplees.
-function createFresnelMaterial(uniforms: FresnelUniforms): MeshBasicMaterial {
+function createFresnelMaterial(uniforms: FresnelUniforms): Material {
+  if (isWebGpu()) return createFresnelNodeMaterial(uniforms, XOLOTL_COLOR);
   const mat = new MeshBasicMaterial({
     color: new Color(XOLOTL_COLOR),
     transparent: true,
@@ -435,7 +433,8 @@ function setEmberMirror(uniforms: EmberMirrorUniforms, opacity: number, time: nu
   uniforms.uTime.value = time;
 }
 
-function createEmberMirrorMaterial(uniforms: EmberMirrorUniforms): ShaderMaterial {
+function createEmberMirrorMaterial(uniforms: EmberMirrorUniforms): Material {
+  if (isWebGpu()) return createEmberMirrorNodeMaterial(uniforms, WATER_LEVEL);
   return new ShaderMaterial({
     uniforms: { ...uniforms, uClipY: { value: WATER_LEVEL } },
     transparent: true,
@@ -507,6 +506,40 @@ const AFTERIMAGE_DELAY_MS = 180;
 const AFTERIMAGE_OPACITY_MULT = 0.35;
 
 
+/** Le halo au sol : GLSL en WebGL, TSL en WebGPU (xolotl-tsl.ts). */
+function createHaloMaterial(uniforms: HaloUniforms): Material {
+  if (isWebGpu()) return createHaloNodeMaterial(uniforms);
+  return new ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    fog: false,
+    uniforms,
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+          `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uOpacity;
+      uniform float uPulse;
+      varying vec2 vUv;
+      void main() {
+        vec2 centered = vUv - 0.5;
+        float dist = length(centered) * 2.0;
+        // Anneau : peak vers dist=0.55, fade centre et bord
+        float ring = smoothstep(0.0, 0.55, dist) * (1.0 - smoothstep(0.55, 1.0, dist));
+        float glow = pow(1.0 - smoothstep(0.0, 1.0, dist), 2.0) * 0.5;
+        float alpha = (ring * 0.9 + glow) * uPulse;
+        gl_FragColor = vec4(uColor * uPulse, alpha * uOpacity);
+      }
+          `,
+  });
+}
+
 export default function XolotlCompanion() {
   const direction = useCurrentDirection();
   // Au Nord (03/09, retour Sylvain "il marche peut-etre trop vite") : il
@@ -524,7 +557,7 @@ export default function XolotlCompanion() {
   // de React 19 : "Cannot access refs during render". Meme lifecycle
   // qu'un useRef (cree une fois, jamais recree), sans acces .current
   // pendant le render.
-  const haloUniforms = useMemo(
+  const haloUniforms = useMemo<HaloUniforms>(
     () => ({
       uColor: { value: new Color("#c880ff") },
       uOpacity: { value: 0 },
@@ -532,6 +565,7 @@ export default function XolotlCompanion() {
     }),
     [],
   );
+  const haloMaterial = useMemo(() => createHaloMaterial(haloUniforms), [haloUniforms]);
   const [spawn, setSpawn] = useState(false);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const alreadyWitnessed = useMemo(() => {
@@ -1088,35 +1122,7 @@ export default function XolotlCompanion() {
         renderOrder={997}
       >
         <circleGeometry args={[0.8, 48]} />
-        <shaderMaterial
-          transparent
-          depthWrite={false}
-          blending={AdditiveBlending}
-          fog={false}
-          uniforms={haloUniforms}
-          vertexShader={`
-            varying vec2 vUv;
-            void main() {
-              vUv = uv;
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-          `}
-          fragmentShader={`
-            uniform vec3 uColor;
-            uniform float uOpacity;
-            uniform float uPulse;
-            varying vec2 vUv;
-            void main() {
-              vec2 centered = vUv - 0.5;
-              float dist = length(centered) * 2.0;
-              // Anneau : peak vers dist=0.55, fade centre et bord
-              float ring = smoothstep(0.0, 0.55, dist) * (1.0 - smoothstep(0.55, 1.0, dist));
-              float glow = pow(1.0 - smoothstep(0.0, 1.0, dist), 2.0) * 0.5;
-              float alpha = (ring * 0.9 + glow) * uPulse;
-              gl_FragColor = vec4(uColor * uPulse, alpha * uOpacity);
-            }
-          `}
-        />
+        <primitive object={haloMaterial} attach="material" />
       </mesh>
     </>
   );

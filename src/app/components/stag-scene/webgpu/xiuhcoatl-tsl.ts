@@ -4,6 +4,7 @@ import { Fn, float, vec3, mix, smoothstep, fract, floor, sin, pow, max, position
 import { NahualPhysicalMaterial } from "./nahual-material";
 import { boundFloat } from "./tsl-bind";
 import type { XiuhcoatlUniforms } from "../xiuhcoatl-materials";
+import { hash3, vnoise } from "./tsl-noise";
 
 /**
  * Le xiuhcoatl en TSL (05/09, migration WebGPU) : la mosaique de turquoise
@@ -14,21 +15,6 @@ import type { XiuhcoatlUniforms } from "../xiuhcoatl-materials";
 
 type F = Node<"float">;
 type V3 = Node<"vec3">;
-
-const hash3 = Fn(([p]: [V3]) => {
-  const q = fract(vec3(p).mul(0.3183099).add(vec3(0.1, 0.2, 0.3))).mul(17).toVar();
-  return fract(q.x.mul(q.y).mul(q.z).mul(q.x.add(q.y).add(q.z)));
-});
-
-const vnoise = Fn(([p]: [V3]) => {
-  const i = floor(p).toVar();
-  const f = fract(p).toVar();
-  f.assign(f.mul(f).mul(float(3).sub(f.mul(2))));
-  const c = (x: number, y: number, z: number) => hash3(i.add(vec3(x, y, z)));
-  const x0 = mix(mix(c(0, 0, 0), c(1, 0, 0), f.x), mix(c(0, 1, 0), c(1, 1, 0), f.x), f.y);
-  const x1 = mix(mix(c(0, 0, 1), c(1, 0, 1), f.x), mix(c(0, 1, 1), c(1, 1, 1), f.x), f.y);
-  return mix(x0, x1, f.z);
-});
 
 /** Braise : veines chaudes qui montent lentement, crepitement fin. 0..1. */
 const emberGlow = Fn(([local, t]: [V3, F]) => {
@@ -106,6 +92,9 @@ export function createTurquoiseNodeMaterial(base: Color, sky: Texture | null, un
       return materialOpacity.mul(band);
     })();
   }
+  // Brouillard attenue (softenFog en GLSL) : la matiere garde un tiers du
+  // brouillard de la scene, le serpent ne se noie pas dans le decor.
+  mat.fogScale = boundFloat(uniforms.uFogScale);
   return mat;
 }
 

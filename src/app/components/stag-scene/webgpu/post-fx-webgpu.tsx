@@ -5,15 +5,19 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { RenderPipeline, type WebGPURenderer, type Node } from "three/webgpu";
 import { NoToneMapping, Vector4, type PerspectiveCamera } from "three";
-import { Fn, pass, uniform, vec2, vec3, vec4, float, mix, smoothstep, dot, length, screenUV, clamp } from "three/tsl";
+import { Fn, pass, uniform, vec2, vec3, vec4, float, mix, smoothstep, dot, length, screenUV, clamp, convertToTexture } from "three/tsl";
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
 import { chromaticAberration } from "three/addons/tsl/display/ChromaticAberrationNode.js";
+import { dof } from "three/addons/tsl/display/DepthOfFieldNode.js";
 import { approachGrade, getGradeRig, type GradeRig } from "@/lib/direction-grade";
 import { useCardinalTransition } from "../cardinal-transition-context";
 import { useAtmosphereHour } from "../use-atmosphere-hour";
 import { useSceneRefs } from "../scene-refs-context";
 import { xiuhcoatlStore, HEAT_TRAIL_MAX } from "../xiuhcoatl-store";
 import { projectHeatPoints } from "../heat-projection";
+import { useOllinWave } from "../ollin-wave";
+import { useNepantlaStrength } from "../nepantla-strength";
+import { createOllinUniforms, nepantlaNode, ollinNode } from "./post-fx-extras-tsl";
 
 /**
  * PostFxWebgpu (05/09, migration WebGPU) : la chaine de post-traitement
@@ -23,9 +27,8 @@ import { projectHeatPoints } from "../heat-projection";
  * respire avec l'arc, eclair turquoise et teinte lente de la frappe. Le
  * pipeline prend la main sur la boucle de rendu (useFrame priorite 1).
  *
- * Pas encore portes (phase 0) : l'onde d'Ollin, le flou de file Nepantla
- * et la profondeur de champ du burst ; leurs reglages restent dans
- * post-fx.tsx pour la version WebGL.
+ * Meme ordre que la chaine pmndrs : onde d'Ollin, flou de file Nepantla,
+ * chaleur, profondeur de champ du burst, bloom, aberration, grade.
  */
 
 const BLOOM_BASE = 0.6;
@@ -33,6 +36,12 @@ const BLOOM_BURST_ADD = 0.8;
 const CA_BASE = 0.0006;
 const CA_BURST_ADD = 0.0012;
 const HEAT_AMPLITUDE = 0.012;
+/** Bokeh au pic du burst cardinal (0 au repos : passe quasi neutre). */
+const DOF_BURST_BOKEH = 3.0;
+/** Mise au point sur le cerf : pmndrs (0.03, 0.06) en profondeur normalisee
+ * sur far = 100, soit ~3 et ~6 unites en distance de vue. */
+const DOF_FOCUS = 3;
+const DOF_FOCAL = 6;
 
 export default function PostFxWebgpu() {
   const { gl, scene, camera, size } = useThree();
@@ -40,6 +49,8 @@ export default function PostFxWebgpu() {
   const refs = useSceneRefs();
   const hour = useAtmosphereHour();
   const gradeRef = useRef<GradeRig>({ ...getGradeRig(hour) });
+  const ollinWave = useOllinWave();
+  const nepantla = useNepantlaStrength();
 
   const rig = useMemo(() => {
     const renderer = gl as unknown as WebGPURenderer;
@@ -49,6 +60,7 @@ export default function PostFxWebgpu() {
     const pipeline = new RenderPipeline(renderer);
     const scenePass = pass(scene, camera);
     const color = scenePass.getTextureNode("output");
+    const viewZ = scenePass.getViewZNode();
 
     const uBloom = uniform(BLOOM_BASE);
     const uCa = uniform(CA_BASE);
@@ -59,10 +71,18 @@ export default function PostFxWebgpu() {
     const uGroundHeat = uniform(0);
     const uAspect = uniform(1.6);
     const uTime = uniform(0);
+    const uOllin = createOllinUniforms();
+    const uNepantla = uniform(0);
+    const uBokeh = uniform(0);
     const heatPoints = Array.from({ length: HEAT_TRAIL_MAX }, () => uniform(new Vector4(0, 0, 0, 0)));
 
+    // 0. L'onde d'Ollin (deformation + aberration au point touche), puis le
+    //    flou de file du voyage cardinal (8 taps sur le rendu deja deforme).
+    const shaken = convertToTexture(ollinNode(color, uOllin));
+    const filed = convertToTexture(nepantlaNode(shaken, uNepantla));
+
     // 1. Chaleur : deformation fine des UV, au ras du sol (bande) et
-    //    derriere le serpent (points), avant tout le reste.
+    //    derriere le serpent (points).
     const heated = Fn(() => {
       const uv = screenUV.toVar();
       // screenUV est en origine haut-gauche : la bande « au ras du sol »
@@ -78,12 +98,13 @@ export default function PostFxWebgpu() {
       const q2 = uv.mul(vec2(uAspect, 1)).mul(90).add(vec2(uTime.mul(0.7), uTime.mul(-4)));
       const n = vec2(q.x.sin().mul(q.y.cos()), q.y.add(1.7).sin().mul(q.x.cos())).add(vec2(q2.x.sin().mul(q2.y.sin()), q2.y.cos().mul(q2.x.sin())).mul(0.5));
       const disp = n.mul(HEAT_AMPLITUDE).mul(weight.min(1));
-      return color.sample(uv.add(disp));
+      return filed.sample(uv.add(disp));
     })();
 
-    // 2. Bloom + aberration chromatique.
-    const bloomPass = bloom(heated, BLOOM_BASE, 0.5, 0.35);
-    const bloomed = heated.add(bloomPass);
+    // 2. Profondeur de champ du burst (bokeh 0 au repos), bloom, aberration.
+    const focused = dof(heated, viewZ, DOF_FOCUS, DOF_FOCAL, uBokeh) as unknown as Node<"vec4">;
+    const bloomPass = bloom(focused, BLOOM_BASE, 0.5, 0.35);
+    const bloomed = focused.add(bloomPass);
     const ca = chromaticAberration(bloomed, uCa.mul(60), vec2(0.5, 0.5), float(1.1)) as unknown as Node<"vec4">;
 
     // 3. Saturation, vignette, eclair et teinte de la frappe.
@@ -101,7 +122,7 @@ export default function PostFxWebgpu() {
     })();
 
     pipeline.outputNode = graded;
-    return { pipeline, bloomPass, uBloom, uCa, uSaturation, uVignette, uFlash, uTint, uGroundHeat, uAspect, uTime, heatPoints };
+    return { pipeline, bloomPass, uBloom, uCa, uSaturation, uVignette, uFlash, uTint, uGroundHeat, uAspect, uTime, heatPoints, uOllin, uNepantla, uBokeh };
   }, [gl, scene, camera]);
 
   useEffect(() => {
@@ -125,6 +146,11 @@ export default function PostFxWebgpu() {
     const pinLevel = refs?.pinProgressRef.current ?? 0;
     rig.bloomPass.strength.value = (BLOOM_BASE + bell * BLOOM_BURST_ADD + audioLevel * 0.6 + pinLevel * 1.5) * grade.bloomScale;
     rig.uCa.value = CA_BASE + bell * CA_BURST_ADD;
+    rig.uBokeh.value = bell * DOF_BURST_BOKEH;
+    rig.uOllin.progress.value = ollinWave.progress;
+    rig.uOllin.amplitude.value = ollinWave.amplitude;
+    rig.uOllin.center.value.copy(ollinWave.center);
+    rig.uNepantla.value = nepantla.value;
 
     rig.uTime.value = state.clock.elapsedTime;
     rig.uAspect.value = size.width / Math.max(1, size.height);

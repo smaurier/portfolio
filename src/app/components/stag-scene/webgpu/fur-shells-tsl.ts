@@ -1,7 +1,8 @@
 import type { Color } from "three";
-import { MeshBasicNodeMaterial, type Node } from "three/webgpu";
-import { Fn, float, vec3, dot, pow, clamp, normalize, floor, fract, positionLocal, positionGeometry, positionView, normalLocal, normalView, modelScale, Discard } from "three/tsl";
+import { MeshBasicNodeMaterial } from "three/webgpu";
+import { Fn, float, vec3, dot, pow, clamp, normalize, floor, positionLocal, positionGeometry, positionView, normalLocal, normalView, modelScale, Discard } from "three/tsl";
 import { boundColor, boundFloat } from "./tsl-bind";
+import { hash3 } from "./tsl-noise";
 
 /**
  * Les coques de poil du cerf noir en TSL (05/09, migration WebGPU). Le
@@ -20,11 +21,6 @@ export type FurShellUniforms = {
   uBase: { value: Color };
   uSheen: { value: Color };
 };
-
-const hash3 = Fn(([p]: [Node<"vec3">]) => {
-  const q = fract(p.mul(0.3183099).add(vec3(0.1, 0.2, 0.3))).mul(17).toVar();
-  return fract(q.x.mul(q.y).mul(q.z).mul(q.x.add(q.y).add(q.z)));
-});
 
 export function createFurShellNodeMaterial(u: FurShellUniforms): MeshBasicNodeMaterial & { uniforms: FurShellUniforms } {
   const mat = new MeshBasicNodeMaterial() as MeshBasicNodeMaterial & { uniforms: FurShellUniforms };

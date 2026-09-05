@@ -2,6 +2,7 @@ import { Color, Vector2 } from "three";
 import { Fn, float, vec2, vec3, vec4, mix, smoothstep, dot, length, pow, saturate, max, screenCoordinate, screenSize, positionView, normalView, positionGeometry, modelScale, fwidth, floor, fract, uniform } from "three/tsl";
 import type { Node } from "three/webgpu";
 import type { OutputStage } from "./nahual-material";
+import { hash3 } from "./tsl-noise";
 
 /**
  * Les etages de sortie en TSL (05/09, migration WebGPU) : la traduction
@@ -102,11 +103,6 @@ export function rimLightStage(v: RimLightValues): OutputStage {
   uEdgeIntensity.onFrameUpdate(() => v.uEdgeIntensity.value);
   uEdgePulse.onFrameUpdate(() => v.uEdgePulse.value);
 
-  const furHash = Fn(([p]: [Node<"vec3">]) => {
-    const q = fract(vec3(p).mul(0.3183099).add(vec3(0.1, 0.2, 0.3))).mul(17).toVar();
-    return fract(q.x.mul(q.y).mul(q.z).mul(q.x.add(q.y).add(q.z)));
-  });
-
   return (color) =>
     Fn(() => {
       const c = vec4(color).toVar();
@@ -119,8 +115,8 @@ export function rimLightStage(v: RimLightValues): OutputStage {
       const rimFresnel = pow(float(1).sub(facing), uRimPower);
       // Obsidienne velours du Nord : grain de poil en bind pose.
       const furPos = positionGeometry.mul(modelScale.x);
-      const grain = float(0.7).add(furHash(floor(furPos.mul(260))).mul(0.3));
-      const grain2 = float(0.85).add(furHash(floor(furPos.mul(60).add(3))).mul(0.15));
+      const grain = float(0.7).add(hash3(floor(furPos.mul(260))).mul(0.3));
+      const grain2 = float(0.85).add(hash3(floor(furPos.mul(60).add(3))).mul(0.15));
       const velvet = pow(float(1).sub(facing), 1.6);
       const darkBody = c.rgb.mul(0.16).add(uRimColor.mul(velvet).mul(0.6).mul(grain).mul(grain2)).add(vec3(0.014, 0.01, 0.024));
       c.rgb.assign(mix(c.rgb, darkBody, uNorthDark));

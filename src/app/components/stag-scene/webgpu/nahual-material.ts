@@ -1,6 +1,7 @@
 import { MeshStandardNodeMaterial, MeshPhysicalNodeMaterial } from "three/webgpu";
 import type { Material, MeshPhysicalMaterial, MeshStandardMaterial, Mesh, Object3D } from "three";
 import type { Node, NodeBuilder } from "three/webgpu";
+import { vec4, mix } from "three/tsl";
 
 /**
  * NahualStandardMaterial (05/09, migration WebGPU). Le remplacant du
@@ -17,7 +18,14 @@ import type { Node, NodeBuilder } from "three/webgpu";
 
 export type OutputStage = (color: Node<"vec4">) => Node<"vec4">;
 
-type StageHost = { stages: OutputStage[]; needsUpdate: boolean };
+type StageHost = { stages: OutputStage[]; fogScale: Node<"float"> | null; needsUpdate: boolean };
+
+/** Brouillard attenue (cf softenFog en GLSL) : `scale` = 1 laisse le
+ * brouillard de la scene, 0 l'enleve, entre les deux le pondere. */
+function scaledFog(scale: Node<"float"> | null, unfogged: Node<"vec4">, fogged: Node<"vec4">): Node<"vec4"> {
+  if (!scale) return fogged;
+  return vec4(mix(unfogged.rgb, fogged.rgb, scale), unfogged.a);
+}
 
 function applyStages(stages: OutputStage[], output: Node<"vec4">): Node<"vec4"> {
   // `output` est un vec4 (rgb eclaire, alpha) ; chaque etage recoit et
@@ -29,6 +37,7 @@ function applyStages(stages: OutputStage[], output: Node<"vec4">): Node<"vec4"> 
 
 export class NahualStandardMaterial extends MeshStandardNodeMaterial implements StageHost {
   stages: OutputStage[] = [];
+  fogScale: Node<"float"> | null = null;
   addStage(stage: OutputStage): void {
     this.stages.push(stage);
     this.needsUpdate = true;
@@ -36,12 +45,13 @@ export class NahualStandardMaterial extends MeshStandardNodeMaterial implements 
   setupOutput(builder: NodeBuilder, outputNode: Node<"vec4">): Node<"vec4"> {
     // Le brouillard d'abord (super.setupOutput), les etages ensuite :
     // les patches GLSL s'inserent a dithering_fragment, APRES fog_fragment.
-    return applyStages(this.stages, super.setupOutput(builder, outputNode) as Node<"vec4">);
+    return applyStages(this.stages, scaledFog(this.fogScale, outputNode, super.setupOutput(builder, outputNode) as Node<"vec4">));
   }
 }
 
 export class NahualPhysicalMaterial extends MeshPhysicalNodeMaterial implements StageHost {
   stages: OutputStage[] = [];
+  fogScale: Node<"float"> | null = null;
   addStage(stage: OutputStage): void {
     this.stages.push(stage);
     this.needsUpdate = true;
@@ -49,7 +59,7 @@ export class NahualPhysicalMaterial extends MeshPhysicalNodeMaterial implements 
   setupOutput(builder: NodeBuilder, outputNode: Node<"vec4">): Node<"vec4"> {
     // Le brouillard d'abord (super.setupOutput), les etages ensuite :
     // les patches GLSL s'inserent a dithering_fragment, APRES fog_fragment.
-    return applyStages(this.stages, super.setupOutput(builder, outputNode) as Node<"vec4">);
+    return applyStages(this.stages, scaledFog(this.fogScale, outputNode, super.setupOutput(builder, outputNode) as Node<"vec4">));
   }
 }
 

@@ -52,7 +52,7 @@ const FOG_CHUNK = /* glsl */ `
 /** Brouillard attenue sur une matiere standard/physique de three (le decor
  * garde le sien) : remplace le chunk de fog par une version ponderee. */
 export function softenFog(mat: Material & { onBeforeCompile?: unknown; customProgramCacheKey?: () => string }, uniforms: XiuhcoatlUniforms, key: string) {
-  if (isWebGpu()) return; // WebGPU : le brouillard attenue viendra en TSL (phase suivante)
+  if (isWebGpu()) return; // WebGPU : `fogScale` de NahualPhysicalMaterial (xiuhcoatl-tsl.ts)
   // Une matiere du GLB est PARTAGEE par plusieurs meshes (os, perles,
   // emblemes, points) : ne patcher qu'une fois, sinon l'uniform est
   // redefini et le shader ne compile plus.
