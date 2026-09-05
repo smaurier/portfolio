@@ -101,6 +101,11 @@ export default function PersistentScene() {
   return (
     <div className={styles.stage} data-direction={direction}>
       <Canvas
+        // Sonde de dev (05/09) : la scene three exposee pour Playwright
+        // (diagnostics visuels), jamais en production.
+        onCreated={(state) => {
+          if (process.env.NODE_ENV !== "production") (window as unknown as { __nahualScene?: unknown }).__nahualScene = state.scene;
+        }}
         // Ombres (05/09, Sud : « un jeu d'ombres delicats ») : shadow map
         // activee au niveau du Canvas, la directionnelle ne projette qu'au
         // Sud (reveal-lighting), les autres pages restent sans ombre.

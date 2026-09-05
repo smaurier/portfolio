@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { BackSide, Color, ShaderMaterial, SRGBColorSpace, Texture, TextureLoader, type Fog, type Mesh } from "three";
+import { BackSide, Color, LinearFilter, RepeatWrapping, ShaderMaterial, SRGBColorSpace, Texture, TextureLoader, type Fog, type Mesh } from "three";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { getRevealFloor } from "@/lib/reveal-arc";
@@ -117,6 +117,15 @@ export default function SudSky() {
         return;
       }
       tex.colorSpace = SRGBColorSpace;
+      // La jointure (retour Sylvain) : en ClampToEdge le bord u = 0 / u = 1 ne
+      // se referme pas, et les mipmaps choisissent un niveau minuscule sur la
+      // discontinuite de fract() : on boucle la texture et on coupe les mipmaps.
+      tex.wrapS = RepeatWrapping;
+      tex.wrapT = RepeatWrapping;
+      tex.minFilter = LinearFilter;
+      tex.magFilter = LinearFilter;
+      tex.generateMipmaps = false;
+      tex.needsUpdate = true;
       material.uniforms.uSky.value = tex;
       material.uniforms.uHasSky.value = 1;
       // Azimut monde de notre soleil (direction-light, 300 deg) : angle du

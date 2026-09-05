@@ -109,7 +109,15 @@ export default function PiedraGround() {
   });
 
   return (
-    <mesh geometry={geometry} position={[0, 0.005, 0]} receiveShadow>
+    // renderOrder 1 (05/09, retour Sylvain « a un certain angle, la piedra
+    // devient turquoise ») : le revelateur curseur rend TOUS les materiaux
+    // transparents, donc le disque et le sol passent dans la passe
+    // transparente, triee par distance a la camera. A certains angles le
+    // disque etait dessine AVANT le sol : il se melangeait au ciel du dome
+    // (alpha 0.1 sur du turquoise), puis sa profondeur rejetait le sol
+    // dessous : tout le disque montrait le ciel. Diagnostique en coupant
+    // depthWrite (le cyan disparaissait). Le disque passe toujours apres.
+    <mesh geometry={geometry} position={[0, 0.005, 0]} receiveShadow renderOrder={1}>
       <meshPhysicalMaterial
         ref={materialRef}
         map={colorMap}
