@@ -22,6 +22,11 @@ export const xiuhcoatlStore = {
   trail: [] as HeatPoint[],
   /** 0..1 : presence (fondu d'arrivee), 0 = rien a deformer. */
   presence: 0,
+  /** 0..1 : SOUFFLE CHAUD du midi au Sud (05/09, Sylvain « j'aime bien le
+   * souffle chaud ») : l'air tremble au ras du sol comme sur l'asphalte
+   * en ete, sur toute la largeur. Ecrit par SudSky, lu par la passe de
+   * chaleur. */
+  groundHeat: 0,
 };
 
 /** Ajoute un point, borne la file, purge les morts. */

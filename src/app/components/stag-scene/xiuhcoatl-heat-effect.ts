@@ -20,6 +20,7 @@ uniform vec4 uPoints[${HEAT_TRAIL_MAX}];
 uniform float uTime;
 uniform float uAmplitude;
 uniform float uAspect;
+uniform float uGroundHeat;
 
 float hash2(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -32,7 +33,9 @@ float vnoise2(vec2 p) {
 }
 
 void mainUv(inout vec2 uv) {
-  float weight = 0.0;
+  // Souffle chaud du midi : bande au ras du sol (sous l'horizon, au-dessus
+  // du bas de cadre), turbulence lente et fine.
+  float weight = uGroundHeat * smoothstep(0.62, 0.38, uv.y) * smoothstep(0.02, 0.22, uv.y) * 0.55;
   for (int k = 0; k < ${HEAT_TRAIL_MAX}; k++) {
     vec4 p = uPoints[k];
     if (p.w <= 0.0) continue;
@@ -65,6 +68,7 @@ export class XiuhcoatlHeatEffect extends Effect {
         ["uTime", new Uniform(0)],
         ["uAmplitude", new Uniform(0.012)],
         ["uAspect", new Uniform(1.6)],
+        ["uGroundHeat", new Uniform(0)],
       ]),
     });
   }

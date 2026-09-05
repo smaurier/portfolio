@@ -5,6 +5,9 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { BackSide, Color, ShaderMaterial, type Fog, type Mesh } from "three";
 import { useCurrentDirection } from "./use-current-direction";
+import { useSceneRefs } from "./scene-refs-context";
+import { getRevealFloor } from "@/lib/reveal-arc";
+import { xiuhcoatlStore } from "./xiuhcoatl-store";
 
 /**
  * SudSky (04/09, tissu du Sud). Le ciel de midi. Jusqu'ici le fond de la
@@ -25,6 +28,7 @@ const ZENITH_DEEP = new Color("#0b3f6e");
 export default function SudSky() {
   const meshRef = useRef<Mesh>(null);
   const direction = useCurrentDirection();
+  const sceneRefs = useSceneRefs();
   const blendRef = useRef(direction === "turquoise" ? 1 : 0);
   const scratch = useMemo(() => new Color(), []);
   const material = useMemo(
@@ -68,6 +72,10 @@ export default function SudSky() {
     const south = direction === "turquoise";
     blendRef.current += ((south ? 1 : 0) - blendRef.current) * 0.06;
     const blend = blendRef.current;
+    // Souffle chaud : monte avec le midi, Sud seulement, rien en reduced-motion.
+    const reduced = sceneRefs?.reducedMotionRef.current ?? false;
+    const ignite = getRevealFloor(sceneRefs?.progressRef.current ?? 0);
+    xiuhcoatlStore.groundHeat = reduced ? 0 : blend * ignite * ignite;
     const mesh = meshRef.current;
     if (!mesh) return;
     mesh.visible = blend > 0.01;

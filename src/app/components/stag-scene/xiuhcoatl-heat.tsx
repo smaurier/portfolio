@@ -25,8 +25,10 @@ export default function XiuhcoatlHeat() {
     const uPoints = effect.uniforms.get("uPoints");
     const uTime = effect.uniforms.get("uTime");
     const uAspect = effect.uniforms.get("uAspect");
-    if (!uPoints || !uTime || !uAspect) return;
+    const uGround = effect.uniforms.get("uGroundHeat");
+    if (!uPoints || !uTime || !uAspect || !uGround) return;
     uTime.value = state.clock.elapsedTime;
+    uGround.value = xiuhcoatlStore.groundHeat;
     uAspect.value = state.size.width / Math.max(1, state.size.height);
     const points = uPoints.value as Vector4[];
     const now = performance.now();

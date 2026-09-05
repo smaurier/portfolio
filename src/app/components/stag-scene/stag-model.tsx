@@ -15,6 +15,8 @@ import { centerAndScale } from "./center-model";
 import { applyHeadLook } from "./head-look";
 import { applyRimLight, setBodyTintAmount, setEdgeIntensity, setEdgePulse, setNorthDark, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 import { useCurrentDirection } from "./use-current-direction";
+import { distributePitch, STAG_NECK_LIMITS } from "@/lib/neck-look";
+import { Quaternion as SunQuaternion, Vector3 as SunVector3, type Object3D as SunObject3D } from "three";
 import { pickNorthClip } from "@/lib/north-clips";
 import StagAura from "./stag-aura";
 import SpiritParticles from "./spirit-particles";
@@ -39,6 +41,11 @@ const HEAD_BONE_NAME = "Head";
 // camera donnait un effet mecanique/possede desagreable. 20 % garde
 // l'idee "le cerf remarque le visiteur" sans caricature.
 const MAX_HEAD_TURN_BLEND = 0.2;
+/** Regard vers le soleil (05/09) : part du total des butees utilisee, et
+ * sens de rotation autour de l'axe X local des os du cou (a verifier a
+ * l'oeil : si le museau descend au lieu de monter, inverser). */
+const SUN_LOOK_SHARE = 0.75;
+const SUN_LOOK_SIGN = 1;
 
 const MODEL_PATH = "/models/stag.glb";
 // Hauteur voulue en unités de scène, pas l'échelle native du GLB (les packs
@@ -143,6 +150,37 @@ export default function StagModel({
     centerAndScale(scene, TARGET_HEIGHT);
     return scene.getObjectByName(HEAD_BONE_NAME) ?? null;
   }, [scene]);
+  // Regard vers le soleil (05/09, echo de scroll du Sud, go Sylvain avec
+  // la contrainte « bloquer les articulations du cou ») : la chaine
+  // Neck1 -> Neck2 -> Neck3 -> Head, chaque os avec sa butee
+  // (lib/neck-look). Rien a voir avec l'ancien head-look (un seul os,
+  // remplacement d'orientation, coupe le 30/08) : ici on AJOUTE un petit
+  // tangage a chaque os par-dessus la pose du mixer, borne, reparti.
+  const neckChain = useMemo(
+    () => STAG_NECK_LIMITS.map((j) => scene.getObjectByName(j.name) ?? null) as (SunObject3D | null)[],
+    [scene]
+  );
+  const sunLookRef = useRef(0);
+  const sunScratch = useMemo(
+    () => ({
+      q: new SunQuaternion(),
+      axis: new SunVector3(1, 0, 0),
+      right: new SunVector3(1, 0, 0),
+      boneWorld: new SunQuaternion(),
+      // Par os : la pose ecrite par le mixer (base) et ce qu'on a pose en
+      // dernier (applied). Si l'os n'est pas anime par le clip courant, le
+      // mixer ne le reecrit pas et notre rotation s'ACCUMULERAIT frame
+      // apres frame (constate 05/09 : le cerf disparaissait, cou en
+      // vrille). On repart donc de la base tant que le mixer n'a pas
+      // touche a l'os.
+    }),
+    []
+  );
+  const sunPoseRef = useRef({
+    base: STAG_NECK_LIMITS.map(() => new SunQuaternion()),
+    applied: STAG_NECK_LIMITS.map(() => new SunQuaternion()),
+    primed: STAG_NECK_LIMITS.map(() => false),
+  });
 
   useEffect(() => {
     const clip = getIdleClipName(progressRef.current, noticedRef.current);
@@ -280,6 +318,46 @@ export default function StagModel({
     // ce rig ; le module head-look.ts + ses tests restent en place au
     // cas ou on l'utiliserait un jour sur un autre asset avec un
     // meilleur bind pose (Xolo Fab par exemple, non teste).
+
+    // Regard vers le soleil (05/09, Sud) : au climax de midi, le cerf leve
+    // la tete vers le zenith. Cabre total = 75 % du total des butees
+    // (~48 deg), reparti sur les quatre os, chacun borne : jamais un os
+    // tordu au-dela de ce qu'un cou fait. Lisse (0.05/frame), s'efface
+    // hors du Sud ; reduced-motion : progress reste 0, donc rien.
+    {
+      const p = progressRef.current;
+      const climax = Math.min(1, Math.max(0, (p - 0.55) / 0.35));
+      const eased = climax * climax * (3 - 2 * climax);
+      const target = direction === "turquoise" ? eased : 0;
+      sunLookRef.current += (target - sunLookRef.current) * 0.05;
+      const amount = sunLookRef.current;
+      if (amount > 0.001) {
+        const total = STAG_NECK_LIMITS.reduce((a, j) => a + j.maxPitch, 0);
+        const pitches = distributePitch(amount * total * SUN_LOOK_SHARE, STAG_NECK_LIMITS);
+        // Axe de tangage = l'axe LATERAL du cerf (son X monde), exprime dans
+        // le repere local de chaque os : independant des conventions d'axes
+        // du rig (constate 05/09 : l'axe X local tordait la tete de cote).
+        scene.getWorldQuaternion(sunScratch.boneWorld);
+        sunScratch.right.set(1, 0, 0).applyQuaternion(sunScratch.boneWorld);
+        for (let i = 0; i < neckChain.length; i++) {
+          const bone = neckChain[i];
+          if (!bone) continue;
+          const pose = sunPoseRef.current;
+          const touchedByMixer = !pose.primed[i] || !bone.quaternion.equals(pose.applied[i]);
+          if (touchedByMixer) pose.base[i].copy(bone.quaternion);
+          else bone.quaternion.copy(pose.base[i]);
+          bone.updateWorldMatrix(true, false);
+          bone.getWorldQuaternion(sunScratch.boneWorld).invert();
+          sunScratch.axis.copy(sunScratch.right).applyQuaternion(sunScratch.boneWorld).normalize();
+          sunScratch.q.setFromAxisAngle(sunScratch.axis, pitches[i] * SUN_LOOK_SIGN);
+          bone.quaternion.multiply(sunScratch.q);
+          pose.applied[i].copy(bone.quaternion);
+          pose.primed[i] = true;
+        }
+      } else {
+        for (let i = 0; i < neckChain.length; i++) sunPoseRef.current.primed[i] = false;
+      }
+    }
   });
 
   return (
