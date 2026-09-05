@@ -25,6 +25,7 @@ export function formatFooterAztecYear(locale: string, date?: Date): string {
 export default function FooterAztecYear({ locale, initial }: { locale: string; initial: string }) {
   const [label, setLabel] = useState(initial);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- recalcul volontaire au montage avec l'horloge du visiteur (le rendu serveur est fige au build)
     setLabel(formatFooterAztecYear(locale));
   }, [locale]);
   return <>{renderWithNahuatl(label)}</>;

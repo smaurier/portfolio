@@ -11,6 +11,8 @@ import { getMictlanSky } from "./mictlan-sky";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { terrainHeightWorld } from "./cardinal-orientation";
+import { getRevealFloor } from "@/lib/reveal-arc";
+import { useSceneRefs } from "./scene-refs-context";
 
 /**
  * YearStones (05/09, v3 apres deux retours de Sylvain : « vire la stele
@@ -40,8 +42,11 @@ const ARC_RADIUS = 4.0;
 const GLYPH_WIDTH = 1.3;
 /** Pas angulaire entre deux points (rad) a ce rayon. */
 const DOT_STEP = 0.075;
-/** Part du rocher qui depasse du sol (fraction de son epaisseur). */
-const EMERGED = 0.55;
+/** Part du rocher qui depasse du sol (fraction de son epaisseur). 0.55 ->
+ * 0.95 (retour Sylvain « on voit sa partie souterraine ») : le sol est
+ * rendu translucide par le revelateur curseur (plancher d'opacite en tete
+ * de page), la partie enfouie se voyait a travers ; le rocher est POSE. */
+const EMERGED = 0.95;
 
 /** Un noeud du GLB (mesh ou groupe de primitives) en meshes statiques,
  * centre a l'origine, ramene a `width` u de large ; rend aussi l'epaisseur
@@ -67,6 +72,7 @@ export default function YearStones() {
   const glyphRef = useRef<Group>(null);
   const dotsRef = useRef<Group>(null);
   const direction = useCurrentDirection();
+  const sceneRefs = useSceneRefs();
   const blendRef = useRef(direction === "turquoise" ? 1 : 0);
   const { scene } = useGLTF(MODEL_PATH);
   const year = useMemo(() => aztecYear(), []);
@@ -127,9 +133,15 @@ export default function YearStones() {
     g.scale.setScalar(blend);
     const fire = xiuhcoatlStore.strike.fire;
     const gate = xiuhcoatlStore.heatGate;
+    // La nuit, comme le serpent (retour Sylvain « mieux integre dans la
+    // nuit, trop visible ») : braises a un tiers, vernis presque eteint,
+    // brouillard au niveau du decor ; tout monte avec le jour.
+    const day = getRevealFloor(sceneRefs?.progressRef.current ?? 0);
     uniforms.uTime.value = state.clock.elapsedTime;
-    uniforms.uEmber.value = 0.25 + 0.6 * gate + 2.6 * fire;
+    uniforms.uEmber.value = (0.33 + 0.67 * day) * (0.25 + 0.6 * gate) + 2.6 * fire;
     uniforms.uCrackle.value = 1 + 2 * fire;
+    uniforms.uFogScale.value = 1 - 0.7 * day;
+    material.envMapIntensity = 0.15 + 0.95 * day;
   });
 
   return (
