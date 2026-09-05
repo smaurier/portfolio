@@ -34,7 +34,7 @@ const SOUTH_TARGET_LIFT = 1.0; // 1.1 -> 1.0 (05/09, retour Sylvain : la stele d
 // Recul Huitztlampa (04/09, Sylvain : « reculer la caméra, le cerf est aussi
 // important, il faut bien avoir toute la vue ») : rayon x1.36 (7 -> 9.5 en
 // tete de page), cerf entier et ciel dans le meme cadre.
-const SOUTH_RADIUS_SCALE = 1.48; // 1.36 -> 1.48 (05/09, « encore reculer un peu »)
+const SOUTH_RADIUS_SCALE = 1.62; // 1.36 -> 1.48 -> 1.62 (05/09, « on reculera la camera pour bien voir » les rochers de l annee)
 const PARALLAX_X = 0.5;
 const PARALLAX_Y = 0.35;
 const MOUSE_LERP = 0.08;
