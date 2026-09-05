@@ -27,6 +27,7 @@ import HuitzilinBirds from "./huitzilin-birds";
 import PiedraXiuhcoatlRing from "./piedra-xiuhcoatl-ring";
 import PiedraRingFire from "./piedra-ring-fire";
 import XiuhcoatlStrikeDirector from "./xiuhcoatl-strike-director";
+import YearStones from "./year-stones";
 import SudSpines from "./sud-spines";
 import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
@@ -154,6 +155,10 @@ export default function SceneContent({
       {/* La frappe (05/09) : enveloppe calculee une fois par frame. */}
       <XiuhcoatlStrikeDirector />
       <PiedraRingFire />
+      {/* L'annee en pierres, face au cerf (05/09). */}
+      <Suspense fallback={null}>
+        <YearStones />
+      </Suspense>
       {/* La lune et les nuages du Sud (05/09) : la lune s'efface quand le
        * soleil monte, les nuages derivent et blanchissent au midi. */}
       <SudSkyBodies />
