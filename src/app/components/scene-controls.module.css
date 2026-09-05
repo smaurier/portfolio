@@ -1,0 +1,95 @@
+/* Controles de scene (05/09) : une colonne de boutons ronds au-dessus du
+   bouton son (coin bas gauche), meme langage que sound-design.module.css :
+   opacite basse au repos, visibles au survol et au focus. */
+
+.cluster {
+  position: fixed;
+  bottom: calc(3rem + 52px);
+  left: 2rem;
+  z-index: 9200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 234, 213, 0.25);
+  background: rgba(15, 12, 22, 0.65);
+  color: #f4ead5;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  opacity: 0.55;
+  transition: opacity 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.button:hover,
+.button:focus-visible {
+  opacity: 1;
+  border-color: rgba(0, 192, 120, 0.6);
+  background: rgba(15, 12, 22, 0.85);
+}
+
+.button[aria-pressed="true"] {
+  opacity: 0.95;
+  border-color: var(--direction-color, rgba(0, 192, 120, 0.8));
+  color: var(--direction-color, #00c078);
+}
+
+.button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Le retour visuel de la photo : un eclair blanc bref sur toute la page. */
+.flash {
+  position: fixed;
+  inset: 0;
+  z-index: 9300;
+  pointer-events: none;
+  background: #fff;
+  opacity: 0;
+  animation: sceneFlash 0.35s ease-out forwards;
+}
+
+@keyframes sceneFlash {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .cluster {
+    bottom: calc(1.2rem + 56px);
+    left: 1rem;
+    gap: 6px;
+  }
+  .button {
+    width: 48px;
+    height: 48px;
+    background: rgba(15, 12, 22, 0.75);
+    border-color: rgba(0, 192, 120, 0.4);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash {
+    animation: none;
+    opacity: 0;
+  }
+}

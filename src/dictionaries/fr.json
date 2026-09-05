@@ -26,6 +26,17 @@
       "on": "Activer le son",
       "off": "Couper le son"
     },
+    "sceneControls": {
+      "textHide": "Masquer le texte",
+      "textShow": "Afficher le texte",
+      "fullscreenOn": "Plein écran",
+      "fullscreenOff": "Quitter le plein écran",
+      "cinematicOn": "Contemplation : la scène déroule seule",
+      "cinematicOff": "Arrêter la contemplation",
+      "photo": "Photo de la scène",
+      "ecoOn": "Mode éco : rendu allégé",
+      "ecoOff": "Quitter le mode éco"
+    },
     "readingMode": {
       "on": "Activer le mode récit accessible",
       "off": "Désactiver le mode récit accessible"
@@ -637,7 +648,7 @@
       },
       {
         "title": "Raccourcis clavier",
-        "text": "Alt+Flèche haute/droite/basse/gauche : navigation cardinale directe (haut=Mémoire au Nord, droite=Services à l'Est, bas=Projets au Sud, gauche=Contact à l'Ouest). WASD (QWERTY) ou ZQSD (AZERTY) · indépendamment du layout physique · même grille cardinale : W/Z=Mémoire, D=Services, S=Projets, A/Q=Contact, C=Accueil (Centre). Échap : retour à l'accueil."
+        "text": "Alt+Flèche haute/droite/basse/gauche : navigation cardinale directe (haut=Mémoire au Nord, droite=Services à l'Est, bas=Projets au Sud, gauche=Contact à l'Ouest). WASD (QWERTY) ou ZQSD (AZERTY) · indépendamment du layout physique · même grille cardinale : W/Z=Mémoire, D=Services, S=Projets, A/Q=Contact, C=Accueil (Centre). Échap : retour à l'accueil. Contrôles de scène (lettres seules) : H masque ou affiche le texte, F plein écran, T contemplation (la scène déroule seule du soir au midi, tout geste l'arrête), P photo de la scène, E mode éco. Ces raccourcis obéissent au même interrupteur que les autres."
       },
       {
         "title": "Raccourcis manette",

@@ -31,4 +31,14 @@ describe("getPerfProfile", () => {
   it("le dprCap mobile reste strictement positif", () => {
     expect(getPerfProfile(320).dprCap).toBeGreaterThan(0);
   });
+
+  it("le mode eco force le repli, meme sur ordi (05/09, controles de scene)", () => {
+    const eco = getPerfProfile(1440, true);
+    expect(eco.postFx).toBe(false);
+    expect(eco.shadows).toBe(false);
+    expect(eco.dprCap).toBe(1);
+    expect(eco.bladeCount).toBeLessThan(getPerfProfile(1440).bladeCount);
+    expect(getPerfProfile(1440).shadows).toBe(true);
+    expect(getPerfProfile(375).shadows).toBe(false);
+  });
 });

@@ -1445,3 +1445,20 @@ body.nahual-lab-reveal .cardReflection {
   0%, 100% { opacity: 0.8; }
   50% { opacity: 1; }
 }
+
+/* Scene seule (05/09, controles de scene) : le texte s'efface, la page
+   garde sa hauteur (le scroll pilote toujours l'arc), les controles et la
+   boussole restent. */
+main,
+footer,
+header nav {
+  transition: opacity 0.4s ease, visibility 0s linear 0s;
+}
+body.nahual-scene-only main,
+body.nahual-scene-only footer,
+body.nahual-scene-only header nav {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+}

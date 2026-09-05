@@ -5,6 +5,8 @@
 // exposer un canvas qui rame dès qu'il devient la home en prod. Fonction
 // pure, découplée du rendu : même principe que reveal-arc.ts/camera-path.ts.
 
+import { resolveQuality } from "./scene-controls";
+
 const MOBILE_BREAKPOINT_PX = 768;
 
 // react-three-fiber plafonne déjà le devicePixelRatio à 2 par défaut (prop
@@ -24,6 +26,10 @@ export type PerfProfile = {
    * réglé plus léger (pas de valeur intermédiaire connue qui vaille le
    * coup, cf discussion 19/08). */
   postFx: boolean;
+  /** Ombres portees (05/09) : directionnelle du Sud, projecteur du serpent. */
+  shadows: boolean;
+  /** Brins d'herbe de la prairie (05/09). */
+  bladeCount: number;
 };
 
 /**
@@ -32,10 +38,16 @@ export type PerfProfile = {
  * flash "version allégée" pour tout le monde le temps que la vraie largeur
  * soit lue (cf stag-scene.tsx, useEffect + window.innerWidth).
  */
-export function getPerfProfile(viewportWidth: number): PerfProfile {
+export function getPerfProfile(viewportWidth: number, eco = false): PerfProfile {
   const isMobile = viewportWidth > 0 && viewportWidth < MOBILE_BREAKPOINT_PX;
+  // Le mode eco (05/09, controles de scene) force le repli, meme sur ordi ;
+  // les paliers vivent dans lib/scene-controls (resolveQuality), les
+  // plafonds DPR d'ici en sont la source.
+  const q = resolveQuality(eco, isMobile);
   return {
-    dprCap: isMobile ? MOBILE_DPR_CAP : DESKTOP_DPR_CAP,
-    postFx: !isMobile,
+    dprCap: eco ? q.dprCap : isMobile ? MOBILE_DPR_CAP : DESKTOP_DPR_CAP,
+    postFx: q.postFx,
+    shadows: q.shadows,
+    bladeCount: q.bladeCount,
   };
 }

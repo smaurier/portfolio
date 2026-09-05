@@ -328,7 +328,7 @@ export default function XiuhcoatlCompanion() {
       lightTarget.position.set(s.x, 0, s.z);
       lightTarget.updateMatrixWorld();
       if (!l.target) l.target = lightTarget;
-      const wantShadow = night > 0.15;
+      const wantShadow = night > 0.15 && (sceneRefs?.perfProfile.shadows ?? true);
       if (l.castShadow !== wantShadow) l.castShadow = wantShadow;
     }
 

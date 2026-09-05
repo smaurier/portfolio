@@ -14,6 +14,7 @@ import ReadingModeToggle from "../components/reading-mode-toggle";
 import RouteAnnouncer from "../components/route-announcer";
 import XolotlWitnessMessage from "../components/xolotl-witness";
 import SoundDesign from "../components/sound-design";
+import SceneControls from "../components/scene-controls";
 import TiltCards from "../components/tilt-cards";
 import Header from "../components/header";
 import NahualIntro from "../components/nahual-intro";
@@ -412,6 +413,9 @@ export default async function LocaleLayout({
               default mute. Ambient drone + chime cardinal par click
               + whoosh transition. */}
           <SoundDesign label={dict.common.sound} />
+          {/* Controles de scene (05/09) : texte, plein ecran, contemplation,
+              photo, eco ; raccourcis H F T P E. Au-dessus du bouton son. */}
+          <SceneControls labels={dict.common.sceneControls} />
           {/* Mode recit accessible opt-in (29/08 chantier a11y) :
               bouton bas gauche, symetrique du bouton son. Toggle
               persist localStorage via ReadingModeProvider. Cache le

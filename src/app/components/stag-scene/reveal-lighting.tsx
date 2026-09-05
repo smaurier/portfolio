@@ -126,7 +126,7 @@ export default function RevealLighting({
       if (arrivalGlow > 0) directionalColorScratch.lerp(cardinalColor, arrivalGlow * 0.6);
       directionalRef.current.color.copy(directionalColorScratch);
       directionalRef.current.position.set(rig.position[0], rig.position[1], rig.position[2]);
-      const wantShadow = hour === "turquoise" && !sceneRefs?.reducedMotionRef.current;
+      const wantShadow = hour === "turquoise" && !sceneRefs?.reducedMotionRef.current && (sceneRefs?.perfProfile.shadows ?? true);
       if (directionalRef.current.castShadow !== wantShadow) directionalRef.current.castShadow = wantShadow;
     }
     if (fogRef.current) {

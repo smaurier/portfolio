@@ -104,12 +104,19 @@ export default function PersistentScene() {
         // Sonde de dev (05/09) : la scene three exposee pour Playwright
         // (diagnostics visuels), jamais en production.
         onCreated={(state) => {
-          if (process.env.NODE_ENV !== "production") (window as unknown as { __nahualScene?: unknown }).__nahualScene = state.scene;
+          if (process.env.NODE_ENV !== "production") {
+            const w = window as unknown as { __nahualScene?: unknown; __nahualR3f?: unknown };
+            w.__nahualScene = state.scene;
+            w.__nahualR3f = state;
+          }
         }}
         // Ombres (05/09, Sud : « un jeu d'ombres delicats ») : shadow map
         // activee au niveau du Canvas, la directionnelle ne projette qu'au
         // Sud (reveal-lighting), les autres pages restent sans ombre.
         shadows
+        // Photo (05/09, controles de scene) : canvas.toBlob a besoin que le
+        // tampon soit conserve apres la composition.
+        gl={{ preserveDrawingBuffer: true }}
         camera={{ fov: 45, near: 0.1, far: 100 }}
         dpr={[1, refs.perfProfile.dprCap]}
         frameloop={frameloop}

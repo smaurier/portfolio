@@ -68,8 +68,8 @@ import { xiuhcoatlStore } from "./xiuhcoatl-store";
 const MIN_RADIUS = 3.3; // au-dela de la Piedra (3) et de son anneau
 const MAX_RADIUS = 16; // la prairie, c'est le plat ; les pentes sont les montagnes
 const MAX_TERRAIN_Y = 0.35;
-const BLADES_DESKTOP = 26000;
-const BLADES_MOBILE = 9000;
+/** Repli si le profil de rendu n'est pas encore la (cf lib/scene-controls). */
+const BLADES_FALLBACK = 26000;
 const GRID_SIZE = 64;
 const GRID_EXTENT = 17;
 const SEGMENTS = 3;
@@ -140,8 +140,8 @@ export default function Grass() {
   const meshRef = useRef<InstancedMesh>(null);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  const blades = useMemo(() => makeBlades(isMobile ? BLADES_MOBILE : BLADES_DESKTOP), [isMobile]);
+  const bladeCount = sceneRefs?.perfProfile.bladeCount ?? BLADES_FALLBACK;
+  const blades = useMemo(() => makeBlades(bladeCount), [bladeCount]);
   const geometry = useMemo(() => makeBladeGeometry(), []);
   const grid = useMemo(() => createGrassGrid(GRID_SIZE, GRID_EXTENT), []);
   const bendData = useMemo(() => new Uint8Array(GRID_SIZE * GRID_SIZE * 4).fill(128), []);

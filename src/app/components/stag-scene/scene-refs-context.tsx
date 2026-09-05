@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from "react";
 import { clampProgress } from "@/lib/camera-path";
 import { getPerfProfile, type PerfProfile } from "@/lib/mobile-perf";
+import { hydrateSceneControls, subscribeSceneControls } from "../scene-controls-store";
 
 /**
  * Contexte partagé des refs et de l'état runtime de la scène 3D
@@ -53,7 +54,14 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
   const noticedRef = useRef(false);
   const pinProgressRef = useRef(0);
   const [viewportWidth, setViewportWidth] = useState(0);
-  const perfProfile = getPerfProfile(viewportWidth);
+  // Mode eco (05/09, controles de scene) : profil de rendu leger force.
+  const [eco, setEco] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydratation depuis le stockage, cote client seulement
+    setEco(hydrateSceneControls().eco);
+    return subscribeSceneControls((s) => setEco(s.eco));
+  }, []);
+  const perfProfile = useMemo(() => getPerfProfile(viewportWidth, eco), [viewportWidth, eco]);
 
   useEffect(() => {
     function handleResize() {
