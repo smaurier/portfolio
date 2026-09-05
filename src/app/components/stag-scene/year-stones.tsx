@@ -42,6 +42,13 @@ const ARC_RADIUS = 4.0;
 const GLYPH_WIDTH = 1.3;
 /** Pas angulaire entre deux points (rad) a ce rayon. */
 const DOT_STEP = 0.075;
+/** Gris pierre AVANT que l'anneau ne devienne braise (retour Sylvain
+ * 05/09 : « totalement gris pierre avant que l'anneau devienne braise ;
+ * lorsqu'il devient braise, il prend aussi les couleurs turquoise et
+ * braise ») ; la bascule suit l'allumage de l'anneau (ignite 0.55 -> 0.8),
+ * ou la frappe si elle vient avant. */
+const STONE_GREY = new Color("#5e5a55");
+const TURQUOISE = new Color("#2aa6b8");
 /** Part du rocher qui depasse du sol (fraction de son epaisseur). 0.55 ->
  * 0.95 (retour Sylvain « on voit sa partie souterraine ») : le sol est
  * rendu translucide par le revelateur curseur (plancher d'opacite en tete
@@ -78,9 +85,12 @@ export default function YearStones() {
   const year = useMemo(() => aztecYear(), []);
   const uniforms = useMemo(() => createXiuhcoatlUniforms(), []);
   const material = useMemo(() => {
-    const m = createTurquoiseMaterial(new Color("#2aa6b8"), getMictlanSky(), uniforms) as MeshPhysicalMaterial;
+    const m = createTurquoiseMaterial(TURQUOISE.clone(), getMictlanSky(), uniforms) as MeshPhysicalMaterial;
     m.transparent = false;
     m.opacity = 1;
+    m.color.copy(STONE_GREY);
+    m.sheen = 0;
+    m.envMapIntensity = 0;
     return m;
   }, [uniforms]);
 
@@ -137,11 +147,17 @@ export default function YearStones() {
     // nuit, trop visible ») : braises a un tiers, vernis presque eteint,
     // brouillard au niveau du decor ; tout monte avec le jour.
     const day = getRevealFloor(sceneRefs?.progressRef.current ?? 0);
+    // Pierre grise tant que l'anneau n'est pas braise ; turquoise et braise
+    // ensuite (bascule lissee sur l'allumage de l'anneau, ou la frappe).
+    const igniteU = Math.min(1, Math.max(0, (day - 0.55) / 0.25));
+    const lit = Math.max(igniteU * igniteU * (3 - 2 * igniteU), gate, Math.min(1, fire * 3));
+    material.color.copy(STONE_GREY).lerp(TURQUOISE, lit);
+    material.sheen = 0.35 * lit;
     uniforms.uTime.value = state.clock.elapsedTime;
-    uniforms.uEmber.value = (0.33 + 0.67 * day) * (0.25 + 0.6 * gate) + 2.6 * fire;
+    uniforms.uEmber.value = lit * (0.33 + 0.67 * day) * (0.25 + 0.6 * gate) + 2.6 * fire;
     uniforms.uCrackle.value = 1 + 2 * fire;
     uniforms.uFogScale.value = 1 - 0.7 * day;
-    material.envMapIntensity = 0.15 + 0.95 * day;
+    material.envMapIntensity = lit * (0.15 + 0.95 * day);
   });
 
   return (
