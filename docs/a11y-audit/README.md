@@ -312,6 +312,33 @@ narrative après. Immersion parallèle à l'expérience visuelle
 
 ---
 
+## Passe 9 : Est, le monde gelé (2026-09-06)
+
+### ✅ Section Codex « Tlahuizcalpan » fr/en/es
+
+`dict.codex.tlahuizcalpan`, rendue après Cihuatlampa. Récit (Leyenda de
+los Soles : le soleil immobile, les dards de Tlahuizcalpantecuhtli, la
+métamorphose en Itztlacoliuhqui, Ehecatl qui pousse le soleil), le geste
+de la page Services, attesté / notre lecture. Termes ajoutés au
+glossaire `lang="nah"` : Tlahuizcalpantecuhtli, Itztlacoliuhqui,
+Teotihuacan, Nanahuatzin.
+
+### ✅ Description SR-only de la scène Est
+
+`dict.common.sceneDescriptions.dore` décrit le monde gelé, le cerf sous
+la glace, le lever et l'explosion.
+
+### ✅ Mouvement et reduced-motion
+
+L'explosion (éclats, poudre, flash, onde) et le regel (givre d'écran)
+sont des animations en temps réel de 1 à 4 s, déclenchées par le scroll.
+Avec `prefers-reduced-motion`, la machine d'état (lib/frost) bascule
+d'un état à l'autre sans animation : pas d'éclats, pas de flash, pas de
+givre d'écran (RGAA 13.8). Le flash reste bref (0,5 s) et non répété :
+pas de clignotement (13.7). L'overlay de givre est `aria-hidden`,
+`pointer-events: none`, sous les contrôles (z 9000 < 9200) : le clavier
+et le lecteur d'écran ne le voient jamais.
+
 ## Passe 8 : Ouest, Codex Cihuatlampa + description SR (2026-09-06)
 
 ### ✅ Section Codex « Cihuatlampa » fr/en/es

@@ -314,6 +314,13 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
         <p>{renderWithNahuatl(dict.cihuatlampa.text)}</p>
       </section>
 
+      {/* Le recit de l'Est (06/09) : le monde gele qui eclate au lever, pour
+          la page Services. */}
+      <section className="codexSection">
+        <h2>{renderWithNahuatl(dict.tlahuizcalpan.title)}</h2>
+        <p>{renderWithNahuatl(dict.tlahuizcalpan.text)}</p>
+      </section>
+
       <section className="codexSection">
         <h2>{renderWithNahuatl(dict.suns.title)}</h2>
         <p>{renderWithNahuatl(dict.suns.text)}</p>

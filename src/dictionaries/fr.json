@@ -91,7 +91,7 @@
     },
     "sceneDescriptions": {
       "jade": "Vous entrez dans le sanctuaire du cerf. Au centre d'un cercle d'obsidienne, un cerf gris se tient immobile, tête basse. Autour de lui, quatre points cardinaux luisent doucement : au nord un violet d'ambre nocturne, à l'est un doré d'aube, au sud un turquoise de mosaïque, à l'ouest un rouge de crépuscule. Le cerf est votre nahual : l'essence qui se révèle sous forme animale.",
-      "dore": "Vous êtes tourné vers l'Est, Tlahuizcalpan, la maison de l'aube. Tonatiuh, le soleil levant, dore le pelage du cerf. La lumière est neuve, la journée s'ouvre.",
+      "dore": "Vous êtes tourné vers l'Est, Tlahuizcalpan, la maison de l'aube. Le monde est pris dans le gel d'Itztlacoliuhqui, le cerf sous la glace, le temps arrêté. Quand le soleil paraît, les dards de l'aube volent et toute la glace éclate. La lumière est neuve, la journée s'ouvre.",
       "turquoise": "Vous êtes tourné vers le Sud, Huitztlampa, terre des épines et des fleurs. Huitzilopochtli veille sur ce qui pousse. La scène prend des teintes turquoise de mosaïque Xiuhtecuhtli.",
       "cendre": "Vous êtes tourné vers l'Ouest, Cihuatlampa, région du crépuscule mauve. Les Cihuateteo, femmes-mortes divinisées, portent le soleil couchant dans une litière de plumes, puis descendent au carrefour et dansent dans le vent. La scène rougeoie doucement, puis s'éteint.",
       "obsidienne": "Vous êtes tourné vers le Nord, Mictlampa, le lieu du repos. Mictlantecuhtli, seigneur de l'obsidienne violette, garde ce qui a été vécu. La scène devient nocturne, profonde."
@@ -381,6 +381,10 @@
       "title": "Cihuatlampa, le soleil porté au couchant",
       "text": "L'Ouest est Cihuatlampa, le lieu des femmes, la région du crépuscule. Sahagún (livre VI) raconte que le soleil, arrivé au zénith, est reçu par les Cihuateteo, les femmes mortes en couches, divinisées comme les guerriers tombés au combat, et qu'elles le portent dans une litière de plumes de quetzal jusqu'au couchant, où les gens de Mictlán le prennent pour la nuit. Le livre I nomme Ehecatl, le vent, le balayeur qui ouvre la route aux dieux de la pluie. Les Cihuateteo n'étaient pas des figures douces : à certains jours du calendrier, elles descendaient aux carrefours, où l'on redoutait leur passage et où on leur laissait des papiers et des offrandes. Leurs sculptures les montrent le visage peint à la chaux, les cheveux défaits, les mains en griffes, une jupe simple à ceinture nouée. Sur ce site, la page Contact est ce chemin du soir. Vous arrivez en plein jour, et plus vous descendez, plus le soleil tombe vers les collines, à droite du cadre, pendant que quatre silhouettes noires portent sa litière de plumes. Quand il entre dans la terre, elles se posent au carrefour, face au cerf, et dansent dans le vent qui balaie tout vers l'Ouest. Des papiers restent au sol, et des papillons s'échappent d'elles : Sahagún (livre III) dit que les femmes mortes en couches reviennent en papillons. Ce qui est attesté : la litière de plumes de quetzal, la descente aux carrefours, les papiers et les offrandes, le visage à la chaux, les papillons. Ce qui est notre lecture : la couleur cendre et corail (les sources donnent l'Ouest blanc, la région de Quetzalcoatl), la danse, le vent visible, et les silhouettes elles-mêmes, qui n'empruntent rien aux visages des sculptures."
     },
+    "tlahuizcalpan": {
+      "title": "Tlahuizcalpan, les dards de l'aube",
+      "text": "L'Est est Tlahuizcalpan, la maison de l'aube, la région de Tonatiuh. Les sources la disent rouge : notre doré est une licence, l'or étant le métal du soleil. La Leyenda de los Soles raconte qu'à Teotihuacan, après que Nanahuatzin s'est jeté dans le brasier pour devenir le soleil, celui-ci reste immobile dans le ciel et brûle tout. Tlahuizcalpantecuhtli, le seigneur de la maison de l'aube, qui est Vénus étoile du matin, entre en colère et lui tire des dards au propulseur. Il le manque. Le soleil lui renvoie un dard et le change en Itztlacoliuhqui, la lame d'obsidienne courbe, le dieu du gel, celui par qui tout s'est courbé sous le froid. Puis les dieux se sacrifient, et Ehecatl, le vent, pousse enfin le soleil sur sa route. Les Anales de Cuauhtitlan ajoutent que Vénus, au jour où elle reparaît à l'aube, blesse de ses dards les vieillards, les enfants, les seigneurs ou la pluie selon le signe du jour. Sur ce site, la page Services est cette aube. Vous arrivez dans un monde pris dans le gel : le cerf, la Piedra et les plantes sous la glace, le temps arrêté, le cerf qui respire encore. Au moment où le soleil paraît face à vous, la volée de dards part de l'étoile du matin, le soleil répond d'un seul dard, et toute la glace vole en éclats : le vent se lève, le jour commence, et il ne reste du gel qu'une lame d'obsidienne courbe plantée devant le cerf. Si vous remontez, le gel reprend l'écran quelques instants, et le monde se fige à nouveau. Ce qui est attesté : le soleil immobile poussé par le vent, les dards de Vénus, le dard en retour et la métamorphose en gel, l'Est rouge de Tonatiuh, l'étoile du matin qui blesse. Ce qui est notre lecture : le monde entier pris dans la glace, l'explosion, la lame plantée, la couleur dorée. Et comme à l'Ouest, le site regarde le vrai ciel : quand Vénus est réellement étoile du matin, la volée est certaine, sinon une fois sur trois."
+    },
     "suns": {
       "title": "Les quatre soleils précédents",
       "text": "Avant Nahui Ollin, quatre mondes ont vécu et péri. Chacun a laissé une leçon sur la façon de mourir · donc de vivre. La cosmologie nahua ne pense pas en une création linéaire mais en cycles qui s'engendrent en s'effondrant. Notre soleil actuel est le cinquième. Il est mortel comme les précédents.",
@@ -457,7 +461,7 @@
       "list": [
         {
           "name": "Codex de Florence · Sahagún, vers 1577",
-          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Livre I : Ehecatl, le balayeur de la route des dieux de la pluie. Livre III : la naissance de Huitzilopochtli à Coatepec (chapitre 1), les neuf étapes vers Mictlán et les femmes mortes en couches qui reviennent en papillons (appendice). Livre VI : les Cihuateteo qui portent le soleil dans une litière de plumes de quetzal. Livre VII : le soleil créé à Teotihuacan et Xolotl.",
+          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Livre I : Ehecatl, le balayeur de la route des dieux de la pluie. Livre III : la naissance de Huitzilopochtli à Coatepec (chapitre 1), les neuf étapes vers Mictlán et les femmes mortes en couches qui reviennent en papillons (appendice). Livre VI : les Cihuateteo qui portent le soleil dans une litière de plumes de quetzal. Livre VII : le soleil créé à Teotihuacan et Xolotl. Livre VII, chapitre 2 : le soleil créé à Teotihuacan, immobile jusqu'au sacrifice des dieux et au souffle d'Ehecatl.",
           "online": [
             {
               "label": "Digital Florentine Codex, Getty Research Institute, livre III (nahuatl, espagnol, anglais)",
@@ -487,7 +491,7 @@
         },
         {
           "name": "Codex Chimalpopoca · Leyenda de los Soles",
-          "text": "Les quatre soleils, leur fin, et Nahui Ollin. Le récit des cinq soleils de ce Codex en vient.",
+          "text": "Les quatre soleils, leur fin, et Nahui Ollin. Le récit des cinq soleils de ce Codex en vient. Les dards de Tlahuizcalpantecuhtli contre le soleil immobile, et sa métamorphose en Itztlacoliuhqui, le gel : c'est le récit de la page Services.",
           "online": [
             {
               "label": "John Bierhorst, History and Mythology of the Aztecs: The Codex Chimalpopoca, prêt numérique sur archive.org",
@@ -498,7 +502,7 @@
         },
         {
           "name": "Codex Borgia",
-          "text": "Manuscrit divinatoire, une des structures cosmologiques qui portent ce site.",
+          "text": "Manuscrit divinatoire, une des structures cosmologiques qui portent ce site. Planche 53 : Tlahuizcalpantecuhtli et ses dards. La figure n'est pas recopiée sur le site : le dieu y est l'étoile elle-même.",
           "online": [
             {
               "label": "DigiVatLib, Borg. mess. 1",

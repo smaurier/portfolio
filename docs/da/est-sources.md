@@ -100,3 +100,17 @@ Idee forte retenue dans les fiches de scene (05/09) : LES DARDS DE L'AUBE.
   tant que le livre VII n'est pas relu.
 - Jamais : recopier une figure des codex (Borgia 53) ; le nahualli reste
   cache.
+
+## Complement 06/09 : ce qui est entre au Codex, ce qui reste hors
+
+- Entre au Codex (verifie) : le soleil immobile pousse par le vent (livre
+  VII ch. 2, Wikipedia Nanahuatzin d'apres Sahagun), les dards de Venus, le
+  dard en retour, la metamorphose en Itztlacoliuhqui (Leyenda de los
+  Soles), les presages de Venus (Anales de Cuauhtitlan), l'Est rouge.
+- HORS Codex, faute de relecture (Getty : certificat en erreur toute la
+  soiree du 06/09) : les dieux qui regardent vers l'Est pour deviner, le
+  soleil rouge et vacillant. A relire sur
+  https://florentinecodex.getty.edu/book/7/folio/2v avant de les ecrire.
+- Le code : lib/frost (machine d'etat), frost-store (givre par shader),
+  frost-world (coque, buee, eclats, poudre, flash, dards, lame),
+  frost-screen (simulateur de givre d'ecran), est-arc (soleil, aube, Venus).
