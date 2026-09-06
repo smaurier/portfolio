@@ -34,6 +34,7 @@ import { orientationStore } from "./cardinal-orientation";
 import { addShaderModifier } from "./shader-patch";
 import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
+import { frostStore } from "./frost-store";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 
 /**
@@ -262,10 +263,13 @@ export default function Grass() {
     const spec = GRASS_WIND_BY_DIRECTION[direction];
     const angle = orientationStore.angle;
     // Le vent est donne dans le monde, la grille vit dans le decor tourne.
+    // Le gel de l'Est (06/09) : « tout s'est courbe sous le froid », le vent
+    // ne souffle plus tant que le monde est gele.
+    const frozen = frostStore.active ? frostStore.state.frost : 0;
     const windLocal = (lx: number, lz: number) => {
       const w = rotateY({ x: lx, z: lz }, angle);
       const ww = windAt(w.x, w.z, t, spec);
-      return rotateY(ww, -angle);
+      return rotateY({ x: ww.x * (1 - frozen), z: ww.z * (1 - frozen) }, -angle);
     };
     if (!reduced) {
       if (pressRef.current) {

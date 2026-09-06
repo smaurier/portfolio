@@ -38,6 +38,7 @@ import Vines from "./vines";
 import { useCurrentDirection } from "./use-current-direction";
 import Cihuateteo from "./cihuateteo";
 import WestLeaves from "./west-leaves";
+import FrostWorld from "./frost-world";
 
 /**
  * Contenu 3D partagé entre la home et les pages écho (Services/Projets/
@@ -122,6 +123,11 @@ export default function SceneContent({
           <Vines progressRef={progressRef} />
         </Suspense>
       </CursorRevealScene>
+      {/* Le monde gele de l'Est (06/09) : givre sur tout, coque de glace du
+       * cerf et de la Piedra, buee ; tout eclate au lever. */}
+      <Suspense fallback={null}>
+        <FrostWorld />
+      </Suspense>
       <OrbitCamera progressRef={progressRef} />
       <CardinalAmbience />
       {/* Reflet menteur du tezcatl (01/09 etage 4, Nord uniquement :

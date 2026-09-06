@@ -15,6 +15,7 @@ import { centerAndScale } from "./center-model";
 import { applyHeadLook } from "./head-look";
 import { applyRimLight, setBodyTintAmount, setEdgeIntensity, setEdgePulse, setNorthDark, setRimLightColor, setRimLightIntensity, type RimLightUniforms } from "./rim-light";
 import { useCurrentDirection } from "./use-current-direction";
+import { frostStore } from "./frost-store";
 import { distributePitch, STAG_NECK_LIMITS } from "@/lib/neck-look";
 import { Quaternion as SunQuaternion, Vector3 as SunVector3, type Object3D as SunObject3D } from "three";
 import { pickNorthClip } from "@/lib/north-clips";
@@ -101,7 +102,11 @@ export default function StagModel({
   const breathGroupRef = useRef<Group>(null);
   const sceneRefs = useSceneRefs();
   const { scene, animations } = useGLTF(MODEL_PATH);
-  const { actions } = useAnimations(animations, group);
+  const { actions, mixer } = useAnimations(animations, group);
+  const mixerRef = useRef(mixer);
+  useEffect(() => {
+    mixerRef.current = mixer;
+  }, [mixer]);
   const currentClipRef = useRef<string | null>(null);
   const { camera } = useThree();
   // Scratch réutilisé d'une frame à l'autre (pas d'allocation dans la boucle
@@ -199,6 +204,9 @@ export default function StagModel({
   }, [actions]);
 
   useFrame(() => {
+    // Le gel de l'Est (06/09) : le cerf est fige dans la glace, le mixer
+    // s'arrete ; il repart quand tout eclate (lib/frost, frost-store).
+    mixerRef.current.timeScale = frostStore.active ? frostStore.state.timeScale : 1;
     // Déclencheur scroll du "remarqué" : dès la prise de conscience, pas de
     // retour en arrière. D'autres déclencheurs (ex. mouvement de souris)
     // peuvent aussi mettre noticedRef à true ailleurs dans l'arbre : cette
