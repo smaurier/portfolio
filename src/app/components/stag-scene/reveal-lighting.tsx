@@ -13,6 +13,7 @@ import {
 } from "@/lib/reveal-arc";
 import { remapNorthArc } from "@/lib/direction-arc";
 import { remapWestArc, westFogTint } from "@/lib/ouest-arc";
+import { eastFogTint } from "@/lib/est-arc";
 import { dayAtArc, sunInTheWest } from "@/lib/arc-day";
 import { approachFog, getFogRange, type FogRange } from "@/lib/direction-fog";
 import { approachRig, getLightRig, rigAtArc, type LightRig } from "@/lib/direction-light";
@@ -137,7 +138,8 @@ export default function RevealLighting({
     }
     if (fogRef.current) {
       // A l'Ouest, la teinte suit le crepuscule (abricot -> mauve), pas la page.
-      fogRef.current.color.set(getFogColor(p, west ? westFogTint(west.dusk) : fogTint));
+      // A l'Est (06/09), la brume passe du bleu gele au rouge de l'aube puis a l'or.
+      fogRef.current.color.set(getFogColor(p, west ? westFogTint(west.dusk) : direction === "dore" ? eastFogTint(rawP) : fogTint));
       // Densite par direction : snap direct si prefers-reduced-motion
       // (RGAA 13.6, meme convention que le crossfade des ambiances),
       // sinon easing exponentiel vers la cible.

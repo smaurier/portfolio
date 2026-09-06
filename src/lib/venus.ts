@@ -52,3 +52,8 @@ export const VENUS_VISIBLE_ELONGATION = 10;
 export function isEveningStar(date: Date = new Date()): boolean {
   return venusElongation(date) > VENUS_VISIBLE_ELONGATION;
 }
+
+/** Venus a l'ouest du soleil : visible avant le lever (Tlahuizcalpantecuhtli). */
+export function isMorningStar(date: Date = new Date()): boolean {
+  return venusElongation(date) < -VENUS_VISIBLE_ELONGATION;
+}

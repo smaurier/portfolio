@@ -9,6 +9,7 @@ import { useSceneRefs } from "./scene-refs-context";
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { dayAtArc } from "@/lib/arc-day";
 import { remapWestArc } from "@/lib/ouest-arc";
+import { dawnAtArc } from "@/lib/est-arc";
 import type { DirectionKey } from "./direction-colors";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 
@@ -48,6 +49,9 @@ const SKY_TINT_MIX = 0.65;
 const SKY_LOOK: Partial<Record<DirectionKey, { tint: Color; tintMix: number; sunAzimuthDeg: number; dusk: Color }>> = {
   turquoise: { tint: SKY_TINT, tintMix: SKY_TINT_MIX, sunAzimuthDeg: 300, dusk: new Color("#000000") },
   cendre: { tint: new Color(1.0, 0.86, 0.8), tintMix: 0.55, sunAzimuthDeg: 60, dusk: new Color("#6a2e4f") },
+  // L'Est (06/09) : l'aube, la photo tiree vers l'or, soleil face au regard
+  // de p 0,55 (azimut 18), bande rouge de l'aube a l'horizon.
+  dore: { tint: new Color(1.0, 0.9, 0.72), tintMix: 0.5, sunAzimuthDeg: 18, dusk: new Color("#8a2a24") },
 };
 
 export default function SudSky() {
@@ -205,7 +209,8 @@ export default function SudSky() {
     const day = dayAtArc(direction, sceneRefs?.progressRef.current ?? 0);
     const d = Math.min(1, Math.max(0, (day - 0.3) / 0.45));
     material.uniforms.uDay.value = d * d * (3 - 2 * d);
-    material.uniforms.uDusk.value = direction === "cendre" ? remapWestArc(sceneRefs?.progressRef.current ?? 0).dusk : 0;
+    const pNow = sceneRefs?.progressRef.current ?? 0;
+    material.uniforms.uDusk.value = direction === "cendre" ? remapWestArc(pNow).dusk : direction === "dore" ? dawnAtArc(pNow) : 0;
     // Le dome suit la camera : toujours centre sur elle.
     mesh.position.copy(state.camera.position);
   });

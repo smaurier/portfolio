@@ -7,7 +7,8 @@ import { AdditiveBlending, CanvasTexture, Color, Group, Sprite, SpriteMaterial }
 import { moonDirection, sunDirection } from "@/lib/direction-light";
 import { dayAtArc, sunInTheWest } from "@/lib/arc-day";
 import { remapWestArc } from "@/lib/ouest-arc";
-import { isEveningStar } from "@/lib/venus";
+import { isEveningStar, isMorningStar } from "@/lib/venus";
+import { eastSunDirection, morningStarDirection } from "@/lib/est-arc";
 import { readXolotlSpawn } from "@/lib/xolotl-spawn";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -74,7 +75,7 @@ export default function SudSkyBodies() {
   const moonRef = useRef<Sprite>(null);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
-  const blendRef = useRef(direction === "turquoise" || direction === "cendre" ? 1 : 0);
+  const blendRef = useRef(direction === "turquoise" || direction === "cendre" || direction === "dore" ? 1 : 0);
 
   const moonMaterial = useMemo(
     () => new SpriteMaterial({ map: radialTexture(128, 0.55, 1.0, 0, 1), color: new Color("#dfe8ff"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }),
@@ -101,11 +102,13 @@ export default function SudSkyBodies() {
     [],
   );
   const venusShows = useMemo(() => (typeof window === "undefined" ? false : isEveningStar() || readXolotlSpawn("cendre")), []);
+  const morningShows = useMemo(() => (typeof window === "undefined" ? false : isMorningStar()), []);
   useFrame((state) => {
     const south = direction === "turquoise";
     // Le Sud (lever) et l'Ouest (coucher, 06/09) ont des astres ; la lune
     // n'est que du Sud.
-    const solar = south || direction === "cendre";
+    const east = direction === "dore";
+    const solar = south || direction === "cendre" || east;
     blendRef.current += ((solar ? 1 : 0) - blendRef.current) * 0.06;
     const blend = blendRef.current;
     const g = groupRef.current;
@@ -128,12 +131,15 @@ export default function SudSkyBodies() {
     const sun = sunRef.current, halo = sunHaloRef.current;
     if (sun && halo) {
       const sc = getSceneControls();
-      const sd = sunDirection(day, sunInTheWest(direction, sc.cinematic && sc.cinematicAfternoon));
+      const pNow = sceneRefs?.progressRef.current ?? 0;
+      // A l'Est (06/09), le soleil suit son propre arc : il parait face au
+      // regard a l'instant ou le gel eclate.
+      const sd = east ? eastSunDirection(pNow) : sunDirection(day, sunInTheWest(direction, sc.cinematic && sc.cinematicAfternoon));
       sun.position.set(sd.x * RADIUS, sd.y * RADIUS, sd.z * RADIUS);
       halo.position.copy(sun.position);
       const up = Math.max(0, Math.min(1, (sd.y + 0.02) / 0.12));
       if (south && sd.y > 0.08 && blend > 0.5) markTrace("sunrise"); // une trace : le soleil s'est leve devant vous
-      sun.scale.setScalar(7);
+      sun.scale.setScalar(east ? 8 : 7);
       halo.scale.setScalar(26 + 10 * day);
       sunMaterial.opacity = blend * up;
       sunHaloMaterial.opacity = blend * up * (0.35 + 0.25 * day);
@@ -144,11 +150,20 @@ export default function SudSkyBodies() {
         // A l'est du soleil couchant (azimut 60 deg du decor) : Venus du soir
         // se tient plus haut et plus au sud, vers ou le regard de fin de
         // page se tourne (135 deg) : azimut 115 deg, 10 deg de hauteur (au-dessus des collines, sous le bandeau).
-        venus.position.set(VENUS_DIR.x * RADIUS, VENUS_DIR.y * RADIUS, VENUS_DIR.z * RADIUS);
-        const dusk = direction === "cendre" ? remapWestArc(sceneRefs?.progressRef.current ?? 0).dusk : 0;
         const twinkle = 0.85 + 0.15 * Math.sin(state.clock.elapsedTime * 2.3);
         venus.scale.setScalar(3.2);
-        venusMaterial.opacity = venusShows && direction === "cendre" ? blend * Math.max(0, (dusk - 0.72) / 0.2) * twinkle : 0;
+        if (east) {
+          // Venus du MATIN (Tlahuizcalpantecuhtli) : au-dessus du lever, elle
+          // palit quand le soleil monte.
+          const md = morningStarDirection();
+          venus.position.set(md.x * RADIUS, md.y * RADIUS, md.z * RADIUS);
+          const fade = 1 - Math.min(1, Math.max(0, (pNow - 0.45) / 0.12));
+          venusMaterial.opacity = morningShows ? blend * fade * twinkle : 0;
+        } else {
+          venus.position.set(VENUS_DIR.x * RADIUS, VENUS_DIR.y * RADIUS, VENUS_DIR.z * RADIUS);
+          const dusk = direction === "cendre" ? remapWestArc(pNow).dusk : 0;
+          venusMaterial.opacity = venusShows && direction === "cendre" ? blend * Math.max(0, (dusk - 0.72) / 0.2) * twinkle : 0;
+        }
       }
     }
   });
