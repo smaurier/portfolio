@@ -47,13 +47,6 @@
       "tenochtitlanClock": "It is {time} in Tenochtitlan",
       "tenochtitlanNight": "It is {time} in Tenochtitlan, night has fallen"
     },
-    "timeBar": {
-      "label": "Time of day",
-      "night": "Night",
-      "dawn": "Dawn",
-      "morning": "Morning",
-      "noon": "Noon"
-    },
     "traces": {
       "title": "What the scene has shown you",
       "intro": "Some things only happen to those who watch. Here are the ones that happened to you.",

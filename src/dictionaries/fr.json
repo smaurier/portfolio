@@ -47,13 +47,6 @@
       "tenochtitlanClock": "Il est {time} à Tenochtitlan",
       "tenochtitlanNight": "Il est {time} à Tenochtitlan, c'est la nuit"
     },
-    "timeBar": {
-      "label": "Moment du jour",
-      "night": "Nuit",
-      "dawn": "Aube",
-      "morning": "Matin",
-      "noon": "Midi"
-    },
     "traces": {
       "title": "Ce que la scène vous a montré",
       "intro": "Certaines choses n'arrivent qu'à qui regarde. Voici celles qui vous sont arrivées.",
