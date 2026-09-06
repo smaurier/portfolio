@@ -3,6 +3,7 @@
 
 import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
+import { frostStore } from "../frost-store";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, type Points, type ShaderMaterial } from "three";
 
 /**
@@ -51,7 +52,10 @@ export default function EastTonatiuh({ alphaRef }: { alphaRef: MutableRefObject<
 
   useFrame((state) => {
     if (!materialRef.current) return;
-    materialRef.current.uniforms.uAlpha.value = alphaRef.current;
+    // Le gel de l'Est (06/09) : pas de poussiere d'or tant que le monde est
+    // gele ; elle revient avec le soleil, dans la lumiere rasante.
+    const frozen = frostStore.active ? frostStore.state.frost : 0;
+    materialRef.current.uniforms.uAlpha.value = alphaRef.current * (1 - frozen);
     materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
   });
 

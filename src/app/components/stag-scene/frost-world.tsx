@@ -372,6 +372,8 @@ export default function FrostWorld() {
       explode(t);
     }
     if (!east || phase === "frozen") explodedRef.current = false;
+    // L'or dans les gravures : monte en 2,5 s apres l'impact, part au regel.
+    frostStore.gold = explodedRef.current && phase !== "refreeze" ? Math.min(1, Math.max(0, (t - explodedAtRef.current - 0.6) / 2.5)) : 0;
 
     // Les dards de l'aube pendant le prelude : la volee de Venus vers le
     // soleil (0 .. 0,55), puis le dard du soleil vers le cerf (0,55 .. 0,95).

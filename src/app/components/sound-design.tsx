@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./sound-design.module.css";
 import { useCurrentDirection } from "./stag-scene/use-current-direction";
+import { frostStore } from "./stag-scene/frost-store";
 
 /**
  * Sound design cardinal (28/08 task #46). Sons génératifs Web Audio
@@ -220,6 +221,52 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     source.start();
     gain.gain.linearRampToValueAtTime(0.11, ctx.currentTime + 2.5);
     windRef.current = { source, gain, lfos };
+  }, [muted, direction]);
+
+  // Le gel de l'Est (06/09) : tant que le monde est gele, la glace craque
+  // de loin en loin (tic aigu tres court, parfois un gemissement grave).
+  useEffect(() => {
+    if (muted || direction !== "dore") return;
+    let timer = 0;
+    const tick = () => {
+      const ctx = ctxRef.current;
+      const master = masterGainRef.current;
+      const frozen = frostStore.active ? frostStore.state.frost : 0;
+      if (ctx && master && frozen > 0.5) {
+        const now = ctx.currentTime;
+        const noise = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.08), ctx.sampleRate);
+        const d = noise.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+        const src = ctx.createBufferSource();
+        src.buffer = noise;
+        const hp = ctx.createBiquadFilter();
+        hp.type = "bandpass";
+        hp.frequency.value = 1800 + Math.random() * 2500;
+        hp.Q.value = 3;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.18 + Math.random() * 0.12, now);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+        src.connect(hp).connect(g).connect(master);
+        src.start(now);
+        src.stop(now + 0.1);
+        if (Math.random() < 0.3) {
+          const o = ctx.createOscillator();
+          o.type = "sine";
+          o.frequency.setValueAtTime(95, now);
+          o.frequency.exponentialRampToValueAtTime(58, now + 0.5);
+          const og = ctx.createGain();
+          og.gain.setValueAtTime(0.0001, now);
+          og.gain.exponentialRampToValueAtTime(0.12, now + 0.06);
+          og.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+          o.connect(og).connect(master);
+          o.start(now);
+          o.stop(now + 0.6);
+        }
+      }
+      timer = window.setTimeout(tick, 1200 + Math.random() * 3200);
+    };
+    timer = window.setTimeout(tick, 800);
+    return () => window.clearTimeout(timer);
   }, [muted, direction]);
 
   // L'explosion du gel de l'Est (06/09) : un craquement de glace (bruit

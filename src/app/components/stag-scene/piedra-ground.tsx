@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import { DoubleSide, PlaneGeometry, RepeatWrapping, type MeshPhysicalMaterial } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { useCurrentDirection } from "./use-current-direction";
+import { frostStore } from "./frost-store";
+import { addShaderModifier } from "./shader-patch";
 import { useSceneRefs } from "./scene-refs-context";
 
 /**
@@ -92,9 +94,30 @@ export default function PiedraGround() {
     }
   }, [colorMap, heightMap]);
 
+  // L'or dans les gravures (06/09, Est) : apres le lever, les traits de la
+  // Piedra s'emplissent d'or (emissif suivant la luminance de la carte).
+  const goldRef = useRef({ value: 0 });
+  useEffect(() => {
+    const mat = materialRef.current;
+    if (!mat) return;
+    addShaderModifier(mat, (shader) => {
+      shader.uniforms.uPiedraGold = goldRef.current;
+      shader.fragmentShader = shader.fragmentShader
+        .replace("#include <common>", `#include <common>
+ uniform float uPiedraGold;`)
+        .replace(
+          "#include <emissivemap_fragment>",
+          `#include <emissivemap_fragment>
+           float piedraStroke = smoothstep(0.22, 0.75, dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114)));
+           totalEmissiveRadiance += vec3(1.0, 0.66, 0.22) * piedraStroke * uPiedraGold * 1.3;`,
+        );
+    });
+  }, []);
+
   useFrame(() => {
     const mat = materialRef.current;
     if (!mat) return;
+    goldRef.current.value += (frostStore.gold - goldRef.current.value) * 0.08;
     const target = direction === "obsidienne" ? PIEDRA_TEZCATL : PIEDRA_NEUTRAL;
     const alpha = sceneRefs?.reducedMotionRef.current ? 1 : 0.06;
     mat.roughness += (target.roughness - mat.roughness) * alpha;
