@@ -243,6 +243,7 @@ export default function Grass() {
   // L'onde d'Ollin : le press est projete au sol, la prairie se couche en
   // cercle depuis le point d'impact.
   const pressRef = useRef<Vector2 | null>(null);
+  const lastFrostRef = useRef(0);
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
       pressRef.current = new Vector2((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
@@ -284,6 +285,12 @@ export default function Grass() {
         lastStrikeRef.current = xiuhcoatlStore.strikeHit;
         const l = rotateY(STRIKE_POINT, -angle);
         applyRadialImpulse(grid, l.x, l.z, 8, 9);
+      }
+      // L'explosion du gel de l'Est (06/09) : une onde qui couche toute la prairie.
+      if (frostStore.impulse > lastFrostRef.current) {
+        lastFrostRef.current = frostStore.impulse;
+        const l = rotateY({ x: frostStore.impact.x, z: frostStore.impact.z }, -angle);
+        applyRadialImpulse(grid, l.x, l.z, 14, 14);
       }
       stepGrassGrid(grid, Math.min(delta, 0.1), windLocal, GRASS_SIM);
     } else {

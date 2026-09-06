@@ -10,9 +10,13 @@ import { addShaderModifier } from "./shader-patch";
  * idempotent, addShaderModifier). Le givre ne coute rien hors de l'Est :
  * uFrost vaut 0.
  */
-export const frostStore: { state: FrostState; active: boolean } = {
+export const frostStore: { state: FrostState; active: boolean; impulse: number; impact: { x: number; y: number; z: number } } = {
   state: createFrostState(),
   active: false,
+  /** Compteur d'explosions (l'herbe lit, comme xiuhcoatlStore.strikeHit). */
+  impulse: 0,
+  /** Point d'impact du dard du soleil (monde). */
+  impact: { x: 0, y: 1, z: 0 },
 };
 
 export const frostUniforms = {

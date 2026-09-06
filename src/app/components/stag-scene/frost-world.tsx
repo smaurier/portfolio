@@ -4,7 +4,9 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF, useTexture } from "@react-three/drei";
-import { AdditiveBlending, Bone, CircleGeometry, Color, Group, Mesh, MeshStandardMaterial, Object3D, Sprite, SpriteMaterial, Vector3 } from "three";
+import { AdditiveBlending, Bone, BufferAttribute, BufferGeometry, CircleGeometry, Color, Euler, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, Points, PointsMaterial, Quaternion, SkinnedMesh, Sprite, SpriteMaterial, Vector3 } from "three";
+import { initShard, stepShard, type Shard } from "@/lib/shards";
+import { terrainHeightWorld } from "./cardinal-orientation";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { createFrostState, frostStep } from "@/lib/frost";
 import { applyFrost, frostStore, frostUniforms } from "./frost-store";
@@ -30,6 +32,11 @@ const SMOKE_SPRITE = "/img/particles/smoke_07.png";
 const PIEDRA_RADIUS = 3;
 const BREATHS = 3;
 const BREATH_PERIOD = 4.2;
+/** Les eclats (etape B) : coque du cerf + glace de la Piedra. */
+const SHARDS_STAG = 420;
+const SHARDS_DISC = 220;
+const SHARD_COUNT = SHARDS_STAG + SHARDS_DISC;
+const POWDER = 360;
 
 useGLTF.preload(STAG_PATH);
 useTexture.preload(SMOKE_SPRITE);
@@ -59,6 +66,19 @@ function makeIceMaterial(inflate: number): MeshStandardMaterial {
 }
 
 type Breath = { sprite: Sprite; born: number };
+
+/** Un eclat de glace : icosaedre aplati et deforme, une seule geometrie. */
+function makeShardGeometry(): IcosahedronGeometry {
+  const geo = new IcosahedronGeometry(0.09, 0);
+  const pos = geo.attributes.position as BufferAttribute;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const j = 1 + (Math.sin(i * 7.3) * 0.5) * 0.5;
+    pos.setXYZ(i, x * j * 1.3, y * 0.35 * j, z * j);
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
 
 export default function FrostWorld() {
   const direction = useCurrentDirection();
@@ -136,6 +156,107 @@ export default function FrostWorld() {
   const headPos = useMemo(() => new Vector3(), []);
   const headDir = useMemo(() => new Vector3(), []);
 
+  // ---- L'explosion : eclats instancies, poudre de glace, flash. ----
+  const shardMaterial = useMemo(() => {
+    const m = new MeshStandardMaterial({ color: new Color("#dbe9ff"), roughness: 0.2, metalness: 0.05, transparent: true, opacity: 0.85, fog: false });
+    return m;
+  }, []);
+  const shardMesh = useMemo(() => {
+    const mesh = new InstancedMesh(makeShardGeometry(), shardMaterial, SHARD_COUNT);
+    mesh.count = 0;
+    mesh.frustumCulled = false;
+    mesh.raycast = () => null;
+    mesh.renderOrder = 8;
+    return mesh;
+  }, [shardMaterial]);
+  const shards = useMemo<Shard[]>(() => [], []);
+  const powder = useMemo(() => {
+    const geo = new BufferGeometry();
+    geo.setAttribute("position", new BufferAttribute(new Float32Array(POWDER * 3), 3));
+    const mat = new PointsMaterial({ map: smokeTexture, color: new Color("#eaf3ff"), size: 0.16, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false });
+    const pts = new Points(geo, mat);
+    pts.frustumCulled = false;
+    pts.raycast = () => null;
+    pts.renderOrder = 9;
+    const vel = new Float32Array(POWDER * 3);
+    return { pts, geo, mat, vel };
+  }, [smokeTexture]);
+  const flash = useMemo(() => {
+    const s = new Sprite(new SpriteMaterial({ map: smokeTexture, color: new Color("#ffffff"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }));
+    s.raycast = () => null;
+    s.renderOrder = 10;
+    return s;
+  }, [smokeTexture]);
+  const explodedRef = useRef(false);
+  const explodedAtRef = useRef(0);
+  const tmpMatrix = useMemo(() => new Matrix4(), []);
+  const tmpQuat = useMemo(() => new Quaternion(), []);
+  const tmpEuler = useMemo(() => new Euler(), []);
+  const tmpPos = useMemo(() => new Vector3(), []);
+  const tmpScale = useMemo(() => new Vector3(), []);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    root.add(shardMesh);
+    root.add(powder.pts);
+    root.add(flash);
+    return () => {
+      root.remove(shardMesh);
+      root.remove(powder.pts);
+      root.remove(flash);
+    };
+  }, [shardMesh, powder, flash]);
+  useEffect(() => () => {
+    shardMesh.geometry.dispose();
+    shardMaterial.dispose();
+    powder.geo.dispose();
+    powder.mat.dispose();
+    flash.material.dispose();
+  }, [shardMesh, shardMaterial, powder, flash]);
+
+  /** Au premier instant de l'explosion : les eclats naissent la ou etait la
+   * glace (sommets skinnes de la coque, points du disque), la poudre et le
+   * flash au point d'impact, l'onde pour l'herbe, le son. */
+  const explode = (time: number) => {
+    const impact = frostStore.impact;
+    stagScene.getWorldPosition(tmpPos);
+    impact.x = tmpPos.x; impact.y = tmpPos.y + 1.0; impact.z = tmpPos.z;
+    shards.length = 0;
+    const skinned: SkinnedMesh[] = [];
+    shell.clone.traverse((o) => { if ((o as SkinnedMesh).isSkinnedMesh) skinned.push(o as SkinnedMesh); });
+    shell.clone.updateMatrixWorld(true);
+    let seed = 1;
+    for (let i = 0; i < SHARDS_STAG && skinned.length > 0; i++) {
+      const mesh = skinned[i % skinned.length];
+      const count = mesh.geometry.attributes.position.count;
+      const idx = Math.floor(((i * 7919) % count + count) % count);
+      mesh.applyBoneTransform(idx, tmpPos);
+      mesh.localToWorld(tmpPos);
+      shards.push(initShard({ x: tmpPos.x, y: tmpPos.y, z: tmpPos.z }, impact, seed++));
+    }
+    for (let i = 0; i < SHARDS_DISC; i++) {
+      const a = (i / SHARDS_DISC) * Math.PI * 2 * 7.3;
+      const r = Math.sqrt(((i * 31) % 100) / 100) * PIEDRA_RADIUS;
+      shards.push(initShard({ x: Math.cos(a) * r, y: 0.05, z: Math.sin(a) * r }, impact, seed++));
+    }
+    const pos = powder.geo.attributes.position as BufferAttribute;
+    for (let i = 0; i < POWDER; i++) {
+      const u = Math.random(), v = Math.random();
+      const th = u * Math.PI * 2, ph = Math.acos(2 * v - 1);
+      const sp = 2 + Math.random() * 6;
+      powder.vel[i * 3] = Math.sin(ph) * Math.cos(th) * sp;
+      powder.vel[i * 3 + 1] = Math.abs(Math.cos(ph)) * sp * 0.8 + 1;
+      powder.vel[i * 3 + 2] = Math.sin(ph) * Math.sin(th) * sp;
+      pos.setXYZ(i, impact.x, impact.y, impact.z);
+    }
+    pos.needsUpdate = true;
+    flash.position.set(impact.x, impact.y, impact.z);
+    frostStore.impulse += 1;
+    explodedAtRef.current = time;
+    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("nahual:frost-shatter"));
+  };
+
   useFrame((state, delta) => {
     const east = direction === "dore";
     const dt = Math.min(delta, 1 / 20);
@@ -154,8 +275,56 @@ export default function FrostWorld() {
     const root = rootRef.current;
     if (!root) return;
     const frost = frostUniforms.uFrost.value;
-    root.visible = frost > 0.01;
+    const phase = frostStore.state.phase;
+    const t = state.clock.elapsedTime;
+
+    // L'explosion : armee au passage en « shatter », desarmee au regel.
+    if (east && phase === "shatter" && !explodedRef.current) {
+      explodedRef.current = true;
+      explode(t);
+    }
+    if (!east || phase === "frozen") explodedRef.current = false;
+    const since = explodedRef.current ? t - explodedAtRef.current : 99;
+    const exploding = since < 6 && !sceneRefs?.reducedMotionRef.current;
+    root.visible = frost > 0.01 || exploding;
     if (!root.visible) return;
+
+    if (exploding) {
+      // Les eclats.
+      let alive = 0;
+      for (let i = 0; i < shards.length; i++) {
+        const s = shards[i];
+        stepShard(s, dt, terrainHeightWorld);
+        if (s.life <= 0) continue;
+        tmpQuat.setFromEuler(tmpEuler.set(s.rx, s.ry, s.rz));
+        const sc = s.size * (0.4 + 0.6 * s.life);
+        tmpMatrix.compose(tmpPos.set(s.x, s.y + 0.03, s.z), tmpQuat, tmpScale.set(sc, sc, sc));
+        shardMesh.setMatrixAt(alive++, tmpMatrix);
+      }
+      shardMesh.count = alive;
+      shardMesh.instanceMatrix.needsUpdate = true;
+      shardMesh.visible = alive > 0;
+      // La poudre de glace : elle monte, derive, retombe lentement et prend la lumiere.
+      const pos = powder.geo.attributes.position as BufferAttribute;
+      for (let i = 0; i < POWDER; i++) {
+        powder.vel[i * 3 + 1] -= 1.2 * dt;
+        powder.vel[i * 3] *= 1 - 0.9 * dt;
+        powder.vel[i * 3 + 2] *= 1 - 0.9 * dt;
+        pos.setXYZ(i, pos.getX(i) + powder.vel[i * 3] * dt, Math.max(0.02, pos.getY(i) + powder.vel[i * 3 + 1] * dt), pos.getZ(i) + powder.vel[i * 3 + 2] * dt);
+      }
+      pos.needsUpdate = true;
+      powder.mat.opacity = Math.max(0, 0.9 * (1 - since / 4.5));
+      powder.pts.visible = powder.mat.opacity > 0.01;
+      // Le flash : une lumiere qui claque et s'eteint en un demi-seconde.
+      const f = Math.max(0, 1 - since / 0.5);
+      flash.scale.setScalar(2 + 14 * (1 - f));
+      flash.material.opacity = f * f;
+      flash.visible = f > 0;
+    } else {
+      shardMesh.visible = false;
+      powder.pts.visible = false;
+      flash.visible = false;
+    }
 
     // La coque suit le vrai cerf : transform monde de la scene du modele,
     // puis chaque os.
@@ -173,7 +342,6 @@ export default function FrostWorld() {
     // La buee : le cerf respire sous la glace. Depuis la tete, vers l'avant
     // (axe Y local de l'os, le long du museau), derive et se dissipe.
     const head = shell.head;
-    const t = state.clock.elapsedTime;
     if (head) {
       head.getWorldPosition(headPos);
       headDir.setFromMatrixColumn(head.matrixWorld, 1).normalize();

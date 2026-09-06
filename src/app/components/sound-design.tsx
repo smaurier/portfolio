@@ -222,6 +222,60 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     windRef.current = { source, gain, lfos };
   }, [muted, direction]);
 
+  // L'explosion du gel de l'Est (06/09) : un craquement de glace (bruit
+  // blanc passe-haut, tres court) puis le coup sourd (bruit passe-bas et
+  // sinus grave qui descend), sur l'evenement nahual:frost-shatter.
+  useEffect(() => {
+    function onShatter() {
+      const ctx = ctxRef.current;
+      const master = masterGainRef.current;
+      if (!ctx || !master || muted) return;
+      const now = ctx.currentTime;
+      const noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      const d = noise.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      // Le craquement.
+      const crack = ctx.createBufferSource();
+      crack.buffer = noise;
+      const hp = ctx.createBiquadFilter();
+      hp.type = "highpass";
+      hp.frequency.value = 2400;
+      const crackGain = ctx.createGain();
+      crackGain.gain.setValueAtTime(0.5, now);
+      crackGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+      crack.connect(hp).connect(crackGain).connect(master);
+      crack.start(now);
+      crack.stop(now + 0.15);
+      // Le coup.
+      const boom = ctx.createBufferSource();
+      boom.buffer = noise;
+      const lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.setValueAtTime(900, now + 0.05);
+      lp.frequency.exponentialRampToValueAtTime(80, now + 1.2);
+      const boomGain = ctx.createGain();
+      boomGain.gain.setValueAtTime(0.0001, now);
+      boomGain.gain.exponentialRampToValueAtTime(0.7, now + 0.06);
+      boomGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
+      boom.connect(lp).connect(boomGain).connect(master);
+      boom.start(now + 0.04);
+      boom.stop(now + 1.5);
+      const sub = ctx.createOscillator();
+      sub.type = "sine";
+      sub.frequency.setValueAtTime(70, now + 0.05);
+      sub.frequency.exponentialRampToValueAtTime(32, now + 1.0);
+      const subGain = ctx.createGain();
+      subGain.gain.setValueAtTime(0.0001, now);
+      subGain.gain.exponentialRampToValueAtTime(0.5, now + 0.08);
+      subGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+      sub.connect(subGain).connect(master);
+      sub.start(now + 0.05);
+      sub.stop(now + 1.2);
+    }
+    window.addEventListener("nahual:frost-shatter", onShatter);
+    return () => window.removeEventListener("nahual:frost-shatter", onShatter);
+  }, [muted]);
+
   // Chime cardinal au click sur data-cardinal-direction
   useEffect(() => {
     if (typeof document === "undefined") return;
