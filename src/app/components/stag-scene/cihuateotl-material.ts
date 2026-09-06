@@ -2,9 +2,9 @@ import { AdditiveBlending, Color, DoubleSide, MeshBasicMaterial, NormalBlending 
 
 /**
  * Les matieres des Cihuateteo (06/09, Ouest).
- *  - Le CORPS : une silhouette brumeuse. Fresnel large (le corps n'existe
- *    que par ses bords), lueur mauve-cendre qui bat lentement, erosion par
- *    un bruit de valeur 3D anime (pas de polygone lisible), fondu additif.
+ *  - Le CORPS : une silhouette de fumee NOIRE (Sylvain : plus noires que
+ *    blanches), bord corail par fresnel, erosion par un bruit de valeur 3D
+ *    anime (pas de polygone lisible).
  *  - Le VISAGE « peint a la chaux » (Primeros Memoriales, cf
  *    docs/da/ouest-sources.md) : litteralement blanc, plat, sans bouche ni
  *    nez (la couleur unie efface tout relief) ; le bandeau est un objet a
@@ -26,7 +26,7 @@ export type CihuateotlUniforms = {
   uErode: { value: number };
 };
 
-export const CIHUATEOTL_COLOR = "#cfb8e0"; // cendre mauve, le crepuscule
+export const CIHUATEOTL_COLOR = "#140c1a"; // noires (Sylvain, 06/09 : « plus noires que blanches »), l'obsidienne du soir
 export const CIHUATEOTL_EDGE = "#ff9a86"; // corail : le dernier soleil sur les bords
 export const CHALK_COLOR = "#e6dbee";
 
@@ -53,7 +53,7 @@ const NOISE_GLSL = /* glsl */ `
 
 /** Le corps brumeux. */
 export function createCihuateotlMaterial(uniforms: CihuateotlUniforms): MeshBasicMaterial {
-  const mat = new MeshBasicMaterial({ color: new Color(CIHUATEOTL_COLOR), transparent: true, depthWrite: false, side: DoubleSide, fog: false, blending: AdditiveBlending });
+  const mat = new MeshBasicMaterial({ color: new Color(CIHUATEOTL_COLOR), transparent: true, depthWrite: false, side: DoubleSide, fog: false, blending: NormalBlending });
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uPower = uniforms.uPower;
     shader.uniforms.uOpacity = uniforms.uOpacity;
@@ -110,10 +110,11 @@ export function createCihuateotlMaterial(uniforms: CihuateotlUniforms): MeshBasi
          float n = ghostNoise(vGhostWorld * 3.5 + vec3(uPhase, -uTime * 0.35, uTime * 0.2));
          float n2 = ghostNoise(vGhostWorld * 9.0 + vec3(-uTime * 0.6, uTime * 0.9, uPhase));
          float mist = smoothstep(0.35, 0.75, n * 0.7 + n2 * 0.3);
-         float body = fresnel * 0.9 + 0.22;
+         // Corps sombre : la fumee noire tient le volume, le bord corail le dessine.
+         float body = fresnel * 0.35 + 0.8;
          float alpha = body * mix(1.0, mist, uErode + 0.25 * h) * breath * uOpacity;
-         vec3 ghostCol = mix(diffuse, uEdge, pow(fresnel, 2.0) * 0.55);
-         gl_FragColor = vec4(ghostCol * alpha, alpha);`,
+         vec3 ghostCol = mix(diffuse, uEdge, pow(fresnel, 2.2) * 0.7);
+         gl_FragColor = vec4(ghostCol, alpha);`,
       );
   };
   return mat;

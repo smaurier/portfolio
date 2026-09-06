@@ -65,7 +65,9 @@ const BUTTERFLIES_PER_BEARER = 30;
 const BUTTERFLY_POOL = CIHUATETEO.count * BUTTERFLIES_PER_BEARER;
 const BUTTERFLY_COLOR = new Color("#e3c6f2");
 const HAIR_POINTS = 9;
-const HAIR_COLOR = new Color("#6e5a86");
+const HAIR_COLOR = new Color("#1e1426");
+/** Le bandeau : corail, la couleur de l'Ouest du Codex. */
+const BLINDFOLD_COLOR = "#d76464";
 const FEATHERS = 14;
 const FEATHER_POINTS = 8;
 const FEATHER_LENGTH = 1.1;
@@ -186,8 +188,8 @@ export default function Cihuateteo() {
   const paperMaterial = useMemo(() => new MeshBasicMaterial({ color: new Color("#efe6d6"), transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: true, blending: NormalBlending }), []);
   const featherMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: NormalBlending }), []);
   const featherTipMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL_TIP, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: AdditiveBlending }), []);
-  const blindfoldMaterial = useMemo(() => new MeshBasicMaterial({ color: new Color("#1c0f22"), transparent: true, opacity: 0, depthWrite: false, fog: false }), []);
-  const smokeMaterial = useMemo(() => new SpriteMaterial({ map: smokeTexture, color: new Color("#b89bd0"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }), [smokeTexture]);
+  const blindfoldMaterial = useMemo(() => new MeshBasicMaterial({ color: new Color(BLINDFOLD_COLOR), transparent: true, opacity: 0, depthWrite: false, fog: false, side: DoubleSide }), []);
+  const smokeMaterial = useMemo(() => new SpriteMaterial({ map: smokeTexture, color: new Color("#2b1c33"), transparent: true, opacity: 0, depthWrite: false, blending: NormalBlending, fog: false }), [smokeTexture]);
   const glowMaterial = useMemo(() => new SpriteMaterial({ map: glowTexture(), color: new Color("#ffd2a0"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }), []);
 
   const bearers = useMemo<Bearer[]>(() => {
@@ -210,7 +212,7 @@ export default function Cihuateteo() {
         s.renderOrder = 995;
         return s;
       });
-      const blindfold = new Mesh(new CylinderGeometry(0.155, 0.155, 0.055, 24, 1, true), blindfoldMaterial);
+      const blindfold = new Mesh(new CylinderGeometry(0.165, 0.165, 0.1, 24, 1, true), blindfoldMaterial);
       blindfold.raycast = () => null;
       blindfold.renderOrder = 997;
       return { root, uniforms, bones: collectBones(inner), hair, papers, smokes, blindfold, headBone: inner.getObjectByName("Head") ?? null };
@@ -377,8 +379,9 @@ export default function Cihuateteo() {
 
     bearers.forEach((b, i) => {
       const pose = bearerPose(i, CIHUATETEO.count, dusk, sun, reduced ? 0 : time);
-      b.root.position.set(pose.x, pose.y, pose.z);
-      b.root.rotation.y = pose.yaw;
+      // Un pas de cote qui va et vient : la danse deplace aussi le corps.
+      const step = reduced ? 0 : Math.sin(time * 0.5 + i * 1.9) * 0.35 * (1 - 0.5 * settle);
+      b.root.position.set(pose.x + Math.cos(pose.yaw) * step, pose.y, pose.z - Math.sin(pose.yaw) * step);
       b.uniforms.uOpacity.value = opacity;
       b.uniforms.uTime.value = time;
       b.uniforms.uBaseY.value = pose.y;
@@ -387,21 +390,26 @@ export default function Cihuateteo() {
       // La pose : une danse lente tant qu'elles portent (bras ecartes, un
       // genou en avant qui alterne), puis, posees, sur les talons, bras
       // leves aux cotes de la poitrine, mains en griffes.
-      const sway = reduced ? 0 : Math.sin(time * 0.8 + i * 1.3);
-      const sway2 = reduced ? 0 : Math.sin(time * 0.55 + i * 2.1);
+      // Presque une danse (Sylvain) : chaque bras a son balancement, les
+      // genoux alternent, le buste ondule et le corps tourne un peu sur
+      // lui-meme ; au carrefour la danse ralentit sans s'eteindre.
+      const tempo = reduced ? 0 : 1 - 0.55 * settle;
+      const sway = Math.sin(time * 0.8 + i * 1.3) * tempo;
+      const sway2 = Math.sin(time * 0.55 + i * 2.1) * tempo;
+      const beatL = Math.sin(time * 1.1 + i * 0.9) * tempo;
+      const beatR = Math.sin(time * 1.1 + i * 0.9 + Math.PI * 0.8) * tempo;
       const lerpPose = (a: number, k: number) => a + (k - a) * settle;
-      const upperArm = lerpPose(POSE.escort.upperArm + 0.25 * sway, POSE.crossroads.upperArm + 0.08 * sway);
-      const lowerArm = lerpPose(POSE.escort.lowerArm + 0.2 * sway2, POSE.crossroads.lowerArm);
-      poseBone(b.bones["UpperArm.L"], upperArm);
-      poseBone(b.bones["UpperArm.R"], upperArm - 0.1 * sway2);
-      poseBone(b.bones["LowerArm.L"], lowerArm);
-      poseBone(b.bones["LowerArm.R"], lowerArm);
-      poseBone(b.bones["UpperLeg.L"], lerpPose(POSE.escort.upperLeg * (0.5 + 0.5 * sway), POSE.crossroads.upperLeg));
-      poseBone(b.bones["UpperLeg.R"], lerpPose(POSE.escort.upperLeg * (0.5 - 0.5 * sway), POSE.crossroads.upperLeg));
-      poseBone(b.bones["LowerLeg.L"], lerpPose(POSE.escort.lowerLeg * (0.5 + 0.5 * sway), POSE.crossroads.lowerLeg));
-      poseBone(b.bones["LowerLeg.R"], lerpPose(POSE.escort.lowerLeg * (0.5 - 0.5 * sway), POSE.crossroads.lowerLeg));
-      poseBone(b.bones["Abdomen"], 0.08 * sway2);
-      poseBone(b.bones["Chest"], 0.06 * sway);
+      poseBone(b.bones["UpperArm.L"], lerpPose(POSE.escort.upperArm + 0.55 * beatL, POSE.crossroads.upperArm + 0.15 * beatL));
+      poseBone(b.bones["UpperArm.R"], lerpPose(POSE.escort.upperArm + 0.55 * beatR, POSE.crossroads.upperArm + 0.15 * beatR));
+      poseBone(b.bones["LowerArm.L"], lerpPose(POSE.escort.lowerArm + 0.35 * sway2, POSE.crossroads.lowerArm + 0.1 * sway2));
+      poseBone(b.bones["LowerArm.R"], lerpPose(POSE.escort.lowerArm - 0.35 * sway2, POSE.crossroads.lowerArm - 0.1 * sway2));
+      poseBone(b.bones["UpperLeg.L"], lerpPose(POSE.escort.upperLeg * (0.6 + 0.8 * beatL), POSE.crossroads.upperLeg + 0.1 * beatL));
+      poseBone(b.bones["UpperLeg.R"], lerpPose(POSE.escort.upperLeg * (0.6 + 0.8 * beatR), POSE.crossroads.upperLeg + 0.1 * beatR));
+      poseBone(b.bones["LowerLeg.L"], lerpPose(POSE.escort.lowerLeg * (0.6 + 0.8 * beatL), POSE.crossroads.lowerLeg));
+      poseBone(b.bones["LowerLeg.R"], lerpPose(POSE.escort.lowerLeg * (0.6 + 0.8 * beatR), POSE.crossroads.lowerLeg));
+      poseBone(b.bones["Abdomen"], 0.16 * sway2);
+      poseBone(b.bones["Chest"], 0.12 * sway);
+      b.root.rotation.y = pose.yaw + 0.3 * sway2;
       const fingers = lerpPose(POSE.escort.fingers, POSE.crossroads.fingers);
       for (const side of SIDES) for (const f of FINGER_ROOTS) poseBone(b.bones[`${f}.${side}`], fingers);
       b.root.updateMatrixWorld(true);
@@ -443,7 +451,7 @@ export default function Cihuateteo() {
         s.position.set(pose.x + Math.cos(a) * 0.45, pose.y + 0.5 + k * 0.45 + Math.sin(time * 0.3 + k) * 0.12, pose.z + Math.sin(a) * 0.45);
         s.scale.setScalar(1.3 + 0.4 * k);
         s.material.rotation = time * 0.12 + k;
-        s.material.opacity = 0.22 * opacity;
+        s.material.opacity = 0.4 * opacity;
       });
     });
     blindfoldMaterial.opacity = Math.min(1, opacity * 1.6);
