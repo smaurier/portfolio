@@ -3,9 +3,10 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { BufferAttribute, BufferGeometry, DataTexture, DoubleSide, LinearFilter, MeshStandardMaterial, RGBAFormat, SRGBColorSpace, UnsignedByteType, Vector3, type Object3D } from "three";
+import { BufferGeometry, DataTexture, DoubleSide, LinearFilter, MeshStandardMaterial, RGBAFormat, SRGBColorSpace, UnsignedByteType, Vector3, type Object3D } from "three";
 import { bakeAmate } from "@/lib/amate-texture";
 import { createStrip, stepStrip, type Strip } from "@/lib/paper-strip";
+import { createRibbonGeometry, updateRibbon } from "./ribbon-geometry";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -67,9 +68,6 @@ export default function AmateStrips() {
   const fadeRef = useRef(direction === "obsidienne" ? 1 : 0);
   const lookupRef = useRef(0);
   const anchorPos = useMemo(() => new Vector3(), []);
-  const side = useMemo(() => new Vector3(), []);
-  const tangent = useMemo(() => new Vector3(), []);
-  const up = useMemo(() => new Vector3(0, 1, 0), []);
 
   const texture = useMemo(() => {
     const data = new Uint8Array(TEX_W * BAND_H * ANCHORS.length * 4);
@@ -100,26 +98,9 @@ export default function AmateStrips() {
     () =>
       ANCHORS.map((anchor, i) => {
         const strip = createStrip(POINTS, anchor.length, { x: 0, y: 1.5, z: 0 });
-        const geometry = new BufferGeometry();
-        geometry.setAttribute("position", new BufferAttribute(new Float32Array(POINTS * 2 * 3), 3));
-        geometry.setAttribute("normal", new BufferAttribute(new Float32Array(POINTS * 2 * 3), 3));
         // UV : u le long de la bandelette (le sens des fibres), v en travers
-        // dans la bande de texture propre a cette bandelette.
-        const uv = new Float32Array(POINTS * 2 * 2);
-        for (let p = 0; p < POINTS; p++) {
-          const u = p / (POINTS - 1);
-          uv[p * 4] = u;
-          uv[p * 4 + 1] = (i + 0.02) / ANCHORS.length;
-          uv[p * 4 + 2] = u;
-          uv[p * 4 + 3] = (i + 0.98) / ANCHORS.length;
-        }
-        geometry.setAttribute("uv", new BufferAttribute(uv, 2));
-        const index: number[] = [];
-        for (let p = 0; p < POINTS - 1; p++) {
-          const a = p * 2;
-          index.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
-        }
-        geometry.setIndex(index);
+        // dans la bande de texture propre a cette bandelette (ribbon-geometry).
+        const geometry = createRibbonGeometry(POINTS, [(i + 0.02) / ANCHORS.length, (i + 0.98) / ANCHORS.length]);
         return { strip, geometry, bone: null, anchor, phase: i * 1.7 };
       }),
     []
@@ -156,30 +137,7 @@ export default function AmateStrips() {
           };
       stepStrip(r.strip, dt, { x: anchorPos.x, y: anchorPos.y, z: anchorPos.z }, wind, STRIP_OPTIONS);
 
-      // Ruban : 2 sommets par point, largeur perpendiculaire a la tangente.
-      const pos = r.geometry.attributes.position as BufferAttribute;
-      const nor = r.geometry.attributes.normal as BufferAttribute;
-      const pts = r.strip.points;
-      for (let i = 0; i < pts.length; i++) {
-        const a = pts[Math.max(0, i - 1)];
-        const b = pts[Math.min(pts.length - 1, i + 1)];
-        tangent.set(b.x - a.x, b.y - a.y, b.z - a.z).normalize();
-        side.crossVectors(tangent, up);
-        if (side.lengthSq() < 1e-6) side.set(0, 0, 1);
-        side.normalize().multiplyScalar(WIDTH * 0.5);
-        const p = pts[i];
-        pos.setXYZ(i * 2, p.x - side.x, p.y - side.y, p.z - side.z);
-        pos.setXYZ(i * 2 + 1, p.x + side.x, p.y + side.y, p.z + side.z);
-        // Normale : perpendiculaire au ruban (tangente x cote).
-        const nx = tangent.y * side.z - tangent.z * side.y;
-        const ny = tangent.z * side.x - tangent.x * side.z;
-        const nz = tangent.x * side.y - tangent.y * side.x;
-        nor.setXYZ(i * 2, nx, ny, nz);
-        nor.setXYZ(i * 2 + 1, nx, ny, nz);
-      }
-      pos.needsUpdate = true;
-      nor.needsUpdate = true;
-      r.geometry.computeBoundingSphere();
+      updateRibbon(r.geometry, r.strip, WIDTH);
     }
   });
 

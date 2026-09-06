@@ -1,10 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { bearerOpacity, bearerPose, CIHUATETEO, wispRate } from "./cihuateteo";
+import { bearerHair, bearerOpacity, bearerPose, CIHUATETEO, litterPose, wispRate } from "./cihuateteo";
+import { getOrbitCameraPosition } from "./camera-path";
 
 const sun = { x: 0.6, y: 0.25, z: 0.76 }; // soleil bas, a l'ouest du decor (+x)
 const len = Math.hypot(sun.x, sun.y, sun.z);
 const sunN = { x: sun.x / len, y: sun.y / len, z: sun.z / len };
 const c = CIHUATETEO;
+
+/** Azimut d'un point par rapport au regard de la camera (degres). */
+function relativeAzimuth(p: { x: number; z: number }, progress: number): number {
+  const cam = getOrbitCameraPosition(progress);
+  const gaze = Math.atan2(-cam.x, -cam.z);
+  const d = Math.atan2(p.x, p.z) - gaze;
+  return (Math.atan2(Math.sin(d), Math.cos(d)) * 180) / Math.PI;
+}
 
 describe("bearerPose : les porteuses descendent avec le soleil puis attendent au carrefour", () => {
   it("avant le coucher, elles flottent du cote du soleil, en eventail", () => {
@@ -21,18 +30,18 @@ describe("bearerPose : les porteuses descendent avec le soleil puis attendent au
     expect(Math.hypot(a.x - b.x, a.z - b.z)).toBeGreaterThan(c.escortSpread * (c.count - 1) * 0.9);
   });
 
-  it("le soleil entre dans la terre : elles se posent aux quatre coins du carrefour, face au cerf", () => {
+  it("le soleil entre dans la terre : elles se posent en arc, face au cerf, TOUTES dans le champ de fin de page", () => {
     const seen = new Set<string>();
     for (let i = 0; i < c.count; i++) {
       const p = bearerPose(i, c.count, 1, sunN, 0);
       expect(Math.hypot(p.x, p.z)).toBeCloseTo(c.crossroadsRadius, 6);
       expect(p.y).toBeGreaterThan(c.hoverHeight - c.bobAmplitude - 1e-9);
       expect(p.y).toBeLessThan(c.hoverHeight + c.bobAmplitude + 1e-9);
-      // Regard vers l'origine : le lacet pointe vers le cerf.
       const toCentre = Math.atan2(-p.x, -p.z);
       const d = Math.atan2(Math.sin(p.yaw - toCentre), Math.cos(p.yaw - toCentre));
       expect(Math.abs(d)).toBeLessThan(1e-6);
-      seen.add(`${Math.round(p.x)},${Math.round(p.z)}`);
+      expect(Math.abs(relativeAzimuth(p, 1))).toBeLessThan(36);
+      seen.add(`${p.x.toFixed(2)},${p.z.toFixed(2)}`);
     }
     expect(seen.size).toBe(c.count);
   });
@@ -41,7 +50,7 @@ describe("bearerPose : les porteuses descendent avec le soleil puis attendent au
     let prev = bearerPose(1, c.count, 0, sunN, 0);
     for (let dusk = 0.02; dusk <= 1; dusk += 0.02) {
       const p = bearerPose(1, c.count, dusk, sunN, 0);
-      expect(Math.hypot(p.x - prev.x, p.y - prev.y, p.z - prev.z)).toBeLessThan(1.2);
+      expect(Math.hypot(p.x - prev.x, p.y - prev.y, p.z - prev.z)).toBeLessThan(1.4);
       prev = p;
     }
   });
@@ -54,6 +63,20 @@ describe("bearerPose : les porteuses descendent avec le soleil puis attendent au
   });
 });
 
+describe("litterPose : la litiere de plumes de quetzal", () => {
+  it("portee au milieu d'elles avec le soleil dessus, puis posee au sol, eteinte", () => {
+    const carried = litterPose(c.count, 0, sunN, 0);
+    const bearers = Array.from({ length: c.count }, (_, i) => bearerPose(i, c.count, 0, sunN, 0));
+    const cx = bearers.reduce((s, p) => s + p.x, 0) / c.count;
+    expect(carried.x).toBeCloseTo(cx, 9);
+    expect(carried.y).toBeGreaterThan(bearers[0].y);
+    expect(carried.sunGlow).toBeGreaterThan(0.5);
+    const set = litterPose(c.count, 1, sunN, 0);
+    expect(set.y).toBeLessThan(0.2);
+    expect(set.sunGlow).toBe(0);
+  });
+});
+
 describe("bearerOpacity et wispRate : a peine la, puis presentes dans la nuit", () => {
   it("faibles quand elles portent le soleil, franches au carrefour", () => {
     expect(bearerOpacity(0)).toBeCloseTo(c.opacityEscort, 9);
@@ -61,8 +84,28 @@ describe("bearerOpacity et wispRate : a peine la, puis presentes dans la nuit", 
     expect(bearerOpacity(0.5)).toBeGreaterThan(bearerOpacity(0));
   });
 
-  it("les particules s'echappent d'elles davantage a la nuit", () => {
+  it("les papillons s'echappent d'elles davantage a la nuit", () => {
     expect(wispRate(0)).toBeGreaterThan(0);
     expect(wispRate(1)).toBeGreaterThan(wispRate(0));
+  });
+});
+
+describe("bearerHair : chacune sa chevelure", () => {
+  it("deux graines donnent deux chevelures differentes, chaque meche unique", () => {
+    const a = bearerHair(0);
+    const b = bearerHair(1);
+    expect(a.length).toBeGreaterThanOrEqual(6);
+    expect(JSON.stringify(a)).not.toBe(JSON.stringify(b));
+    const phases = new Set(a.map((s) => s.phase.toFixed(4)));
+    expect(phases.size).toBe(a.length);
+    for (const s of a) {
+      expect(s.length).toBeGreaterThan(0.4);
+      expect(s.damping).toBeGreaterThan(0.9);
+      expect(s.damping).toBeLessThan(1);
+    }
+  });
+
+  it("est deterministe : la meme graine, la meme chevelure", () => {
+    expect(bearerHair(3)).toEqual(bearerHair(3));
   });
 });
