@@ -103,7 +103,7 @@ const DANCE = {
 useGLTF.preload(MODEL_PATH);
 useTexture.preload(SMOKE_SPRITE);
 
-type BoneSet = { bone: Bone; rest: Quaternion };
+type BoneSet = { bone: Bone; rest: Quaternion; animated: boolean };
 type Bearer = {
   root: Group;
   mixer: AnimationMixer;
@@ -128,17 +128,24 @@ const AXIS_Z = new Vector3(0, 0, 1);
 const tmpQuat = new Quaternion();
 
 /** Une rotation autour d'un axe local de l'os, ajoutee a ce que l'animation
- * vient d'ecrire (a appeler apres mixer.update). */
+ * vient d'ecrire (a appeler apres mixer.update). Un os que le clip n'anime
+ * pas garde sa valeur d'une image a l'autre : on repart de son repos,
+ * sinon les rotations s'accumulent et le buste se plie (constate 06/09). */
 function addBoneRotation(set: BoneSet | null, axis: Vector3, angle: number): void {
   if (!set) return;
   set.bone.quaternion.multiply(tmpQuat.setFromAxisAngle(axis, angle));
 }
 
-function collectBones(root: Object3D): Record<string, BoneSet | null> {
+/** A appeler avant les ajouts d'une image : les os hors animation reviennent au repos. */
+function resetIdleBones(bones: Record<string, BoneSet | null>): void {
+  for (const set of Object.values(bones)) if (set && !set.animated) set.bone.quaternion.copy(set.rest);
+}
+
+function collectBones(root: Object3D, animatedNames: Set<string>): Record<string, BoneSet | null> {
   const out: Record<string, BoneSet | null> = {};
   for (const name of BONE_NAMES) {
     const bone = root.getObjectByName(name) as Bone | undefined;
-    out[name] = bone ? { bone, rest: bone.quaternion.clone() } : null;
+    out[name] = bone ? { bone, rest: bone.quaternion.clone(), animated: animatedNames.has(name) } : null;
   }
   return out;
 }
@@ -199,6 +206,8 @@ export default function Cihuateteo() {
   const scratch = useMemo(() => new Vector3(), []);
   const headForward = useMemo(() => new Vector3(), []);
   const walkClip = useMemo(() => animations.find((a) => a.name === WALK_CLIP) ?? animations[0], [animations]);
+  // Les os que le clip ecrit a chaque image (« Nom.quaternion »).
+  const animatedBones = useMemo(() => new Set((walkClip?.tracks ?? []).map((t) => t.name.split(".")[0])), [walkClip]);
 
   // Cheveux : noirs, eclaires (un peu de brillance sur les meches).
   const hairMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#07040a"), roughness: 0.55, metalness: 0.05, transparent: true, opacity: 0, side: DoubleSide, depthWrite: true, fog: false }), []);
@@ -235,9 +244,9 @@ export default function Cihuateteo() {
         s.renderOrder = 995;
         return s;
       });
-      return { root, mixer, uniforms, bones: collectBones(inner), hair, hairGeometry: createRibbonBundleGeometry(HAIR_STRANDS, HAIR_POINTS), papers, smokes, headBone: inner.getObjectByName("Head") ?? null };
+      return { root, mixer, uniforms, bones: collectBones(inner, animatedBones), hair, hairGeometry: createRibbonBundleGeometry(HAIR_STRANDS, HAIR_POINTS), papers, smokes, headBone: inner.getObjectByName("Head") ?? null };
     });
-  }, [scene, walkClip, smokeMaterial]);
+  }, [scene, walkClip, animatedBones, smokeMaterial]);
 
   // La litiere : deux brancards et des plumes de quetzal en rubans.
   const litter = useMemo(() => {
@@ -415,6 +424,7 @@ export default function Cihuateteo() {
       // son tour ; le buste ondule.
       b.mixer.timeScale = tempo * (0.7 + 0.3 * (1 - settle));
       b.mixer.update(dt);
+      resetIdleBones(b.bones);
       addBoneRotation(b.bones["UpperArm.L"], AXIS_Z, -(DANCE.armSpread + DANCE.armSpreadSwing * beatL));
       addBoneRotation(b.bones["UpperArm.R"], AXIS_Z, DANCE.armSpread + DANCE.armSpreadSwing * beatR);
       addBoneRotation(b.bones["UpperArm.L"], AXIS_X, DANCE.armSwing * sway);
