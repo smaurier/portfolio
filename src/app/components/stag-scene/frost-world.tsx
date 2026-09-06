@@ -129,6 +129,7 @@ export default function FrostWorld() {
   const { scene: stagScene } = useGLTF(STAG_PATH);
   const smokeTexture = useTexture(SMOKE_SPRITE);
   const rootRef = useRef<Group>(null);
+  const frameRef = useRef(0);
 
   const iceMaterial = useMemo(() => makeIceMaterial(0.06), []);
   // Un materiau a part pour les bois (maille statique) : partage avec les
@@ -361,7 +362,9 @@ export default function FrostWorld() {
     const target = east ? frostStore.state.frost : 0;
     frostUniforms.uFrost.value += (target - frostUniforms.uFrost.value) * Math.min(1, dt * 6);
     frostUniforms.uFrostTime.value = state.clock.elapsedTime;
-    applyFrost(state.scene);
+    // Le traverse de toute la scene (1900 objets) ne sert qu'a rattraper les
+    // materiaux montes apres coup : une image sur 20 suffit.
+    if ((frameRef.current = (frameRef.current + 1) % 20) === 0) applyFrost(state.scene);
 
     const root = rootRef.current;
     if (!root) return;

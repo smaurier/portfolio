@@ -510,7 +510,7 @@ export default function Cihuateteo() {
               y: Math.sin(time * s.speed * 2.3 + s.phase * 2) * 0.12,
               z: hairWind.z + Math.cos(time * s.speed * 1.3 + s.phase) * 0.22,
             };
-        stepStrip(h.strip, dt, anchor, wind, { gravity: 9, damping: s.damping, windResponse: s.windResponse, iterations: 6 });
+        stepStrip(h.strip, dt, anchor, wind, { gravity: 9, damping: s.damping, windResponse: s.windResponse, iterations: 4 });
         writeRibbonSlot(b.hairGeometry, k, h.strip, (u) => 0.04 * (1 - u * 0.45));
       });
       finishRibbonBundle(b.hairGeometry);
@@ -527,7 +527,7 @@ export default function Cihuateteo() {
         const anchor = { x: waistX + lx * Math.cos(yaw) + lz * Math.sin(yaw), y: waistY, z: waistZ - lx * Math.sin(yaw) + lz * Math.cos(yaw) };
         // Chaque bande a sa souplesse : le tissu ne bouge pas d'un bloc.
         const j = ((k * 7919) % 13) / 13;
-        stepStrip(strip, dt, anchor, skirtWind, { gravity: 7, damping: 0.976 + 0.012 * j, windResponse: 0.35 + 0.35 * j, iterations: 5 });
+        stepStrip(strip, dt, anchor, skirtWind, { gravity: 7, damping: 0.976 + 0.012 * j, windResponse: 0.35 + 0.35 * j, iterations: 3 });
         writeRibbonSlot(b.skirtGeometry, k, strip, (u) => 0.065 * (1 + 0.35 * u));
       });
       finishRibbonBundle(b.skirtGeometry);
