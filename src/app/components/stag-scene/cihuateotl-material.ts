@@ -28,7 +28,7 @@ export type CihuateotlUniforms = {
 
 export const CIHUATEOTL_COLOR = "#140c1a"; // noires (Sylvain, 06/09 : « plus noires que blanches »), l'obsidienne du soir
 export const CIHUATEOTL_EDGE = "#ff9a86"; // corail : le dernier soleil sur les bords
-export const CHALK_COLOR = "#f3eef6";
+export const CHALK_COLOR = "#9d9199"; // chaux eteinte : le visage ne doit pas eclairer (Sylvain, 06/09)
 
 export function createCihuateotlUniforms(phase = 0): CihuateotlUniforms {
   return { uPower: { value: 1.3 }, uOpacity: { value: 0 }, uTime: { value: 0 }, uPhase: { value: phase }, uBaseY: { value: 0 }, uHeight: { value: 1.9 }, uErode: { value: 0.45 } };

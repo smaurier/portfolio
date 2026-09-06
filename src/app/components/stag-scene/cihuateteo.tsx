@@ -46,8 +46,8 @@ import { useSceneRefs } from "./scene-refs-context";
  * vers l'ouest « dans une litiere de plumes de quetzal » (Codex de
  * Florence, livre VI), puis, quand il est entre dans la terre, se posent en
  * arc au carrefour, face au cerf. Visage peint a la chaux (Primeros
- * Memoriales) : la tete traitee exactement comme le corps, en blanc ; un
- * bandeau de tissu noir sur les yeux (Codex Borgia), dont les pans flottent.
+ * Memoriales) : la tete traitee exactement comme le corps, en blanc mat,
+ * sans bandeau (Sylvain, 06/09).
  * Chevelures noires MASSIVES : 90 meches par tete plantees sur le crane,
  * chacune une chaine de points a longueur contrainte (le principe des
  * simulateurs capillaires temps reel : TressFX, Hair Works), gravite,
@@ -60,7 +60,7 @@ import { useSceneRefs } from "./scene-refs-context";
  * ce sont des papillons (livre III).
  *
  * Modele : « Animated Woman » de Quaternius (Ultimate Modular Women Pack,
- * CC0). Corps en fumee noire opaque (cihuateotl-material), meches, pans,
+ * CC0). Corps en fumee noire opaque (cihuateotl-material), meches,
  * plumes et papiers sur des chaines Verlet (lib/paper-strip +
  * ribbon-geometry).
  */
@@ -85,7 +85,6 @@ const QUETZAL_TIP = new Color("#8ee0b8");
 const PAPERS_PER_BEARER = 3;
 const PAPER_POINTS = 6;
 const SMOKES_PER_BEARER = 3;
-const TAIL_POINTS = 7;
 /** Vent de l'ouest (+x = l'ouest du decor) ressenti par les meches, les pans et les plumes. */
 const WIND_BASE = { x: 1.1, y: 0.35, z: -0.2 };
 /** La danse (radians sur les os, ajoutes a l'animation) : ecart des bras
@@ -113,9 +112,7 @@ type Bearer = {
   hair: { strand: HairStrand; strip: Strip }[];
   hairGeometry: BufferGeometry;
   papers: { strip: Strip; geometry: BufferGeometry; peg: { x: number; z: number }; phase: number }[];
-  tails: { strip: Strip; geometry: BufferGeometry; side: number }[];
   smokes: Sprite[];
-  blindfold: Mesh;
   headBone: Object3D | null;
 };
 type Butterfly = { alive: boolean; x: number; y: number; z: number; vx: number; vy: number; vz: number; age: number; life: number };
@@ -205,7 +202,6 @@ export default function Cihuateteo() {
 
   // Cheveux : noirs, eclaires (un peu de brillance sur les meches).
   const hairMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#07040a"), roughness: 0.55, metalness: 0.05, transparent: true, opacity: 0, side: DoubleSide, depthWrite: true, fog: false }), []);
-  const clothMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#050308"), roughness: 0.9, metalness: 0, transparent: true, opacity: 0, side: DoubleSide, depthWrite: true, fog: false }), []);
   const paperMaterial = useMemo(() => new MeshBasicMaterial({ color: new Color("#efe6d6"), transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: true, blending: NormalBlending }), []);
   const featherMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: NormalBlending }), []);
   const featherTipMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL_TIP, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: AdditiveBlending }), []);
@@ -233,19 +229,15 @@ export default function Cihuateteo() {
         peg: { x: (hash(i * 7 + k, 2) - 0.5) * 1.6, z: 0.4 + hash(i * 7 + k, 3) * 0.6 },
         phase: hash(i * 7 + k, 4) * 6.28,
       }));
-      const tails = [-1, 1].map((side) => ({ strip: createStrip(TAIL_POINTS, 0.45 + 0.15 * hash(i, 5 + side), { x: 0, y: BEARER_HEIGHT, z: 0 }), geometry: createRibbonGeometry(TAIL_POINTS), side }));
       const smokes = Array.from({ length: SMOKES_PER_BEARER }, () => {
         const s = new Sprite(smokeMaterial.clone());
         s.raycast = () => null;
         s.renderOrder = 995;
         return s;
       });
-      const blindfold = new Mesh(new CylinderGeometry(0.15, 0.15, 0.085, 28, 1, true), clothMaterial);
-      blindfold.raycast = () => null;
-      blindfold.renderOrder = 997;
-      return { root, mixer, uniforms, bones: collectBones(inner), hair, hairGeometry: createRibbonBundleGeometry(HAIR_STRANDS, HAIR_POINTS), papers, tails, smokes, blindfold, headBone: inner.getObjectByName("Head") ?? null };
+      return { root, mixer, uniforms, bones: collectBones(inner), hair, hairGeometry: createRibbonBundleGeometry(HAIR_STRANDS, HAIR_POINTS), papers, smokes, headBone: inner.getObjectByName("Head") ?? null };
     });
-  }, [scene, walkClip, smokeMaterial, clothMaterial]);
+  }, [scene, walkClip, smokeMaterial]);
 
   // La litiere : deux brancards et des plumes de quetzal en rubans.
   const litter = useMemo(() => {
@@ -344,19 +336,11 @@ export default function Cihuateteo() {
     };
     for (const b of bearers) {
       add(b.root);
-      add(b.blindfold);
       const hairMesh = new Mesh(b.hairGeometry, hairMaterial);
       hairMesh.frustumCulled = false;
       hairMesh.raycast = () => null;
       hairMesh.renderOrder = 997;
       add(hairMesh);
-      for (const t of b.tails) {
-        const m = new Mesh(t.geometry, clothMaterial);
-        m.frustumCulled = false;
-        m.raycast = () => null;
-        m.renderOrder = 997;
-        add(m);
-      }
       for (const p of b.papers) {
         const m = new Mesh(p.geometry, paperMaterial);
         m.frustumCulled = false;
@@ -377,7 +361,7 @@ export default function Cihuateteo() {
     return () => {
       for (const o of added) g.remove(o);
     };
-  }, [bearers, litter, butterflyPoints, hairMaterial, clothMaterial, paperMaterial, featherMaterial, featherTipMaterial]);
+  }, [bearers, litter, butterflyPoints, hairMaterial, paperMaterial, featherMaterial, featherTipMaterial]);
   useEffect(
     () => () => {
       butterflyGeometry.dispose();
@@ -385,7 +369,6 @@ export default function Cihuateteo() {
       for (const b of bearers) {
         b.hairGeometry.dispose();
         for (const p of b.papers) p.geometry.dispose();
-        for (const t of b.tails) t.geometry.dispose();
       }
       for (const f of litter.feathers) f.geometry.dispose();
     },
@@ -442,16 +425,13 @@ export default function Cihuateteo() {
       addBoneRotation(b.bones["Chest"], AXIS_X, DANCE.torso * 0.6 * sway);
       b.root.updateMatrixWorld(true);
 
-      // La tete : le bandeau de tissu noir autour des yeux et ses deux pans,
-      // les meches plantees sur le crane.
+      // La tete : les meches plantees sur le crane.
       const head = b.headBone;
       if (head) head.getWorldPosition(scratch);
       else scratch.set(pose.x, pose.y + BEARER_HEIGHT * 0.9, pose.z);
       const yaw = b.root.rotation.y;
       headForward.set(Math.sin(yaw), 0, Math.cos(yaw));
       const skullX = scratch.x, skullY = scratch.y + SKULL_LIFT, skullZ = scratch.z;
-      b.blindfold.position.set(skullX, skullY - 0.02, skullZ);
-      b.blindfold.rotation.y = yaw;
       // Un vent doux sur les cheveux : ils TOMBENT, et ondulent au bout.
       const hairWind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 0.35, y: 0, z: WIND_BASE.z * gust * 0.35 };
       b.hair.forEach((h, k) => {
@@ -472,13 +452,6 @@ export default function Cihuateteo() {
         writeRibbonSlot(b.hairGeometry, k, h.strip, (u) => 0.04 * (1 - u * 0.45));
       });
       finishRibbonBundle(b.hairGeometry);
-      for (const t of b.tails) {
-        const a = yaw + Math.PI + t.side * 0.35;
-        const anchor = { x: skullX + Math.sin(a) * 0.15, y: skullY - 0.02, z: skullZ + Math.cos(a) * 0.15 };
-        const wind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust + Math.sin(time * 2.4 + t.side) * 0.6, y: 0.4 + Math.sin(time * 3.1 + t.side * 2) * 0.5, z: WIND_BASE.z + Math.cos(time * 1.9 + t.side) * 0.6 };
-        stepStrip(t.strip, dt, anchor, wind, { gravity: 3, damping: 0.975, windResponse: 1.5, iterations: 5 });
-        updateRibbon(t.geometry, t.strip, 0.07);
-      }
       // Les papiers du carrefour : plantes au sol devant elle, ils claquent.
       for (const p of b.papers) {
         const px = pose.x + Math.sin(pose.yaw + Math.PI / 2) * p.peg.x + Math.sin(pose.yaw) * p.peg.z;
@@ -497,7 +470,6 @@ export default function Cihuateteo() {
       });
     });
     hairMaterial.opacity = opacity;
-    clothMaterial.opacity = opacity;
     paperMaterial.opacity = 0.9 * blend * settle;
 
     // La litiere de plumes de quetzal, le soleil dessus.
