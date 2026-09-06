@@ -14,6 +14,7 @@ import ReadingModeToggle from "../components/reading-mode-toggle";
 import RouteAnnouncer from "../components/route-announcer";
 import XolotlWitnessMessage from "../components/xolotl-witness";
 import SoundDesign from "../components/sound-design";
+import FrostScreen from "../components/frost-screen";
 import SceneControls from "../components/scene-controls";
 import TiltCards from "../components/tilt-cards";
 import Header from "../components/header";
@@ -413,6 +414,9 @@ export default async function LocaleLayout({
               default mute. Ambient drone + chime cardinal par click
               + whoosh transition. */}
           <SoundDesign label={dict.common.sound} />
+          {/* Le givre d'ecran de l'Est (06/09) : en marche arriere sur Services,
+              le gel reprend l'ecran quelques instants (simulateur lib/frost-screen). */}
+          <FrostScreen />
           {/* Controles de scene (05/09) : texte, plein ecran, contemplation,
               photo, eco ; raccourcis H F T P E. Au-dessus du bouton son. */}
           <SceneControls labels={dict.common.sceneControls} traces={dict.common.traces} locale={locale} />
