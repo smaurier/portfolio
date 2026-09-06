@@ -36,6 +36,7 @@ import MictlanMist from "./mictlan-mist";
 import StagModel from "./stag-model";
 import Vines from "./vines";
 import { useCurrentDirection } from "./use-current-direction";
+import Cihuateteo from "./cihuateteo";
 
 /**
  * Contenu 3D partagé entre la home et les pages écho (Services/Projets/
@@ -162,6 +163,10 @@ export default function SceneContent({
       {/* La lune et les nuages du Sud (05/09) : la lune s'efface quand le
        * soleil monte, les nuages derivent et blanchissent au midi. */}
       <SudSkyBodies />
+      {/* Les Cihuateteo (06/09, Ouest) : les porteuses du soleil, fantomes du carrefour. */}
+      <Suspense fallback={null}>
+        <Cihuateteo />
+      </Suspense>
       {/* Les 400 etoiles du Sud (04/09, lead) : sur le dome de nuit, elles
        * meurent et tombent a mesure que le midi monte. */}
       <CentzonStars />
