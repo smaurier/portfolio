@@ -70,7 +70,7 @@ const GUST_BANDS: readonly { freq: number; weight: number; phase: number; cross:
  * sont des accalmies, pas des contre-vents), sur la coordonnee le long du
  * vent moins speed * t, avec une petite modulation en travers pour que les
  * nappes ne soient pas des barres parfaites. */
-export function windAt(x: number, z: number, t: number, spec: WindSpec): Vec2 {
+export function windAt(x: number, z: number, t: number, spec: WindSpec, out?: Vec2): Vec2 {
   const along = x * spec.dirX + z * spec.dirZ;
   const across = -x * spec.dirZ + z * spec.dirX;
   let gust = 0;
@@ -82,6 +82,7 @@ export function windAt(x: number, z: number, t: number, spec: WindSpec): Vec2 {
     }
   }
   const m = spec.strength + spec.gustAmp * gust;
+  if (out) { out.x = spec.dirX * m; out.z = spec.dirZ * m; return out; }
   return { x: spec.dirX * m, z: spec.dirZ * m };
 }
 

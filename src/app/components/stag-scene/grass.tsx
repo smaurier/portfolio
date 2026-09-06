@@ -244,6 +244,7 @@ export default function Grass() {
   // cercle depuis le point d'impact.
   const pressRef = useRef<Vector2 | null>(null);
   const lastFrostRef = useRef(0);
+  const windScratch = useMemo(() => ({ x: 0, z: 0 }), []);
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
       pressRef.current = new Vector2((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
@@ -267,10 +268,19 @@ export default function Grass() {
     // Le gel de l'Est (06/09) : « tout s'est courbe sous le froid », le vent
     // ne souffle plus tant que le monde est gele.
     const frozen = frostStore.active ? frostStore.state.frost : 0;
+    // Sans allocation (06/09, profil : rotateY + windAt = 20 % du temps CPU
+    // de la page Contact) : rotation inline, un seul objet de sortie
+    // partage, consomme aussitot par stepGrassGrid.
+    const ca = Math.cos(angle), sa = Math.sin(angle);
+    const keep = 1 - frozen;
     const windLocal = (lx: number, lz: number) => {
-      const w = rotateY({ x: lx, z: lz }, angle);
-      const ww = windAt(w.x, w.z, t, spec);
-      return rotateY({ x: ww.x * (1 - frozen), z: ww.z * (1 - frozen) }, -angle);
+      const wx = lx * ca + lz * sa;
+      const wz = -lx * sa + lz * ca;
+      const ww = windAt(wx, wz, t, spec, windScratch);
+      const ox = ww.x * keep, oz = ww.z * keep;
+      windScratch.x = ox * ca - oz * sa;
+      windScratch.z = ox * sa + oz * ca;
+      return windScratch;
     };
     if (!reduced) {
       if (pressRef.current) {

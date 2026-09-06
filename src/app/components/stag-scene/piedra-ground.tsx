@@ -155,6 +155,7 @@ export default function PiedraGround() {
         clearcoatRoughness={0.08}
         envMapIntensity={0}
         side={DoubleSide}
+        forceSinglePass
       />
     </mesh>
   );

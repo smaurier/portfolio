@@ -1,4 +1,8 @@
-import { BufferAttribute, BufferGeometry, Vector3 } from "three";
+import { BufferAttribute, BufferGeometry, Sphere, Vector3 } from "three";
+
+/** Les rubans ne sont jamais frustum-culles : une sphere fixe, jamais
+ * recalculee (06/09, profil : computeBoundingSphere par image = 3 %). */
+const BIG_SPHERE = new Sphere(new Vector3(0, 0, 0), 1e3);
 import type { Strip } from "@/lib/paper-strip";
 
 /**
@@ -28,6 +32,7 @@ export function createRibbonGeometry(points: number, vBand: [number, number] = [
     index.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
   }
   geometry.setIndex(index);
+  geometry.boundingSphere = BIG_SPHERE.clone();
   return geometry;
 }
 
@@ -61,7 +66,6 @@ export function updateRibbon(geometry: BufferGeometry, strip: Strip, width: numb
   }
   pos.needsUpdate = true;
   nor.needsUpdate = true;
-  geometry.computeBoundingSphere();
 }
 
 /**
@@ -90,6 +94,7 @@ export function createRibbonBundleGeometry(ribbons: number, points: number): Buf
   }
   geometry.setAttribute("uv", new BufferAttribute(uv, 2));
   geometry.setIndex(index);
+  geometry.boundingSphere = BIG_SPHERE.clone();
   return geometry;
 }
 
@@ -124,5 +129,4 @@ export function writeRibbonSlot(geometry: BufferGeometry, slot: number, strip: S
 export function finishRibbonBundle(geometry: BufferGeometry): void {
   (geometry.attributes.position as BufferAttribute).needsUpdate = true;
   (geometry.attributes.normal as BufferAttribute).needsUpdate = true;
-  geometry.computeBoundingSphere();
 }

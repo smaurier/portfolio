@@ -54,7 +54,7 @@ const NOISE_GLSL = /* glsl */ `
 /** Le corps : fumee noire opaque, ou, avec `color` = chaux, la tete traitee
  * exactement pareil mais blanche (Sylvain, 06/09). */
 export function createCihuateotlMaterial(uniforms: CihuateotlUniforms, color: string = CIHUATEOTL_COLOR): MeshBasicMaterial {
-  const mat = new MeshBasicMaterial({ color: new Color(color), transparent: true, depthWrite: true, side: DoubleSide, fog: false, blending: NormalBlending });
+  const mat = new MeshBasicMaterial({ color: new Color(color), transparent: true, depthWrite: true, side: DoubleSide, fog: false, blending: NormalBlending, forceSinglePass: true });
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uPower = uniforms.uPower;
     shader.uniforms.uOpacity = uniforms.uOpacity;

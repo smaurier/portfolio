@@ -1,4 +1,4 @@
-import { MeshStandardMaterial, Vector2, type Material, type Object3D } from "three";
+import { DoubleSide, MeshStandardMaterial, Vector2, type Material, type Object3D } from "three";
 import { addShaderModifier } from "./shader-patch";
 
 /**
@@ -112,6 +112,11 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
       if (!(material instanceof MeshStandardMaterial)) continue;
       if (patchedMaterials.has(material)) continue;
       patchedMaterials.add(material);
+      // Une seule passe pour les materiaux double face (06/09, profil de la
+      // page Contact : three rend un materiau transparent DoubleSide en deux
+      // passes et pose material.needsUpdate a CHAQUE passe, d'ou une
+      // recherche de programme par objet et par image : 11 % du CPU).
+      if (material.side === DoubleSide) material.forceSinglePass = true;
 
       material.transparent = true;
 

@@ -131,6 +131,9 @@ export default function FrostWorld() {
   const rootRef = useRef<Group>(null);
 
   const iceMaterial = useMemo(() => makeIceMaterial(0.06), []);
+  // Un materiau a part pour les bois (maille statique) : partage avec les
+  // mailles skinnees, three rechercherait le programme a chaque image.
+  const iceMaterialStatic = useMemo(() => makeIceMaterial(0.06), []);
   const discMaterial = useMemo(() => {
     const m = makeIceMaterial(0);
     m.opacity = 0.2; // les gravures de la Piedra se lisent sous la glace
@@ -145,7 +148,7 @@ export default function FrostWorld() {
     clone.traverse((o) => {
       const mesh = o as Mesh;
       if (mesh.isMesh) {
-        mesh.material = iceMaterial;
+        mesh.material = (mesh as unknown as SkinnedMesh).isSkinnedMesh ? iceMaterial : iceMaterialStatic;
         mesh.raycast = () => null;
         mesh.renderOrder = 6;
         mesh.frustumCulled = false;
@@ -157,7 +160,7 @@ export default function FrostWorld() {
     });
     const head = stagScene.getObjectByName("Head") ?? null;
     return { clone, pairs, head };
-  }, [stagScene, iceMaterial]);
+  }, [stagScene, iceMaterial, iceMaterialStatic]);
 
   const disc = useMemo(() => {
     const m = new Mesh(new CircleGeometry(PIEDRA_RADIUS, 96), discMaterial);
@@ -191,10 +194,11 @@ export default function FrostWorld() {
 
   useEffect(() => () => {
     iceMaterial.dispose();
+    iceMaterialStatic.dispose();
     discMaterial.dispose();
     disc.geometry.dispose();
     breathMaterial.dispose();
-  }, [iceMaterial, discMaterial, disc, breathMaterial]);
+  }, [iceMaterial, iceMaterialStatic, discMaterial, disc, breathMaterial]);
 
   const headPos = useMemo(() => new Vector3(), []);
   const headDir = useMemo(() => new Vector3(), []);

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { Vector3, type Group } from "three";
+import { Vector3, type Group, type Material, type Mesh } from "three";
 import {
   getDirectionalIntensity,
   getHeadTurnAmount,
@@ -118,7 +118,22 @@ export default function StagModel({
   // par référence (recalculé seulement si `scene` change), et useFrame
   // ci-dessous mute juste leurs `.value`, le seul moyen d'animer un uniform
   // Three.js par frame.
-  const rimUniforms: RimLightUniforms[] = useMemo(() => applyRimLight(scene), [scene]);
+  const rimUniforms: RimLightUniforms[] = useMemo(() => {
+    // Les bois (Stag_Horns, statiques) partagent Material.001 avec une maille
+    // skinnee : three alterne alors le programme (skinning on/off) a chaque
+    // image (profil 06/09 : getParameters 9 %). Un clone pour les bois,
+    // AVANT le patch du lisere pour qu'il soit patche aussi.
+    const skinnedMaterials = new Set<Material>();
+    scene.traverse((o) => {
+      const m = o as Mesh;
+      if ((m as unknown as { isSkinnedMesh?: boolean }).isSkinnedMesh && m.material && !Array.isArray(m.material)) skinnedMaterials.add(m.material);
+    });
+    scene.traverse((o) => {
+      const m = o as Mesh;
+      if (m.isMesh && !(m as unknown as { isSkinnedMesh?: boolean }).isSkinnedMesh && m.material && !Array.isArray(m.material) && skinnedMaterials.has(m.material)) m.material = m.material.clone();
+    });
+    return applyRimLight(scene);
+  }, [scene]);
   // Nord (02/09) : cerf noir (crossfade) + gestes varies (clips alternes
   // par segments deterministes, cf lib/north-clips.ts).
   const direction = useCurrentDirection();

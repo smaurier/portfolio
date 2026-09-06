@@ -235,11 +235,11 @@ export default function Cihuateteo() {
   const animatedBones = useMemo(() => new Set((walkClip?.tracks ?? []).map((t) => t.name.split(".")[0])), [walkClip]);
 
   // Cheveux : noirs, eclaires (un peu de brillance sur les meches).
-  const hairMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#07040a"), roughness: 0.55, metalness: 0.05, transparent: true, opacity: 0, side: DoubleSide, depthWrite: true, fog: false }), []);
-  const clothMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#0b0710"), roughness: 0.95, metalness: 0, transparent: true, opacity: 0, side: DoubleSide, depthWrite: true, fog: false }), []);
-  const paperMaterial = useMemo(() => new MeshBasicMaterial({ color: new Color("#efe6d6"), transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: true, blending: NormalBlending }), []);
-  const featherMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: NormalBlending }), []);
-  const featherTipMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL_TIP, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: AdditiveBlending }), []);
+  const hairMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#07040a"), roughness: 0.55, metalness: 0.05, transparent: true, opacity: 0, side: DoubleSide, depthWrite: true, fog: false, forceSinglePass: true }), []);
+  const clothMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#0b0710"), roughness: 0.95, metalness: 0, transparent: true, opacity: 0, side: DoubleSide, depthWrite: true, fog: false, forceSinglePass: true }), []);
+  const paperMaterial = useMemo(() => new MeshBasicMaterial({ color: new Color("#efe6d6"), transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: true, blending: NormalBlending, forceSinglePass: true }), []);
+  const featherMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: NormalBlending, forceSinglePass: true }), []);
+  const featherTipMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL_TIP, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: AdditiveBlending, forceSinglePass: true }), []);
   const emberMaterial = useMemo(() => new SpriteMaterial({ map: smokeTexture, color: new Color("#ff7a3a"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }), [smokeTexture]);
   const smokeMaterial = useMemo(() => new SpriteMaterial({ map: smokeTexture, color: new Color("#2b1c33"), transparent: true, opacity: 0, depthWrite: false, blending: NormalBlending, fog: false }), [smokeTexture]);
   const glowMaterial = useMemo(() => new SpriteMaterial({ map: glowTexture(), color: new Color("#ffd2a0"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }), []);
