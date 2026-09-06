@@ -41,6 +41,7 @@ import { useSceneRefs } from "./scene-refs-context";
 
 const PIEDRA_MAP = "/img/piedra-del-sol-v2.webp";
 const PIEDRA_HEIGHTMAP = "/img/piedra-del-sol-height.webp";
+const goldPatched = new WeakSet<MeshPhysicalMaterial>();
 const GROUND_RADIUS = 3;
 const GROUND_SEGMENTS = 256;
 // Retour Sylvain 30/08 : "baisse un peu opacite, reliefs moins forts"
@@ -99,7 +100,8 @@ export default function PiedraGround() {
   const goldRef = useRef({ value: 0 });
   useEffect(() => {
     const mat = materialRef.current;
-    if (!mat) return;
+    if (!mat || goldPatched.has(mat)) return; // strict mode React 19 : l'effet tourne deux fois, le modificateur ne doit etre pose qu'une fois (sinon « uPiedraGold : redefinition », Piedra noire au Nord, 07/09)
+    goldPatched.add(mat);
     addShaderModifier(mat, (shader) => {
       shader.uniforms.uPiedraGold = goldRef.current;
       shader.fragmentShader = shader.fragmentShader

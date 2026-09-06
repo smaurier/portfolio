@@ -34,7 +34,11 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   vec4 acc = vec4(0.0);
   for (int i = 0; i < 8; i++) {
     float offset = (float(i) / 7.0 - 0.5) * amount;
-    acc += texture2D(inputBuffer, clamp(uv + vec2(offset, 0.0), 0.001, 0.999));
+    // textureLod, pas texture2D : le return au-dessus rend le flot divergent,
+    // et un echantillon a derivees implicites dans une boucle divergente
+    // fait rouspeter le compilateur HLSL d'ANGLE (X3595, 07/09). Lod 0 : le
+    // tampon d'entree n'a pas de mipmaps de toute facon.
+    acc += textureLod(inputBuffer, clamp(uv + vec2(offset, 0.0), 0.001, 0.999), 0.0);
   }
   outputColor = acc / 8.0;
 }

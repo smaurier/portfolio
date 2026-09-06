@@ -33,6 +33,22 @@ import styles from "./scene-stage.module.css";
  * SceneRefsProvider, aussi monté au layout. Cohérent : tout ce qui
  * doit persister sur toute la session vit dans layout.
  */
+const LIBRARY_WARNINGS = ["THREE.Clock: This module has been deprecated", "warning X4122: sum of"];
+let warningFilterInstalled = false;
+function installLibraryWarningFilter(): void {
+  if (warningFilterInstalled || typeof window === "undefined") return;
+  warningFilterInstalled = true;
+  const original = console.warn;
+  console.warn = (...args: unknown[]) => {
+    const text = args.map((a) => (typeof a === "string" ? a : "")).join(" ");
+    if (LIBRARY_WARNINGS.some((w) => text.includes(w))) return;
+    original(...args);
+  };
+}
+// Des le chargement du module (pas dans onCreated : react-three-fiber cree
+// son THREE.Clock a la creation du Canvas, avant onCreated).
+if (process.env.NODE_ENV !== "production") installLibraryWarningFilter();
+
 export default function PersistentScene() {
   const refs = useSceneRefs();
   const direction = useCurrentDirection();
@@ -104,6 +120,14 @@ export default function PersistentScene() {
         // Sonde de dev (05/09) : la scene three exposee pour Playwright
         // (diagnostics visuels), jamais en production.
         onCreated={(state) => {
+          // Journaux de compilation des shaders (07/09) : en production,
+          // three n'interroge plus le pilote (un aller-retour synchrone par
+          // programme, et sur ANGLE/d3d11 des notes de precision de son
+          // propre shader PMREM affichees en warning). En dev on garde tout,
+          // sauf deux messages de bibliotheques qu'on ne peut pas corriger
+          // ici : la depreciation de THREE.Clock (instanciee par
+          // react-three-fiber 9.7) et les notes X4122 du PMREM de three.
+          if (process.env.NODE_ENV === "production") state.gl.debug.checkShaderErrors = false;
           if (process.env.NODE_ENV !== "production") {
             const w = window as unknown as { __nahualScene?: unknown; __nahualR3f?: unknown };
             w.__nahualScene = state.scene;
