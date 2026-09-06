@@ -89,25 +89,15 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
 
     function handleScroll() {
       if (reducedMotionRef.current) return;
-      // L'heure de Tenochtitlan (05/09) : l'arc est fige a l'heure reelle,
-      // le scroll ne le pilote plus tant que le mode est actif.
-      const sc = getSceneControls();
-      if (sc.tenochtitlan) {
-        progressRef.current = clampProgress(sc.tenochtitlanArc);
-        return;
-      }
       const arcScroll = window.innerHeight * ARC_SCROLL_VIEWPORTS;
       progressRef.current = clampProgress(
         arcScroll > 0 ? window.scrollY / arcScroll : 0,
       );
     }
-    // Quand le mode change (ou son heure), on reapplique.
-    const unsubTenochtitlan = subscribeSceneControls(() => handleScroll());
 
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
-      unsubTenochtitlan();
       window.removeEventListener("scroll", handleScroll);
       document.body.classList.remove(REVEAL_SCOPE_CLASS);
       window.history.scrollRestoration = previousScrollRestoration;

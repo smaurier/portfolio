@@ -9,17 +9,19 @@
  * post-traitement), et des raccourcis clavier. Ici, cinq gestes :
  *  - TEXTE : masquer / afficher tout ce qui n'est pas la scene ;
  *  - PLEIN ECRAN : l'API Fullscreen du navigateur ;
- *  - CONTEMPLATION : la scene deroule seule, du soir au midi, sans
- *    toucher a la souris (pour regarder, ou pour filmer) ;
+ *  - CONTEMPLATION : le texte s'efface, la scene se pose sur l'heure vraie
+ *    de Tenochtitlan puis deroule le jour entier en boucle, la camera
+ *    orbite (lib contemplation) ; a la fin, le texte revient comme avant ;
  *  - PHOTO : l'image de la scene telle quelle, sans interface ;
  *  - ECO : le profil de rendu leger (pas de post-traitement, pas d'ombre,
  *    DPR 1, moins d'herbe), aussi sur ordi.
- * Ce module est la partie PURE : le deroule de la contemplation, la
- * resolution du profil de qualite, la table des raccourcis. Le composant
+ * Ce module est la partie PURE : la resolution du profil de qualite, la
+ * table des raccourcis (le deroule de la contemplation vit dans
+ * lib/contemplation.ts). Le composant
  * (scene-controls.tsx) ne fait que brancher le navigateur dessus.
  */
 
-export type SceneAction = "text" | "fullscreen" | "cinematic" | "photo" | "eco" | "link" | "tenochtitlan";
+export type SceneAction = "text" | "fullscreen" | "cinematic" | "photo" | "eco" | "link";
 
 /** Raccourcis de scene : lettres LIBRES (la navigation cardinale prend
  * WASD / ZQSD / C, et Echap ramene a l'accueil). */
@@ -30,38 +32,10 @@ export const SCENE_SHORTCUTS: Record<string, SceneAction> = {
   p: "photo",
   e: "eco",
   l: "link",
-  n: "tenochtitlan",
 };
 
 export function shortcutAction(key: string): SceneAction | null {
   return SCENE_SHORTCUTS[key.toLowerCase()] ?? null;
-}
-
-export const CINEMATIC = {
-  /** Duree du deroule complet, du progres courant a la fin de l'arc (s). */
-  seconds: 75,
-};
-
-function smooth(u: number): number {
-  const c = u < 0 ? 0 : u > 1 ? 1 : u;
-  return c * c * (3 - 2 * c);
-}
-
-/** Progres de l'arc (0..1) a `elapsed` secondes apres le depart, en
- * partant de `from` : ease-in-out jusqu'a 1 (le midi), puis, EN BOUCLE
- * (05/09, Sylvain : « la contemplation en boucle »), retour vers 0 (la
- * nuit) en `seconds`, et ainsi de suite, jusqu'au geste qui l'arrete. Un
- * ecran de salon, une video : la journee se rejoue sans fin. */
-export function cinematicProgress(elapsed: number, from: number, seconds: number = CINEMATIC.seconds): number {
-  const start = from < 0 ? 0 : from > 1 ? 1 : from;
-  if (elapsed <= 0) return start;
-  // Premiere montee : de `start` a 1.
-  if (elapsed < seconds) return start + (1 - start) * smooth(elapsed / seconds);
-  // Puis des allers-retours complets 1 -> 0 -> 1 -> ...
-  const rest = elapsed - seconds;
-  const leg = Math.floor(rest / seconds);
-  const u = smooth((rest - leg * seconds) / seconds);
-  return leg % 2 === 0 ? 1 - u : u;
 }
 
 export type QualityProfile = {

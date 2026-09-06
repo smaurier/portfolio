@@ -112,7 +112,7 @@ export default function SudSkyBodies() {
     const sun = sunRef.current, halo = sunHaloRef.current;
     if (sun && halo) {
       const sc = getSceneControls();
-      const sd = sunDirection(day, sc.tenochtitlan && sc.tenochtitlanAfternoon);
+      const sd = sunDirection(day, sc.cinematic && sc.cinematicAfternoon);
       sun.position.set(sd.x * RADIUS, sd.y * RADIUS, sd.z * RADIUS);
       halo.position.copy(sun.position);
       const up = Math.max(0, Math.min(1, (sd.y + 0.02) / 0.12));

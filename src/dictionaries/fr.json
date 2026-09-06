@@ -42,8 +42,6 @@
       "resume": "Reprendre où vous étiez",
       "resumeDismiss": "Non merci",
       "traces": "Ce que la scène vous a montré",
-      "tenochtitlanOn": "À l'heure de Tenochtitlan",
-      "tenochtitlanOff": "Quitter l'heure de Tenochtitlan",
       "tenochtitlanClock": "Il est {time} à Tenochtitlan",
       "tenochtitlanNight": "Il est {time} à Tenochtitlan, c'est la nuit"
     },
@@ -673,7 +671,7 @@
       },
       {
         "title": "Raccourcis clavier",
-        "text": "Alt+Flèche haute/droite/basse/gauche : navigation cardinale directe (haut=Mémoire au Nord, droite=Services à l'Est, bas=Projets au Sud, gauche=Contact à l'Ouest). WASD (QWERTY) ou ZQSD (AZERTY) · indépendamment du layout physique · même grille cardinale : W/Z=Mémoire, D=Services, S=Projets, A/Q=Contact, C=Accueil (Centre). Échap : retour à l'accueil. Contrôles de scène (lettres seules) : H masque ou affiche le texte, F plein écran, T contemplation (la scène déroule seule du soir au midi, tout geste l'arrête), P photo de la scène, L copie du lien de cet instant, E mode éco, N l'heure de Tenochtitlan (la scène se fige à la hauteur réelle du soleil sur Mexico et la caméra tourne lentement). Ces raccourcis obéissent au même interrupteur que les autres."
+        "text": "Alt+Flèche haute/droite/basse/gauche : navigation cardinale directe (haut=Mémoire au Nord, droite=Services à l'Est, bas=Projets au Sud, gauche=Contact à l'Ouest). WASD (QWERTY) ou ZQSD (AZERTY) · indépendamment du layout physique · même grille cardinale : W/Z=Mémoire, D=Services, S=Projets, A/Q=Contact, C=Accueil (Centre). Échap : retour à l'accueil. Contrôles de scène (lettres seules) : H masque ou affiche le texte, F plein écran, T contemplation (le texte s'efface, la scène se pose à l'heure vraie de Tenochtitlan, la hauteur réelle du soleil sur Mexico, puis déroule le jour entier en boucle pendant que la caméra tourne lentement ; tout geste l'arrête et remet le texte comme avant), P photo de la scène, L copie du lien de cet instant, E mode éco. Ces raccourcis obéissent au même interrupteur que les autres."
       },
       {
         "title": "Raccourcis manette",
