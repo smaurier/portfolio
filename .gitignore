@@ -38,3 +38,6 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /playwright/.cache/
+
+# scripts de verification locaux (captures, sondes)
+.scratch/
