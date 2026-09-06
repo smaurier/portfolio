@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./sound-design.module.css";
+import { useCurrentDirection } from "./stag-scene/use-current-direction";
 
 /**
  * Sound design cardinal (28/08 task #46). Sons génératifs Web Audio
@@ -12,6 +13,9 @@ import styles from "./sound-design.module.css";
  *    click sur un lien [data-cardinal-direction]
  *  - Whoosh : white noise burst filtré, joué au declenchement
  *    transition cardinale (bind sur custom event 'nahual:whoosh')
+ *  - Vent de l'Ouest (06/09) : nappe de bruit filtré en passe-bande
+ *    avec des rafales lentes, seulement sur la page Contact (Ehecatl
+ *    balaie la route), fondu à l'arrivée et au départ
  *
  * Toggle mute persist localStorage (default = muted, respect
  * autoplay policies browser + retour utilisateur : le son démarre
@@ -37,6 +41,8 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
   const volumeRef = useRef(0.5);
   const ambientNodesRef = useRef<{ osc: OscillatorNode; gain: GainNode }[]>([]);
   const masterGainRef = useRef<GainNode | null>(null);
+  const windRef = useRef<{ source: AudioBufferSourceNode; gain: GainNode; lfos: OscillatorNode[] } | null>(null);
+  const direction = useCurrentDirection();
 
   // Lecture initiale de l'état muté depuis localStorage. Pattern
   // SSR-safe : initial state true, correction post-hydratation cote
@@ -155,6 +161,66 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
       // cleanup lors du re-render, mais géré aussi par le muted branch ci-dessus
     };
   }, [muted]);
+
+  // Le vent de l'Ouest : demarre a l'arrivee sur Contact (si le son est
+  // actif), s'eteint en quittant ou en coupant le son.
+  useEffect(() => {
+    const ctx = ctxRef.current;
+    const master = masterGainRef.current;
+    if (!ctx || !master) return;
+    const wantWind = !muted && direction === "cendre";
+    const current = windRef.current;
+    if (!wantWind) {
+      if (!current) return;
+      current.gain.gain.cancelScheduledValues(ctx.currentTime);
+      current.gain.gain.setValueAtTime(current.gain.gain.value, ctx.currentTime);
+      current.gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
+      windRef.current = null;
+      window.setTimeout(() => {
+        try { current.source.stop(); } catch {}
+        for (const o of current.lfos) { try { o.stop(); } catch {} }
+      }, 1700);
+      return;
+    }
+    if (current) return;
+    // Bruit rose approche (filtre recursif de Paul Kellet), 4 s en boucle.
+    const seconds = 4;
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0;
+    for (let i = 0; i < data.length; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99765 * b0 + white * 0.099046;
+      b1 = 0.963 * b1 + white * 0.2965164;
+      b2 = 0.57 * b2 + white * 1.0526913;
+      data[i] = (b0 + b1 + b2 + white * 0.1848) * 0.11;
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    const band = ctx.createBiquadFilter();
+    band.type = "bandpass";
+    band.frequency.value = 420;
+    band.Q.value = 0.5;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    // Les rafales : deux LFO lents et incommensurables sur le volume et la
+    // hauteur du filtre, comme les nappes de rafales de l'herbe.
+    const lfos: OscillatorNode[] = [];
+    for (const [hz, depth, target] of [[0.11, 0.045, gain.gain], [0.073, 0.03, gain.gain], [0.09, 160, band.frequency]] as const) {
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.value = hz;
+      lfoGain.gain.value = depth;
+      lfo.connect(lfoGain).connect(target);
+      lfo.start();
+      lfos.push(lfo);
+    }
+    source.connect(band).connect(gain).connect(master);
+    source.start();
+    gain.gain.linearRampToValueAtTime(0.11, ctx.currentTime + 2.5);
+    windRef.current = { source, gain, lfos };
+  }, [muted, direction]);
 
   // Chime cardinal au click sur data-cardinal-direction
   useEffect(() => {

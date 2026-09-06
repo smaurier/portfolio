@@ -129,3 +129,14 @@ verifies le 06/09/2026 (fetch ou requete API) sauf mention contraire.
   Venus est etoile du soir (elongation > 10 deg a l'est), sinon une fois
   sur trois ; il ne part qu'une fois le soleil entre dans la terre ;
   l'etoile du soir s'allume au-dessus du couchant dans les deux cas.
+
+## Complement 06/09 : etape 5 (vent, offrandes)
+
+- Ehecatl « balaie la route » (livre I) : feuilles seches et cendres au sol
+  balayees vers le couchant (+x du decor), memes rafales que la prairie ;
+  le vent de l'herbe a l'Ouest a ete retourne dans ce sens (il allait vers
+  l'est). Son du vent : nappe de bruit rose en passe-bande avec rafales
+  lentes, page Contact seulement, quand le son est actif.
+- Offrandes au carrefour : papiers (amatetehuitl) et braises devant chaque
+  porteuse. Les tamales, le mais grille et les pains en forme de papillon
+  (livre II) ne sont pas representes : licence par omission.

@@ -85,6 +85,9 @@ const QUETZAL_TIP = new Color("#8ee0b8");
 const PAPERS_PER_BEARER = 3;
 const PAPER_POINTS = 6;
 const SMOKES_PER_BEARER = 3;
+/** Les braises de l'offrande au carrefour (06/09, etape 5) : trois braises
+ * par porteuse, devant elle, qui rougeoient dans le vent. */
+const EMBERS_PER_BEARER = 3;
 /** Vent de l'ouest (+x = l'ouest du decor) ressenti par les meches, les pans et les plumes. */
 const WIND_BASE = { x: 1.1, y: 0.35, z: -0.2 };
 /** La danse (radians sur les os, ajoutes a l'animation) : ecart des bras
@@ -129,6 +132,7 @@ type Bearer = {
   hipsBone: Object3D | null;
   papers: { strip: Strip; geometry: BufferGeometry; peg: { x: number; z: number }; phase: number }[];
   smokes: Sprite[];
+  embers: { sprite: Sprite; x: number; z: number; phase: number }[];
   headBone: Object3D | null;
 };
 type Butterfly = { alive: boolean; x: number; y: number; z: number; vx: number; vy: number; vz: number; age: number; life: number };
@@ -236,6 +240,7 @@ export default function Cihuateteo() {
   const paperMaterial = useMemo(() => new MeshBasicMaterial({ color: new Color("#efe6d6"), transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: true, blending: NormalBlending }), []);
   const featherMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: NormalBlending }), []);
   const featherTipMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL_TIP, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: AdditiveBlending }), []);
+  const emberMaterial = useMemo(() => new SpriteMaterial({ map: smokeTexture, color: new Color("#ff7a3a"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }), [smokeTexture]);
   const smokeMaterial = useMemo(() => new SpriteMaterial({ map: smokeTexture, color: new Color("#2b1c33"), transparent: true, opacity: 0, depthWrite: false, blending: NormalBlending, fog: false }), [smokeTexture]);
   const glowMaterial = useMemo(() => new SpriteMaterial({ map: glowTexture(), color: new Color("#ffd2a0"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }), []);
 
@@ -267,9 +272,16 @@ export default function Cihuateteo() {
         s.renderOrder = 995;
         return s;
       });
-      return { root, mixer, uniforms, bones: collectBones(inner, animatedBones), hair, hairGeometry: createRibbonBundleGeometry(HAIR_STRANDS, HAIR_POINTS), skirt, skirtGeometry: createRibbonBundleGeometry(SKIRT_STRIPS, SKIRT_POINTS), hipsBone: inner.getObjectByName("Hips") ?? null, papers, smokes, headBone: inner.getObjectByName("Head") ?? null };
+      const embers = Array.from({ length: EMBERS_PER_BEARER }, (_, k) => {
+        const sprite = new Sprite(emberMaterial.clone());
+        sprite.raycast = () => null;
+        sprite.renderOrder = 998;
+        // Devant elle, entre les papiers : un petit foyer.
+        return { sprite, x: (hash(i * 11 + k, 5) - 0.5) * 0.5, z: 0.55 + hash(i * 11 + k, 6) * 0.35, phase: hash(i * 11 + k, 7) * 6.28 };
+      });
+      return { root, mixer, uniforms, bones: collectBones(inner, animatedBones), hair, hairGeometry: createRibbonBundleGeometry(HAIR_STRANDS, HAIR_POINTS), skirt, skirtGeometry: createRibbonBundleGeometry(SKIRT_STRIPS, SKIRT_POINTS), hipsBone: inner.getObjectByName("Hips") ?? null, papers, smokes, embers, headBone: inner.getObjectByName("Head") ?? null };
     });
-  }, [scene, walkClip, animatedBones, smokeMaterial]);
+  }, [scene, walkClip, animatedBones, smokeMaterial, emberMaterial]);
 
   // La litiere : deux brancards et des plumes de quetzal en rubans.
   const litter = useMemo(() => {
@@ -385,6 +397,7 @@ export default function Cihuateteo() {
         add(m);
       }
       for (const s of b.smokes) add(s);
+      for (const e of b.embers) add(e.sprite);
     }
     add(litter.group);
     litter.feathers.forEach((f, k) => {
@@ -526,6 +539,16 @@ export default function Cihuateteo() {
         stepStrip(p.strip, dt, { x: px, y: 0.12, z: pz }, wind, { gravity: 2.5, damping: 0.975, windResponse: 1.6, iterations: 5 });
         updateRibbon(p.geometry, p.strip, 0.09);
       }
+      // Les braises de l'offrande, a ses pieds : elles ne s'allument qu'au
+      // carrefour (settle) et rougeoient au gre des rafales.
+      b.embers.forEach((e, k) => {
+        const ex = pose.x + Math.cos(pose.yaw + Math.PI / 2) * e.x + Math.sin(pose.yaw) * e.z;
+        const ez = pose.z - Math.sin(pose.yaw + Math.PI / 2) * e.x + Math.cos(pose.yaw) * e.z;
+        const flicker = 0.55 + 0.45 * Math.max(0, Math.sin(time * 5.1 + e.phase) * 0.6 + Math.sin(time * 13.7 + e.phase * 3) * 0.4) * (0.6 + 0.4 * gust);
+        e.sprite.position.set(ex, 0.06 + 0.03 * k, ez);
+        e.sprite.scale.setScalar(0.22 + 0.08 * k);
+        e.sprite.material.opacity = settle * blend * flicker;
+      });
       // La fumee autour d'elle : trois volutes lentes.
       b.smokes.forEach((s, k) => {
         const a = time * 0.18 + k * 2.1 + i;

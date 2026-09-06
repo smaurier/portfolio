@@ -52,7 +52,9 @@ export const GRASS_WIND_BY_DIRECTION: Record<DirectionKey, WindSpec> = {
   jade: { ...unit(0.8, -0.4), strength: 0.16, gustAmp: 0.22, gustSpeed: 2.2, gustScale: 0.22 },
   dore: { ...unit(1, 0.35), strength: 0.2, gustAmp: 0.26, gustSpeed: 2.4, gustScale: 0.2 },
   turquoise: { ...unit(-0.7, -0.5), strength: 0.18, gustAmp: 0.3, gustSpeed: 2.6, gustScale: 0.24 },
-  cendre: { ...unit(-1, 0.25), strength: 0.42, gustAmp: 0.4, gustSpeed: 4.2, gustScale: 0.18 },
+  // Vers +x = l'ouest du decor, ou le soleil tombe (06/09 : meme sens que
+  // les chevelures des Cihuateteo et les feuilles balayees).
+  cendre: { ...unit(1, -0.25), strength: 0.42, gustAmp: 0.4, gustSpeed: 4.2, gustScale: 0.18 },
   obsidienne: { ...unit(0, 1), strength: 0.1, gustAmp: 0.1, gustSpeed: 1.5, gustScale: 0.2 },
 };
 

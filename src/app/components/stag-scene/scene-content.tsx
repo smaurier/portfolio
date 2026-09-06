@@ -37,6 +37,7 @@ import StagModel from "./stag-model";
 import Vines from "./vines";
 import { useCurrentDirection } from "./use-current-direction";
 import Cihuateteo from "./cihuateteo";
+import WestLeaves from "./west-leaves";
 
 /**
  * Contenu 3D partagé entre la home et les pages écho (Services/Projets/
@@ -167,6 +168,8 @@ export default function SceneContent({
       <Suspense fallback={null}>
         <Cihuateteo />
       </Suspense>
+      {/* Ehecatl balaie la route (06/09, Ouest) : feuilles et cendres au sol, vers le couchant. */}
+      <WestLeaves />
       {/* Les 400 etoiles du Sud (04/09, lead) : sur le dome de nuit, elles
        * meurent et tombent a mesure que le midi monte. */}
       <CentzonStars />
