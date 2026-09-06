@@ -131,10 +131,24 @@ export default function FrostWorld() {
   const rootRef = useRef<Group>(null);
   const frameRef = useRef(0);
 
-  const iceMaterial = useMemo(() => makeIceMaterial(0.06), []);
+  const iceMaterial = useMemo(() => {
+    const m = makeIceMaterial(0.06);
+    m.opacity = 0.3; // le cerf lui-meme est de verre (glassModifier) : la coque n'est qu'un bord
+    return m;
+  }, []);
   // Un materiau a part pour les bois (maille statique) : partage avec les
   // mailles skinnees, three rechercherait le programme a chaque image.
-  const iceMaterialStatic = useMemo(() => makeIceMaterial(0.06), []);
+  const iceMaterialStatic = useMemo(() => {
+    const m = makeIceMaterial(0.06);
+    m.opacity = 0.3;
+    return m;
+  }, []);
+  // Le cerf de VERRE (Sylvain, 06/09 : « le cerf glace doit etre translucide,
+  // texture glace/vitre ») : ses propres materiaux deviennent, sous le gel,
+  // une vitre bleu pale translucide a bords blancs (fresnel), le fond se
+  // voit a travers. Pose une fois sur les materiaux du vrai cerf, apres
+  // le givre generique pour passer par-dessus.
+  const glassAppliedRef = useRef(false);
   const discMaterial = useMemo(() => {
     const m = makeIceMaterial(0);
     m.opacity = 0.2; // les gravures de la Piedra se lisent sous la glace
@@ -365,6 +379,34 @@ export default function FrostWorld() {
     // Le traverse de toute la scene (1900 objets) ne sert qu'a rattraper les
     // materiaux montes apres coup : une image sur 20 suffit.
     if ((frameRef.current = (frameRef.current + 1) % 20) === 0) applyFrost(state.scene);
+    if (!glassAppliedRef.current && frameRef.current >= 1) {
+      glassAppliedRef.current = true;
+      applyFrost(stagScene);
+      stagScene.traverse((o) => {
+        const m = (o as Mesh).material as MeshStandardMaterial | undefined;
+        if (!m || Array.isArray(m) || !(m as MeshStandardMaterial).isMeshStandardMaterial) return;
+        addShaderModifier(m, (shader) => {
+          shader.uniforms.uGlass = frostUniforms.uFrost;
+          shader.fragmentShader = shader.fragmentShader
+            .replace("#include <common>", `#include <common>
+ uniform float uGlass;`)
+            .replace(
+              "#include <dithering_fragment>",
+              `if (uGlass > 0.001) {
+                 vec3 gN = normalize(vNormal);
+                 vec3 gV = normalize(vViewPosition);
+                 float gNV = abs(dot(gN, gV));
+                 float gFres = pow(1.0 - gNV, 2.2);
+                 // Verre : le fond passe au centre, les bords se blanchissent.
+                 vec3 glassCol = mix(vec3(0.62, 0.78, 0.96), vec3(0.97, 0.99, 1.0), gFres);
+                 gl_FragColor.rgb = mix(gl_FragColor.rgb, glassCol * (0.55 + 0.45 * gFres), uGlass);
+                 gl_FragColor.a = mix(gl_FragColor.a, 0.22 + 0.7 * gFres, uGlass);
+               }
+               #include <dithering_fragment>`,
+            );
+        });
+      });
+    }
 
     const root = rootRef.current;
     if (!root) return;
@@ -379,6 +421,20 @@ export default function FrostWorld() {
       explode(t);
     }
     if (!east || phase === "frozen") explodedRef.current = false;
+    // Le cabre : 0,15 s apres l'impact, monte en 0,45 s, tient 0,35 s,
+    // redescend en 0,9 s (Sylvain, 06/09 : « je l'imaginerais bien se cabrer
+    // juste apres l'explosion »). Pas de clip de cabre dans le modele :
+    // pose procedurale sur les os, dans stag-model.
+    if (explodedRef.current && phase !== "refreeze" && !sceneRefs?.reducedMotionRef.current) {
+      const r = t - explodedAtRef.current - 0.15;
+      let rear = 0;
+      if (r > 0 && r < 0.45) { const u = r / 0.45; rear = 1 - (1 - u) * (1 - u); }
+      else if (r >= 0.45 && r < 0.8) rear = 1;
+      else if (r >= 0.8 && r < 1.7) { const u = (r - 0.8) / 0.9; rear = 1 - u * u * (3 - 2 * u); }
+      frostStore.rear = rear;
+    } else {
+      frostStore.rear = 0;
+    }
     // L'or dans les gravures : monte en 2,5 s apres l'impact, part au regel.
     frostStore.gold = explodedRef.current && phase !== "refreeze" ? Math.min(1, Math.max(0, (t - explodedAtRef.current - 0.6) / 2.5)) : 0;
 

@@ -10,7 +10,7 @@ import { addShaderModifier } from "./shader-patch";
  * idempotent, addShaderModifier). Le givre ne coute rien hors de l'Est :
  * uFrost vaut 0.
  */
-export const frostStore: { state: FrostState; active: boolean; impulse: number; impact: { x: number; y: number; z: number }; gold: number } = {
+export const frostStore: { state: FrostState; active: boolean; impulse: number; impact: { x: number; y: number; z: number }; gold: number; rear: number } = {
   state: createFrostState(),
   active: false,
   /** Compteur d'explosions (l'herbe lit, comme xiuhcoatlStore.strikeHit). */
@@ -19,6 +19,8 @@ export const frostStore: { state: FrostState; active: boolean; impulse: number; 
   impact: { x: 0, y: 1, z: 0 },
   /** L'or dans les gravures de la Piedra apres le lever (0..1). */
   gold: 0,
+  /** Le cabre du cerf juste apres l'explosion (0..1). */
+  rear: 0,
 };
 
 // Lecture externe (verifications Playwright, console) : l'etat du gel.

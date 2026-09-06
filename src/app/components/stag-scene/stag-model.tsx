@@ -42,6 +42,19 @@ const HEAD_BONE_NAME = "Head";
 // camera donnait un effet mecanique/possede desagreable. 20 % garde
 // l'idee "le cerf remarque le visiteur" sans caricature.
 const MAX_HEAD_TURN_BLEND = 0.2;
+/** Le cabre (06/09) : tangage par os autour de l'axe lateral du cerf,
+ * en radians au sommet. Meme signe que le regard vers le soleil : positif
+ * = la tete monte. Le buste se dresse, les pattes avant se replient (la
+ * cuisse remonte vers le poitrail, le canon se plie en arriere). */
+const REAR_POSE: { name: string; pitch: number }[] = [
+  { name: "Torso", pitch: 0.55 },
+  { name: "Torso2", pitch: 0.18 },
+  { name: "Neck1", pitch: -0.25 },
+  { name: "FrontUpperLegL", pitch: 0.75 },
+  { name: "FrontUpperLegR", pitch: 0.75 },
+  { name: "FrontLowerLegL", pitch: -1.1 },
+  { name: "FrontLowerLegR", pitch: -1.1 },
+];
 /** Regard vers le soleil (05/09) : part du total des butees utilisee, et
  * sens de rotation autour de l'axe X local des os du cou (a verifier a
  * l'oeil : si le museau descend au lieu de monter, inverser). */
@@ -186,6 +199,12 @@ export default function StagModel({
     [scene]
   );
   const sunLookRef = useRef(0);
+  const rearChain = useMemo(() => REAR_POSE.map((j) => scene.getObjectByName(j.name) ?? null) as (SunObject3D | null)[], [scene]);
+  const rearPoseRef = useRef({
+    base: REAR_POSE.map(() => new SunQuaternion()),
+    applied: REAR_POSE.map(() => new SunQuaternion()),
+    primed: REAR_POSE.map(() => false),
+  });
   const sunScratch = useMemo(
     () => ({
       q: new SunQuaternion(),
@@ -324,9 +343,10 @@ export default function StagModel({
     // scene interne.
     if (breathGroupRef.current) {
       // Freeze breath cycle si prefers-reduced-motion (RGAA 13.6).
+      const frozenNow = frostStore.active ? frostStore.state.frost : 0;
       const breath = sceneRefs?.reducedMotionRef.current
         ? 1
-        : 1 + Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.003;
+        : 1 + Math.sin(state.clock.elapsedTime * Math.PI * 0.5) * 0.003 * (1 - frozenNow);
       breathGroupRef.current.scale.setScalar(breath);
       // Recul a l'entaille (02/09) : le corps se derobe du cote oppose a
       // la lame, petit pivot + pas de cote, retour exponentiel. Pas de
@@ -384,6 +404,37 @@ export default function StagModel({
         }
       } else {
         for (let i = 0; i < neckChain.length; i++) sunPoseRef.current.primed[i] = false;
+      }
+    }
+
+    // Le CABRE (06/09, Est) : juste apres l'explosion du gel, le cerf se
+    // dresse sur ses pattes arriere. Pas de clip dans le modele : pose
+    // procedurale ajoutee par-dessus le mixer, meme mecanique base/applied
+    // que le regard vers le soleil, meme axe lateral monde. Les pattes
+    // arriere sont sous Back, les pattes avant sous Torso : tourner Torso
+    // dresse le buste, la tete et les pattes avant, qui se replient.
+    {
+      const amount = frostStore.active ? frostStore.rear : 0;
+      if (amount > 0.001) {
+        scene.getWorldQuaternion(sunScratch.boneWorld);
+        sunScratch.right.set(1, 0, 0).applyQuaternion(sunScratch.boneWorld);
+        for (let i = 0; i < REAR_POSE.length; i++) {
+          const bone = rearChain[i];
+          if (!bone) continue;
+          const pose = rearPoseRef.current;
+          const touchedByMixer = !pose.primed[i] || !bone.quaternion.equals(pose.applied[i]);
+          if (touchedByMixer) pose.base[i].copy(bone.quaternion);
+          else bone.quaternion.copy(pose.base[i]);
+          bone.updateWorldMatrix(true, false);
+          bone.getWorldQuaternion(sunScratch.boneWorld).invert();
+          sunScratch.axis.copy(sunScratch.right).applyQuaternion(sunScratch.boneWorld).normalize();
+          sunScratch.q.setFromAxisAngle(sunScratch.axis, REAR_POSE[i].pitch * amount * SUN_LOOK_SIGN);
+          bone.quaternion.multiply(sunScratch.q);
+          pose.applied[i].copy(bone.quaternion);
+          pose.primed[i] = true;
+        }
+      } else {
+        for (let i = 0; i < REAR_POSE.length; i++) rearPoseRef.current.primed[i] = false;
       }
     }
   });
