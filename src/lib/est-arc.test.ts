@@ -52,7 +52,7 @@ describe("dawnAtArc : la bande rouge de l'aube", () => {
 describe("morningStarDirection : Venus du matin au-dessus du lever, dans le champ avant le jour", () => {
   it("au-dessus de l'horizon, pres de l'azimut du soleil, visible a p 0.45", () => {
     const v = morningStarDirection();
-    expect(elevationDeg(v)).toBeGreaterThan(8);
+    expect(elevationDeg(v)).toBeGreaterThan(3);
     expect(elevationDeg(v)).toBeLessThan(30);
     const d = azimuthDeg(v) - gazeDeg(0.45);
     expect(Math.abs(d)).toBeLessThan(36);

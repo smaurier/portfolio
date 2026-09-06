@@ -19,7 +19,7 @@ export const EST_ARC = {
   riseStart: 0.42,
   /** Venus du matin : azimut et hauteur (deg). */
   venusAzimuthDeg: 4,
-  venusElevationDeg: 16,
+  venusElevationDeg: 5,
 };
 
 function clamp01(v: number): number {

@@ -19,6 +19,9 @@ export const frostStore: { state: FrostState; active: boolean; impulse: number; 
   impact: { x: 0, y: 1, z: 0 },
 };
 
+// Lecture externe (verifications Playwright, console) : l'etat du gel.
+if (typeof window !== "undefined") (window as unknown as { __nahualFrost?: unknown }).__nahualFrost = frostStore;
+
 export const frostUniforms = {
   uFrost: { value: 0 },
   uFrostTime: { value: 0 },

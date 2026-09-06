@@ -15,7 +15,10 @@ export const FROST = {
   shatterAt: 0.55,
   /** En remontant sous ce seuil, le monde regele (sous shatterAt : pas de battement). */
   refreezeAt: 0.4,
-  /** Duree de l'explosion (s). */
+  /** Le prelude : les dards de l'aube (volee de Venus, reponse du soleil)
+   * avant que tout eclate (s). */
+  preludeSeconds: 1.4,
+  /** Duree de l'explosion (s), apres le prelude. */
   shatterSeconds: 2.6,
   /** Duree du regel : l'ecran givre, se tient, se degage sur le monde gele (s). */
   refreezeSeconds: 2.4,
@@ -29,6 +32,8 @@ export type FrostState = {
   t: number;
   /** Givre du monde : 1 gele, 0 degele. */
   frost: number;
+  /** Progres des dards 0..1 pendant le prelude (0 hors prelude). */
+  darts: number;
   /** Progres de l'explosion 0..1 (eclats, onde, poudre). */
   shatter: number;
   /** Couverture de givre sur l'ecran 0..1 (regel). */
@@ -38,7 +43,7 @@ export type FrostState = {
 };
 
 export function createFrostState(): FrostState {
-  return { phase: "frozen", t: 0, frost: 1, shatter: 0, screen: 0, timeScale: 0 };
+  return { phase: "frozen", t: 0, frost: 1, darts: 0, shatter: 0, screen: 0, timeScale: 0 };
 }
 
 function clamp01(v: number): number {
@@ -60,14 +65,21 @@ export function frostStep(s: FrostState, progress: number, dt: number, reduced: 
   s.t += dt;
   switch (s.phase) {
     case "frozen":
-      s.frost = 1; s.shatter = 0; s.screen = 0; s.timeScale = 0;
+      s.frost = 1; s.shatter = 0; s.darts = 0; s.screen = 0; s.timeScale = 0;
       if (progress >= FROST.shatterAt) {
         enter(s, reduced ? "thawed" : "shatter");
         if (reduced) { s.frost = 0; s.shatter = 1; s.timeScale = 1; }
       }
       break;
     case "shatter": {
-      const k = clamp01(s.t / FROST.shatterSeconds);
+      // Le prelude : les dards volent, le monde reste gele, puis tout eclate.
+      const pre = FROST.preludeSeconds;
+      if (s.t < pre) {
+        s.darts = s.t / pre; s.frost = 1; s.shatter = 0; s.timeScale = 0; s.screen = 0;
+        break;
+      }
+      s.darts = 1;
+      const k = clamp01((s.t - pre) / FROST.shatterSeconds);
       s.shatter = k;
       // Le givre tombe vite (la coque part au premier instant), le reste fond.
       s.frost = 1 - smoothstep(0, 0.35, k);
@@ -77,7 +89,7 @@ export function frostStep(s: FrostState, progress: number, dt: number, reduced: 
       break;
     }
     case "thawed":
-      s.frost = 0; s.shatter = 1; s.screen = 0; s.timeScale = 1;
+      s.frost = 0; s.shatter = 1; s.darts = 0; s.screen = 0; s.timeScale = 1;
       if (progress <= FROST.refreezeAt) {
         enter(s, reduced ? "frozen" : "refreeze");
         if (reduced) { s.frost = 1; s.shatter = 0; s.timeScale = 0; }
@@ -91,6 +103,7 @@ export function frostStep(s: FrostState, progress: number, dt: number, reduced: 
       s.frost = smoothstep(0.2, 0.6, k);
       s.shatter = 1 - smoothstep(0.2, 0.6, k);
       s.timeScale = 0;
+      s.darts = 0;
       if (k >= 1) { enter(s, "frozen"); s.frost = 1; s.shatter = 0; s.screen = 0; }
       break;
     }

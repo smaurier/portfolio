@@ -28,7 +28,7 @@ describe("frost : le monde gele de l'Est, l'explosion au lever, le regel en marc
     frostStep(s, FROST.shatterAt + 0.01, 1 / 60, false);
     expect(s.phase).toBe("shatter");
     const early = s.shatter;
-    advance(s, FROST.shatterAt + 0.01, FROST.shatterSeconds / 2);
+    advance(s, FROST.shatterAt + 0.01, FROST.preludeSeconds + FROST.shatterSeconds / 2);
     expect(s.shatter).toBeGreaterThan(early);
     expect(s.shatter).toBeLessThan(1);
     expect(s.timeScale).toBeGreaterThan(0);
@@ -39,15 +39,29 @@ describe("frost : le monde gele de l'Est, l'explosion au lever, le regel en marc
     expect(s.shatter).toBe(1);
   });
 
+  it("le prelude : les dards volent, le monde reste gele, rien n'eclate encore", () => {
+    const s = createFrostState();
+    frostStep(s, 1, 1 / 60, false);
+    advance(s, 1, FROST.preludeSeconds * 0.5);
+    expect(s.phase).toBe("shatter");
+    expect(s.darts).toBeGreaterThan(0.3);
+    expect(s.darts).toBeLessThan(0.7);
+    expect(s.frost).toBe(1);
+    expect(s.shatter).toBe(0);
+    advance(s, 1, FROST.preludeSeconds * 0.6);
+    expect(s.darts).toBe(1);
+    expect(s.shatter).toBeGreaterThan(0);
+  });
+
   it("degele, on continue et on revient un peu : rien ne regele avant le seuil bas", () => {
-    const s = advance(createFrostState(), 1, FROST.shatterSeconds + 1);
+    const s = advance(createFrostState(), 1, FROST.preludeSeconds + FROST.shatterSeconds + 1);
     advance(s, FROST.refreezeAt + 0.02, 3);
     expect(s.phase).toBe("thawed");
     expect(s.frost).toBe(0);
   });
 
   it("en marche arriere sous le seuil, l'ecran gele quelques instants puis le monde est de nouveau gele", () => {
-    const s = advance(createFrostState(), 1, FROST.shatterSeconds + 1);
+    const s = advance(createFrostState(), 1, FROST.preludeSeconds + FROST.shatterSeconds + 1);
     frostStep(s, FROST.refreezeAt - 0.01, 1 / 60, false);
     expect(s.phase).toBe("refreeze");
     advance(s, FROST.refreezeAt - 0.01, FROST.refreezeSeconds * 0.4);
@@ -61,7 +75,7 @@ describe("frost : le monde gele de l'Est, l'explosion au lever, le regel en marc
   });
 
   it("apres un regel, le lever fait de nouveau tout eclater", () => {
-    const s = advance(createFrostState(), 1, FROST.shatterSeconds + 1);
+    const s = advance(createFrostState(), 1, FROST.preludeSeconds + FROST.shatterSeconds + 1);
     advance(s, 0, FROST.refreezeSeconds + 1);
     expect(s.phase).toBe("frozen");
     frostStep(s, 1, 1 / 60, false);

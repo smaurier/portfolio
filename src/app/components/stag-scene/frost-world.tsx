@@ -4,8 +4,12 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF, useTexture } from "@react-three/drei";
-import { AdditiveBlending, Bone, BufferAttribute, BufferGeometry, CircleGeometry, Color, Euler, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, Points, PointsMaterial, Quaternion, SkinnedMesh, Sprite, SpriteMaterial, Vector3 } from "three";
+import { AdditiveBlending, Bone, BoxGeometry, BufferAttribute, BufferGeometry, CircleGeometry, Color, Euler, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, Points, PointsMaterial, Quaternion, SkinnedMesh, Sprite, SpriteMaterial, Vector3 } from "three";
 import { initShard, stepShard, type Shard } from "@/lib/shards";
+import { eastSunDirection, morningStarDirection } from "@/lib/est-arc";
+import { isMorningStar } from "@/lib/venus";
+import { decideSpawn } from "@/lib/xolotl-spawn";
+import { FROST } from "@/lib/frost";
 import { terrainHeightWorld } from "./cardinal-orientation";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { createFrostState, frostStep } from "@/lib/frost";
@@ -37,6 +41,15 @@ const SHARDS_STAG = 420;
 const SHARDS_DISC = 220;
 const SHARD_COUNT = SHARDS_STAG + SHARDS_DISC;
 const POWDER = 360;
+/** Les dards de l'aube (etape C2) : la volee de Venus vers le soleil, puis
+ * le dard du soleil vers le cerf. Les astres sont a 80 u, derriere les
+ * montagnes du decor (~30 u) : les dards volent dans les MEMES directions
+ * mais a 18 u, devant les montagnes, sinon on ne les voit jamais
+ * (constate en captures). */
+const SKY_RADIUS = 18;
+const VOLLEY = 7;
+const DARTS_KEY = "nahual-dawn-darts-v1";
+const DART_LENGTH = 1.6;
 
 useGLTF.preload(STAG_PATH);
 useTexture.preload(SMOKE_SPRITE);
@@ -66,6 +79,36 @@ function makeIceMaterial(inflate: number): MeshStandardMaterial {
 }
 
 type Breath = { sprite: Sprite; born: number };
+
+/** La lame d'obsidienne courbe (Itztlacoliuhqui) : une section en losange
+ * balayee le long d'une courbe, effilee vers la pointe. */
+function makeBladeGeometry(): BufferGeometry {
+  const segs = 24;
+  const positions: number[] = [];
+  const index: number[] = [];
+  for (let i = 0; i <= segs; i++) {
+    const u = i / segs;
+    // Courbe : monte en s'incurvant (une lame recourbee).
+    const x = 0.28 * u * u;
+    const y = 0.72 * u;
+    const w = 0.06 * (1 - u * 0.85) * (0.3 + 0.7 * Math.sin(Math.min(1, u * 4) * Math.PI * 0.5));
+    const t = 0.014 * (1 - u * 0.7);
+    // Section losange autour de (x, y) : largeur selon x, epaisseur selon z.
+    positions.push(x - w, y, 0, x, y, t, x + w, y, 0, x, y, -t);
+    if (i < segs) {
+      const b = i * 4, n = b + 4;
+      for (let k = 0; k < 4; k++) {
+        const k2 = (k + 1) % 4;
+        index.push(b + k, n + k, b + k2, b + k2, n + k, n + k2);
+      }
+    }
+  }
+  const geo = new BufferGeometry();
+  geo.setAttribute("position", new BufferAttribute(new Float32Array(positions), 3));
+  geo.setIndex(index);
+  geo.computeVertexNormals();
+  return geo;
+}
 
 /** Un eclat de glace : icosaedre aplati et deforme, une seule geometrie. */
 function makeShardGeometry(): IcosahedronGeometry {
@@ -187,6 +230,40 @@ export default function FrostWorld() {
     s.renderOrder = 10;
     return s;
   }, [smokeTexture]);
+  // Les dards : de fines hampes lumineuses (InstancedMesh), la volee de
+  // Venus (si elle est reellement du matin, sinon une fois sur trois) et le
+  // dard du soleil, toujours.
+  const dartMesh = useMemo(() => {
+    const geo = new BoxGeometry(0.05, 0.05, DART_LENGTH);
+    const mat = new MeshStandardMaterial({ color: new Color("#fff1c8"), emissive: new Color("#ffb347"), emissiveIntensity: 2.2, transparent: true, opacity: 0.95, fog: false });
+    const mesh = new InstancedMesh(geo, mat, VOLLEY + 1);
+    mesh.count = 0;
+    mesh.frustumCulled = false;
+    mesh.raycast = () => null;
+    mesh.renderOrder = 11;
+    return mesh;
+  }, []);
+  const volleyShows = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const cached = sessionStorage.getItem(DARTS_KEY);
+      const show = decideSpawn(isMorningStar() ? 1 : 1 / 3, cached);
+      sessionStorage.setItem(DARTS_KEY, show ? "1" : "0");
+      return show;
+    } catch {
+      return false;
+    }
+  }, []);
+  const blade = useMemo(() => {
+    const m = new Mesh(makeBladeGeometry(), new MeshStandardMaterial({ color: new Color("#07050c"), roughness: 0.18, metalness: 0.35, emissive: new Color("#24103a"), emissiveIntensity: 0.5, fog: false }));
+    m.raycast = () => null;
+    m.renderOrder = 6;
+    m.visible = false;
+    return m;
+  }, []);
+  const dartFrom = useMemo(() => new Vector3(), []);
+  const dartTo = useMemo(() => new Vector3(), []);
+  const dartDir = useMemo(() => new Vector3(), []);
   const explodedRef = useRef(false);
   const explodedAtRef = useRef(0);
   const tmpMatrix = useMemo(() => new Matrix4(), []);
@@ -201,12 +278,22 @@ export default function FrostWorld() {
     root.add(shardMesh);
     root.add(powder.pts);
     root.add(flash);
+    root.add(dartMesh);
+    root.add(blade);
     return () => {
       root.remove(shardMesh);
       root.remove(powder.pts);
       root.remove(flash);
+      root.remove(dartMesh);
+      root.remove(blade);
     };
-  }, [shardMesh, powder, flash]);
+  }, [shardMesh, powder, flash, dartMesh, blade]);
+  useEffect(() => () => {
+    dartMesh.geometry.dispose();
+    (dartMesh.material as MeshStandardMaterial).dispose();
+    blade.geometry.dispose();
+    (blade.material as MeshStandardMaterial).dispose();
+  }, [dartMesh, blade]);
   useEffect(() => () => {
     shardMesh.geometry.dispose();
     shardMaterial.dispose();
@@ -278,12 +365,75 @@ export default function FrostWorld() {
     const phase = frostStore.state.phase;
     const t = state.clock.elapsedTime;
 
-    // L'explosion : armee au passage en « shatter », desarmee au regel.
-    if (east && phase === "shatter" && !explodedRef.current) {
+    // L'explosion : armee quand les eclats commencent (apres le prelude des
+    // dards), desarmee au regel.
+    if (east && phase === "shatter" && frostStore.state.shatter > 0 && !explodedRef.current) {
       explodedRef.current = true;
       explode(t);
     }
     if (!east || phase === "frozen") explodedRef.current = false;
+
+    // Les dards de l'aube pendant le prelude : la volee de Venus vers le
+    // soleil (0 .. 0,55), puis le dard du soleil vers le cerf (0,55 .. 0,95).
+    const dartsK = east && phase === "shatter" ? frostStore.state.darts : 0;
+    if (dartsK > 0 && dartsK < 1) {
+      const cam = state.camera.position;
+      const p = sceneRefs?.progressRef.current ?? 0;
+      const sun = eastSunDirection(Math.max(p, FROST.shatterAt));
+      const venus = morningStarDirection();
+      let n = 0;
+      if (volleyShows) {
+        for (let i = 0; i < VOLLEY; i++) {
+          const start = i * 0.045;
+          const k = (dartsK - start) / 0.4;
+          if (k <= 0 || k >= 1) continue;
+          const spread = (i - (VOLLEY - 1) / 2) * 0.03;
+          dartFrom.set(cam.x + venus.x * SKY_RADIUS, cam.y + venus.y * SKY_RADIUS + spread * 9, cam.z + venus.z * SKY_RADIUS);
+          dartTo.set(cam.x + sun.x * SKY_RADIUS, cam.y + sun.y * SKY_RADIUS + 0.4, cam.z + sun.z * SKY_RADIUS);
+          tmpPos.lerpVectors(dartFrom, dartTo, k);
+          dartDir.subVectors(dartTo, dartFrom).normalize();
+          tmpQuat.setFromUnitVectors(new Vector3(0, 0, 1), dartDir);
+          tmpMatrix.compose(tmpPos, tmpQuat, tmpScale.set(1.4, 1.4, 2.2));
+          dartMesh.setMatrixAt(n++, tmpMatrix);
+        }
+      }
+      // La reponse du soleil : un seul dard, vers le point d'impact.
+      const k = (dartsK - 0.55) / 0.4;
+      if (k > 0 && k < 1) {
+        stagScene.getWorldPosition(dartTo);
+        dartTo.y += 1.0;
+        dartFrom.set(cam.x + sun.x * SKY_RADIUS, cam.y + sun.y * SKY_RADIUS, cam.z + sun.z * SKY_RADIUS);
+        tmpPos.lerpVectors(dartFrom, dartTo, k * k);
+        dartDir.subVectors(dartTo, dartFrom).normalize();
+        tmpQuat.setFromUnitVectors(new Vector3(0, 0, 1), dartDir);
+        const near = 1 + 1.5 * (1 - k);
+        tmpMatrix.compose(tmpPos, tmpQuat, tmpScale.set(near, near, near * 1.6));
+        dartMesh.setMatrixAt(n++, tmpMatrix);
+      }
+      dartMesh.count = n;
+      dartMesh.instanceMatrix.needsUpdate = true;
+      dartMesh.visible = n > 0;
+    } else {
+      dartMesh.visible = false;
+    }
+
+    // La lame d'obsidienne courbe : Tlahuizcalpantecuhtli change en
+    // Itztlacoliuhqui, plantee la ou le dard a frappe, tant que le monde
+    // est degele.
+    if (explodedRef.current && phase !== "frozen") {
+      const grow = Math.min(1, Math.max(0, (t - explodedAtRef.current) / 0.35));
+      blade.visible = grow > 0 && frost < 0.9;
+      const impact = frostStore.impact;
+      const cam = state.camera.position;
+      // Devant le cerf, du cote de la camera, plantee de biais.
+      const dx = cam.x - impact.x, dz = cam.z - impact.z;
+      const d = Math.hypot(dx, dz) || 1;
+      blade.position.set(impact.x + (dx / d) * 1.5, terrainHeightWorld(impact.x + (dx / d) * 1.5, impact.z + (dz / d) * 1.5) - 0.12, impact.z + (dz / d) * 1.5);
+      blade.rotation.set(0.35, Math.atan2(dx, dz) + 0.6, -0.25);
+      blade.scale.setScalar(0.35 + 0.65 * grow);
+    } else {
+      blade.visible = false;
+    }
     const since = explodedRef.current ? t - explodedAtRef.current : 99;
     const exploding = since < 6 && !sceneRefs?.reducedMotionRef.current;
     root.visible = frost > 0.01 || exploding;
