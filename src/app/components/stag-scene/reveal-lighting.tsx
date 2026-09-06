@@ -8,11 +8,12 @@ import {
   getAmbientIntensity,
   getDirectionalIntensity,
   getFogColor,
-  getRevealFloor,
   getRimColorBlend,
   type ColorRgb,
 } from "@/lib/reveal-arc";
 import { remapNorthArc } from "@/lib/direction-arc";
+import { remapWestArc, westFogTint } from "@/lib/ouest-arc";
+import { dayAtArc, sunInTheWest } from "@/lib/arc-day";
 import { approachFog, getFogRange, type FogRange } from "@/lib/direction-fog";
 import { approachRig, getLightRig, rigAtArc, type LightRig } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
@@ -84,14 +85,18 @@ export default function RevealLighting({
     // s'eveiller ; en toute fin, arrivalGlow porte le moment d'arrivee
     // violet (la lueur du puits s'intensifie et accueille).
     const north = direction === "obsidienne" ? remapNorthArc(rawP) : null;
-    const p = north ? north.lightP : rawP;
+    // Arc inverse a l'Ouest aussi (06/09, ouest-arc) : le soleil tombe, la
+    // lumiere descend du clair au crepuscule.
+    const west = direction === "cendre" ? remapWestArc(rawP) : null;
+    const p = north ? north.lightP : west ? west.lightP : rawP;
     const arrivalGlow = north?.arrivalGlow ?? 0;
     const blend = getRimColorBlend(p);
     // Crossfade du rig lumiere vers la direction courante (etage 2) :
     // snap direct si prefers-reduced-motion, meme convention que le fog.
     // Lune -> soleil (05/09) : le rig de la direction a un etat de nuit ; l'arc
     // de revelation l'emmene vers le jour (rigAtArc, identite pour les autres).
-    const rigTarget = rigAtArc(getLightRig(hour), getRevealFloor(p), getSceneControls().cinematic && getSceneControls().cinematicAfternoon);
+    const sc = getSceneControls();
+    const rigTarget = rigAtArc(getLightRig(hour), dayAtArc(direction, rawP), sunInTheWest(direction, sc.cinematic && sc.cinematicAfternoon));
     lightRigRef.current = sceneRefs?.reducedMotionRef.current
       ? { ...rigTarget }
       : approachRig(lightRigRef.current, rigTarget, 0.06);
@@ -131,7 +136,8 @@ export default function RevealLighting({
       if (directionalRef.current.castShadow !== wantShadow) directionalRef.current.castShadow = wantShadow;
     }
     if (fogRef.current) {
-      fogRef.current.color.set(getFogColor(p, fogTint));
+      // A l'Ouest, la teinte suit le crepuscule (abricot -> mauve), pas la page.
+      fogRef.current.color.set(getFogColor(p, west ? westFogTint(west.dusk) : fogTint));
       // Densite par direction : snap direct si prefers-reduced-motion
       // (RGAA 13.6, meme convention que le crossfade des ambiances),
       // sinon easing exponentiel vers la cible.

@@ -1,18 +1,13 @@
 /**
- * La camera du Sud MONTE AVEC LE SOLEIL (05/09, go de Sylvain : « donner un
- * sens a certaines proprietes de camera », comme la plongee du Nord).
- * Le Nord descend au Mictlan ; le Sud est le zenith. La nuit, la camera
- * est basse, presque au ras de l'herbe, regard leve vers les etoiles
- * (contre-plongee). A mesure que le soleil monte elle prend de la hauteur
- * et finit en plongee douce sur la Piedra a midi, quand l'anneau
- * s'embrase : la pierre du soleil vue d'en haut. La focale s'ouvre un peu
- * avec le jour (le ciel s'elargit), et la frappe donne un coup de focale.
- *
- * Pur : `sudCamera(day, fire)` rend les trois nombres, la camera les
- * applique ponderes par son fondu Sud.
+ * La camera solaire (05/09 pour le Sud, partagee avec l'Ouest le 06/09) :
+ * la camera MONTE AVEC LE SOLEIL. Basse et regard leve la nuit (contre-
+ * plongee : le ciel ou nait le soleil), haute et plongeante a midi, focale
+ * qui s'ouvre avec le jour. Au Sud le jour monte avec le scroll ; a l'Ouest
+ * il descend (ouest-arc) : la meme fonction fait descendre la camera avec
+ * le soleil. Le coup de focale de la frappe n'existe qu'au Sud.
  */
 
-export type SudCameraSpec = {
+export type SolarCameraSpec = {
   /** Decalage vertical de la camera (u) la nuit et a midi. */
   heightNight: number;
   heightNoon: number;
@@ -25,7 +20,7 @@ export type SudCameraSpec = {
   fovStrikeKick: number;
 };
 
-export const SUD_CAMERA: SudCameraSpec = {
+export const SOLAR_CAMERA: SolarCameraSpec = {
   heightNight: -0.2, // l'ancien SOUTH_CAMERA_DROP
   heightNoon: 1.7,
   targetLiftNight: 1.0, // l'ancien SOUTH_TARGET_LIFT
@@ -35,7 +30,7 @@ export const SUD_CAMERA: SudCameraSpec = {
   fovStrikeKick: 6,
 };
 
-export type SudCameraState = { height: number; targetLift: number; fov: number };
+export type SolarCameraState = { height: number; targetLift: number; fov: number };
 
 function smooth(u: number): number {
   const c = u < 0 ? 0 : u > 1 ? 1 : u;
@@ -44,7 +39,7 @@ function smooth(u: number): number {
 
 /** day : 0 la nuit, 1 au zenith (getRevealFloor) ; fire : 0..1, le feu de
  * la frappe (strike-sequence). */
-export function sudCamera(day: number, fire: number, spec: SudCameraSpec = SUD_CAMERA): SudCameraState {
+export function solarCamera(day: number, fire: number, spec: SolarCameraSpec = SOLAR_CAMERA): SolarCameraState {
   const t = smooth(day);
   const kick = fire < 0 ? 0 : fire > 1 ? 1 : fire;
   return {

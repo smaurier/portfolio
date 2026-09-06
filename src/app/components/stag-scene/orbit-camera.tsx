@@ -10,10 +10,10 @@ import { useCardinalTransition } from "./cardinal-transition-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
-import { sudCamera } from "@/lib/sud-camera";
+import { solarCamera } from "@/lib/solar-camera";
+import { dayAtArc } from "@/lib/arc-day";
 import { tiltToParallax } from "@/lib/tilt";
 import { getSceneControls } from "../scene-controls-store";
-import { getRevealFloor } from "@/lib/reveal-arc";
 
 /**
  * Applique à chaque frame la trajectoire pure de src/lib/camera-path.ts.
@@ -39,6 +39,7 @@ import { getRevealFloor } from "@/lib/reveal-arc";
 // Recul Huitztlampa (04/09, Sylvain : « reculer la caméra, le cerf est aussi
 // important, il faut bien avoir toute la vue ») : rayon x1.36 (7 -> 9.5 en
 // tete de page), cerf entier et ciel dans le meme cadre.
+const WEST_RADIUS_SCALE = 1.3;
 const SOUTH_RADIUS_SCALE = 1.62; // 1.36 -> 1.48 -> 1.62 (05/09, « on reculera la camera pour bien voir » les rochers de l annee)
 const PARALLAX_X = 0.5;
 const PARALLAX_Y = 0.35;
@@ -116,6 +117,9 @@ export default function OrbitCamera({
   // c'est là que passe le xiuhcoatl. Le cerf reste entier dans le cadre
   // (sabots juste au-dessus du titre).
   const southBlendRef = useRef(direction === "turquoise" ? 1 : 0);
+  // Camera Cihuatlampa (06/09) : la meme camera solaire, qui DESCEND avec le
+  // soleil couchant (ouest-arc), recul plus discret qu'au Sud.
+  const westBlendRef = useRef(direction === "cendre" ? 1 : 0);
   // L'heure de Tenochtitlan (05/09) : la camera orbite lentement autour du
   // cerf tant que le mode est actif (angle cumule, qui revient a zero en
   // douceur quand on en sort).
@@ -211,6 +215,11 @@ export default function OrbitCamera({
     const southTarget = direction === "turquoise" ? 1 : 0;
     southBlendRef.current += (southTarget - southBlendRef.current) * 0.06;
     const sb = southBlendRef.current;
+    const westTarget = direction === "cendre" ? 1 : 0;
+    westBlendRef.current += (westTarget - westBlendRef.current) * 0.06;
+    const wb = westBlendRef.current;
+    // Le poids de la camera solaire : Sud ou Ouest.
+    const solarBlend = Math.min(1, sb + wb);
     // Parcours : la même hélice partout ; au Nord, en miroir. Crossfade
     // par le blend nb : interpolation entre la position normale et la
     // position miroir (même rayon, même hauteur, seul l'azimuth diffère :
@@ -253,13 +262,13 @@ export default function OrbitCamera({
     // vers le bas (on descend au Mictlan).
     position.y += nb * 0.45;
     // Contre-plongée Huitztlampa : caméra un peu plus basse, regard levé.
-    const sud = sudCamera(getRevealFloor(rawP), xiuhcoatlStore.strike.fire);
-    position.y += sb * sud.height;
-    const southPush = 1 + sb * (SOUTH_RADIUS_SCALE - 1);
-    position.x *= southPush;
-    position.z *= southPush;
+    const sud = solarCamera(dayAtArc(direction, rawP), sb * xiuhcoatlStore.strike.fire);
+    position.y += solarBlend * sud.height;
+    const solarPush = 1 + sb * (SOUTH_RADIUS_SCALE - 1) + wb * (WEST_RADIUS_SCALE - 1);
+    position.x *= solarPush;
+    position.z *= solarPush;
     const target = getOrbitCameraTarget();
-    target.y += sb * sud.targetLift;
+    target.y += solarBlend * sud.targetLift;
 
     // Parallaxe : décale la position caméra XY selon la souris, la cible
     // reste ancrée sur le cerf → orbite légère autour du sujet. Y inversé
@@ -312,7 +321,7 @@ export default function OrbitCamera({
       position.z *= dolly;
       position.y += speed * SWING_LIFT;
 
-      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + sb * (sud.fov - 45);
+      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45);
       const perspCam = camera as PerspectiveCamera;
       if (perspCam.isPerspectiveCamera) {
         perspCam.fov = baseFov + speed * SWING_FOV;
@@ -321,7 +330,7 @@ export default function OrbitCamera({
     } else {
       // Retour repos FOV : safety, réévalue le base FOV responsive (+ la
       // focale solaire du Sud, continue le long de l'arc).
-      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + sb * (sud.fov - 45);
+      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45);
       const perspCam = camera as PerspectiveCamera;
       if (perspCam.isPerspectiveCamera && Math.abs(perspCam.fov - baseFov) > 0.05) {
         perspCam.fov = baseFov;

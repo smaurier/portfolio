@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Vector3, type Group } from "three";
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { remapNorthArc } from "@/lib/direction-arc";
+import { remapWestArc } from "@/lib/ouest-arc";
 import { useCurrentDirection } from "./use-current-direction";
 import { applyCursorReveal, createCursorRevealUniforms, setCursorRevealFloor } from "./cursor-reveal";
 
@@ -104,7 +105,7 @@ export default function CursorRevealScene({
     // Sylvain "plus de lumiere au depart") : sans ca, le haut de page
     // restait noir hors du halo du curseur, quelle que soit la lumiere.
     const rawP = progressRef.current;
-    const p = direction === "obsidienne" ? remapNorthArc(rawP).lightP : rawP;
+    const p = direction === "obsidienne" ? remapNorthArc(rawP).lightP : direction === "cendre" ? remapWestArc(rawP).lightP : rawP;
     setCursorRevealFloor(uniforms, getRevealFloor(p));
   });
 

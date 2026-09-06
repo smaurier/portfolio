@@ -23,9 +23,16 @@ describe("DIRECTION_LIGHT_RIG", () => {
     expect(getLightRig("jade")).toEqual(NEUTRAL_RIG);
   });
 
-  it("laisse dore/cendre neutres tant que leurs fiches ne sont pas enrichies", () => {
+  it("laisse dore neutre tant que sa fiche n'est pas enrichie", () => {
     expect(getLightRig("dore")).toEqual(NEUTRAL_RIG);
-    expect(getLightRig("cendre")).toEqual(NEUTRAL_RIG);
+  });
+
+  it("donne a l'Ouest un soleil bas et chaud a l'ouest, et une lueur mauve pour la nuit", () => {
+    const rig = getLightRig("cendre");
+    expect(rig.position[0]).toBeGreaterThan(0); // +x = l'ouest du decor
+    expect(rig.position[1]).toBeLessThan(getLightRig("turquoise").position[1]);
+    expect(rig.night).toBeDefined();
+    expect(rig.night!.ambientScale).toBeLessThan(rig.ambientScale);
   });
 
   it("donne au Sud le zenith : lumiere quasi verticale, la plus haute du site", () => {

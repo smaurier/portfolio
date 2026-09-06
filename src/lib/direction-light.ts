@@ -63,7 +63,18 @@ export const DIRECTION_LIGHT_RIG: Record<DirectionKey, LightRig> = {
     directionalScale: 1.3,
     colorMix: 0.65,
   },
-  cendre: NEUTRAL_RIG,
+  /** Ouest/crepuscule (06/09, fiche Cihuatlampa, go Sylvain « du clair vers
+   * le sombre ») : le soleil bas et chaud a l'ouest qui tombe, puis la
+   * derniere lueur mauve du couchant comme source de nuit. rigAtArc les
+   * fond l'un dans l'autre en suivant le jour de l'arc inverse (ouest-arc). */
+  cendre: {
+    position: [8, 4, 2],
+    color: "#ffb37a",
+    night: { position: [7, 1.5, 2], color: "#b78ad0", ambientScale: 0.8, directionalScale: 0.7, colorMix: 0.75 },
+    ambientScale: 1.05,
+    directionalScale: 1.2,
+    colorMix: 0.6,
+  },
   /** Nord/minuit : la lueur du puits. Top light froide quasi zenithale
    * (l'ouverture du Mictlan vue depuis l'interieur), contre-jour :
    * ambient tres bas, directionnelle affaiblie et teintee froide

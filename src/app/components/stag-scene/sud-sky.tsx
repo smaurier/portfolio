@@ -7,6 +7,9 @@ import { BackSide, Color, LinearFilter, RepeatWrapping, ShaderMaterial, SRGBColo
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { getRevealFloor } from "@/lib/reveal-arc";
+import { dayAtArc } from "@/lib/arc-day";
+import { remapWestArc } from "@/lib/ouest-arc";
+import type { DirectionKey } from "./direction-colors";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 
 /**
@@ -39,12 +42,19 @@ const SKY_URL = "/sky/sud-sky.jpg";
 const SKY_SUN_U = 0.584;
 const SKY_TINT = new Color(0.78, 1.0, 0.97);
 const SKY_TINT_MIX = 0.65;
+/** Le dome par direction (06/09) : le Sud (midi turquoise, soleil a l'est,
+ * azimut 300 deg) et l'Ouest (fin d'apres-midi, la photo tiree vers le
+ * corail, soleil en miroir a l'ouest). Ailleurs, pas de dome. */
+const SKY_LOOK: Partial<Record<DirectionKey, { tint: Color; tintMix: number; sunAzimuthDeg: number; dusk: Color }>> = {
+  turquoise: { tint: SKY_TINT, tintMix: SKY_TINT_MIX, sunAzimuthDeg: 300, dusk: new Color("#000000") },
+  cendre: { tint: new Color(1.0, 0.86, 0.8), tintMix: 0.55, sunAzimuthDeg: 60, dusk: new Color("#6a2e4f") },
+};
 
 export default function SudSky() {
   const meshRef = useRef<Mesh>(null);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
-  const blendRef = useRef(direction === "turquoise" ? 1 : 0);
+  const blendRef = useRef(SKY_LOOK[direction] ? 1 : 0);
   const scratch = useMemo(() => new Color(), []);
   const material = useMemo(
     () =>
@@ -63,6 +73,8 @@ export default function SudSky() {
           uTint: { value: SKY_TINT.clone() },
           uTintMix: { value: SKY_TINT_MIX },
           uSkyOffset: { value: 0 },
+          uDusk: { value: 0 },
+          uDuskColor: { value: new Color("#000000") },
         },
         vertexShader: /* glsl */ `
           varying vec3 vDir;
@@ -81,6 +93,8 @@ export default function SudSky() {
           uniform vec3 uTint;
           uniform float uTintMix;
           uniform float uSkyOffset;
+          uniform float uDusk;
+          uniform vec3 uDuskColor;
           varying vec3 vDir;
           void main() {
             // Elevation 0 a l'horizon, 1 au zenith ; sous l'horizon on garde
@@ -99,6 +113,9 @@ export default function SudSky() {
               vec3 day = mix(uHorizon, sky, band);
               col = mix(col, day, uDay);
             }
+            // Le crepuscule de l'Ouest : une bande mauve-corail posee sur
+            // l'horizon, qui monte quand le soleil est tombe.
+            col += uDuskColor * (1.0 - smoothstep(0.0, 0.32, e)) * uDusk;
             gl_FragColor = vec4(col, uOpacity);
           }
         `,
@@ -128,12 +145,6 @@ export default function SudSky() {
       tex.needsUpdate = true;
       material.uniforms.uSky.value = tex;
       material.uniforms.uHasSky.value = 1;
-      // Azimut monde de notre soleil (direction-light, 300 deg) : angle du
-      // shader = atan(z, x), u = angle / 2pi + 0.5 ; on aligne le soleil de
-      // la photo dessus.
-      const sunAz = (300 * Math.PI) / 180;
-      const uSun = Math.atan2(Math.cos(sunAz), Math.sin(sunAz)) / (Math.PI * 2) + 0.5;
-      material.uniforms.uSkyOffset.value = SKY_SUN_U - uSun;
     });
     return () => {
       disposed = true;
@@ -144,7 +155,8 @@ export default function SudSky() {
 
   useFrame((state) => {
     const south = direction === "turquoise";
-    blendRef.current += ((south ? 1 : 0) - blendRef.current) * 0.06;
+    const look = SKY_LOOK[direction];
+    blendRef.current += ((look ? 1 : 0) - blendRef.current) * 0.06;
     const blend = blendRef.current;
     // Souffle chaud : monte avec le midi, Sud seulement, rien en reduced-motion.
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
@@ -178,10 +190,22 @@ export default function SudSky() {
     scratch.copy(horizon).lerp(ZENITH_DEEP, 0.7 * Math.min(1, lum * 3));
     (material.uniforms.uZenith.value as Color).copy(scratch);
     material.uniforms.uOpacity.value = blend;
+    if (look) {
+      (material.uniforms.uTint.value as Color).copy(look.tint);
+      material.uniforms.uTintMix.value = look.tintMix;
+      (material.uniforms.uDuskColor.value as Color).copy(look.dusk);
+      // Azimut monde du soleil de la page : angle du shader = atan(z, x),
+      // u = angle / 2pi + 0.5 ; on aligne le soleil de la photo dessus.
+      const sunAz = (look.sunAzimuthDeg * Math.PI) / 180;
+      const uSun = Math.atan2(Math.cos(sunAz), Math.sin(sunAz)) / (Math.PI * 2) + 0.5;
+      material.uniforms.uSkyOffset.value = SKY_SUN_U - uSun;
+    }
     // Le jour (la photo) apparait avec le soleil, pas avant : la nuit reste
-    // le degrade noir des 400 etoiles.
-    const d = Math.min(1, Math.max(0, (ignite - 0.3) / 0.45));
+    // le degrade noir des 400 etoiles. A l'Ouest, le jour de l'arc inverse.
+    const day = dayAtArc(direction, sceneRefs?.progressRef.current ?? 0);
+    const d = Math.min(1, Math.max(0, (day - 0.3) / 0.45));
     material.uniforms.uDay.value = d * d * (3 - 2 * d);
+    material.uniforms.uDusk.value = direction === "cendre" ? remapWestArc(sceneRefs?.progressRef.current ?? 0).dusk : 0;
     // Le dome suit la camera : toujours centre sur elle.
     mesh.position.copy(state.camera.position);
   });

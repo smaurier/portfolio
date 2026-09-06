@@ -4,8 +4,8 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, CanvasTexture, Color, Group, Sprite, SpriteMaterial } from "three";
-import { getRevealFloor } from "@/lib/reveal-arc";
 import { moonDirection, sunDirection } from "@/lib/direction-light";
+import { dayAtArc, sunInTheWest } from "@/lib/arc-day";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { markTrace } from "../traces-store";
@@ -70,7 +70,7 @@ export default function SudSkyBodies() {
   const moonRef = useRef<Sprite>(null);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
-  const blendRef = useRef(direction === "turquoise" ? 1 : 0);
+  const blendRef = useRef(direction === "turquoise" || direction === "cendre" ? 1 : 0);
 
   const moonMaterial = useMemo(
     () => new SpriteMaterial({ map: radialTexture(128, 0.55, 1.0, 0, 1), color: new Color("#dfe8ff"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }),
@@ -90,14 +90,17 @@ export default function SudSkyBodies() {
   const sunHaloRef = useRef<Sprite>(null);
   useFrame((state) => {
     const south = direction === "turquoise";
-    blendRef.current += ((south ? 1 : 0) - blendRef.current) * 0.06;
+    // Le Sud (lever) et l'Ouest (coucher, 06/09) ont des astres ; la lune
+    // n'est que du Sud.
+    const solar = south || direction === "cendre";
+    blendRef.current += ((solar ? 1 : 0) - blendRef.current) * 0.06;
     const blend = blendRef.current;
     const g = groupRef.current;
     if (!g) return;
     g.visible = blend > 0.01;
     if (!g.visible) return;
     g.position.copy(state.camera.position);
-    const day = getRevealFloor(sceneRefs?.progressRef.current ?? 0);
+    const day = dayAtArc(direction, sceneRefs?.progressRef.current ?? 0);
     // La lune : a l'ouest, elle se couche quand le soleil monte (moonDirection,
     // la meme direction que la lumiere de nuit) ; elle palit avec le jour.
     const moon = moonRef.current;
@@ -105,18 +108,18 @@ export default function SudSkyBodies() {
       const md = moonDirection(day);
       moon.position.set(md.x * RADIUS, md.y * RADIUS, md.z * RADIUS);
       moon.scale.setScalar(6.5);
-      moonMaterial.opacity = blend * Math.max(0, 1 - day * 1.6) * (md.y > -0.02 ? 1 : 0) * 0.95;
+      moonMaterial.opacity = (south ? blend : 0) * Math.max(0, 1 - day * 1.6) * (md.y > -0.02 ? 1 : 0) * 0.95;
     }
     // Le soleil : se leve a l'est, monte au zenith (sunDirection, la meme
     // direction que la lumiere de jour). Disque + halo, plus forts en montant.
     const sun = sunRef.current, halo = sunHaloRef.current;
     if (sun && halo) {
       const sc = getSceneControls();
-      const sd = sunDirection(day, sc.cinematic && sc.cinematicAfternoon);
+      const sd = sunDirection(day, sunInTheWest(direction, sc.cinematic && sc.cinematicAfternoon));
       sun.position.set(sd.x * RADIUS, sd.y * RADIUS, sd.z * RADIUS);
       halo.position.copy(sun.position);
       const up = Math.max(0, Math.min(1, (sd.y + 0.02) / 0.12));
-      if (sd.y > 0.08 && blend > 0.5) markTrace("sunrise"); // une trace : le soleil s'est leve devant vous
+      if (south && sd.y > 0.08 && blend > 0.5) markTrace("sunrise"); // une trace : le soleil s'est leve devant vous
       sun.scale.setScalar(7);
       halo.scale.setScalar(26 + 10 * day);
       sunMaterial.opacity = blend * up;
