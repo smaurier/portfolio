@@ -72,7 +72,7 @@ export function morningStarDirection(): Dir3 {
 export type Rgb = { r: number; g: number; b: number };
 /** Brume de l'Est : bleu de nuit gelee -> rouge de l'aube -> or du matin. */
 export const EAST_FOG = {
-  night: { r: 0.16, g: 0.2, b: 0.32 },
+  night: { r: 0.05, g: 0.08, b: 0.16 },
   dawn: { r: 0.62, g: 0.28, b: 0.2 },
   day: { r: 0.72, g: 0.6, b: 0.42 },
 };

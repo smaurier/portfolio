@@ -75,7 +75,7 @@ export default function Ground() {
 
   return (
     <>
-      <mesh geometry={geometry} position={[0, -0.005, 0]} receiveShadow>
+      <mesh name="ground" geometry={geometry} position={[0, -0.005, 0]} receiveShadow>
         <meshStandardMaterial color={GROUND_COLOR} flatShading />
       </mesh>
       {/* Contact shadow (28/08 retour Sylvain "c'est quoi le cercle
@@ -83,7 +83,7 @@ export default function Ground() {
           par un shader radial gradient : plus opaque au centre (sous
           les pattes), fade doux vers le bord. Signature "ombre de
           contact" naturelle vs disque plaque. */}
-      <mesh position={[0, 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh name="ground-plane" position={[0, 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[CONTACT_SHADOW_RADIUS, 32]} />
         <shaderMaterial
           transparent

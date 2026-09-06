@@ -62,9 +62,14 @@ export function applyFrost(root: Object3D): void {
       if (!(material instanceof MeshStandardMaterial)) continue;
       if (patched.has(material)) continue;
       patched.add(material);
+      // Opacite de la glace : le sol et les montagnes restent presque pleins
+      // (sinon on voit le vide dessous), le reste est du verre.
+      const name = (child.name || "").toLowerCase();
+      const alpha = name.includes("ground") ? 0.8 : name === "piedra" ? 0.66 : 0.4;
       addShaderModifier(material, (shader) => {
         shader.uniforms.uFrost = frostUniforms.uFrost;
         shader.uniforms.uFrostTime = frostUniforms.uFrostTime;
+        shader.uniforms.uFrostAlpha = { value: alpha };
         shader.vertexShader = shader.vertexShader
           .replace("#include <common>", "#include <common>\n varying vec3 vFrostW;\n varying vec3 vFrostN;")
           .replace(
@@ -83,30 +88,38 @@ export function applyFrost(root: Object3D): void {
             `#include <common>
              uniform float uFrost;
              uniform float uFrostTime;
+             uniform float uFrostAlpha;
              varying vec3 vFrostW;
              varying vec3 vFrostN;
              ${FROST_GLSL}`,
           )
           .replace(
             "#include <dithering_fragment>",
-            `if (uFrost > 0.001) {
-               // Le givre se pose sur les faces qui regardent le ciel et dans
-               // les creux du bruit ; le reste prend une teinte froide.
-               float fUp = clamp(vFrostN.y * 0.5 + 0.5, 0.0, 1.0);
-               float fN = frostNoise(vFrostW * 5.0);
-               float fN2 = frostNoise(vFrostW * 24.0);
-               float fMask = smoothstep(0.42, 0.92, fN * 0.55 + fN2 * 0.45 + fUp * 0.3) * uFrost;
-               float spark = pow(frostNoise(vFrostW * 70.0), 14.0) * 3.0;
-               // Le givre ne fait pas sa propre lumiere : il prend celle que
-               // recoit la surface (luminance du pixel eclaire), plus un
-               // fond bleu de nuit pour rester lisible dans le noir.
-               float lit = clamp(dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114)) * 2.6, 0.0, 1.0);
-               vec3 cold = gl_FragColor.rgb * vec3(0.66, 0.8, 1.1) + vec3(0.01, 0.025, 0.06);
-               vec3 ice = vec3(0.6, 0.72, 0.88) * (0.22 + 0.78 * lit) * (0.9 + spark);
-               vec3 frosted = mix(cold, ice, fMask);
-               gl_FragColor.rgb = mix(gl_FragColor.rgb, frosted, uFrost);
+            // APRES l'inclusion, pas avant (07/09) : les autres modificateurs
+            // (desaturation par la profondeur, revelation par curseur)
+            // s'inserent AVANT l'inclusion ; en se placant apres, la glace
+            // passe toujours en dernier et personne ne la grise.
+            `#include <dithering_fragment>
+             if (uFrost > 0.001) {
+               // Un monde de GLACE (Sylvain, 07/09 : « tous les objets
+               // translucides et bleutes, vitres ») : chaque surface devient
+               // du verre bleu, le fond passe au travers, les bords se
+               // blanchissent (fresnel), quelques paillettes ; un peu de la
+               // couleur d'origine reste visible dans l'epaisseur.
+               vec3 gV = normalize(cameraPosition - vFrostW);
+               float gNV = abs(dot(normalize(vFrostN), gV));
+               // Liseree blanc serre (exposant 4), coeur bleu profond : aux angles
+               // rasants (sol, herbe) tout devenait blanc neige (essai 07/09).
+               float gFres = pow(1.0 - gNV, 4.0);
+               float spark = pow(frostNoise(vFrostW * 70.0), 16.0) * 2.0;
+               vec3 glass = mix(vec3(0.14, 0.32, 0.6), vec3(0.9, 0.96, 1.0), gFres);
+               // La couleur d'origine reste lisible dans l'epaisseur, teintee bleu.
+               vec3 through = gl_FragColor.rgb * vec3(0.55, 0.72, 1.0);
+               vec3 iced = glass * (0.5 + 0.5 * gFres) + through * 0.45 + vec3(spark);
+               gl_FragColor.rgb = mix(gl_FragColor.rgb, iced, uFrost);
+               gl_FragColor.a = mix(gl_FragColor.a, uFrostAlpha + (1.0 - uFrostAlpha) * gFres, uFrost);
              }
-             #include <dithering_fragment>`,
+`,
           );
       });
     }

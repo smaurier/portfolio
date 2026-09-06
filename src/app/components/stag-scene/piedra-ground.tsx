@@ -70,6 +70,8 @@ const PIEDRA_NEUTRAL = { roughness: 0.85, metalness: 0.05, opacity: 0.1, clearco
 // disque (envMap equirect procedurale) + vernis clearcoat. L'obsidienne
 // polie reflete le ciel du Mictlan.
 const PIEDRA_TEZCATL = { roughness: 0.12, metalness: 0.7, opacity: 0.42, clearcoat: 1, envMapIntensity: 1.6 };
+// La Piedra gelee (07/09, Est) : une plaque de glace, reflets bleutes, gravures dessous.
+const PIEDRA_ICE = { roughness: 0.08, metalness: 0.25, opacity: 0.6, clearcoat: 1, envMapIntensity: 1.3 };
 
 export default function PiedraGround() {
   const [colorMap, heightMap] = useTexture([PIEDRA_MAP, PIEDRA_HEIGHTMAP]);
@@ -120,7 +122,9 @@ export default function PiedraGround() {
     const mat = materialRef.current;
     if (!mat) return;
     goldRef.current.value += (frostStore.gold - goldRef.current.value) * 0.08;
-    const target = direction === "obsidienne" ? PIEDRA_TEZCATL : PIEDRA_NEUTRAL;
+    const frozen = frostStore.active ? frostStore.state.frost : 0;
+    const base = direction === "obsidienne" ? PIEDRA_TEZCATL : PIEDRA_NEUTRAL;
+    const target = frozen > 0.001 ? { roughness: base.roughness + (PIEDRA_ICE.roughness - base.roughness) * frozen, metalness: base.metalness + (PIEDRA_ICE.metalness - base.metalness) * frozen, opacity: base.opacity + (PIEDRA_ICE.opacity - base.opacity) * frozen, clearcoat: base.clearcoat + (PIEDRA_ICE.clearcoat - base.clearcoat) * frozen, envMapIntensity: base.envMapIntensity + (PIEDRA_ICE.envMapIntensity - base.envMapIntensity) * frozen } : base;
     const alpha = sceneRefs?.reducedMotionRef.current ? 1 : 0.06;
     mat.roughness += (target.roughness - mat.roughness) * alpha;
     mat.metalness += (target.metalness - mat.metalness) * alpha;
@@ -142,7 +146,7 @@ export default function PiedraGround() {
     // (alpha 0.1 sur du turquoise), puis sa profondeur rejetait le sol
     // dessous : tout le disque montrait le ciel. Diagnostique en coupant
     // depthWrite (le cyan disparaissait). Le disque passe toujours apres.
-    <mesh geometry={geometry} position={[0, 0.005, 0]} receiveShadow renderOrder={1}>
+    <mesh name="piedra" geometry={geometry} position={[0, 0.005, 0]} receiveShadow renderOrder={1}>
       <meshPhysicalMaterial
         ref={materialRef}
         map={colorMap}

@@ -33,5 +33,11 @@ export function addShaderModifier(material: Material, modifier: ShaderModifier):
   material.onBeforeCompile = (shader) => {
     for (const applyModifier of modifiers) applyModifier(shader);
   };
+  // La cle de cache des programmes de three ne voit que la fonction
+  // onBeforeCompile (toujours la meme ici) : un modificateur ajoute APRES
+  // la premiere compilation retombait sur le programme deja compile et
+  // n'avait aucun effet (constate 07/09 : la glace de l'Est n'atteignait
+  // pas le decor). Le nombre de modificateurs entre dans la cle.
+  material.customProgramCacheKey = () => `mods${modifiers.length}`;
   material.needsUpdate = true;
 }
