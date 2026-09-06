@@ -14,6 +14,9 @@ import { terrainHeightWorld } from "./cardinal-orientation";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import type { DirectionKey } from "./direction-colors";
 import { useCurrentDirection } from "./use-current-direction";
+import { decideSpawn, xolotlSpawnKey, xolotlSpawnProbability } from "@/lib/xolotl-spawn";
+import { OUEST_ARC } from "@/lib/ouest-arc";
+import { useSceneRefs } from "./scene-refs-context";
 import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
 
 /**
@@ -22,11 +25,12 @@ import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
  * de gauche à droite, en fond derrière le cerf. Signature « le chien
  * du crépuscule », rareté renforce le sens (il vient quand il veut).
  *
- * Probabilité de spawn par direction (session-based) :
- *  - jade (Centre) : 0 % (jamais sur la home)
- *  - dore / turquoise / cendre / codex : 15 %
- *  - obsidienne (Nord / Mémoire) : 40 % : c'est justement le chemin
- *    vers Mictlán, présence renforcée
+ * Probabilité de spawn par direction (session-based, lib/xolotl-spawn) :
+ *  - jade (Centre), dore (Est), turquoise (Sud) : jamais
+ *  - obsidienne (Nord / Mémoire) : toujours, c'est le chemin vers Mictlán
+ *  - cendre (Ouest / Contact, 06/09) : toujours quand Vénus est réellement
+ *    l'étoile du soir (lib/venus), sinon une fois sur trois ; et il ne
+ *    part qu'une fois le soleil entré dans la terre (OUEST_ARC.setAt)
  *
  * Timing d'apparition :
  *  - 1ère fois (jamais vu complètement) : 10 s après nav sur page
@@ -51,18 +55,6 @@ import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
  * Attribution CC0 dans le footer credits (page /credits).
  */
 
-const DIRECTION_SPAWN_PROBABILITY: Record<DirectionKey, number> = {
-  jade: 0,
-  // 0.15 -> 0 (04/09, Sylvain : Xolotl nulle part ailleurs qu'au Nord).
-  dore: 0,
-  // 0.15 -> 0 (04/09, Sylvain : "on ne doit pas voir Xolotl sur le Sud, ca
-  // va surcharger") : le Sud aura son propre passage, le xiuhcoatl.
-  turquoise: 0,
-  cendre: 0,
-  // 0.4 -> 1 (03/09, retour Sylvain "cela fait tres longtemps que je n'ai
-  // pas vu Xolotl") : le Mictlan est son royaume, il y passe toujours.
-  obsidienne: 1,
-};
 
 const APPEAR_DELAY_FIRST_MS = 10_000;
 const APPEAR_DELAY_REPEAT_MS = 15_000;
@@ -509,6 +501,7 @@ const AFTERIMAGE_OPACITY_MULT = 0.35;
 
 export default function XolotlCompanion() {
   const direction = useCurrentDirection();
+  const sceneRefs = useSceneRefs();
   // Au Nord (03/09, retour Sylvain "il marche peut-etre trop vite") : il
   // passe pres de la camera, la meme vitesse parait double. Traversee
   // x1.8 et cadence de marche divisee d'autant (sinon les pattes glissent).
@@ -679,23 +672,12 @@ export default function XolotlCompanion() {
     if (isBot() || readingMode.active) return void setSpawn(false);
      
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return void setSpawn(false);
-    // v2 (03/09) : invalide les tirages "non" caches avant le passage a 1 au Nord.
-    const key = `nahual-xolotl-spawn-v2-${direction}`;
+    // Regle et tirage dans lib/xolotl-spawn (pur, teste) ; la cle est
+    // versionnee pour invalider les tirages faits sous une regle d'avant.
+    const key = xolotlSpawnKey(direction);
     const cached = sessionStorage.getItem(key);
-    const probability = DIRECTION_SPAWN_PROBABILITY[direction] ?? 0;
-    let shouldSpawn: boolean;
-    // Probabilite nulle : jamais, quel que soit un tirage cache d'avant
-    // le changement de regle (sinon un "1" en session ferait encore
-    // passer le chien).
-    if (probability <= 0) shouldSpawn = false;
-    else
-    if (cached !== null) {
-      shouldSpawn = cached === "1";
-    } else {
-      const prob = DIRECTION_SPAWN_PROBABILITY[direction] ?? 0;
-      shouldSpawn = Math.random() < prob;
-      sessionStorage.setItem(key, shouldSpawn ? "1" : "0");
-    }
+    const shouldSpawn = decideSpawn(xolotlSpawnProbability(direction), cached);
+    sessionStorage.setItem(key, shouldSpawn ? "1" : "0");
     setSpawn(shouldSpawn);
     setStartedAt(null);
   }, [direction, readingMode.active]);
@@ -704,7 +686,16 @@ export default function XolotlCompanion() {
   useEffect(() => {
     if (!spawn) return;
     const delay = alreadyWitnessed ? APPEAR_DELAY_REPEAT_MS : APPEAR_DELAY_FIRST_MS;
-    const timer = window.setTimeout(() => {
+    // A l'Ouest (06/09), Venus du soir ne part qu'une fois le soleil entre
+    // dans la terre : on attend le delai ET le bas de l'arc.
+    const armedAt = performance.now();
+    let timer = 0;
+    const tick = () => {
+      const sunSet = direction !== "cendre" || (sceneRefs?.progressRef.current ?? 0) >= OUEST_ARC.setAt;
+      if (performance.now() - armedAt < delay || !sunSet) {
+        timer = window.setTimeout(tick, 500);
+        return;
+      }
       setStartedAt(performance.now());
       const walk = actions[WALK_ANIM];
       if (walk) {
@@ -727,9 +718,10 @@ export default function XolotlCompanion() {
       // seulement quand chien apparait, pas persistant).
       window.dispatchEvent(new CustomEvent("nahual-xolotl-appearing", { detail: { visible: true } }));
       window.dispatchEvent(new CustomEvent("nahual-xolotl-state"));
-    }, delay);
+    };
+    timer = window.setTimeout(tick, delay);
     return () => window.clearTimeout(timer);
-  }, [spawn, alreadyWitnessed, actions, walkTimeScale]);
+  }, [spawn, alreadyWitnessed, actions, walkTimeScale, direction, sceneRefs]);
 
   useFrame((_state, delta) => {
     const g = groupRef.current;

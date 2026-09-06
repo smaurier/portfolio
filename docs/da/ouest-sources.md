@@ -117,3 +117,15 @@ verifies le 06/09/2026 (fetch ou requete API) sauf mention contraire.
 - Aspect (Primeros Memoriales) : visage peint a la chaux, boucles d'oreilles en or, sandales blanches. Sculptures (Met 00.5.30, MNA) : assises sur les talons, bras leves aux cotes de la poitrine, mains en griffes, cheveux defaits, jupe unie a ceinture nouee (ceinture-serpent sur certaines), poitrine nue.
 - Rendu des vetements (06/09) : la jupe (cueitl) unie et longue simulee en bandes de tissu depuis la ceinture, noire ; le pantalon du modele Quaternius est masque. Le haut a manches du modele reste une licence (une silhouette noire), pas une reconstitution.
 - Danse : aucune source ne decrit une danse des Cihuateteo ; les bras leves aux cotes des sculptures inspirent la pose. Licence assumee.
+
+## Complement 06/09 : Venus dans le code
+
+- `src/lib/venus.ts` : elongation de Venus par elements orbitaux moyens
+  (J2000, Terre et Venus dans l'ecliptique, equation du centre). Verifie
+  contre les reperes 2026 : maximum est 45,9 deg le 15/08, 39,7 deg le
+  18/09, conjonction inferieure vers le 23-24/10, etoile du matin des
+  novembre (-29 deg le 15/11), maximum ouest ~47 deg debut janvier 2027.
+- Regle du site (Sylvain, 06/09) : a l'Ouest, Xolotl passe toujours quand
+  Venus est etoile du soir (elongation > 10 deg a l'est), sinon une fois
+  sur trois ; il ne part qu'une fois le soleil entre dans la terre ;
+  l'etoile du soir s'allume au-dessus du couchant dans les deux cas.

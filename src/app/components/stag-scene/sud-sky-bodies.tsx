@@ -6,6 +6,9 @@ import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, CanvasTexture, Color, Group, Sprite, SpriteMaterial } from "three";
 import { moonDirection, sunDirection } from "@/lib/direction-light";
 import { dayAtArc, sunInTheWest } from "@/lib/arc-day";
+import { remapWestArc } from "@/lib/ouest-arc";
+import { isEveningStar } from "@/lib/venus";
+import { readXolotlSpawn } from "@/lib/xolotl-spawn";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { markTrace } from "../traces-store";
@@ -24,6 +27,7 @@ import { getSceneControls } from "../scene-controls-store";
  */
 
 const RADIUS = 80;
+const VENUS_DIR = { x: Math.sin((115 * Math.PI) / 180) * Math.cos((10 * Math.PI) / 180), y: Math.sin((10 * Math.PI) / 180), z: Math.cos((115 * Math.PI) / 180) * Math.cos((10 * Math.PI) / 180) };
 
 function radialTexture(size: number, inner: number, outer: number, noise: number, seed: number): CanvasTexture {
   const c = document.createElement("canvas");
@@ -88,6 +92,15 @@ export default function SudSkyBodies() {
   );
   const sunRef = useRef<Sprite>(null);
   const sunHaloRef = useRef<Sprite>(null);
+  // L'etoile du soir (06/09, Ouest) : Venus au-dessus du couchant, une fois
+  // le soleil entre dans la terre, si Venus est reellement etoile du soir
+  // ou si Xolotl passe cette session (elle l'annonce).
+  const venusRef = useRef<Sprite>(null);
+  const venusMaterial = useMemo(
+    () => new SpriteMaterial({ map: radialTexture(64, 0.0, 0.5, 0, 4), color: new Color("#fff6e0"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }),
+    [],
+  );
+  const venusShows = useMemo(() => (typeof window === "undefined" ? false : isEveningStar() || readXolotlSpawn("cendre")), []);
   useFrame((state) => {
     const south = direction === "turquoise";
     // Le Sud (lever) et l'Ouest (coucher, 06/09) ont des astres ; la lune
@@ -126,6 +139,17 @@ export default function SudSkyBodies() {
       sunHaloMaterial.opacity = blend * up * (0.35 + 0.25 * day);
       // Rougeoyant a l'horizon, blanc-or en montant.
       sunMaterial.color.setRGB(1, 0.8 + 0.16 * day, 0.6 + 0.3 * day);
+      const venus = venusRef.current;
+      if (venus) {
+        // A l'est du soleil couchant (azimut 60 deg du decor) : Venus du soir
+        // se tient plus haut et plus au sud, vers ou le regard de fin de
+        // page se tourne (135 deg) : azimut 115 deg, 10 deg de hauteur (au-dessus des collines, sous le bandeau).
+        venus.position.set(VENUS_DIR.x * RADIUS, VENUS_DIR.y * RADIUS, VENUS_DIR.z * RADIUS);
+        const dusk = direction === "cendre" ? remapWestArc(sceneRefs?.progressRef.current ?? 0).dusk : 0;
+        const twinkle = 0.85 + 0.15 * Math.sin(state.clock.elapsedTime * 2.3);
+        venus.scale.setScalar(3.2);
+        venusMaterial.opacity = venusShows && direction === "cendre" ? blend * Math.max(0, (dusk - 0.72) / 0.2) * twinkle : 0;
+      }
     }
   });
 
@@ -134,6 +158,7 @@ export default function SudSkyBodies() {
       <sprite ref={moonRef} material={moonMaterial} raycast={() => null} renderOrder={-97} />
       <sprite ref={sunHaloRef} material={sunHaloMaterial} raycast={() => null} renderOrder={-97} />
       <sprite ref={sunRef} material={sunMaterial} raycast={() => null} renderOrder={-96} />
+      <sprite ref={venusRef} material={venusMaterial} raycast={() => null} renderOrder={-96} />
     </group>
   );
 }
