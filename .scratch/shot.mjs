@@ -1,0 +1,20 @@
+import { chromium } from "@playwright/test";
+const OUT = "C:/Users/sylva/AppData/Local/Temp/claude/C--Windows-System32/86ddb9fc-c7f5-4872-9d73-b603ad93d9cf/scratchpad";
+const [gpu, path, name, extra] = process.argv.slice(2);
+const browser = await chromium.launch({ headless: !process.env.HEADED, args: ["--enable-unsafe-webgpu", "--ignore-gpu-blocklist", "--use-angle=d3d11", "--use-gl=angle"] });
+const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" });
+const page = await context.newPage();
+const errors = [];
+page.on("console", (m) => { if (m.type() === "error") errors.push(m.text().slice(0, 240)); });
+page.on("pageerror", (e) => errors.push("PAGEERROR " + e.message.slice(0, 240)));
+const sep = path.includes("?") ? "&" : "?";
+await page.goto(`http://localhost:3000${path}${sep}gpu=${gpu}&scene=1`, { waitUntil: "networkidle" });
+await page.waitForFunction(() => !!window.__nahualScene, null, { timeout: 30000 });
+await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 60000 });
+await page.waitForTimeout(4500);
+if (extra) { await page.evaluate(extra); await page.waitForTimeout(1500); }
+const extraInfo = await page.evaluate(() => { let fres = 0, halo = 0; window.__nahualScene.traverse((o) => { const m = o.material; if (m?.uniforms?.uPower) fres++; if (m?.uniforms?.uPulse) halo++; }); return { fres, halo, tone: window.__nahualR3f.gl.toneMapping, backend: window.__nahualR3f.gl.backend?.constructor?.name ?? 'WebGLRenderer' }; });
+await page.screenshot({ path: `${OUT}/${name}_gpu${gpu}.png` });
+console.log("  info:", JSON.stringify(extraInfo));
+console.log(name, gpu, "errors:", [...new Set(errors)].slice(0, 6));
+await browser.close();

@@ -90,15 +90,28 @@ const WIND_BASE = { x: 1.1, y: 0.35, z: -0.2 };
 /** La danse (radians sur les os, ajoutes a l'animation) : ecart des bras
  * hors du corps (axe Z de l'os) et balancement avant-arriere (axe X). */
 const DANCE = {
-  armSpread: 0.75,
-  armSpreadSwing: 0.5,
-  armSwing: 0.55,
-  forearm: 0.5,
-  torso: 0.07,
-  turn: 0.35,
-  step: 0.4,
-  walkTimeScale: 0.55,
+  /** Battement de la danse (Hz) : les bras, les hanches, le pas. */
+  beatHz: 0.75,
+  armSpread: 0.9,
+  armSpreadSwing: 0.75,
+  armSwing: 0.7,
+  forearm: 0.6,
+  torsoTilt: 0.22,
+  hipSway: 0.28,
+  bounce: 0.09,
+  turn: 0.6,
+  step: 0.45,
+  walkTimeScale: 0.85,
 };
+/** La jupe (cueitl) : la jupe unie a ceinture nouee des sculptures de
+ * Cihuateteo (cf docs/da/ouest-sources.md), en bandes de tissu simulees
+ * depuis les hanches jusqu'aux chevilles. */
+const SKIRT_STRIPS = 52;
+const SKIRT_POINTS = 8;
+const SKIRT_LENGTH = 0.95;
+/** Le tour de taille : une ellipse, plus large sur les cotes que devant. */
+const HIP_SIDE = 0.15;
+const HIP_FRONT = 0.11;
 
 useGLTF.preload(MODEL_PATH);
 useTexture.preload(SMOKE_SPRITE);
@@ -111,6 +124,9 @@ type Bearer = {
   bones: Record<string, BoneSet | null>;
   hair: { strand: HairStrand; strip: Strip }[];
   hairGeometry: BufferGeometry;
+  skirt: Strip[];
+  skirtGeometry: BufferGeometry;
+  hipsBone: Object3D | null;
   papers: { strip: Strip; geometry: BufferGeometry; peg: { x: number; z: number }; phase: number }[];
   smokes: Sprite[];
   headBone: Object3D | null;
@@ -122,7 +138,10 @@ function hash(i: number, k: number): number {
   return v - Math.floor(v);
 }
 
-const BONE_NAMES = ["UpperArm.L", "UpperArm.R", "LowerArm.L", "LowerArm.R", "Abdomen", "Chest"] as const;
+// Noms tels que GLTFLoader les livre (PropertyBinding.sanitizeNodeName : plus de point).
+// Constate 06/09 : avec « UpperArm.L » les bras n etaient jamais trouves, d ou
+// des porteuses qui ne dansaient pas (seuls Abdomen et Chest bougeaient).
+const BONE_NAMES = ["UpperArmL", "UpperArmR", "LowerArmL", "LowerArmR", "Abdomen", "Chest"] as const;
 const AXIS_X = new Vector3(1, 0, 0);
 const AXIS_Z = new Vector3(0, 0, 1);
 const tmpQuat = new Quaternion();
@@ -166,6 +185,8 @@ function dressBearer(root: Object3D, uniforms: CihuateotlUniforms): void {
     if (isHead) {
       if (matName === "Skin") mesh.material = chalk;
       else mesh.visible = false;
+    } else if ((mesh.parent?.name ?? "").includes("Legs")) {
+      mesh.visible = false; // le pantalon du pack : remplace par la jupe (cueitl)
     } else {
       mesh.material = body;
     }
@@ -211,6 +232,7 @@ export default function Cihuateteo() {
 
   // Cheveux : noirs, eclaires (un peu de brillance sur les meches).
   const hairMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#07040a"), roughness: 0.55, metalness: 0.05, transparent: true, opacity: 0, side: DoubleSide, depthWrite: true, fog: false }), []);
+  const clothMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#0b0710"), roughness: 0.95, metalness: 0, transparent: true, opacity: 0, side: DoubleSide, depthWrite: true, fog: false }), []);
   const paperMaterial = useMemo(() => new MeshBasicMaterial({ color: new Color("#efe6d6"), transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: true, blending: NormalBlending }), []);
   const featherMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: NormalBlending }), []);
   const featherTipMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL_TIP, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: AdditiveBlending }), []);
@@ -232,6 +254,7 @@ export default function Cihuateteo() {
         action.play();
       }
       const hair = bearerHair(i).map((strand) => ({ strand, strip: createStrip(HAIR_POINTS, strand.length, { x: 0, y: BEARER_HEIGHT, z: 0 }) }));
+      const skirt = Array.from({ length: SKIRT_STRIPS }, () => createStrip(SKIRT_POINTS, SKIRT_LENGTH, { x: 0, y: 1, z: 0 }));
       const papers = Array.from({ length: PAPERS_PER_BEARER }, (_, k) => ({
         strip: createStrip(PAPER_POINTS, 0.35 + 0.2 * hash(i * 7 + k, 1), { x: 0, y: 0.1, z: 0 }),
         geometry: createRibbonGeometry(PAPER_POINTS),
@@ -244,7 +267,7 @@ export default function Cihuateteo() {
         s.renderOrder = 995;
         return s;
       });
-      return { root, mixer, uniforms, bones: collectBones(inner, animatedBones), hair, hairGeometry: createRibbonBundleGeometry(HAIR_STRANDS, HAIR_POINTS), papers, smokes, headBone: inner.getObjectByName("Head") ?? null };
+      return { root, mixer, uniforms, bones: collectBones(inner, animatedBones), hair, hairGeometry: createRibbonBundleGeometry(HAIR_STRANDS, HAIR_POINTS), skirt, skirtGeometry: createRibbonBundleGeometry(SKIRT_STRIPS, SKIRT_POINTS), hipsBone: inner.getObjectByName("Hips") ?? null, papers, smokes, headBone: inner.getObjectByName("Head") ?? null };
     });
   }, [scene, walkClip, animatedBones, smokeMaterial]);
 
@@ -350,6 +373,11 @@ export default function Cihuateteo() {
       hairMesh.raycast = () => null;
       hairMesh.renderOrder = 997;
       add(hairMesh);
+      const skirtMesh = new Mesh(b.skirtGeometry, clothMaterial);
+      skirtMesh.frustumCulled = false;
+      skirtMesh.raycast = () => null;
+      skirtMesh.renderOrder = 996;
+      add(skirtMesh);
       for (const p of b.papers) {
         const m = new Mesh(p.geometry, paperMaterial);
         m.frustumCulled = false;
@@ -370,13 +398,14 @@ export default function Cihuateteo() {
     return () => {
       for (const o of added) g.remove(o);
     };
-  }, [bearers, litter, butterflyPoints, hairMaterial, paperMaterial, featherMaterial, featherTipMaterial]);
+  }, [bearers, litter, butterflyPoints, hairMaterial, clothMaterial, paperMaterial, featherMaterial, featherTipMaterial]);
   useEffect(
     () => () => {
       butterflyGeometry.dispose();
       butterflyMaterial.dispose();
       for (const b of bearers) {
         b.hairGeometry.dispose();
+        b.skirtGeometry.dispose();
         for (const p of b.papers) p.geometry.dispose();
       }
       for (const f of litter.feathers) f.geometry.dispose();
@@ -406,14 +435,21 @@ export default function Cihuateteo() {
 
     bearers.forEach((b, i) => {
       const pose = bearerPose(i, CIHUATETEO.count, dusk, sun, reduced ? 0 : time);
-      const sway = Math.sin(time * 0.8 + i * 1.3) * tempo;
-      const sway2 = Math.sin(time * 0.55 + i * 2.1) * tempo;
-      const beatL = Math.sin(time * 1.15 + i * 0.9) * tempo;
-      const beatR = Math.sin(time * 1.15 + i * 0.9 + Math.PI * 0.8) * tempo;
-      // Le corps danse aussi : un pas de cote qui va et vient, une rotation.
-      const step = Math.sin(time * 0.5 + i * 1.9) * DANCE.step * tempo;
-      b.root.position.set(pose.x + Math.cos(pose.yaw) * step, pose.y, pose.z - Math.sin(pose.yaw) * step);
+      // Le battement : chaque porteuse a son decalage, l'ensemble garde le
+      // meme tempo (une danse de groupe, pas quatre solos).
+      const beat = time * DANCE.beatHz * Math.PI * 2 + i * 0.9;
+      const sway = Math.sin(beat * 0.5) * tempo; // lent : buste, rotation
+      const sway2 = Math.sin(beat * 0.5 + 1.2) * tempo;
+      const beatL = Math.sin(beat) * tempo; // bras gauche
+      const beatR = Math.sin(beat + Math.PI * 0.85) * tempo; // bras droit, en decale
+      const hips = Math.sin(beat) * tempo; // hanches, au battement
+      const bounce = Math.abs(Math.sin(beat)) * DANCE.bounce * tempo; // rebond a chaque temps
+      // Le corps danse : hanches qui balancent, rebond, pas de cote, rotation.
+      const step = Math.sin(beat * 0.25 + i * 1.9) * DANCE.step * tempo;
+      const lateral = hips * DANCE.hipSway + step;
+      b.root.position.set(pose.x + Math.cos(pose.yaw) * lateral, pose.y + bounce, pose.z - Math.sin(pose.yaw) * lateral);
       b.root.rotation.y = pose.yaw + DANCE.turn * sway2;
+      b.root.rotation.z = -hips * 0.08;
       b.uniforms.uOpacity.value = opacity;
       b.uniforms.uTime.value = time;
       b.uniforms.uBaseY.value = pose.y;
@@ -425,14 +461,17 @@ export default function Cihuateteo() {
       b.mixer.timeScale = tempo * (0.7 + 0.3 * (1 - settle));
       b.mixer.update(dt);
       resetIdleBones(b.bones);
-      addBoneRotation(b.bones["UpperArm.L"], AXIS_Z, -(DANCE.armSpread + DANCE.armSpreadSwing * beatL));
-      addBoneRotation(b.bones["UpperArm.R"], AXIS_Z, DANCE.armSpread + DANCE.armSpreadSwing * beatR);
-      addBoneRotation(b.bones["UpperArm.L"], AXIS_X, DANCE.armSwing * sway);
-      addBoneRotation(b.bones["UpperArm.R"], AXIS_X, -DANCE.armSwing * sway);
-      addBoneRotation(b.bones["LowerArm.L"], AXIS_X, DANCE.forearm * (0.5 + 0.5 * beatL));
-      addBoneRotation(b.bones["LowerArm.R"], AXIS_X, DANCE.forearm * (0.5 + 0.5 * beatR));
-      addBoneRotation(b.bones["Abdomen"], AXIS_Z, DANCE.torso * sway2);
-      addBoneRotation(b.bones["Chest"], AXIS_X, DANCE.torso * 0.6 * sway);
+      // Axes mesures sur le rig (.scratch/bone-axes.mjs) : +X ecarte le bras
+      // du corps (les deux cotes), Z le balance devant/derriere (signes
+      // opposes a gauche et a droite), Z plie aussi le coude.
+      addBoneRotation(b.bones["UpperArmL"], AXIS_X, DANCE.armSpread + DANCE.armSpreadSwing * beatL);
+      addBoneRotation(b.bones["UpperArmR"], AXIS_X, DANCE.armSpread + DANCE.armSpreadSwing * beatR);
+      addBoneRotation(b.bones["UpperArmL"], AXIS_Z, -DANCE.armSwing * sway);
+      addBoneRotation(b.bones["UpperArmR"], AXIS_Z, DANCE.armSwing * sway);
+      addBoneRotation(b.bones["LowerArmL"], AXIS_Z, -DANCE.forearm * (0.5 + 0.5 * beatL));
+      addBoneRotation(b.bones["LowerArmR"], AXIS_Z, DANCE.forearm * (0.5 + 0.5 * beatR));
+      addBoneRotation(b.bones["Abdomen"], AXIS_Z, DANCE.torsoTilt * hips);
+      addBoneRotation(b.bones["Chest"], AXIS_X, DANCE.torsoTilt * 0.5 * sway);
       b.root.updateMatrixWorld(true);
 
       // La tete : les meches plantees sur le crane.
@@ -462,6 +501,23 @@ export default function Cihuateteo() {
         writeRibbonSlot(b.hairGeometry, k, h.strip, (u) => 0.04 * (1 - u * 0.45));
       });
       finishRibbonBundle(b.hairGeometry);
+      // La jupe : bandes de tissu depuis la ceinture, qui suivent les
+      // hanches et volent dans la danse.
+      const hipsBone = b.hipsBone;
+      if (hipsBone) hipsBone.getWorldPosition(scratch);
+      else scratch.set(pose.x, pose.y + BEARER_HEIGHT * 0.52, pose.z);
+      const waistX = scratch.x, waistY = scratch.y + 0.04, waistZ = scratch.z;
+      const skirtWind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 0.5 + hips * 0.35, y: 0.2 * Math.abs(hips), z: WIND_BASE.z * gust * 0.5 };
+      b.skirt.forEach((strip, k) => {
+        const t = (k / SKIRT_STRIPS) * Math.PI * 2;
+        const lx = Math.sin(t) * HIP_SIDE, lz = Math.cos(t) * HIP_FRONT;
+        const anchor = { x: waistX + lx * Math.cos(yaw) + lz * Math.sin(yaw), y: waistY, z: waistZ - lx * Math.sin(yaw) + lz * Math.cos(yaw) };
+        // Chaque bande a sa souplesse : le tissu ne bouge pas d'un bloc.
+        const j = ((k * 7919) % 13) / 13;
+        stepStrip(strip, dt, anchor, skirtWind, { gravity: 7, damping: 0.976 + 0.012 * j, windResponse: 0.35 + 0.35 * j, iterations: 5 });
+        writeRibbonSlot(b.skirtGeometry, k, strip, (u) => 0.065 * (1 + 0.35 * u));
+      });
+      finishRibbonBundle(b.skirtGeometry);
       // Les papiers du carrefour : plantes au sol devant elle, ils claquent.
       for (const p of b.papers) {
         const px = pose.x + Math.sin(pose.yaw + Math.PI / 2) * p.peg.x + Math.sin(pose.yaw) * p.peg.z;
@@ -480,6 +536,7 @@ export default function Cihuateteo() {
       });
     });
     hairMaterial.opacity = opacity;
+    clothMaterial.opacity = opacity;
     paperMaterial.opacity = 0.9 * blend * settle;
 
     // La litiere de plumes de quetzal, le soleil dessus.

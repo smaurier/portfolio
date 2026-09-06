@@ -108,3 +108,12 @@ verifies le 06/09/2026 (fetch ou requete API) sauf mention contraire.
 - Les visages des Cihuateteo ne se copient pas (garde-fou glyphes du
   Codex : evoquer par la lumiere, l'air, le mouvement ; jamais
   l'iconographie sacree recopiee).
+
+## Complement 06/09 : ce que portent et font les Cihuateteo (verifie)
+
+- Litiere : « elles portaient le soleil dans une litiere de plumes de quetzal » (Sahagun, Codex de Florence, livre VI). Rendu : la litiere de plumes avec la lueur du soleil.
+- Carrefours : on leur deposait des papiers (amatetehuitl) et des offrandes (tamales, mais grille, pains en forme de papillon et d'eclair). Rendu : papiers au sol au carrefour.
+- Papillons : les ames des femmes mortes en couches reviennent en papillons (livre III). Rendu : papillons qui s'echappent d'elles.
+- Aspect (Primeros Memoriales) : visage peint a la chaux, boucles d'oreilles en or, sandales blanches. Sculptures (Met 00.5.30, MNA) : assises sur les talons, bras leves aux cotes de la poitrine, mains en griffes, cheveux defaits, jupe unie a ceinture nouee (ceinture-serpent sur certaines), poitrine nue.
+- Rendu des vetements (06/09) : la jupe (cueitl) unie et longue simulee en bandes de tissu depuis la ceinture, noire ; le pantalon du modele Quaternius est masque. Le haut a manches du modele reste une licence (une silhouette noire), pas une reconstitution.
+- Danse : aucune source ne decrit une danse des Cihuateteo ; les bras leves aux cotes des sculptures inspirent la pose. Licence assumee.

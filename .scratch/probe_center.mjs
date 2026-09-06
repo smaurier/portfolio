@@ -1,0 +1,30 @@
+import { chromium } from "@playwright/test";
+const OUT = "C:/Users/sylva/AppData/Local/Temp/claude/C--Windows-System32/86ddb9fc-c7f5-4872-9d73-b603ad93d9cf/scratchpad";
+const gpu = process.argv[2];
+const browser = await chromium.launch({ args: ["--enable-unsafe-webgpu", "--ignore-gpu-blocklist", "--use-angle=d3d11", "--use-gl=angle"] });
+const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" });
+const page = await context.newPage();
+await page.goto(`http://localhost:3000/fr?t=0.5&gpu=${gpu}&scene=1`, { waitUntil: "networkidle" });
+await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 60000 });
+await page.waitForTimeout(4000);
+const info = await page.evaluate(() => {
+  const sc = window.__nahualScene;
+  const fog = sc.fog ? { type: sc.fog.type, color: "#" + sc.fog.color.getHexString(), near: sc.fog.near, far: sc.fog.far, density: sc.fog.density } : null;
+  const seen = new Map();
+  sc.traverse((o) => {
+    if (!o.isMesh && !o.isSprite && !o.isPoints && !o.isLine) return;
+    const m = Array.isArray(o.material) ? o.material[0] : o.material;
+    const key = (o.name || o.type) + "|" + m?.type;
+    if (seen.has(key)) return;
+    seen.set(key, { name: o.name || o.type, mat: m?.type, fog: m?.fog, color: m?.color ? "#" + m.color.getHexString() : undefined, vc: m?.vertexColors, vis: o.visible, stages: m?.stages?.length, hasColorNode: !!m?.colorNode });
+  });
+  let petals = null; sc.traverse((o) => { if (o.material?.uniforms?.uAccentColor) petals = o; });
+  const petalInfo = petals ? { type: petals.type, mat: petals.material.type, hasColorNode: !!petals.material.colorNode, uColor: "#" + petals.material.uniforms.uColor.value.getHexString(), uAccent: "#" + petals.material.uniforms.uAccentColor.value.getHexString(), intensity: petals.material.uniforms.uIntensity.value } : null;
+  if (petals) petals.visible = false;
+  return { fog, petalInfo, objects: [...seen.values()] };
+});
+console.log("fog", JSON.stringify(info.fog)); console.log("petals", JSON.stringify(info.petalInfo));
+for (const o of info.objects) console.log(" ", JSON.stringify(o));
+await page.waitForTimeout(800);
+await page.screenshot({ path: `${OUT}/nopetals_gpu${gpu}.png` });
+await browser.close();
