@@ -307,6 +307,13 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
         <p>{renderWithNahuatl(dict.mictlampa.text)}</p>
       </section>
 
+      {/* Le recit de l'Ouest (06/09) : les Cihuateteo qui portent le soleil
+          couchant, pour la page Contact. */}
+      <section className="codexSection">
+        <h2>{renderWithNahuatl(dict.cihuatlampa.title)}</h2>
+        <p>{renderWithNahuatl(dict.cihuatlampa.text)}</p>
+      </section>
+
       <section className="codexSection">
         <h2>{renderWithNahuatl(dict.suns.title)}</h2>
         <p>{renderWithNahuatl(dict.suns.text)}</p>

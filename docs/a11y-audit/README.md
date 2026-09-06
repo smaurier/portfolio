@@ -312,6 +312,33 @@ narrative après. Immersion parallèle à l'expérience visuelle
 
 ---
 
+## Passe 8 : Ouest, Codex Cihuatlampa + description SR (2026-09-06)
+
+### ✅ Section Codex « Cihuatlampa » fr/en/es
+
+`dict.codex.cihuatlampa` (title + text), rendue dans `[slug]/page.tsx`
+après Mictlampa, même structure que Huitztlampa et Mictlampa :
+le récit (Sahagún livre VI : les Cihuateteo portent le soleil dans une
+litière de plumes de quetzal ; livre I : Ehecatl balayeur ; livre III :
+les mortes en couches reviennent en papillons), le geste visible sur la
+page Contact, puis « ce qui est attesté » / « ce qui est notre lecture ».
+Termes nahuatl déjà dans le glossaire `lang="nah"` (Cihuatlampa,
+Cihuateteo, Ehecatl, Quetzalcoatl, Mictlán).
+
+### ✅ Description SR-only de la scène Ouest enrichie
+
+`dict.common.sceneDescriptions.cendre` décrit maintenant ce que voit
+l'utilisateur voyant : la litière de plumes, la descente au carrefour,
+la danse dans le vent, l'extinction. Même longueur que les autres
+(3 à 4 lignes). Les porteuses sont purement décoratives (`raycast`
+neutralisé, aucun rôle ARIA, hors du DOM) : rien à ajouter au focus.
+
+### ✅ Sources
+
+Entrée Codex de Florence complétée (livres I, III appendice, VI) et
+nouvelle entrée physique : Cihuateotl du Metropolitan Museum 00.5.30
+(pose et vêtement, jamais le visage) + les quatre du MNA.
+
 ## Passe 7 : Fix bloquants découverts au test NVDA (2026-08-29)
 
 ### 🔴 Fix bloquant : KeyboardNav volait les flèches NVDA browse mode

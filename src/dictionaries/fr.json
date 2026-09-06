@@ -93,7 +93,7 @@
       "jade": "Vous entrez dans le sanctuaire du cerf. Au centre d'un cercle d'obsidienne, un cerf gris se tient immobile, tête basse. Autour de lui, quatre points cardinaux luisent doucement : au nord un violet d'ambre nocturne, à l'est un doré d'aube, au sud un turquoise de mosaïque, à l'ouest un rouge de crépuscule. Le cerf est votre nahual : l'essence qui se révèle sous forme animale.",
       "dore": "Vous êtes tourné vers l'Est, Tlahuizcalpan, la maison de l'aube. Tonatiuh, le soleil levant, dore le pelage du cerf. La lumière est neuve, la journée s'ouvre.",
       "turquoise": "Vous êtes tourné vers le Sud, Huitztlampa, terre des épines et des fleurs. Huitzilopochtli veille sur ce qui pousse. La scène prend des teintes turquoise de mosaïque Xiuhtecuhtli.",
-      "cendre": "Vous êtes tourné vers l'Ouest, Cihuatlampa, région du crépuscule mauve. Les Cihuateteo, femmes-mortes divinisées, raccompagnent le soleil. La scène rougeoie doucement.",
+      "cendre": "Vous êtes tourné vers l'Ouest, Cihuatlampa, région du crépuscule mauve. Les Cihuateteo, femmes-mortes divinisées, portent le soleil couchant dans une litière de plumes, puis descendent au carrefour et dansent dans le vent. La scène rougeoie doucement, puis s'éteint.",
       "obsidienne": "Vous êtes tourné vers le Nord, Mictlampa, le lieu du repos. Mictlantecuhtli, seigneur de l'obsidienne violette, garde ce qui a été vécu. La scène devient nocturne, profonde."
     },
     "cardinalAnnouncement": {
@@ -377,6 +377,10 @@
       "title": "Mictlampa, la descente vers Mictlán",
       "text": "Le Nord est Mictlampa, le lieu des morts, la région de l'obsidienne et de la nuit. Les morts ordinaires n'y arrivent pas d'un coup : selon Sahagún (livre III) et le Codex Vaticanus A, la teyolía voyage quatre années à travers neuf strates avant d'atteindre Mictlantecuhtli et Mictecacihuatl. Elle traverse le fleuve Chiconahuapan avec l'aide d'un chien, passe entre deux montagnes qui s'entrechoquent, affronte le vent d'obsidienne d'Itzehecayan qui coupe comme des lames, puis Temiminaloyan, où des mains invisibles tirent des flèches. Sur ce site, la page Mémoire est cette descente. Le cerf a les pattes dans l'eau noire du tezcatl, le miroir : à la manière de Tezcatlipoca, le miroir fumant, il ne reflète pas, il révèle ou il ment. Le brouillard rampe depuis la margelle, les lames d'obsidienne passent d'est en ouest en contournant le cerf, et plus vous descendez, plus les flèches tombent autour de lui avant de se dissoudre en fumée. Un chemin de cempasúchil, la fleur qui guide les morts au retour, s'allonge sur l'eau vers le Nord. Et si Xolotl passe, suivez-le des yeux : c'est lui qui fait traverser le fleuve."
     },
+    "cihuatlampa": {
+      "title": "Cihuatlampa, le soleil porté au couchant",
+      "text": "L'Ouest est Cihuatlampa, le lieu des femmes, la région du crépuscule. Sahagún (livre VI) raconte que le soleil, arrivé au zénith, est reçu par les Cihuateteo, les femmes mortes en couches, divinisées comme les guerriers tombés au combat, et qu'elles le portent dans une litière de plumes de quetzal jusqu'au couchant, où les gens de Mictlán le prennent pour la nuit. Le livre I nomme Ehecatl, le vent, le balayeur qui ouvre la route aux dieux de la pluie. Les Cihuateteo n'étaient pas des figures douces : à certains jours du calendrier, elles descendaient aux carrefours, où l'on redoutait leur passage et où on leur laissait des papiers et des offrandes. Leurs sculptures les montrent le visage peint à la chaux, les cheveux défaits, les mains en griffes, une jupe simple à ceinture nouée. Sur ce site, la page Contact est ce chemin du soir. Vous arrivez en plein jour, et plus vous descendez, plus le soleil tombe vers les collines, à droite du cadre, pendant que quatre silhouettes noires portent sa litière de plumes. Quand il entre dans la terre, elles se posent au carrefour, face au cerf, et dansent dans le vent qui balaie tout vers l'Ouest. Des papiers restent au sol, et des papillons s'échappent d'elles : Sahagún (livre III) dit que les femmes mortes en couches reviennent en papillons. Ce qui est attesté : la litière de plumes de quetzal, la descente aux carrefours, les papiers et les offrandes, le visage à la chaux, les papillons. Ce qui est notre lecture : la couleur cendre et corail (les sources donnent l'Ouest blanc, la région de Quetzalcoatl), la danse, le vent visible, et les silhouettes elles-mêmes, qui n'empruntent rien aux visages des sculptures."
+    },
     "suns": {
       "title": "Les quatre soleils précédents",
       "text": "Avant Nahui Ollin, quatre mondes ont vécu et péri. Chacun a laissé une leçon sur la façon de mourir · donc de vivre. La cosmologie nahua ne pense pas en une création linéaire mais en cycles qui s'engendrent en s'effondrant. Notre soleil actuel est le cinquième. Il est mortel comme les précédents.",
@@ -453,7 +457,7 @@
       "list": [
         {
           "name": "Codex de Florence · Sahagún, vers 1577",
-          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Livre III : la naissance de Huitzilopochtli à Coatepec (chapitre 1) et les neuf étapes vers Mictlán (appendice). Livre VII : le soleil créé à Teotihuacan et Xolotl.",
+          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Livre I : Ehecatl, le balayeur de la route des dieux de la pluie. Livre III : la naissance de Huitzilopochtli à Coatepec (chapitre 1), les neuf étapes vers Mictlán et les femmes mortes en couches qui reviennent en papillons (appendice). Livre VI : les Cihuateteo qui portent le soleil dans une litière de plumes de quetzal. Livre VII : le soleil créé à Teotihuacan et Xolotl.",
           "online": [
             {
               "label": "Digital Florentine Codex, Getty Research Institute, livre III (nahuatl, espagnol, anglais)",
@@ -502,6 +506,17 @@
             }
           ],
           "physical": "Bibliothèque apostolique vaticane, Rome. Édition commentée : Anders, Jansen et Reyes García, Fondo de Cultura Económica, Mexico, 1993, ISBN 9789681641542."
+        },
+        {
+          "name": "Cihuateotl · sculpture mexica, 1400 à 1521",
+          "text": "Une des femmes divinisées de l'Ouest, en pierre : agenouillée, les bras levés aux côtés de la poitrine, les mains en griffes, les cheveux défaits, une jupe simple à ceinture nouée. C'est la source de la pose et du vêtement des porteuses de la page Contact, jamais de leur visage.",
+          "online": [
+            {
+              "label": "Metropolitan Museum of Art, New York, 00.5.30, notice en ligne",
+              "url": "https://www.metmuseum.org/art/collection/search/307634"
+            }
+          ],
+          "physical": "Metropolitan Museum of Art, New York, galerie 360. Les quatre Cihuateteo trouvées ensemble à Mexico sont au Museo Nacional de Antropología, salle Mexica."
         },
         {
           "name": "Codex Fejérváry-Mayer",

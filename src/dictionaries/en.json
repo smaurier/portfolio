@@ -93,7 +93,7 @@
       "jade": "You are entering the deer's sanctuary. At the center of an obsidian circle, a gray stag stands still, head lowered. Around it, four cardinal points glow softly: north a nocturnal amber violet, east a dawn gold, south a mosaic turquoise, west a twilight red. The deer is your nahual: the essence revealed in animal form.",
       "dore": "You face the East, Tlahuizcalpan, the house of dawn. Tonatiuh, the rising sun, gilds the deer's coat. The light is new, the day opens.",
       "turquoise": "You face the South, Huitztlampa, land of thorns and flowers. Huitzilopochtli watches over what grows. The scene takes on turquoise tones of Xiuhtecuhtli mosaic.",
-      "cendre": "You face the West, Cihuatlampa, region of the mauve twilight. The Cihuateteo, deified dead women, escort the sun back. The scene glows softly red.",
+      "cendre": "You face the West, Cihuatlampa, region of the mauve twilight. The Cihuateteo, deified dead women, carry the setting sun in a litter of feathers, then come down to the crossroads and dance in the wind. The scene glows softly red, then goes dark.",
       "obsidienne": "You face the North, Mictlampa, the place of rest. Mictlantecuhtli, lord of violet obsidian, keeps what has been lived. The scene turns nocturnal, deep."
     },
     "cardinalAnnouncement": {
@@ -377,6 +377,10 @@
       "title": "Mictlampa, the descent to Mictlán",
       "text": "The North is Mictlampa, the place of the dead, the region of obsidian and night. Ordinary dead do not get there at once: according to Sahagún (book III) and the Codex Vaticanus A, the teyolía travels four years through nine layers before reaching Mictlantecuhtli and Mictecacihuatl. It crosses the river Chiconahuapan with the help of a dog, passes between two mountains that clash together, faces the obsidian wind of Itzehecayan that cuts like blades, then Temiminaloyan, where invisible hands shoot arrows. On this site, the Memory page is that descent. The stag stands in the black water of the tezcatl, the mirror: like Tezcatlipoca, the smoking mirror, it does not reflect, it reveals or it lies. Fog creeps in from the rim, obsidian blades sweep from east to west around the stag, and the deeper you go, the more arrows fall around him before dissolving into smoke. A path of cempasúchil, the flower that guides the dead home, stretches over the water toward the North. And if Xolotl passes by, follow him with your eyes: he is the one who ferries souls across the river."
     },
+    "cihuatlampa": {
+      "title": "Cihuatlampa, the sun carried to its setting",
+      "text": "The West is Cihuatlampa, the place of women, the region of dusk. Sahagún (book VI) tells that the sun, once at its zenith, is received by the Cihuateteo, the women who died in childbirth, deified like warriors fallen in battle, and that they carry it in a litter of quetzal feathers down to the sunset, where the people of Mictlán take it for the night. Book I names Ehecatl, the wind, the sweeper who opens the road for the rain gods. The Cihuateteo were no gentle figures: on certain days of the calendar they came down to the crossroads, where people dreaded their passing and left them papers and offerings. Their sculptures show them with faces painted in chalk, unbound hair, clawed hands, a plain skirt with a knotted belt. On this site, the Contact page is that evening road. You arrive in full daylight, and the further you go down, the further the sun falls toward the hills, on the right of the frame, while four black silhouettes carry its litter of feathers. When it enters the earth, they settle at the crossroads, facing the stag, and dance in the wind that sweeps everything toward the West. Papers remain on the ground, and butterflies escape from them: Sahagún (book III) says that women who died in childbirth come back as butterflies. What is attested: the litter of quetzal feathers, the descent to the crossroads, the papers and offerings, the chalk faces, the butterflies. What is our reading: the ash and coral colour (the sources give the West as white, the region of Quetzalcoatl), the dance, the visible wind, and the silhouettes themselves, which borrow nothing from the faces of the sculptures."
+    },
     "suns": {
       "title": "The four previous suns",
       "text": "Before Nahui Ollin, four worlds lived and perished. Each left a lesson on how to die · and therefore how to live. Nahua cosmology does not think of creation as linear but as cycles that beget one another by collapsing. Our current sun is the fifth. It is mortal like the previous ones.",
@@ -453,7 +457,7 @@
       "list": [
         {
           "name": "Florentine Codex · Sahagún, around 1577",
-          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Book III: the birth of Huitzilopochtli at Coatepec (chapter 1) and the nine stages toward Mictlán (appendix). Book VII: the sun created at Teotihuacan, and Xolotl.",
+          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Book I: Ehecatl, sweeper of the road of the rain gods. Book III: the birth of Huitzilopochtli at Coatepec (chapter 1), the nine stages toward Mictlán and the women who died in childbirth returning as butterflies (appendix). Book VI: the Cihuateteo carrying the sun in a litter of quetzal feathers. Book VII: the sun created at Teotihuacan, and Xolotl.",
           "online": [
             {
               "label": "Digital Florentine Codex, Getty Research Institute, Book III (Nahuatl, Spanish, English)",
@@ -502,6 +506,17 @@
             }
           ],
           "physical": "Vatican Apostolic Library, Rome. Annotated edition: Anders, Jansen and Reyes García, Fondo de Cultura Económica, Mexico City, 1993, ISBN 9789681641542."
+        },
+        {
+          "name": "Cihuateotl · Mexica sculpture, 1400 to 1521",
+          "text": "One of the deified women of the West, in stone: kneeling, arms raised at the sides of the chest, clawed hands, unbound hair, a plain skirt with a knotted belt. It is the source for the pose and the garment of the bearers on the Contact page, never for their face.",
+          "online": [
+            {
+              "label": "Metropolitan Museum of Art, New York, 00.5.30, online record",
+              "url": "https://www.metmuseum.org/art/collection/search/307634"
+            }
+          ],
+          "physical": "Metropolitan Museum of Art, New York, gallery 360. The four Cihuateteo found together in Mexico City are at the Museo Nacional de Antropología, Mexica hall."
         },
         {
           "name": "Codex Fejérváry-Mayer",

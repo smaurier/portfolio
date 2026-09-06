@@ -93,7 +93,7 @@
       "jade": "Entra en el santuario del venado. En el centro de un círculo de obsidiana, un venado gris permanece inmóvil, con la cabeza baja. A su alrededor, cuatro puntos cardinales brillan suavemente: al norte un violeta de ámbar nocturno, al este un dorado del alba, al sur un turquesa de mosaico, al oeste un rojo de crepúsculo. El venado es su nahual: la esencia que se revela bajo forma animal.",
       "dore": "Está orientado hacia el Este, Tlahuizcalpan, la casa del alba. Tonatiuh, el sol naciente, dora el pelaje del venado. La luz es nueva, el día se abre.",
       "turquoise": "Está orientado hacia el Sur, Huitztlampa, tierra de espinas y flores. Huitzilopochtli vela por lo que crece. La escena toma tonos turquesa de mosaico Xiuhtecuhtli.",
-      "cendre": "Está orientado hacia el Oeste, Cihuatlampa, región del crepúsculo malva. Las Cihuateteo, mujeres muertas divinizadas, acompañan de vuelta al sol. La escena arde suavemente en rojo.",
+      "cendre": "Está orientado hacia el Oeste, Cihuatlampa, región del crepúsculo malva. Las Cihuateteo, mujeres muertas divinizadas, llevan el sol poniente en unas andas de plumas, luego bajan a la encrucijada y bailan en el viento. La escena arde suavemente en rojo, luego se apaga.",
       "obsidienne": "Está orientado hacia el Norte, Mictlampa, el lugar del reposo. Mictlantecuhtli, señor de la obsidiana violeta, guarda lo que ha sido vivido. La escena se vuelve nocturna, profunda."
     },
     "cardinalAnnouncement": {
@@ -341,6 +341,10 @@
       "title": "Mictlampa, el descenso al Mictlán",
       "text": "El Norte es Mictlampa, el lugar de los muertos, la región de la obsidiana y de la noche. Los muertos comunes no llegan de golpe: según Sahagún (libro III) y el Códice Vaticano A, la teyolía viaja cuatro años a través de nueve estratos antes de alcanzar a Mictlantecuhtli y Mictecacihuatl. Cruza el río Chiconahuapan con la ayuda de un perro, pasa entre dos cerros que chocan entre sí, enfrenta el viento de obsidiana de Itzehecayan que corta como cuchillas, y luego Temiminaloyan, donde manos invisibles disparan flechas. En este sitio, la página Memoria es ese descenso. El venado tiene las patas en el agua negra del tezcatl, el espejo: como Tezcatlipoca, el espejo humeante, no refleja, revela o miente. La niebla repta desde el brocal, las cuchillas de obsidiana pasan de este a oeste rodeando al venado, y cuanto más baja usted, más flechas caen a su alrededor antes de disolverse en humo. Un camino de cempasúchil, la flor que guía a los muertos de regreso, se alarga sobre el agua hacia el Norte. Y si Xolotl pasa, sígalo con la mirada: es él quien hace cruzar el río."
     },
+    "cihuatlampa": {
+      "title": "Cihuatlampa, el sol llevado al poniente",
+      "text": "El Oeste es Cihuatlampa, el lugar de las mujeres, la región del crepúsculo. Sahagún (libro VI) cuenta que el sol, llegado al cenit, es recibido por las Cihuateteo, las mujeres muertas de parto, divinizadas como los guerreros caídos en combate, y que ellas lo llevan en unas andas de plumas de quetzal hasta el poniente, donde la gente del Mictlán lo toma para la noche. El libro I nombra a Ehecatl, el viento, el barrendero que abre el camino a los dioses de la lluvia. Las Cihuateteo no eran figuras dulces: en ciertos días del calendario bajaban a las encrucijadas, donde se temía su paso y donde se les dejaban papeles y ofrendas. Sus esculturas las muestran con el rostro pintado de cal, el cabello suelto, las manos en garras, una falda sencilla con cinturón anudado. En este sitio, la página Contacto es ese camino de la tarde. Llega a plena luz del día, y cuanto más baja, más cae el sol hacia los cerros, a la derecha del encuadre, mientras cuatro siluetas negras llevan sus andas de plumas. Cuando entra en la tierra, se posan en la encrucijada, frente al venado, y bailan en el viento que lo barre todo hacia el Oeste. Quedan papeles en el suelo, y de ellas escapan mariposas: Sahagún (libro III) dice que las mujeres muertas de parto vuelven como mariposas. Lo atestiguado: las andas de plumas de quetzal, la bajada a las encrucijadas, los papeles y las ofrendas, el rostro de cal, las mariposas. Nuestra lectura: el color ceniza y coral (las fuentes dan el Oeste blanco, la región de Quetzalcoatl), el baile, el viento visible, y las siluetas mismas, que no toman nada de los rostros de las esculturas."
+    },
     "suns": {
       "title": "Los cuatro soles anteriores",
       "text": "Antes de Nahui Ollin, cuatro mundos vivieron y perecieron. Cada uno dejó una lección sobre cómo morir · y por tanto cómo vivir. La cosmología nahua no piensa la creación como lineal sino como ciclos que se engendran al derrumbarse. Nuestro sol actual es el quinto. Es mortal como los anteriores.",
@@ -417,7 +421,7 @@
       "list": [
         {
           "name": "Códice Florentino · Sahagún, hacia 1577",
-          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Libro III: el nacimiento de Huitzilopochtli en Coatepec (capítulo 1) y las nueve etapas hacia el Mictlán (apéndice). Libro VII: el sol creado en Teotihuacan, y Xolotl.",
+          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Libro I: Ehecatl, el barrendero del camino de los dioses de la lluvia. Libro III: el nacimiento de Huitzilopochtli en Coatepec (capítulo 1), las nueve etapas hacia el Mictlán y las mujeres muertas de parto que vuelven como mariposas (apéndice). Libro VI: las Cihuateteo que llevan el sol en unas andas de plumas de quetzal. Libro VII: el sol creado en Teotihuacan, y Xolotl.",
           "online": [
             {
               "label": "Digital Florentine Codex, Getty Research Institute, libro III (náhuatl, español, inglés)",
@@ -466,6 +470,17 @@
             }
           ],
           "physical": "Biblioteca Apostólica Vaticana, Roma. Edición comentada: Anders, Jansen y Reyes García, Fondo de Cultura Económica, México, 1993, ISBN 9789681641542."
+        },
+        {
+          "name": "Cihuateotl · escultura mexica, 1400 a 1521",
+          "text": "Una de las mujeres divinizadas del Oeste, en piedra: arrodillada, los brazos alzados a los lados del pecho, las manos en garras, el cabello suelto, una falda sencilla con cinturón anudado. Es la fuente de la pose y del vestido de las portadoras de la página Contacto, nunca de su rostro.",
+          "online": [
+            {
+              "label": "Metropolitan Museum of Art, Nueva York, 00.5.30, ficha en línea",
+              "url": "https://www.metmuseum.org/art/collection/search/307634"
+            }
+          ],
+          "physical": "Metropolitan Museum of Art, Nueva York, sala 360. Las cuatro Cihuateteo halladas juntas en la Ciudad de México están en el Museo Nacional de Antropología, sala Mexica."
         },
         {
           "name": "Códice Fejérváry-Mayer",
