@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bearerHair, bearerOpacity, bearerPose, CIHUATETEO, litterPose, wispRate } from "./cihuateteo";
+import { bearerHair, bearerOpacity, bearerPose, CIHUATETEO, HAIR_STRANDS, litterPose, wispRate } from "./cihuateteo";
 import { getOrbitCameraPosition } from "./camera-path";
 
 const sun = { x: 0.6, y: 0.25, z: 0.76 }; // soleil bas, a l'ouest du decor (+x)
@@ -90,17 +90,24 @@ describe("bearerOpacity et wispRate : a peine la, puis presentes dans la nuit", 
   });
 });
 
-describe("bearerHair : chacune sa chevelure", () => {
+describe("bearerHair : chacune sa chevelure, massive", () => {
   it("deux graines donnent deux chevelures differentes, chaque meche unique", () => {
     const a = bearerHair(0);
     const b = bearerHair(1);
-    expect(a.length).toBeGreaterThanOrEqual(6);
+    expect(a.length).toBe(HAIR_STRANDS);
     expect(JSON.stringify(a)).not.toBe(JSON.stringify(b));
     const phases = new Set(a.map((s) => s.phase.toFixed(4)));
     expect(phases.size).toBe(a.length);
-    for (const s of a) {
+  });
+
+  it("plante les meches a l'arriere et sur les cotes du crane, jamais sur le visage", () => {
+    for (const s of bearerHair(2)) {
+      const front = Math.cos(s.azimuth); // +1 = plein visage, -1 = nuque
+      expect(front).toBeLessThan(0.1);
+      expect(s.tilt).toBeGreaterThan(0);
+      expect(s.tilt).toBeLessThan(Math.PI / 2 + 0.1);
       expect(s.length).toBeGreaterThan(0.4);
-      expect(s.damping).toBeGreaterThan(0.9);
+      expect(s.damping).toBeGreaterThan(0.95);
       expect(s.damping).toBeLessThan(1);
     }
   });

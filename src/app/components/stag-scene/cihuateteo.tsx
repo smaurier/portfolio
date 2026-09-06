@@ -6,6 +6,7 @@ import { useFrame } from "@react-three/fiber";
 import { useGLTF, useTexture } from "@react-three/drei";
 import {
   AdditiveBlending,
+  AnimationMixer,
   Bone,
   Box3,
   BufferAttribute,
@@ -17,6 +18,7 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
+  MeshStandardMaterial,
   NormalBlending,
   Points,
   Quaternion,
@@ -28,46 +30,53 @@ import {
   type Object3D,
 } from "three";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
-import { bearerHair, bearerOpacity, bearerPose, CIHUATETEO, descentBlend, litterPose, wispRate, type HairStrand } from "@/lib/cihuateteo";
+import { bearerHair, bearerOpacity, bearerPose, CIHUATETEO, descentBlend, HAIR_STRANDS, litterPose, wispRate, type HairStrand } from "@/lib/cihuateteo";
 import { createStrip, stepStrip, type Strip } from "@/lib/paper-strip";
 import { remapWestArc } from "@/lib/ouest-arc";
 import { dayAtArc } from "@/lib/arc-day";
 import { sunDirection } from "@/lib/direction-light";
-import { createChalkMaterial, createCihuateotlMaterial, createCihuateotlUniforms, type CihuateotlUniforms } from "./cihuateotl-material";
-import { createRibbonGeometry, updateRibbon } from "./ribbon-geometry";
+import { CHALK_COLOR, createCihuateotlMaterial, createCihuateotlUniforms, type CihuateotlUniforms } from "./cihuateotl-material";
+import { createRibbonBundleGeometry, createRibbonGeometry, finishRibbonBundle, updateRibbon, writeRibbonSlot } from "./ribbon-geometry";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
 /**
  * Les Cihuateteo (06/09, Ouest / Cihuatlampa ; sources et garde-fous dans
- * docs/da/ouest-sources.md). Quatre femmes fantomatiques qui portent le
- * soleil vers l'ouest « dans une litiere de plumes de quetzal » (Codex de
+ * docs/da/ouest-sources.md). Quatre femmes noires qui portent le soleil
+ * vers l'ouest « dans une litiere de plumes de quetzal » (Codex de
  * Florence, livre VI), puis, quand il est entre dans la terre, se posent en
- * arc au carrefour, face au cerf, comme les sculptures : sur les talons,
- * bras leves aux cotes de la poitrine, mains en griffes. Visage peint a la
- * chaux (Primeros Memoriales), sans trait, un bandeau sur les yeux (Codex
- * Borgia). Cheveux defaits qui ondulent au vent, chacune a sa maniere.
- * Au carrefour, les papiers (amatetehuitl) des autels flottent a leurs
- * pieds ; ce qui s'echappe d'elles, ce sont des papillons (livre III : les
- * ames des femmes mortes en couches).
+ * arc au carrefour, face au cerf. Visage peint a la chaux (Primeros
+ * Memoriales) : la tete traitee exactement comme le corps, en blanc ; un
+ * bandeau de tissu noir sur les yeux (Codex Borgia), dont les pans flottent.
+ * Chevelures noires MASSIVES : 90 meches par tete plantees sur le crane,
+ * chacune une chaine de points a longueur contrainte (le principe des
+ * simulateurs capillaires temps reel : TressFX, Hair Works), gravite,
+ * vent, inertie de la danse ; deux chevelures ne bougent jamais pareil.
+ * Elles DANSENT : la marche du modele jouee au ralenti donne le rythme des
+ * hanches et des jambes, et par-dessus, bras ecartes qui montent et
+ * descendent chacun a son tour, buste qui ondule, corps qui tourne et fait
+ * un pas de cote. Au carrefour la danse ralentit sans s'eteindre.
+ * Papiers (amatetehuitl) a leurs pieds la nuit ; ce qui s'echappe d'elles,
+ * ce sont des papillons (livre III).
  *
  * Modele : « Animated Woman » de Quaternius (Ultimate Modular Women Pack,
- * CC0). Pose PROCEDURALE sur les os (pas d'animation figee : Sylvain « super
- * rigides »), corps en brume (cihuateotl-material), meches, plumes et
- * papiers sur des chaines Verlet (lib/paper-strip + ribbon-geometry).
+ * CC0). Corps en fumee noire opaque (cihuateotl-material), meches, pans,
+ * plumes et papiers sur des chaines Verlet (lib/paper-strip +
+ * ribbon-geometry).
  */
 
 const MODEL_PATH = "/models/cihuateotl.glb";
 const SMOKE_SPRITE = "/img/particles/smoke_07.png";
+const WALK_CLIP = "CharacterArmature|Walk";
 /** Hauteur d'une porteuse (u) : un peu plus haute que le garrot du cerf. */
 const BEARER_HEIGHT = 1.9;
+/** Rayon du crane (u) ou se plantent les meches, au-dessus de l'os de la tete. */
+const SKULL_RADIUS = 0.135;
+const SKULL_LIFT = 0.13;
+const HAIR_POINTS = 10;
 const BUTTERFLIES_PER_BEARER = 30;
 const BUTTERFLY_POOL = CIHUATETEO.count * BUTTERFLIES_PER_BEARER;
 const BUTTERFLY_COLOR = new Color("#e3c6f2");
-const HAIR_POINTS = 9;
-const HAIR_COLOR = new Color("#1e1426");
-/** Le bandeau : corail, la couleur de l'Ouest du Codex. */
-const BLINDFOLD_COLOR = "#d76464";
 const FEATHERS = 14;
 const FEATHER_POINTS = 8;
 const FEATHER_LENGTH = 1.1;
@@ -76,26 +85,35 @@ const QUETZAL_TIP = new Color("#8ee0b8");
 const PAPERS_PER_BEARER = 3;
 const PAPER_POINTS = 6;
 const SMOKES_PER_BEARER = 3;
-/** Vent de l'ouest (+x = l'ouest du decor) ressenti par les meches et les plumes. */
+const TAIL_POINTS = 7;
+/** Vent de l'ouest (+x = l'ouest du decor) ressenti par les meches, les pans et les plumes. */
 const WIND_BASE = { x: 1.1, y: 0.35, z: -0.2 };
-/** Les poses (radians sur les os, ajoutes au repos) : bras ecartes « comme
- * si elles dansaient » tant qu'elles portent, leves aux cotes de la
- * poitrine et griffes au carrefour ; genoux plies sur les talons. */
-const POSE = {
-  escort: { upperArm: 1.0, lowerArm: -0.6, upperLeg: 0.25, lowerLeg: -0.5, fingers: 0.2 },
-  crossroads: { upperArm: 1.6, lowerArm: -1.5, upperLeg: 1.5, lowerLeg: -2.5, fingers: 1.1 },
+/** La danse (radians sur les os, ajoutes a l'animation) : ecart des bras
+ * hors du corps (axe Z de l'os) et balancement avant-arriere (axe X). */
+const DANCE = {
+  armSpread: 0.75,
+  armSpreadSwing: 0.5,
+  armSwing: 0.55,
+  forearm: 0.5,
+  torso: 0.07,
+  turn: 0.35,
+  step: 0.4,
+  walkTimeScale: 0.55,
 };
 
 useGLTF.preload(MODEL_PATH);
 useTexture.preload(SMOKE_SPRITE);
 
-type BoneSet = { bone: Bone; rest: Quaternion; axis: Vector3 };
+type BoneSet = { bone: Bone; rest: Quaternion };
 type Bearer = {
   root: Group;
+  mixer: AnimationMixer;
   uniforms: CihuateotlUniforms;
   bones: Record<string, BoneSet | null>;
-  hair: { strand: HairStrand; strip: Strip; geometry: BufferGeometry }[];
+  hair: { strand: HairStrand; strip: Strip }[];
+  hairGeometry: BufferGeometry;
   papers: { strip: Strip; geometry: BufferGeometry; peg: { x: number; z: number }; phase: number }[];
+  tails: { strip: Strip; geometry: BufferGeometry; side: number }[];
   smokes: Sprite[];
   blindfold: Mesh;
   headBone: Object3D | null;
@@ -107,34 +125,33 @@ function hash(i: number, k: number): number {
   return v - Math.floor(v);
 }
 
-const BONE_NAMES = ["UpperArm.L", "UpperArm.R", "LowerArm.L", "LowerArm.R", "UpperLeg.L", "UpperLeg.R", "LowerLeg.L", "LowerLeg.R", "Abdomen", "Chest"] as const;
-const FINGER_ROOTS = ["Index1", "Middle1", "Ring1", "Pinky1"];
-const SIDES = ["L", "R"] as const;
+const BONE_NAMES = ["UpperArm.L", "UpperArm.R", "LowerArm.L", "LowerArm.R", "Abdomen", "Chest"] as const;
+const AXIS_X = new Vector3(1, 0, 0);
+const AXIS_Z = new Vector3(0, 0, 1);
 const tmpQuat = new Quaternion();
 
-/** Une rotation autour de l'axe X local de l'os, ajoutee a son repos. */
-function poseBone(set: BoneSet | null, angle: number): void {
+/** Une rotation autour d'un axe local de l'os, ajoutee a ce que l'animation
+ * vient d'ecrire (a appeler apres mixer.update). */
+function addBoneRotation(set: BoneSet | null, axis: Vector3, angle: number): void {
   if (!set) return;
-  set.bone.quaternion.copy(set.rest).multiply(tmpQuat.setFromAxisAngle(set.axis, angle));
+  set.bone.quaternion.multiply(tmpQuat.setFromAxisAngle(axis, angle));
 }
 
 function collectBones(root: Object3D): Record<string, BoneSet | null> {
   const out: Record<string, BoneSet | null> = {};
-  const names: string[] = [...BONE_NAMES];
-  for (const side of SIDES) for (const f of FINGER_ROOTS) names.push(`${f}.${side}`);
-  for (const name of names) {
+  for (const name of BONE_NAMES) {
     const bone = root.getObjectByName(name) as Bone | undefined;
-    out[name] = bone ? { bone, rest: bone.quaternion.clone(), axis: new Vector3(1, 0, 0) } : null;
+    out[name] = bone ? { bone, rest: bone.quaternion.clone() } : null;
   }
   return out;
 }
 
-/** Habille un clone : brume sur le corps, chaux sur la peau du visage, le
- * reste de la tete (cheveux modelises, yeux) cache ; echelle normalisee a
- * BEARER_HEIGHT, pieds a y = 0. */
+/** Habille un clone : fumee noire sur le corps, la meme matiere en blanc
+ * de chaux sur la tete, cheveux modelises caches (remplaces par les
+ * meches) ; echelle normalisee a BEARER_HEIGHT, pieds a y = 0. */
 function dressBearer(root: Object3D, uniforms: CihuateotlUniforms): void {
   const body = createCihuateotlMaterial(uniforms);
-  const chalk = createChalkMaterial(uniforms);
+  const chalk = createCihuateotlMaterial(uniforms, CHALK_COLOR);
   const box = new Box3();
   root.updateMatrixWorld(true);
   root.traverse((child) => {
@@ -144,7 +161,7 @@ function dressBearer(root: Object3D, uniforms: CihuateotlUniforms): void {
     const matName = (mesh.material as { name?: string }).name ?? "";
     if (isHead) {
       if (matName === "Skin") mesh.material = chalk;
-      else mesh.visible = false; // cheveux modelises, yeux : remplaces par les meches et le bandeau
+      else mesh.visible = false;
     } else {
       mesh.material = body;
     }
@@ -178,17 +195,20 @@ function glowTexture(): CanvasTexture {
 export default function Cihuateteo() {
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
-  const { scene } = useGLTF(MODEL_PATH);
+  const { scene, animations } = useGLTF(MODEL_PATH);
   const smokeTexture = useTexture(SMOKE_SPRITE);
   const groupRef = useRef<Group>(null);
   const blendRef = useRef(direction === "cendre" ? 1 : 0);
   const scratch = useMemo(() => new Vector3(), []);
+  const headForward = useMemo(() => new Vector3(), []);
+  const walkClip = useMemo(() => animations.find((a) => a.name === WALK_CLIP) ?? animations[0], [animations]);
 
-  const hairMaterial = useMemo(() => new MeshBasicMaterial({ color: HAIR_COLOR, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: NormalBlending }), []);
+  // Cheveux : noirs, eclaires (un peu de brillance sur les meches).
+  const hairMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#07040a"), roughness: 0.55, metalness: 0.05, transparent: true, opacity: 0, side: DoubleSide, depthWrite: true, fog: false }), []);
+  const clothMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#050308"), roughness: 0.9, metalness: 0, transparent: true, opacity: 0, side: DoubleSide, depthWrite: true, fog: false }), []);
   const paperMaterial = useMemo(() => new MeshBasicMaterial({ color: new Color("#efe6d6"), transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: true, blending: NormalBlending }), []);
   const featherMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: NormalBlending }), []);
   const featherTipMaterial = useMemo(() => new MeshBasicMaterial({ color: QUETZAL_TIP, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false, blending: AdditiveBlending }), []);
-  const blindfoldMaterial = useMemo(() => new MeshBasicMaterial({ color: new Color(BLINDFOLD_COLOR), transparent: true, opacity: 0, depthWrite: false, fog: false, side: DoubleSide }), []);
   const smokeMaterial = useMemo(() => new SpriteMaterial({ map: smokeTexture, color: new Color("#2b1c33"), transparent: true, opacity: 0, depthWrite: false, blending: NormalBlending, fog: false }), [smokeTexture]);
   const glowMaterial = useMemo(() => new SpriteMaterial({ map: glowTexture(), color: new Color("#ffd2a0"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }), []);
 
@@ -199,25 +219,33 @@ export default function Cihuateteo() {
       dressBearer(inner, uniforms);
       const root = new Group();
       root.add(inner);
-      const hair = bearerHair(i).map((strand) => ({ strand, strip: createStrip(HAIR_POINTS, strand.length, { x: 0, y: BEARER_HEIGHT, z: 0 }), geometry: createRibbonGeometry(HAIR_POINTS) }));
+      const mixer = new AnimationMixer(inner);
+      if (walkClip) {
+        const action = mixer.clipAction(walkClip);
+        action.timeScale = DANCE.walkTimeScale;
+        action.time = (i / CIHUATETEO.count) * walkClip.duration;
+        action.play();
+      }
+      const hair = bearerHair(i).map((strand) => ({ strand, strip: createStrip(HAIR_POINTS, strand.length, { x: 0, y: BEARER_HEIGHT, z: 0 }) }));
       const papers = Array.from({ length: PAPERS_PER_BEARER }, (_, k) => ({
         strip: createStrip(PAPER_POINTS, 0.35 + 0.2 * hash(i * 7 + k, 1), { x: 0, y: 0.1, z: 0 }),
         geometry: createRibbonGeometry(PAPER_POINTS),
         peg: { x: (hash(i * 7 + k, 2) - 0.5) * 1.6, z: 0.4 + hash(i * 7 + k, 3) * 0.6 },
         phase: hash(i * 7 + k, 4) * 6.28,
       }));
+      const tails = [-1, 1].map((side) => ({ strip: createStrip(TAIL_POINTS, 0.45 + 0.15 * hash(i, 5 + side), { x: 0, y: BEARER_HEIGHT, z: 0 }), geometry: createRibbonGeometry(TAIL_POINTS), side }));
       const smokes = Array.from({ length: SMOKES_PER_BEARER }, () => {
         const s = new Sprite(smokeMaterial.clone());
         s.raycast = () => null;
         s.renderOrder = 995;
         return s;
       });
-      const blindfold = new Mesh(new CylinderGeometry(0.165, 0.165, 0.1, 24, 1, true), blindfoldMaterial);
+      const blindfold = new Mesh(new CylinderGeometry(0.15, 0.15, 0.085, 28, 1, true), clothMaterial);
       blindfold.raycast = () => null;
       blindfold.renderOrder = 997;
-      return { root, uniforms, bones: collectBones(inner), hair, papers, smokes, blindfold, headBone: inner.getObjectByName("Head") ?? null };
+      return { root, mixer, uniforms, bones: collectBones(inner), hair, hairGeometry: createRibbonBundleGeometry(HAIR_STRANDS, HAIR_POINTS), papers, tails, smokes, blindfold, headBone: inner.getObjectByName("Head") ?? null };
     });
-  }, [scene, smokeMaterial, blindfoldMaterial]);
+  }, [scene, walkClip, smokeMaterial, clothMaterial]);
 
   // La litiere : deux brancards et des plumes de quetzal en rubans.
   const litter = useMemo(() => {
@@ -284,7 +312,6 @@ export default function Cihuateteo() {
           void main() {
             if (vAlpha < 0.004) discard;
             vec2 uv = gl_PointCoord - 0.5;
-            // Deux ailes qui battent : leur largeur suit un sinus rapide.
             float flap = 0.35 + 0.65 * abs(sin(uTime * 11.0 + vPhase));
             float x = abs(uv.x) / flap;
             float wing = 1.0 - smoothstep(0.18, 0.42, length(vec2(x - 0.18, uv.y * 1.6)));
@@ -318,8 +345,13 @@ export default function Cihuateteo() {
     for (const b of bearers) {
       add(b.root);
       add(b.blindfold);
-      for (const h of b.hair) {
-        const m = new Mesh(h.geometry, hairMaterial);
+      const hairMesh = new Mesh(b.hairGeometry, hairMaterial);
+      hairMesh.frustumCulled = false;
+      hairMesh.raycast = () => null;
+      hairMesh.renderOrder = 997;
+      add(hairMesh);
+      for (const t of b.tails) {
+        const m = new Mesh(t.geometry, clothMaterial);
         m.frustumCulled = false;
         m.raycast = () => null;
         m.renderOrder = 997;
@@ -345,14 +377,15 @@ export default function Cihuateteo() {
     return () => {
       for (const o of added) g.remove(o);
     };
-  }, [bearers, litter, butterflyPoints, hairMaterial, paperMaterial, featherMaterial, featherTipMaterial]);
+  }, [bearers, litter, butterflyPoints, hairMaterial, clothMaterial, paperMaterial, featherMaterial, featherTipMaterial]);
   useEffect(
     () => () => {
       butterflyGeometry.dispose();
       butterflyMaterial.dispose();
       for (const b of bearers) {
-        for (const h of b.hair) h.geometry.dispose();
+        b.hairGeometry.dispose();
         for (const p of b.papers) p.geometry.dispose();
+        for (const t of b.tails) t.geometry.dispose();
       }
       for (const f of litter.feathers) f.geometry.dispose();
     },
@@ -376,66 +409,75 @@ export default function Cihuateteo() {
     const settle = descentBlend(dusk);
     const opacity = bearerOpacity(dusk) * blend;
     const gust = 1 + 0.45 * Math.sin(time * 0.7) + 0.25 * Math.sin(time * 1.9 + 1.3);
+    // Au carrefour la danse ralentit de moitie, sans s'eteindre.
+    const tempo = reduced ? 0 : 1 - 0.5 * settle;
 
     bearers.forEach((b, i) => {
       const pose = bearerPose(i, CIHUATETEO.count, dusk, sun, reduced ? 0 : time);
-      // Un pas de cote qui va et vient : la danse deplace aussi le corps.
-      const step = reduced ? 0 : Math.sin(time * 0.5 + i * 1.9) * 0.35 * (1 - 0.5 * settle);
+      const sway = Math.sin(time * 0.8 + i * 1.3) * tempo;
+      const sway2 = Math.sin(time * 0.55 + i * 2.1) * tempo;
+      const beatL = Math.sin(time * 1.15 + i * 0.9) * tempo;
+      const beatR = Math.sin(time * 1.15 + i * 0.9 + Math.PI * 0.8) * tempo;
+      // Le corps danse aussi : un pas de cote qui va et vient, une rotation.
+      const step = Math.sin(time * 0.5 + i * 1.9) * DANCE.step * tempo;
       b.root.position.set(pose.x + Math.cos(pose.yaw) * step, pose.y, pose.z - Math.sin(pose.yaw) * step);
+      b.root.rotation.y = pose.yaw + DANCE.turn * sway2;
       b.uniforms.uOpacity.value = opacity;
       b.uniforms.uTime.value = time;
       b.uniforms.uBaseY.value = pose.y;
-      b.uniforms.uErode.value = 0.4 + 0.25 * settle;
+      b.uniforms.uErode.value = 0.5 + 0.4 * settle;
 
-      // La pose : une danse lente tant qu'elles portent (bras ecartes, un
-      // genou en avant qui alterne), puis, posees, sur les talons, bras
-      // leves aux cotes de la poitrine, mains en griffes.
-      // Presque une danse (Sylvain) : chaque bras a son balancement, les
-      // genoux alternent, le buste ondule et le corps tourne un peu sur
-      // lui-meme ; au carrefour la danse ralentit sans s'eteindre.
-      const tempo = reduced ? 0 : 1 - 0.55 * settle;
-      const sway = Math.sin(time * 0.8 + i * 1.3) * tempo;
-      const sway2 = Math.sin(time * 0.55 + i * 2.1) * tempo;
-      const beatL = Math.sin(time * 1.1 + i * 0.9) * tempo;
-      const beatR = Math.sin(time * 1.1 + i * 0.9 + Math.PI * 0.8) * tempo;
-      const lerpPose = (a: number, k: number) => a + (k - a) * settle;
-      poseBone(b.bones["UpperArm.L"], lerpPose(POSE.escort.upperArm + 0.55 * beatL, POSE.crossroads.upperArm + 0.15 * beatL));
-      poseBone(b.bones["UpperArm.R"], lerpPose(POSE.escort.upperArm + 0.55 * beatR, POSE.crossroads.upperArm + 0.15 * beatR));
-      poseBone(b.bones["LowerArm.L"], lerpPose(POSE.escort.lowerArm + 0.35 * sway2, POSE.crossroads.lowerArm + 0.1 * sway2));
-      poseBone(b.bones["LowerArm.R"], lerpPose(POSE.escort.lowerArm - 0.35 * sway2, POSE.crossroads.lowerArm - 0.1 * sway2));
-      poseBone(b.bones["UpperLeg.L"], lerpPose(POSE.escort.upperLeg * (0.6 + 0.8 * beatL), POSE.crossroads.upperLeg + 0.1 * beatL));
-      poseBone(b.bones["UpperLeg.R"], lerpPose(POSE.escort.upperLeg * (0.6 + 0.8 * beatR), POSE.crossroads.upperLeg + 0.1 * beatR));
-      poseBone(b.bones["LowerLeg.L"], lerpPose(POSE.escort.lowerLeg * (0.6 + 0.8 * beatL), POSE.crossroads.lowerLeg));
-      poseBone(b.bones["LowerLeg.R"], lerpPose(POSE.escort.lowerLeg * (0.6 + 0.8 * beatR), POSE.crossroads.lowerLeg));
-      poseBone(b.bones["Abdomen"], 0.16 * sway2);
-      poseBone(b.bones["Chest"], 0.12 * sway);
-      b.root.rotation.y = pose.yaw + 0.3 * sway2;
-      const fingers = lerpPose(POSE.escort.fingers, POSE.crossroads.fingers);
-      for (const side of SIDES) for (const f of FINGER_ROOTS) poseBone(b.bones[`${f}.${side}`], fingers);
+      // La marche au ralenti donne le rythme des hanches et des jambes ;
+      // par-dessus, les bras : ecartes du corps, chacun monte et descend a
+      // son tour ; le buste ondule.
+      b.mixer.timeScale = tempo * (0.7 + 0.3 * (1 - settle));
+      b.mixer.update(dt);
+      addBoneRotation(b.bones["UpperArm.L"], AXIS_Z, -(DANCE.armSpread + DANCE.armSpreadSwing * beatL));
+      addBoneRotation(b.bones["UpperArm.R"], AXIS_Z, DANCE.armSpread + DANCE.armSpreadSwing * beatR);
+      addBoneRotation(b.bones["UpperArm.L"], AXIS_X, DANCE.armSwing * sway);
+      addBoneRotation(b.bones["UpperArm.R"], AXIS_X, -DANCE.armSwing * sway);
+      addBoneRotation(b.bones["LowerArm.L"], AXIS_X, DANCE.forearm * (0.5 + 0.5 * beatL));
+      addBoneRotation(b.bones["LowerArm.R"], AXIS_X, DANCE.forearm * (0.5 + 0.5 * beatR));
+      addBoneRotation(b.bones["Abdomen"], AXIS_Z, DANCE.torso * sway2);
+      addBoneRotation(b.bones["Chest"], AXIS_X, DANCE.torso * 0.6 * sway);
       b.root.updateMatrixWorld(true);
 
-      // La tete : le bandeau autour des yeux, les meches depuis le sommet.
+      // La tete : le bandeau de tissu noir autour des yeux et ses deux pans,
+      // les meches plantees sur le crane.
       const head = b.headBone;
       if (head) head.getWorldPosition(scratch);
       else scratch.set(pose.x, pose.y + BEARER_HEIGHT * 0.9, pose.z);
-      b.blindfold.position.set(scratch.x, scratch.y + 0.07, scratch.z);
-      b.blindfold.rotation.y = pose.yaw;
-      const hx = scratch.x, hy = scratch.y + 0.1, hz = scratch.z;
-      const hairWind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 0.6, y: 0.1 * gust, z: WIND_BASE.z * gust * 0.6 };
-      for (const h of b.hair) {
+      const yaw = b.root.rotation.y;
+      headForward.set(Math.sin(yaw), 0, Math.cos(yaw));
+      const skullX = scratch.x, skullY = scratch.y + SKULL_LIFT, skullZ = scratch.z;
+      b.blindfold.position.set(skullX, skullY - 0.02, skullZ);
+      b.blindfold.rotation.y = yaw;
+      // Un vent doux sur les cheveux : ils TOMBENT, et ondulent au bout.
+      const hairWind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 0.35, y: 0, z: WIND_BASE.z * gust * 0.35 };
+      b.hair.forEach((h, k) => {
         const s = h.strand;
-        // Chaque meche a son propre souffle (phase, vitesse, reponse) : jamais
-        // deux chevelures pareilles.
+        // Racine sur le crane : azimut autour de la nuque, inclinaison de la
+        // couronne aux oreilles ; tournee avec la tete.
+        const a = yaw + s.azimuth;
+        const r = Math.sin(s.tilt) * SKULL_RADIUS;
+        const anchor = { x: skullX + Math.sin(a) * r, y: skullY + Math.cos(s.tilt) * SKULL_RADIUS, z: skullZ + Math.cos(a) * r };
         const wind = reduced
           ? hairWind
           : {
-              x: hairWind.x + Math.sin(time * s.speed * 1.7 + s.phase) * 0.5,
-              y: hairWind.y + Math.sin(time * s.speed * 2.3 + s.phase * 2) * 0.35,
-              z: hairWind.z + Math.cos(time * s.speed * 1.3 + s.phase) * 0.5,
+              x: hairWind.x + Math.sin(time * s.speed * 1.7 + s.phase) * 0.22,
+              y: Math.sin(time * s.speed * 2.3 + s.phase * 2) * 0.12,
+              z: hairWind.z + Math.cos(time * s.speed * 1.3 + s.phase) * 0.22,
             };
-        const anchor = { x: hx + Math.sin(pose.yaw + Math.PI / 2) * s.side * 0.12, y: hy - 0.05 * Math.abs(s.side), z: hz + Math.cos(pose.yaw + Math.PI / 2) * s.side * 0.12 };
-        stepStrip(h.strip, dt, anchor, wind, { gravity: 1.6, damping: s.damping, windResponse: s.windResponse, iterations: 5 });
-        updateRibbon(h.geometry, h.strip, (u) => 0.035 * (1 - u * 0.6));
+        stepStrip(h.strip, dt, anchor, wind, { gravity: 9, damping: s.damping, windResponse: s.windResponse, iterations: 6 });
+        writeRibbonSlot(b.hairGeometry, k, h.strip, (u) => 0.04 * (1 - u * 0.45));
+      });
+      finishRibbonBundle(b.hairGeometry);
+      for (const t of b.tails) {
+        const a = yaw + Math.PI + t.side * 0.35;
+        const anchor = { x: skullX + Math.sin(a) * 0.15, y: skullY - 0.02, z: skullZ + Math.cos(a) * 0.15 };
+        const wind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust + Math.sin(time * 2.4 + t.side) * 0.6, y: 0.4 + Math.sin(time * 3.1 + t.side * 2) * 0.5, z: WIND_BASE.z + Math.cos(time * 1.9 + t.side) * 0.6 };
+        stepStrip(t.strip, dt, anchor, wind, { gravity: 3, damping: 0.975, windResponse: 1.5, iterations: 5 });
+        updateRibbon(t.geometry, t.strip, 0.07);
       }
       // Les papiers du carrefour : plantes au sol devant elle, ils claquent.
       for (const p of b.papers) {
@@ -445,7 +487,7 @@ export default function Cihuateteo() {
         stepStrip(p.strip, dt, { x: px, y: 0.12, z: pz }, wind, { gravity: 2.5, damping: 0.975, windResponse: 1.6, iterations: 5 });
         updateRibbon(p.geometry, p.strip, 0.09);
       }
-      // La brume autour d'elle : trois volutes lentes.
+      // La fumee autour d'elle : trois volutes lentes.
       b.smokes.forEach((s, k) => {
         const a = time * 0.18 + k * 2.1 + i;
         s.position.set(pose.x + Math.cos(a) * 0.45, pose.y + 0.5 + k * 0.45 + Math.sin(time * 0.3 + k) * 0.12, pose.z + Math.sin(a) * 0.45);
@@ -454,8 +496,8 @@ export default function Cihuateteo() {
         s.material.opacity = 0.4 * opacity;
       });
     });
-    blindfoldMaterial.opacity = Math.min(1, opacity * 1.6);
-    hairMaterial.opacity = Math.min(1, opacity * 1.1);
+    hairMaterial.opacity = opacity;
+    clothMaterial.opacity = opacity;
     paperMaterial.opacity = 0.9 * blend * settle;
 
     // La litiere de plumes de quetzal, le soleil dessus.

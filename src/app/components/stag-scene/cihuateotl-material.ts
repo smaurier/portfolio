@@ -1,4 +1,4 @@
-import { AdditiveBlending, Color, DoubleSide, MeshBasicMaterial, NormalBlending } from "three";
+import { Color, DoubleSide, MeshBasicMaterial, NormalBlending } from "three";
 
 /**
  * Les matieres des Cihuateteo (06/09, Ouest).
@@ -28,7 +28,7 @@ export type CihuateotlUniforms = {
 
 export const CIHUATEOTL_COLOR = "#140c1a"; // noires (Sylvain, 06/09 : « plus noires que blanches »), l'obsidienne du soir
 export const CIHUATEOTL_EDGE = "#ff9a86"; // corail : le dernier soleil sur les bords
-export const CHALK_COLOR = "#e6dbee";
+export const CHALK_COLOR = "#f3eef6";
 
 export function createCihuateotlUniforms(phase = 0): CihuateotlUniforms {
   return { uPower: { value: 1.3 }, uOpacity: { value: 0 }, uTime: { value: 0 }, uPhase: { value: phase }, uBaseY: { value: 0 }, uHeight: { value: 1.9 }, uErode: { value: 0.45 } };
@@ -51,9 +51,10 @@ const NOISE_GLSL = /* glsl */ `
   }
 `;
 
-/** Le corps brumeux. */
-export function createCihuateotlMaterial(uniforms: CihuateotlUniforms): MeshBasicMaterial {
-  const mat = new MeshBasicMaterial({ color: new Color(CIHUATEOTL_COLOR), transparent: true, depthWrite: false, side: DoubleSide, fog: false, blending: NormalBlending });
+/** Le corps : fumee noire opaque, ou, avec `color` = chaux, la tete traitee
+ * exactement pareil mais blanche (Sylvain, 06/09). */
+export function createCihuateotlMaterial(uniforms: CihuateotlUniforms, color: string = CIHUATEOTL_COLOR): MeshBasicMaterial {
+  const mat = new MeshBasicMaterial({ color: new Color(color), transparent: true, depthWrite: true, side: DoubleSide, fog: false, blending: NormalBlending });
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uPower = uniforms.uPower;
     shader.uniforms.uOpacity = uniforms.uOpacity;
@@ -110,30 +111,16 @@ export function createCihuateotlMaterial(uniforms: CihuateotlUniforms): MeshBasi
          float n = ghostNoise(vGhostWorld * 3.5 + vec3(uPhase, -uTime * 0.35, uTime * 0.2));
          float n2 = ghostNoise(vGhostWorld * 9.0 + vec3(-uTime * 0.6, uTime * 0.9, uPhase));
          float mist = smoothstep(0.35, 0.75, n * 0.7 + n2 * 0.3);
-         // Corps sombre : la fumee noire tient le volume, le bord corail le dessine.
-         float body = fresnel * 0.35 + 0.8;
-         float alpha = body * mix(1.0, mist, uErode + 0.25 * h) * breath * uOpacity;
-         vec3 ghostCol = mix(diffuse, uEdge, pow(fresnel, 2.2) * 0.7);
+         // Massivement noir (Sylvain) : le corps est plein, seule sa crete
+         // se defait en fumee, davantage la nuit (uErode) ; le bord corail
+         // ne fait que le detourer.
+         float top = smoothstep(0.55, 1.0, h);
+         float alpha = mix(1.0, mist, uErode * top) * (0.9 + 0.1 * breath) * uOpacity;
+         if (alpha < 0.03) discard;
+         vec3 ghostCol = mix(diffuse, uEdge, pow(fresnel, 3.0) * 0.5);
          gl_FragColor = vec4(ghostCol, alpha);`,
       );
   };
   return mat;
 }
 
-/** Le visage a la chaux : blanc, plat, sans trait. */
-export function createChalkMaterial(uniforms: CihuateotlUniforms): MeshBasicMaterial {
-  const mat = new MeshBasicMaterial({ color: new Color(CHALK_COLOR), transparent: true, depthWrite: false, fog: false, blending: NormalBlending });
-  mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uOpacity = uniforms.uOpacity;
-    shader.uniforms.uTime = uniforms.uTime;
-    shader.uniforms.uPhase = uniforms.uPhase;
-    shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", `#include <common>\n uniform float uOpacity;\n uniform float uTime;\n uniform float uPhase;`)
-      .replace(
-        "#include <opaque_fragment>",
-        `float breath = 0.85 + 0.15 * sin(uTime * 0.9 + uPhase);
-         gl_FragColor = vec4(diffuse, min(1.0, uOpacity * 1.05) * breath);`,
-      );
-  };
-  return mat;
-}

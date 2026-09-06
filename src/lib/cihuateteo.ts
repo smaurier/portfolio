@@ -124,26 +124,35 @@ export function wispRate(dusk: number, c = CIHUATETEO): number {
   return lerp(c.wispsEscort, c.wispsCrossroads, descentBlend(dusk, c));
 }
 
-/** Une chevelure : nombre de meches, longueurs, souplesse et souffle
- * propres, tires d'une graine. Deux porteuses n'ont jamais la meme. */
-export type HairStrand = { length: number; damping: number; windResponse: number; phase: number; speed: number; side: number };
+/** Une chevelure : des meches plantees sur le crane (angles `azimuth` et
+ * `tilt` sur une demi-sphere : arriere et cotes, jamais le visage), chacune
+ * avec sa longueur, sa souplesse, son souffle propres, tires d'une graine.
+ * Deux porteuses n'ont jamais la meme, et dans une chevelure deux meches
+ * ne bougent jamais pareil. */
+export type HairStrand = { azimuth: number; tilt: number; length: number; damping: number; windResponse: number; phase: number; speed: number };
 
 function hash(i: number, k: number): number {
   const v = Math.sin(i * 12.9898 + k * 78.233 + 4.2) * 43758.5453;
   return v - Math.floor(v);
 }
 
-export function bearerHair(seed: number): HairStrand[] {
-  const count = 6 + Math.floor(hash(seed, 1) * 4); // 6..9 meches
+export const HAIR_STRANDS = 90;
+
+export function bearerHair(seed: number, count = HAIR_STRANDS): HairStrand[] {
+  // Longueur de base propre a la porteuse : de la nuque aux reins.
+  const base = 0.55 + 0.3 * hash(seed, 1);
   return Array.from({ length: count }, (_, i) => {
-    const k = seed * 31 + i;
+    const k = seed * 131 + i;
     return {
-      length: 0.5 + 0.45 * hash(k, 2),
-      damping: 0.955 + 0.03 * hash(k, 3),
-      windResponse: 0.8 + 1.2 * hash(k, 4),
-      phase: hash(k, 5) * Math.PI * 2,
-      speed: 0.6 + 1.4 * hash(k, 6),
-      side: (i / Math.max(1, count - 1)) * 2 - 1,
+      // Arriere et cotes du crane : azimut de -94 a +94 deg autour de la nuque.
+      azimuth: Math.PI + (hash(k, 2) - 0.5) * (Math.PI * 1.05),
+      // De la couronne (tilt 0) a la ligne des oreilles (tilt ~75 deg).
+      tilt: 0.15 + hash(k, 3) * 1.15,
+      length: base * (0.7 + 0.5 * hash(k, 4)),
+      damping: 0.982 + 0.012 * hash(k, 5),
+      windResponse: 0.25 + 0.4 * hash(k, 6),
+      phase: hash(k, 7) * Math.PI * 2,
+      speed: 0.5 + 1.2 * hash(k, 8),
     };
   });
 }
