@@ -56,4 +56,30 @@ cacao est petit avec de grandes feuilles et des cabosses sur le tronc, le
 Pseudobombax a une ecorce verte marbree et des fleurs en pinceau, le colorin
 est tortueux avec des epis rouges.
 
-Cout estime : une soiree par arbre, plus une pour l'integration et le gel.
+## Fait le 07/09
+
+- `tools/blender/arbres-cardinaux.py` : un seul script, quatre especes
+  parametrees (hauteur, tronc, renflement, niveaux de branchement, feuille
+  simple ou palmee, fleurs, cabosses). Il exporte
+  `public/models/tree-<espece>.glb` et des rendus de controle.
+- Chaque GLB porte DEUX objets : `Wood` (tronc, branches, cabosses) et
+  `Foliage` (feuilles et fleurs), origine du feuillage au haut du tronc.
+  C'est ce qui permet au site de faire POUSSER le feuillage a part.
+- Tailles : jeunes sujets de 4,4 a 6 m (choix assume, un pochotl adulte fait
+  40 m). Poids apres deux passes d'allegement : cacao 6,8 k triangles,
+  colorin 25 k, pochotl 30 k, amapolli 33 k.
+- Signes retenus : cabosses sur le TRONC pour le cacao (cauliflorie, c'est
+  sa marque), epis rouges pour le colorin, fleurs en pinceau pour
+  l'amapolli, tronc renfle et houppier large pour le pochotl.
+- `src/lib/cardinal-trees.ts` (8 tests) : l'essence et la place de chaque
+  direction, aucune au Centre, et la pousse du feuillage (`foliageGrowth`).
+  Les azimuts evitent les DEUX regards qui comptent, l'ouverture (180) et
+  l'arrivee en bas de page (135) : sinon l'arbre se dresse derriere le cerf
+  (constate au Sud avant correction). Rayon 7 a 8 u.
+- `src/app/components/stag-scene/cardinal-tree.tsx` : charge le GLB de la
+  direction, met le feuillage a l'echelle avec le scroll, et a l'Est attend
+  le degel (l'arbre reste nu sous la glace, le dard le fait feuiller).
+
+Reste : mesurer les perfs sur une machine froide (les mesures du 07/09 au
+soir sont inutilisables : 6, 51 puis 19 images par seconde sur la meme page).
+

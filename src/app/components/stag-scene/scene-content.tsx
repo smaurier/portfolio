@@ -39,6 +39,7 @@ import Cihuateteo from "./cihuateteo";
 import WestLeaves from "./west-leaves";
 import FrostWorld from "./frost-world";
 import CopalBraziers from "./copal-braziers";
+import CardinalTree from "./cardinal-tree";
 import SunBeam from "./sun-beam";
 
 /**
@@ -111,6 +112,12 @@ export default function SceneContent({
               * Dans le repere du decor : poses sur le sol. */}
             <Suspense fallback={null}>
               <CopalBraziers />
+            </Suspense>
+            {/* L'arbre de la direction (07/09, Codex Fejervary-Mayer planche 1) :
+              * un par point cardinal, aucun au Centre ; son feuillage pousse
+              * avec le scroll et attend le degel a l'Est. */}
+            <Suspense fallback={null}>
+              <CardinalTree />
             </Suspense>
           </group>
           </CardinalOrientation>
