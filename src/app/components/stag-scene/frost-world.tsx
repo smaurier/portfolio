@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF, useTexture } from "@react-three/drei";
-import { AdditiveBlending, Bone, BoxGeometry, BufferAttribute, BufferGeometry, CircleGeometry, Color, ConeGeometry, CylinderGeometry, Euler, ExtrudeGeometry, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PlaneGeometry, Points, PointsMaterial, Quaternion, Shape, SkinnedMesh, Sprite, SpriteMaterial, TorusGeometry, Vector3 } from "three";
+import { AdditiveBlending, Bone, BufferAttribute, BufferGeometry, CircleGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Euler, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PlaneGeometry, Points, PointsMaterial, Quaternion, SkinnedMesh, Sprite, SpriteMaterial, Vector3 } from "three";
 import { initShard, stepShard, type Shard } from "@/lib/shards";
 import { beamAxis, eastSunDirection, morningStarDirection } from "@/lib/est-arc";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
@@ -34,6 +34,9 @@ import { useSceneRefs } from "./scene-refs-context";
 
 const STAG_PATH = "/models/stag.glb";
 const SMOKE_SPRITE = "/img/particles/smoke_07.png";
+/** La lance de feu du soleil : le tepoztopilli modelise dans Blender
+ * (tools/blender/tepoztopilli.py), axe +Y, face plate normale Z. */
+const SPEAR_PATH = "/models/tepoztopilli.glb";
 const PIEDRA_RADIUS = 3;
 const BREATHS = 3;
 const BREATH_PERIOD = 4.2;
@@ -58,6 +61,7 @@ const SPEAR_LAUNCH = 5.5;
 const SPEAR_FLAMES = 14;
 
 useGLTF.preload(STAG_PATH);
+useGLTF.preload(SPEAR_PATH);
 useTexture.preload(SMOKE_SPRITE);
 
 const ICE_COLOR = new Color("#c9dcf2");
@@ -122,83 +126,6 @@ function makeSpearGeometry(): BufferGeometry {
   const merged = mergeGeometries(parts, false);
   for (const g of parts) g.dispose();
   return merged ?? new BufferGeometry();
-}
-
-/** Le TEPOZTOPILLI de feu (07/09, Sylvain : « une arme historique de feu,
- * pas une fleche ») : la lance de guerre mexica, longue hampe et large
- * tete plate en feuille bordee de lames d'obsidienne enchassees (Codex
- * Mendoza ; cf docs/da/est-sources.md). Le long de +Z. Le bois et la tete
- * sont de braise (orange, plus chaud au coeur de la tete), les lames
- * d'obsidienne restent NOIRES : c'est ce contraste qui fait l'arme. Les
- * flammes sont des sprites accroches a la lance (flamesOn) plus la trainee.
- * Licence dite : la Leyenda parle de dards au propulseur ; la lance est
- * plus lisible a l'ecran. */
-function makeTepoztopilli(): { group: Group; flames: Sprite[] } {
-  const group = new Group();
-  const ember = new MeshBasicMaterial({ color: new Color("#ff7a1c"), fog: false, toneMapped: false });
-  const emberHot = new MeshBasicMaterial({ color: new Color("#ffd27a"), fog: false, toneMapped: false });
-  const obsidian = new MeshBasicMaterial({ color: new Color("#0a0608"), fog: false });
-  const binding = new MeshBasicMaterial({ color: new Color("#3a1408"), fog: false });
-  const add = (geo: BufferGeometry, mat: MeshBasicMaterial) => {
-    const m = new Mesh(geo, mat);
-    m.raycast = () => null;
-    m.renderOrder = 11;
-    group.add(m);
-    return m;
-  };
-  // La hampe : 2,6 u, un peu plus epaisse vers la tete.
-  const shaft = new CylinderGeometry(0.03, 0.024, 2.6, 10);
-  shaft.rotateX(Math.PI / 2);
-  add(shaft, ember);
-  // La tete : une feuille large et plate (0,85 u de long, 0,3 de large),
-  // extrudee, dans le plan XZ (on la voit de face quand elle descend).
-  const leaf = new Shape();
-  leaf.moveTo(0, 0.85);
-  leaf.quadraticCurveTo(0.16, 0.55, 0.15, 0.3);
-  leaf.lineTo(0.12, 0.02);
-  leaf.lineTo(0.05, -0.06);
-  leaf.lineTo(-0.05, -0.06);
-  leaf.lineTo(-0.12, 0.02);
-  leaf.lineTo(-0.15, 0.3);
-  leaf.quadraticCurveTo(-0.16, 0.55, 0, 0.85);
-  const head = new ExtrudeGeometry(leaf, { depth: 0.04, bevelEnabled: false });
-  head.translate(0, 0, -0.02);
-  head.rotateX(Math.PI / 2); // la feuille (plan XY) couchee dans le plan XZ, la pointe (y) vers +Z
-  head.translate(0, 0, 1.25);
-  add(head, ember);
-  // Le coeur de la tete, plus chaud : la meme feuille plus etroite, posee dessus.
-  const core = new ExtrudeGeometry(leaf, { depth: 0.01, bevelEnabled: false });
-  core.scale(0.55, 0.8, 1);
-  core.translate(0, 0.08, 0.03);
-  core.rotateX(Math.PI / 2);
-  core.translate(0, 0, 1.25);
-  add(core, emberHot);
-  // Les lames d'obsidienne : des dents noires enchassees le long des deux
-  // bords, en losange, du pied de la tete jusqu'a la pointe.
-  for (let side = -1; side <= 1; side += 2) {
-    for (let i = 0; i < 7; i++) {
-      const u = 0.06 + i * 0.1; // le long de la tete (0..0,85)
-      // Largeur du bord a cette hauteur (approximation de la feuille).
-      const half = u < 0.3 ? 0.12 + (u / 0.3) * 0.03 : 0.15 * (1 - ((u - 0.3) / 0.55) ** 1.4);
-      const tooth = new BoxGeometry(0.1, 0.05, 0.1);
-      tooth.rotateY(Math.PI / 4);
-      tooth.translate(side * (half + 0.05), 0, 1.25 + u);
-      add(tooth, obsidian);
-    }
-  }
-  // Les ligatures sous la tete : trois anneaux sombres.
-  for (let i = 0; i < 3; i++) {
-    const ring = new TorusGeometry(0.04, 0.012, 6, 14);
-    ring.translate(0, 0, 1.05 - i * 0.07);
-    add(ring, binding);
-  }
-  // Un pommeau de plumes courtes a l'arriere (bandes sombres).
-  const cap = new CylinderGeometry(0.045, 0.03, 0.18, 8);
-  cap.rotateX(Math.PI / 2);
-  cap.translate(0, 0, -1.25);
-  add(cap, binding);
-  const flames: Sprite[] = [];
-  return { group, flames };
 }
 
 /** La lame d'obsidienne courbe (Itztlacoliuhqui) : une section en losange
@@ -412,8 +339,40 @@ export default function FrostWorld() {
   }), [smokeTexture]);
   const flameTrail = useMemo(() => Array.from({ length: FLAMES }, () => new Vector3(0, -100, 0)), []);
   // La lance elle-meme (tepoztopilli) et les flammes qui la lechent.
+  const { scene: spearScene } = useGLTF(SPEAR_PATH);
   const spear = useMemo(() => {
-    const { group } = makeTepoztopilli();
+    const group = new Group();
+    // Le modele a son axe en +Y et la face plate de la tete en Z ; le groupe
+    // vole selon +Z avec Y vers la camera : un quart de tour autour de X.
+    const model = spearScene.clone(true);
+    model.rotation.x = Math.PI / 2;
+    group.add(model);
+    // Matieres de FEU par nom de partie : le bois et la tete sont de la
+    // braise (emissif anime chaque image), les lames d'obsidienne restent
+    // noires et luisantes, la virole et les ligatures sombres, les plumes
+    // rouge feu. Les materiaux du GLB ne servent qu'a nommer.
+    const ember = new MeshStandardMaterial({ color: new Color("#3a1204"), emissive: new Color("#ff6a12"), emissiveIntensity: 1.8, roughness: 0.6, fog: false });
+    const emberHead = new MeshStandardMaterial({ color: new Color("#4a1a06"), emissive: new Color("#ffb03a"), emissiveIntensity: 2.4, roughness: 0.5, fog: false });
+    const obsidian = new MeshStandardMaterial({ color: new Color("#07050a"), emissive: new Color("#2a0806"), emissiveIntensity: 0.6, roughness: 0.15, metalness: 0.2, fog: false });
+    const binding = new MeshStandardMaterial({ color: new Color("#1a0803"), emissive: new Color("#8a2a08"), emissiveIntensity: 1.0, roughness: 0.9, fog: false });
+    const feather = new MeshStandardMaterial({ color: new Color("#3a0604"), emissive: new Color("#ff3a10"), emissiveIntensity: 1.6, roughness: 0.8, side: DoubleSide, fog: false });
+    const emberMats = [ember, emberHead, binding, feather];
+    model.traverse((o) => {
+      const m = o as Mesh;
+      if (!m.isMesh) return;
+      m.raycast = () => null;
+      m.renderOrder = 11;
+      const mats = Array.isArray(m.material) ? m.material : [m.material];
+      m.material = mats.map((mat) => {
+        const name = (mat as MeshStandardMaterial).name;
+        if (name === "Obsidian") return obsidian;
+        if (name === "Head") return emberHead;
+        if (name === "Binding") return binding;
+        if (name === "Feather") return feather;
+        return ember;
+      });
+      if ((m.material as MeshStandardMaterial[]).length === 1) m.material = (m.material as MeshStandardMaterial[])[0];
+    });
     const flamesOn: { sprite: Sprite; z: number; r: number; a: number; seed: number }[] = [];
     for (let i = 0; i < SPEAR_FLAMES; i++) {
       const u = i / (SPEAR_FLAMES - 1);
@@ -422,11 +381,11 @@ export default function FrostWorld() {
       s.raycast = () => null;
       s.renderOrder = 10;
       group.add(s);
-      flamesOn.push({ sprite: s, z: -1.2 + u * 2.9, r: 0.06 + 0.1 * Math.random(), a: Math.random() * Math.PI * 2, seed: Math.random() * 10 });
+      flamesOn.push({ sprite: s, z: -1.1 + u * 3.0, r: 0.05 + 0.08 * Math.random(), a: Math.random() * Math.PI * 2, seed: Math.random() * 10 });
     }
     group.visible = false;
-    return { group, flamesOn };
-  }, [smokeTexture]);
+    return { group, flamesOn, emberMats };
+  }, [smokeTexture, spearScene]);
   const dartFrom = useMemo(() => new Vector3(), []);
   const spearX = useMemo(() => new Vector3(), []);
   const spearY = useMemo(() => new Vector3(), []);
@@ -668,12 +627,17 @@ export default function FrostWorld() {
         spearX.crossVectors(spearY, spearZ).normalize();
         spearBasis.makeBasis(spearX, spearY, spearZ);
         spear.group.quaternion.setFromRotationMatrix(spearBasis);
-        spear.group.scale.setScalar(1.5);
+        spear.group.scale.setScalar(1.0);
         spear.group.visible = true;
+        // La braise palpite.
+        const pulse = 0.8 + 0.2 * Math.sin(t * 19) + 0.1 * Math.sin(t * 31 + 1);
+        spear.emberMats[0].emissiveIntensity = 1.8 * pulse;
+        spear.emberMats[1].emissiveIntensity = 2.4 * pulse;
+        spear.emberMats[3].emissiveIntensity = 1.6 * pulse;
         for (const f of spear.flamesOn) {
           const fl = 0.7 + 0.3 * Math.sin(t * 23 + f.seed);
           f.sprite.position.set(Math.cos(f.a + t * 9) * f.r, Math.sin(f.a + t * 9) * f.r, f.z + Math.sin(t * 17 + f.seed) * 0.05);
-          f.sprite.scale.setScalar((f.z > 0.9 ? 0.55 : 0.32) * fl);
+          f.sprite.scale.setScalar((f.z > 1.2 ? 0.5 : 0.28) * fl);
           f.sprite.material.rotation = t * 4 + f.seed;
           f.sprite.material.opacity = 0.9 * fl;
         }
@@ -683,7 +647,7 @@ export default function FrostWorld() {
         flames.forEach((f, i) => {
           const u = i / (FLAMES - 1);
           f.position.copy(flameTrail[i]);
-          f.scale.setScalar(2.4 - 1.6 * u);
+          f.scale.setScalar(1.3 - 0.8 * u);
           f.material.rotation = t * 3 + i;
           f.material.opacity = flameTrail[i].y > -50 ? 1.0 * (1 - u * 0.8) : 0;
         });

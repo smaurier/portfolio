@@ -123,3 +123,9 @@ Idee forte retenue dans les fiches de scene (05/09) : LES DARDS DE L'AUBE.
   large tete plate en feuille bordee de lames d'obsidienne enchassees
   (Codex Mendoza, folios des guerriers ; Hassig, Aztec Warfare, 1988).
   Licence dite dans le code. https://en.wikipedia.org/wiki/Tepoztopilli
+- 07/09 : la lance est MODELISEE dans Blender par script
+  (tools/blender/tepoztopilli.py -> public/models/tepoztopilli.glb, 2300
+  triangles) : hampe conique, tete en feuille lenticulaire a arete
+  centrale, 8 lames d'obsidienne par bord en prismes barbeles, virole,
+  ligatures, 7 plumes sous la tete. Materiaux nommes (Wood, Head, Obsidian,
+  Binding, Feather) ; les matieres de feu sont posees sur le site.
