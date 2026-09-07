@@ -16,8 +16,8 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: #000;
-  color: #f2ece1;
+  background: var(--veil-solid);
+  color: var(--ink-warm);
   padding: 24px;
   text-align: center;
   opacity: 1;
@@ -164,7 +164,7 @@
 .translation {
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: 0.9rem;
-  color: #b3aabf;
+  color: var(--ink-muted);
   max-width: 46ch;
   position: relative;
   z-index: 1;
@@ -196,8 +196,8 @@
   0% {
     opacity: 0;
     text-shadow:
-      -3px 0 0 rgba(255, 60, 120, 0.8),
-      3px 0 0 rgba(80, 180, 255, 0.8);
+      -3px 0 0 rgba(var(--aberration-warm-rgb), 0.8),
+      3px 0 0 rgba(var(--aberration-cool-rgb), 0.8);
     filter: blur(1px);
   }
   60% {
@@ -207,8 +207,8 @@
   100% {
     opacity: 1;
     text-shadow:
-      -0.5px 0 0 rgba(255, 60, 120, 0.18),
-      0.5px 0 0 rgba(80, 180, 255, 0.18);
+      -0.5px 0 0 rgba(var(--aberration-warm-rgb), 0.18),
+      0.5px 0 0 rgba(var(--aberration-cool-rgb), 0.18);
     filter: blur(0);
   }
 }
@@ -217,8 +217,8 @@
   0% {
     opacity: 0;
     text-shadow:
-      -1.5px 0 0 rgba(255, 60, 120, 0.4),
-      1.5px 0 0 rgba(80, 180, 255, 0.4);
+      -1.5px 0 0 rgba(var(--aberration-warm-rgb), 0.4),
+      1.5px 0 0 rgba(var(--aberration-cool-rgb), 0.4);
     filter: blur(0.5px);
   }
   100% {
@@ -442,7 +442,7 @@
   width: calc(var(--dot-radius) * 2);
   height: calc(var(--dot-radius) * 2);
   border-radius: 50%;
-  border: 1px solid rgba(242, 236, 225, 0.35);
+  border: 1px solid rgba(var(--ink-warm-rgb), 0.35);
   transform: translate(-50%, -50%) scale(0.95);
   pointer-events: none;
 }
@@ -497,7 +497,7 @@
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: #f2ece1;
+  color: var(--ink-warm);
   z-index: 1;
   pointer-events: none;
 }
@@ -550,8 +550,8 @@
   0% {
     opacity: 0;
     text-shadow:
-      -1.5px 0 0 rgba(255, 60, 120, 0.5),
-      1.5px 0 0 rgba(80, 180, 255, 0.5);
+      -1.5px 0 0 rgba(var(--aberration-warm-rgb), 0.5),
+      1.5px 0 0 rgba(var(--aberration-cool-rgb), 0.5);
     filter: blur(0.5px);
     transform: translateY(4px);
   }

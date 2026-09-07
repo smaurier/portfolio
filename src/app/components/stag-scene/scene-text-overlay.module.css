@@ -30,12 +30,12 @@
   gap: 16px;
   max-width: 420px;
   text-align: left;
-  color: #f2ece1;
+  color: var(--ink-warm);
   /* Text-shadow subtile (RGAA 3.2 fix) — garantit contraste minimum
      texte crème sur canvas 3D dynamique, meme quand ambiances claires
      (Est dore, Xiuhtecuhtli embers) illuminent la zone. Halo noir
      translucide autour glyphes. */
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.55), 0 0 2px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 0 6px rgba(var(--shadow-rgb), 0.55), 0 0 2px rgba(var(--shadow-rgb), 0.7);
   transition: opacity 0.6s ease-out;
   pointer-events: auto;
 }
@@ -57,7 +57,7 @@
 .block p {
   font-size: 0.98rem;
   line-height: 1.6;
-  color: rgba(242, 236, 225, 0.78);
+  color: rgba(var(--ink-warm-rgb), 0.78);
   /* aboutText combine le hook (idée->produit) et la bio en deux paragraphes
      dans un seul champ dictionnaire (\n\n) plutôt que deux props séparées —
      pas besoin d'un deuxième slot dans HomeContent pour un seul bloc qui a
@@ -76,28 +76,28 @@
   display: inline-flex;
   align-self: flex-start;
   padding: 12px 26px;
-  border: 1px solid #f2ece1;
+  border: 1px solid var(--ink-warm);
   border-radius: 999px;
   font-weight: 600;
-  color: #f2ece1;
+  color: var(--ink-warm);
   transition: background 0.2s, color 0.2s;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .cta:hover {
-    background: #f2ece1;
-    color: #17151c;
+    background: var(--ink-warm);
+    color: var(--ink-on-warm);
   }
 }
 
 .secondaryLink {
   font-size: 0.9rem;
-  color: rgba(242, 236, 225, 0.75);
+  color: rgba(var(--ink-warm-rgb), 0.75);
   text-underline-offset: 3px;
 }
 
 .secondaryLink:hover {
-  color: #f2ece1;
+  color: var(--ink-warm);
 }
 
 /* Chapitres scroll-driven storytelling (28/08 task #63) — texte
@@ -107,7 +107,7 @@
   font-size: 0.75rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: #00c078;
+  color: var(--accent);
   opacity: 0.8;
   margin: 0 0 0.8rem;
   text-align: center;
@@ -117,7 +117,7 @@
 .chapterLine {
   font-family: var(--font-geist-sans), sans-serif;
   font-size: clamp(1.3rem, 2.4vw, 1.8rem);
-  color: #f4ead5;
+  color: var(--ink);
   line-height: 1.5;
   text-align: center;
   max-width: 640px;

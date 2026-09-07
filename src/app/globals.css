@@ -9,6 +9,45 @@
   --background: #0a0a0a;
   --foreground: #ededed;
   --font-geist: "Geist VF", sans-serif;
+  /* ==== Couleurs de l'interface, passees en tokens le 07/09 ================
+     Objectif : un thema clair (chantier « dualite dark/light ») ne doit
+     redefinir QUE ce bloc. Les canaux sont stockes a part (`-rgb`) parce que
+     l'interface utilise beaucoup ces couleurs avec des transparences :
+     `rgba(var(--ink-rgb), 0.25)` reste un remplacement mecanique.
+     Les cinq couleurs cardinales (plus haut) ne sont PAS ici : elles sont
+     volontairement identiques dans les deux themes et vivent aussi dans le
+     code 3D.
+     Deux familles cohabitent, heritees de l'historique : l'encre `--ink`
+     (#f4ead5) des panneaux de commande, et `--ink-warm` (#f2ece1) des textes
+     de scene ; de meme deux verts. Elles sont conservees telles quelles pour
+     que ce passage ne change aucun pixel ; les faire converger est une
+     decision de DA a prendre a part. */
+  --ink: #f4ead5;
+  --ink-rgb: 244, 234, 213;
+  --ink-warm: #f2ece1;
+  --ink-warm-rgb: 242, 236, 225;
+  --ink-invert: #0a0710;         /* texte sur fond d'encre (skip-nav) */
+  --ink-muted: #b3aabf;          /* texte secondaire du diaporama */
+  --ink-on-warm: #17151c;        /* texte sur fond ink-warm */
+  --panel-rgb: 15, 12, 22;       /* fond des panneaux de commande */
+  --panel-deep-rgb: 10, 8, 14;   /* panneau plus dense */
+  --panel-closure-rgb: 13, 12, 17; /* fond des cartes de fin de page */
+  --veil-rgb: 6, 4, 10;          /* voile plein ecran (boussole) */
+  --veil-soft-rgb: 6, 5, 10;     /* voile du panneau des traces */
+  --veil-core: #0a0710;          /* coeur du degrade d'intro */
+  --veil-solid: #000;            /* ecran d'intro, fond du canvas */
+  --shadow-rgb: 0, 0, 0;         /* ombres portees du texte de scene */
+  --accent: #00c078;             /* vert d'etat actif */
+  --accent-rgb: 0, 192, 120;
+  --accent-soft: #2fbf8f;        /* vert du cycle de chargement */
+  --accent-gold: #f0b25c;        /* or du cycle de chargement */
+  --gold-rgb: 212, 167, 71;      /* halo dore de l'intro */
+  --control-thumb: #fff;         /* curseur de reglage, masques */
+  --aberration-warm: #ff003c;    /* aberration chromatique, intro */
+  --aberration-cool: #00e0ff;
+  --aberration-warm-rgb: 255, 60, 120;  /* idem, diaporama */
+  --aberration-cool-rgb: 80, 180, 255;
+
   /* Palette des 5 points cardinaux (Codex Nahual section 03, cf memory
      project-nahual-da) — chacune a une teinte claire (thème light) et
      une teinte assombrie (thème dark, redéfinie dans @media plus bas).

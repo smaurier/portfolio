@@ -16,9 +16,9 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(244, 234, 213, 0.25);
-  background: rgba(15, 12, 22, 0.65);
-  color: #f4ead5;
+  border: 1px solid rgba(var(--ink-rgb), 0.25);
+  background: rgba(var(--panel-rgb), 0.65);
+  color: var(--ink);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -32,14 +32,14 @@
 .button:hover,
 .button:focus-visible {
   opacity: 1;
-  border-color: rgba(0, 192, 120, 0.6);
-  background: rgba(15, 12, 22, 0.85);
+  border-color: rgba(var(--accent-rgb), 0.6);
+  background: rgba(var(--panel-rgb), 0.85);
 }
 
 .button[aria-pressed="true"] {
   opacity: 0.95;
-  border-color: var(--direction-color, rgba(0, 192, 120, 0.8));
-  color: var(--direction-color, #00c078);
+  border-color: var(--direction-color, rgba(var(--accent-rgb), 0.8));
+  color: var(--direction-color, var(--accent));
 }
 
 .button svg {
@@ -58,7 +58,7 @@
   inset: 0;
   z-index: 9300;
   pointer-events: none;
-  background: #fff;
+  background: var(--control-thumb);
   opacity: 0;
   animation: sceneFlash 0.35s ease-out forwards;
 }
@@ -84,9 +84,9 @@
   gap: 0.6rem;
   padding: 0.55rem 0.9rem;
   border-radius: 999px;
-  border: 1px solid rgba(244, 234, 213, 0.25);
-  background: rgba(15, 12, 22, 0.85);
-  color: #f4ead5;
+  border: 1px solid rgba(var(--ink-rgb), 0.25);
+  background: rgba(var(--panel-rgb), 0.85);
+  color: var(--ink);
   font-size: 0.9rem;
   backdrop-filter: blur(8px);
   animation: sceneToastIn 0.25s ease-out;
@@ -99,7 +99,7 @@
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: rgba(0, 192, 120, 0.6);
+  text-decoration-color: rgba(var(--accent-rgb), 0.6);
   padding: 0;
 }
 .toastDismiss {
@@ -136,8 +136,8 @@
   .button {
     width: 48px;
     height: 48px;
-    background: rgba(15, 12, 22, 0.75);
-    border-color: rgba(0, 192, 120, 0.4);
+    background: rgba(var(--panel-rgb), 0.75);
+    border-color: rgba(var(--accent-rgb), 0.4);
     opacity: 1;
   }
 }

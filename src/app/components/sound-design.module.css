@@ -9,9 +9,9 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(244, 234, 213, 0.25);
-  background: rgba(15, 12, 22, 0.65);
-  color: #f4ead5;
+  border: 1px solid rgba(var(--ink-rgb), 0.25);
+  background: rgba(var(--panel-rgb), 0.65);
+  color: var(--ink);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -26,8 +26,8 @@
 .toggle:hover,
 .toggle:focus-visible {
   opacity: 1;
-  border-color: rgba(0, 192, 120, 0.6);
-  background: rgba(15, 12, 22, 0.85);
+  border-color: rgba(var(--accent-rgb), 0.6);
+  background: rgba(var(--panel-rgb), 0.85);
 }
 
 .toggle svg {
@@ -45,8 +45,8 @@
     left: 1rem;
     width: 48px;
     height: 48px;
-    background: rgba(15, 12, 22, 0.75);
-    border-color: rgba(0, 192, 120, 0.4);
+    background: rgba(var(--panel-rgb), 0.75);
+    border-color: rgba(var(--accent-rgb), 0.4);
     opacity: 1;
   }
 }
@@ -85,12 +85,12 @@
 .volume::-webkit-slider-runnable-track {
   height: 2px;
   border-radius: 2px;
-  background: rgba(244, 234, 213, 0.45);
+  background: rgba(var(--ink-rgb), 0.45);
 }
 .volume::-moz-range-track {
   height: 2px;
   border-radius: 2px;
-  background: rgba(244, 234, 213, 0.45);
+  background: rgba(var(--ink-rgb), 0.45);
 }
 .volume::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -99,14 +99,14 @@
   height: 10px;
   margin-top: -4px;
   border-radius: 50%;
-  background: #f4ead5;
+  background: var(--ink);
 }
 .volume::-moz-range-thumb {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   border: none;
-  background: #f4ead5;
+  background: var(--ink);
 }
 @media (max-width: 767px) {
   .dock {

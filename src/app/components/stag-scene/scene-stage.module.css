@@ -7,7 +7,7 @@
   position: fixed;
   inset: 0;
   z-index: 0;
-  background: #000;
+  background: var(--veil-solid);
 }
 
 /* Conteneur du contenu HTML de la page (soit vide pour la home, soit

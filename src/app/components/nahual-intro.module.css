@@ -12,7 +12,7 @@
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, #0a0710 0%, #000 70%);
+  background: radial-gradient(ellipse at center, var(--veil-core) 0%, var(--veil-solid) 70%);
   animation: overlayFade 6.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   will-change: opacity;
 }
@@ -30,7 +30,7 @@
   left: 0;
   right: 0;
   height: 100vh;
-  background: #000;
+  background: var(--veil-solid);
   z-index: 10000;
   pointer-events: none;
 }
@@ -70,7 +70,7 @@
   justify-content: center;
   pointer-events: none;
   gap: 2.5rem;
-  color: #f4ead5;
+  color: var(--ink);
 }
 
 /* Phrase char-by-char : chaque char apparait avec delay proportionnel
@@ -110,7 +110,7 @@
 .phraseTranslation .char {
   opacity: 0;
   transform: translateY(12px);
-  filter: drop-shadow(3px 0 0 #ff003c) drop-shadow(-3px 0 0 #00e0ff);
+  filter: drop-shadow(3px 0 0 var(--aberration-warm)) drop-shadow(-3px 0 0 var(--aberration-cool));
   animation: charReveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: calc(0.4s + var(--char-index) * 0.04s);
 }
@@ -122,12 +122,12 @@
   0% {
     opacity: 0;
     transform: translateY(12px);
-    filter: drop-shadow(3px 0 0 #ff003c) drop-shadow(-3px 0 0 #00e0ff);
+    filter: drop-shadow(3px 0 0 var(--aberration-warm)) drop-shadow(-3px 0 0 var(--aberration-cool));
   }
   60% {
     opacity: 1;
     transform: translateY(0);
-    filter: drop-shadow(1px 0 0 #ff003c) drop-shadow(-1px 0 0 #00e0ff);
+    filter: drop-shadow(1px 0 0 var(--aberration-warm)) drop-shadow(-1px 0 0 var(--aberration-cool));
   }
   100% {
     opacity: 1;
@@ -157,7 +157,7 @@
 .piedraWrap :global(img) {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0 40px rgba(212, 167, 71, 0.45));
+  filter: drop-shadow(0 0 40px rgba(var(--gold-rgb), 0.45));
 }
 
 @keyframes piedraIn {
@@ -258,8 +258,8 @@
   z-index: 10002;
   pointer-events: auto;
   background: transparent;
-  border: 1px solid rgba(244, 234, 213, 0.3);
-  color: #f4ead5;
+  border: 1px solid rgba(var(--ink-rgb), 0.3);
+  color: var(--ink);
   font-family: var(--font-geist-sans), sans-serif;
   font-size: 0.75rem;
   letter-spacing: 0.2em;
@@ -272,7 +272,7 @@
 .skip:hover,
 .skip:focus-visible {
   opacity: 1;
-  border-color: rgba(244, 234, 213, 0.6);
+  border-color: rgba(var(--ink-rgb), 0.6);
 }
 
 @media (prefers-reduced-motion: reduce) {

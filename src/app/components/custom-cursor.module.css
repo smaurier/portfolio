@@ -31,13 +31,13 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--cursor-color, #00c078);
+  background: var(--cursor-color, var(--accent));
   transform: translate(-50%, -50%);
   transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
               width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
               height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 12px var(--cursor-color, #00c078);
+  box-shadow: 0 0 12px var(--cursor-color, var(--accent));
   will-change: transform, background;
 }
 
@@ -47,7 +47,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid var(--cursor-color, #00c078);
+  border: 1px solid var(--cursor-color, var(--accent));
   transform: translate(-50%, -50%);
   transition: border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
               width 0.25s cubic-bezier(0.4, 0, 0.2, 1),

@@ -16,7 +16,7 @@
    pendant le chargement, le serpent est une ambiance, pas le sujet. */
 .serpent {
   fill: none;
-  stroke: #2fbf8f;
+  stroke: var(--accent-soft);
   stroke-width: 0.45;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -46,7 +46,7 @@
    valeur que la braise) plutôt qu'une animation de tracé dédiée. */
 .detail {
   fill: none;
-  stroke: #2fbf8f;
+  stroke: var(--accent-soft);
   stroke-width: 0.45;
   stroke-linecap: round;
   transition: opacity 0.3s ease-out;
@@ -63,7 +63,7 @@
    turquoise, la tête qui porte le feu. Sert aussi à lire "deux têtes qui
    avancent l'une vers l'autre" plutôt qu'un simple anneau qui s'épaissit. */
 .ember {
-  fill: #f0b25c;
+  fill: var(--accent-gold);
   transition: opacity 0.3s ease-out;
 }
 
