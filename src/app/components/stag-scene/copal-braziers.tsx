@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import { AdditiveBlending, Color, CylinderGeometry, Group, Mesh, MeshStandardMaterial, NormalBlending, Sprite, SpriteMaterial } from "three";
-import { brazierPositions, COPAL, copalIntensity, puffPose } from "@/lib/copal";
+import { brazierPositions, COPAL, copalIntensity, copalShows, puffPose } from "@/lib/copal";
 import { DIRECTION_COLOR_VIVID } from "./direction-colors";
 import { frostStore } from "./frost-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -88,7 +88,7 @@ export default function CopalBraziers() {
     if (!root) return;
     const p = sceneRefs?.progressRef.current ?? 0;
     const frost = frostStore.active ? frostStore.state.frost : 0;
-    const intensity = copalIntensity(p, frost);
+    const intensity = copalShows(direction) ? copalIntensity(p, frost) : 0;
     root.visible = intensity > 0.01;
     if (!root.visible) return;
     // La fumee prend un peu la teinte de la direction, sans la trahir.

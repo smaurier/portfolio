@@ -1,3 +1,5 @@
+import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+
 /**
  * Le COPAL (07/09, Sylvain : les lianes fleuries sont retirees, « j'aimerais
  * bien quelque chose qui reagit au scroll a la place et qui fonctionne
@@ -39,6 +41,16 @@ export function brazierPositions(c = COPAL): Brazier[] {
 
 function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
+/** Ou le copal brule (07/09, retour Sylvain « tu as mis le copal sur toutes
+ * les scenes ? Ce n'est pas bon ca ! ») : PAS AU NORD. Le Mictlan est le
+ * bassin, l'eau noire et le froid ; un feu orange y brulait au bord de l'eau,
+ * en plein royaume des morts. Ailleurs l'offrande a un sens : le foyer au
+ * Centre (Xiuhtecuhtli), l'aube a l'Est (les feux se rallument au degel), le
+ * midi au Sud, le couchant a l'Ouest. */
+export function copalShows(direction: DirectionKey): boolean {
+  return direction !== "obsidienne";
 }
 
 /** L'offrande : 0,15 au haut de la page, pleine en bas ; eteinte tant que

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brazierPositions, COPAL, copalIntensity, puffPose } from "./copal";
+import { brazierPositions, COPAL, copalIntensity, copalShows, puffPose } from "./copal";
 
 describe("brazierPositions : les braseros en bordure de la Piedra", () => {
   it("sont tous sur le meme cercle, hors du disque, et repartis", () => {
@@ -72,5 +72,14 @@ describe("puffPose : la fumee monte, s'ecarte et se dissipe", () => {
     const a = puffPose(0, 1, 1);
     const b = puffPose(1, 1, 1);
     expect(a.x === b.x && a.z === b.z).toBe(false);
+  });
+});
+
+describe("copalShows : pas de feu dans le bassin des morts", () => {
+  it("aucun brasero au Nord, mais partout ailleurs", () => {
+    expect(copalShows("obsidienne")).toBe(false);
+    for (const d of ["jade", "dore", "turquoise", "cendre"] as const) {
+      expect(copalShows(d)).toBe(true);
+    }
   });
 });
