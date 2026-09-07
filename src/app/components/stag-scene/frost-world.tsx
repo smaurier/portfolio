@@ -421,16 +421,16 @@ export default function FrostWorld() {
       explode(t);
     }
     if (!east || phase === "frozen") explodedRef.current = false;
-    // Le cabre : 0,15 s apres l'impact, monte en 0,45 s, tient 0,35 s,
-    // redescend en 0,9 s (Sylvain, 06/09 : « je l'imaginerais bien se cabrer
-    // juste apres l'explosion »). Pas de clip de cabre dans le modele :
-    // pose procedurale sur les os, dans stag-model.
+    // Le cabre : le temps d'une seconde (Sylvain, 07/09), puis il retrouve
+    // sa posture : 0,1 s apres l'impact, monte en 0,3 s, tient 0,15 s,
+    // redescend en 0,5 s. Pas de clip de cabre dans le modele : pose
+    // procedurale sur les os, dans stag-model.
     if (explodedRef.current && phase !== "refreeze" && !sceneRefs?.reducedMotionRef.current) {
-      const r = t - explodedAtRef.current - 0.15;
+      const r = t - explodedAtRef.current - 0.1;
       let rear = 0;
-      if (r > 0 && r < 0.45) { const u = r / 0.45; rear = 1 - (1 - u) * (1 - u); }
-      else if (r >= 0.45 && r < 0.8) rear = 1;
-      else if (r >= 0.8 && r < 1.7) { const u = (r - 0.8) / 0.9; rear = 1 - u * u * (3 - 2 * u); }
+      if (r > 0 && r < 0.3) { const u = r / 0.3; rear = 1 - (1 - u) * (1 - u); }
+      else if (r >= 0.3 && r < 0.45) rear = 1;
+      else if (r >= 0.45 && r < 0.95) { const u = (r - 0.45) / 0.5; rear = 1 - u * u * (3 - 2 * u); }
       frostStore.rear = rear;
     } else {
       frostStore.rear = 0;

@@ -42,10 +42,12 @@ const HEAD_BONE_NAME = "Head";
 // camera donnait un effet mecanique/possede desagreable. 20 % garde
 // l'idee "le cerf remarque le visiteur" sans caricature.
 const MAX_HEAD_TURN_BLEND = 0.2;
-/** Le cabre (06/09) : tangage par os autour de l'axe lateral du cerf,
- * en radians au sommet. Meme signe que le regard vers le soleil : positif
- * = la tete monte. Le buste se dresse, les pattes avant se replient (la
- * cuisse remonte vers le poitrail, le canon se plie en arriere). */
+/** Le cabre (06/09, sens corrige 07/09) : tangage par os autour de l'axe
+ * lateral du cerf, en radians au sommet. Sonde sur le squelette
+ * (.scratch/rear-probe.mjs) : avec REAR_SIGN = -1 la tete monte de 3,79 a
+ * 5,20 et les genoux avant passent au-dessus des hanches, l'arriere-train
+ * ne bouge pas ; avec +1 il s'inclinait (retour Sylvain). */
+const REAR_SIGN = -1;
 const REAR_POSE: { name: string; pitch: number }[] = [
   { name: "Torso", pitch: 0.55 },
   { name: "Torso2", pitch: 0.18 },
@@ -428,7 +430,7 @@ export default function StagModel({
           bone.updateWorldMatrix(true, false);
           bone.getWorldQuaternion(sunScratch.boneWorld).invert();
           sunScratch.axis.copy(sunScratch.right).applyQuaternion(sunScratch.boneWorld).normalize();
-          sunScratch.q.setFromAxisAngle(sunScratch.axis, REAR_POSE[i].pitch * amount * SUN_LOOK_SIGN);
+          sunScratch.q.setFromAxisAngle(sunScratch.axis, REAR_POSE[i].pitch * amount * REAR_SIGN);
           bone.quaternion.multiply(sunScratch.q);
           pose.applied[i].copy(bone.quaternion);
           pose.primed[i] = true;
