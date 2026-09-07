@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EAST_MILPA, eastMilpaPose, milpaRing } from "./milpa-frost";
+import { EAST_MILPA, eastMilpaPose, milpaPose, milpaRing } from "./milpa-frost";
 
 describe("milpaRing : a l'Est, la milpa passe du centre a la bordure de la Piedra", () => {
   it("garde les directions des plants du centre, mais au rayon de la bordure", () => {
@@ -62,5 +62,27 @@ describe("eastMilpaPose : gelee couchee et petite, elle ne se releve qu'apres le
     expect(mid.growth).toBeLessThan(1);
     expect(mid.bend).toBeGreaterThan(0);
     expect(mid.bend).toBeLessThan(EAST_MILPA.frozenBend);
+  });
+});
+
+describe("milpaPose : hors de l'Est, la flexion est ECRITE a zero", () => {
+  it("ailleurs : la pousse du scroll, aucune flexion, quel que soit le gel", () => {
+    for (const frost of [0, 0.5, 1]) {
+      const p = milpaPose(0.7, frost, false);
+      expect(p.growth).toBe(0.7);
+      expect(p.bend).toBe(0);
+    }
+  });
+
+  it("a l'Est : la pose gelee", () => {
+    const p = milpaPose(1, 1, true);
+    expect(p.bend).toBeCloseTo(EAST_MILPA.frozenBend, 6);
+    expect(p.growth).toBeCloseTo(EAST_MILPA.frozenGrowth, 6);
+  });
+
+  it("la scene persiste d'une page a l'autre : une valeur neutre est toujours rendue, jamais undefined", () => {
+    const p = milpaPose(0, 0, false);
+    expect(Number.isFinite(p.growth)).toBe(true);
+    expect(Number.isFinite(p.bend)).toBe(true);
   });
 });

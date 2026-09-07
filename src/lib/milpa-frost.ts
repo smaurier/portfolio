@@ -35,6 +35,17 @@ export function milpaRing(positions: [number, number][], c = EAST_MILPA): [numbe
 
 export type MilpaPose = { growth: number; bend: number };
 
+/** La pose d'un plant, PARTOUT. Un seul chemin de code : hors de l'Est la
+ * flexion vaut 0, elle n'est pas « laissee de cote ». La scene 3D persiste
+ * d'une page a l'autre (navigation SPA) : une rotation ecrite a l'Est et
+ * seulement ignoree ailleurs restait en place, et le mais restait couche sur
+ * toutes les pages visitees ensuite (bug trouve le 07/09, signale par
+ * Sylvain). Regle : dans une scene persistante, on ECRIT toujours la valeur
+ * neutre, on ne se contente jamais de sauter le calcul. */
+export function milpaPose(growth: number, frost: number, east: boolean, c = EAST_MILPA): MilpaPose {
+  return east ? eastMilpaPose(growth, frost, c) : { growth, bend: 0 };
+}
+
 /** La pose d'un plant a l'Est. `growth` : la pousse du scroll (0..1, lib
  * reveal-arc) ; `frost` : le gel du monde (1 gele, 0 degele). Sous le gel
  * la pousse du scroll est ignoree : le plant reste petit et couche ; au

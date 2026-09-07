@@ -3,7 +3,7 @@
 import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useCurrentDirection } from "./use-current-direction";
-import { EAST_MILPA, eastMilpaPose, milpaRing } from "@/lib/milpa-frost";
+import { milpaPose, milpaRing } from "@/lib/milpa-frost";
 import { frostStore } from "./frost-store";
 import { useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Group } from "three";
@@ -97,18 +97,16 @@ function MilpaStalk({
       // donc la tige émerge du sol plutôt que de rétrécir uniformément
       // dans toutes les directions.
       const scrollGrowth = getMilpaGrowth(progressRef.current, stagger);
-      if (east) {
-        // A l'Est, le gel commande : petite et couchee sous la glace, elle
-        // ne se releve et ne pousse qu'apres le degel (lib/milpa-frost).
-        const frost = frostStore.active ? frostStore.state.frost : 0;
-        const pose = eastMilpaPose(scrollGrowth, frost);
-        groupRef.current.scale.set(1, Math.max(0.001, pose.growth), 1);
-        // Couchee vers l'exterieur du cercle (le gel l'a pliee), chaque
-        // plant dans le sens ou il se trouve.
-        groupRef.current.rotation.set(Math.cos(bendAzimuth) * pose.bend, 0, -Math.sin(bendAzimuth) * pose.bend);
-      } else {
-        groupRef.current.scale.set(1, Math.max(0.001, scrollGrowth), 1);
-      }
+      // A l'Est, le gel commande : petite et couchee sous la glace, elle ne
+      // se releve et ne pousse qu'apres le degel. Ailleurs la flexion vaut 0.
+      // Un seul chemin de code, et la rotation est TOUJOURS ecrite : la scene
+      // persiste d'une page a l'autre, une rotation seulement ignoree restait
+      // en place et le mais restait couche partout (07/09).
+      const frost = east && frostStore.active ? frostStore.state.frost : 0;
+      const pose = milpaPose(scrollGrowth, frost, east);
+      groupRef.current.scale.set(1, Math.max(0.001, pose.growth), 1);
+      // Couchee vers l'exterieur du cercle, chaque plant dans son sens.
+      groupRef.current.rotation.set(Math.cos(bendAzimuth) * pose.bend, 0, -Math.sin(bendAzimuth) * pose.bend);
     }
   });
 
