@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF, useTexture } from "@react-three/drei";
-import { AdditiveBlending, Bone, BufferAttribute, BufferGeometry, CircleGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Euler, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PlaneGeometry, Points, PointsMaterial, Quaternion, SkinnedMesh, Sprite, SpriteMaterial, Vector3 } from "three";
+import { AdditiveBlending, Bone, BoxGeometry, BufferAttribute, BufferGeometry, CircleGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Euler, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PlaneGeometry, Points, PointsMaterial, Quaternion, SkinnedMesh, Sprite, SpriteMaterial, Vector3 } from "three";
 import { initShard, stepShard, type Shard } from "@/lib/shards";
 import { beamAxis, eastSunDirection, morningStarDirection } from "@/lib/est-arc";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
@@ -34,9 +34,10 @@ import { useSceneRefs } from "./scene-refs-context";
 
 const STAG_PATH = "/models/stag.glb";
 const SMOKE_SPRITE = "/img/particles/smoke_07.png";
-/** Le dard de feu du soleil : le tlacochtli (dard de propulseur) modelise
- * dans Blender (tools/blender/tlacochtli.py), axe +Y. */
-const DART_PATH = "/models/tlacochtli.glb";
+/** Le dard de feu (etat d'origine restaure le 07/09 a la demande de
+ * Sylvain : le modele Blender et ses flammes ne convenaient pas). Un trait
+ * de lumiere : une boite fine, matiere doree emissive. */
+const DART_LENGTH = 1.6;
 const PIEDRA_RADIUS = 3;
 const BREATHS = 3;
 const BREATH_PERIOD = 4.2;
@@ -53,15 +54,13 @@ const POWDER = 360;
 const SKY_RADIUS = 18;
 const VOLLEY = 7;
 const DARTS_KEY = "nahual-dawn-darts-v1";
-const FLAMES = 8;
-/** D'ou part le dard sur l'axe du rayon (u). Le sommet du rayon (18 u) est
- * hors cadre ; a 5,5 u il partait encore a 4,9 u de haut, donc derriere le
- * bandeau de navigation pendant presque tout son vol (07/09). A 3,2 u il
- * nait a 2,8 u de haut : dans le cadre, au-dessus des bois du cerf. */
-const SPEAR_LAUNCH = 3.2;
+/** D'ou part le dard du soleil : sur l'axe du puits de lumiere, comme les
+ * rayons divins (Sylvain, 07/09 : « fait le juste arriver du meme endroit
+ * que les rayons divins »). Le sommet du rayon (18 u) est hors cadre ; a
+ * 6 u le dard nait a 5,3 u de haut, dans l'axe visible du puits. */
+const DART_LAUNCH = 6;
 
 useGLTF.preload(STAG_PATH);
-useGLTF.preload(DART_PATH);
 useTexture.preload(SMOKE_SPRITE);
 
 const ICE_COLOR = new Color("#c9dcf2");
@@ -262,37 +261,16 @@ export default function FrostWorld() {
   // Les dards : de fines hampes lumineuses (InstancedMesh), la volee de
   // Venus (si elle est reellement du matin, sinon une fois sur trois) et le
   // dard du soleil, toujours.
-  // Le dard modelise (GLB), et sa matiere : celle du tout premier dard de
-  // feu (Sylvain, 07/09 : « de la meme matiere que celui d'origine, il ne
-  // manquait pas grand-chose ») : une lueur doree, emissive, presque pleine.
-  const { scene: dartScene } = useGLTF(DART_PATH);
-  const dartMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#fff1c8"), emissive: new Color("#ffb347"), emissiveIntensity: 0.45, transparent: true, opacity: 0.95, fog: false }), []);
-  // Meme matiere, teintes par partie pour que la silhouette se lise dans
-  // l'axe du vol : la pointe d'obsidienne plus sombre et plus rouge, les
-  // pennes un peu transparentes.
-  const dartPointMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#3a1408"), emissive: new Color("#ff4a12"), emissiveIntensity: 1.6, transparent: true, opacity: 0.95, fog: false }), []);
-  const dartFletchMaterial = useMemo(() => new MeshStandardMaterial({ color: new Color("#ffd9a0"), emissive: new Color("#ff8a2a"), emissiveIntensity: 0.5, transparent: true, opacity: 0.6, fog: false, side: DoubleSide }), []);
-  const makeDart = useMemo(() => () => {
-    const g = new Group();
-    const model = dartScene.clone(true);
-    model.rotation.x = Math.PI / 2; // axe +Y du modele -> +Z du vol
-    model.traverse((o) => {
-      const m = o as Mesh;
-      if (!m.isMesh) return;
-      const mats = Array.isArray(m.material) ? m.material : [m.material];
-      const mapped = mats.map((mat) => {
-        const name = (mat as MeshStandardMaterial).name;
-        return name === "Point" ? dartPointMaterial : name === "Fletch" ? dartFletchMaterial : dartMaterial;
-      });
-      m.material = mapped.length === 1 ? mapped[0] : mapped;
-      m.raycast = () => null;
-      m.renderOrder = 11;
-    });
-    g.add(model);
-    g.visible = false;
-    return g;
-  }, [dartScene, dartMaterial, dartPointMaterial, dartFletchMaterial]);
-  const volley = useMemo(() => Array.from({ length: VOLLEY }, () => makeDart()), [makeDart]);
+  const dartMesh = useMemo(() => {
+    const geo = new BoxGeometry(0.05, 0.05, DART_LENGTH);
+    const mat = new MeshStandardMaterial({ color: new Color("#fff1c8"), emissive: new Color("#ffb347"), emissiveIntensity: 2.2, transparent: true, opacity: 0.95, fog: false });
+    const mesh = new InstancedMesh(geo, mat, VOLLEY + 1);
+    mesh.count = 0;
+    mesh.frustumCulled = false;
+    mesh.raycast = () => null;
+    mesh.renderOrder = 11;
+    return mesh;
+  }, []);
   const volleyShows = useMemo(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -311,28 +289,7 @@ export default function FrostWorld() {
     m.visible = false;
     return m;
   }, []);
-  // Les flammes de la lance du soleil : une trainee de sprites sur ses
-  // dernieres positions, du jaune au rouge, qui s'eteint derriere elle.
-  const flames = useMemo(() => Array.from({ length: FLAMES }, (_, k) => {
-    const u = k / (FLAMES - 1);
-    const s = new Sprite(new SpriteMaterial({ map: smokeTexture, color: new Color().setRGB(1, 0.75 - 0.55 * u, 0.25 - 0.2 * u), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }));
-    s.raycast = () => null;
-    s.renderOrder = 10;
-    return s;
-  }), [smokeTexture]);
-  const flameTrail = useMemo(() => Array.from({ length: FLAMES }, () => new Vector3(0, -100, 0)), []);
-  // La lance elle-meme (tepoztopilli) et les flammes qui la lechent.
-  const spear = useMemo(() => {
-    const group = makeDart();
-    const flamesOn: { sprite: Sprite; z: number; r: number; a: number; seed: number }[] = []; // plus de flammes accrochees (07/09 : elles cachaient le modele en une barre)
-    group.visible = false;
-    return { group, flamesOn };
-  }, [makeDart]);
   const dartFrom = useMemo(() => new Vector3(), []);
-  const spearX = useMemo(() => new Vector3(), []);
-  const spearY = useMemo(() => new Vector3(), []);
-  const spearZ = useMemo(() => new Vector3(), []);
-  const spearBasis = useMemo(() => new Matrix4(), []);
   const dartTo = useMemo(() => new Vector3(), []);
   const dartDir = useMemo(() => new Vector3(), []);
   const explodedRef = useRef(false);
@@ -351,26 +308,21 @@ export default function FrostWorld() {
     root.add(powder.pts);
     root.add(flash);
     root.add(blade);
-    root.add(spear.group);
-    for (const d of volley) root.add(d);
-    for (const f of flames) root.add(f);
+    root.add(dartMesh);
     return () => {
-      root.remove(spear.group);
-      for (const d of volley) root.remove(d);
       root.remove(shardMesh);
       root.remove(powder.pts);
       root.remove(flash);
       root.remove(blade);
-      for (const f of flames) root.remove(f);
+      root.remove(dartMesh);
     };
-  }, [shardMesh, powder, flash, blade, flames, spear, volley]);
+  }, [shardMesh, powder, flash, blade, dartMesh]);
   useEffect(() => () => {
-    dartMaterial.dispose();
-    dartPointMaterial.dispose();
-    dartFletchMaterial.dispose();
+    dartMesh.geometry.dispose();
+    (dartMesh.material as MeshStandardMaterial).dispose();
     blade.geometry.dispose();
     (blade.material as MeshStandardMaterial).dispose();
-  }, [dartMaterial, dartPointMaterial, dartFletchMaterial, blade]);
+  }, [dartMesh, blade]);
   useEffect(() => () => {
     shardMesh.geometry.dispose();
     shardMaterial.dispose();
@@ -479,21 +431,20 @@ export default function FrostWorld() {
     if (east && !warmedRef.current) {
       warmedRef.current = true;
       tmpMatrix.compose(tmpPos.set(0, -200, 0), tmpQuat.identity(), tmpScale.set(1, 1, 1));
-      for (const d of volley) { d.position.set(0, -200, 0); d.visible = true; }
+      dartMesh.setMatrixAt(0, tmpMatrix);
+      dartMesh.count = 1;
+      dartMesh.instanceMatrix.needsUpdate = true;
+      dartMesh.visible = true;
       shardMesh.setMatrixAt(0, tmpMatrix);
       shardMesh.count = 1;
       shardMesh.instanceMatrix.needsUpdate = true;
       shardMesh.visible = true;
       powder.pts.visible = true;
-      for (const f of flames) { f.position.set(0, -200, 0); f.material.opacity = 0.01; }
       flash.position.set(0, -200, 0);
       flash.material.opacity = 0.01;
       flash.visible = true;
       blade.position.set(0, -200, 0);
       blade.visible = true;
-      spear.group.position.set(0, -200, 0);
-      spear.group.visible = true;
-      for (const f of spear.flamesOn) f.sprite.material.opacity = 0.01;
       root.visible = true;
       return;
     }
@@ -531,7 +482,7 @@ export default function FrostWorld() {
       const p = sceneRefs?.progressRef.current ?? 0;
       const sun = eastSunDirection(Math.max(p, FROST.shatterAt));
       const venus = morningStarDirection();
-      for (const d of volley) d.visible = false;
+      let n = 0;
       if (volleyShows) {
         for (let i = 0; i < VOLLEY; i++) {
           const start = i * 0.045;
@@ -542,61 +493,31 @@ export default function FrostWorld() {
           dartTo.set(cam.x + sun.x * SKY_RADIUS, cam.y + sun.y * SKY_RADIUS + 0.4, cam.z + sun.z * SKY_RADIUS);
           tmpPos.lerpVectors(dartFrom, dartTo, k);
           dartDir.subVectors(dartTo, dartFrom).normalize();
-          const d = volley[i];
-          d.position.copy(tmpPos);
-          d.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), dartDir);
-          d.scale.setScalar(1); // les dards de Venus aussi : taille reelle
-          d.visible = true;
+          tmpQuat.setFromUnitVectors(new Vector3(0, 0, 1), dartDir);
+          tmpMatrix.compose(tmpPos, tmpQuat, tmpScale.set(1.4, 1.4, 2.2));
+          dartMesh.setMatrixAt(n++, tmpMatrix);
         }
       }
-      // La reponse du soleil : UNE lance de feu, du sommet du puits de
-      // lumiere (meme axe que sun-beam) vers le point d'impact, avec sa
-      // trainee de flammes.
+      // La reponse du soleil : un seul dard, lance du meme endroit que les
+      // rayons divins (l'axe du puits de lumiere, cf est-arc.beamAxis).
       const k = (dartsK - 0.55) / 0.4;
       if (k > 0 && k < 1) {
         stagScene.getWorldPosition(dartTo);
         dartTo.y += 1.0;
         const ax = beamAxis(p);
-        dartFrom.set(ax.x * SPEAR_LAUNCH, ax.y * SPEAR_LAUNCH, ax.z * SPEAR_LAUNCH);
-        tmpPos.lerpVectors(dartFrom, dartTo, Math.pow(k, 1.3));
+        dartFrom.set(ax.x * DART_LAUNCH, ax.y * DART_LAUNCH, ax.z * DART_LAUNCH);
+        tmpPos.lerpVectors(dartFrom, dartTo, k * k);
         dartDir.subVectors(dartTo, dartFrom).normalize();
-        spear.group.position.copy(tmpPos);
-        // La face plate de la tete (plan XZ local, normale Y) regarde la
-        // camera : base orthonormee z = direction du vol, y = vers la camera.
-        spearZ.copy(dartDir);
-        spearY.copy(cam).sub(tmpPos);
-        spearY.addScaledVector(spearZ, -spearY.dot(spearZ)).normalize();
-        spearX.crossVectors(spearY, spearZ).normalize();
-        spearBasis.makeBasis(spearX, spearY, spearZ);
-        spear.group.quaternion.setFromRotationMatrix(spearBasis);
-        spear.group.scale.setScalar(1); // taille reelle du modele (1,68 m) : pas de redimensionnement (Sylvain, 07/09)
-        spear.group.visible = true;
-        for (const f of spear.flamesOn) {
-          const fl = 0.7 + 0.3 * Math.sin(t * 23 + f.seed);
-          f.sprite.position.set(Math.cos(f.a + t * 9) * f.r, Math.sin(f.a + t * 9) * f.r, f.z + Math.sin(t * 17 + f.seed) * 0.05);
-          f.sprite.scale.setScalar((f.z > 0.6 ? 0.42 : 0.22) * fl);
-          f.sprite.material.rotation = t * 4 + f.seed;
-          f.sprite.material.opacity = 0.9 * fl;
-        }
-        // La trainee : on decale l'historique et on pose la position du moment.
-        for (let i = FLAMES - 1; i > 0; i--) flameTrail[i].copy(flameTrail[i - 1]);
-        flameTrail[0].copy(tmpPos).addScaledVector(dartDir, -0.7);
-        flames.forEach((f, i) => {
-          const u = i / (FLAMES - 1);
-          f.position.copy(flameTrail[i]);
-          f.scale.setScalar(0.09 - 0.06 * u); // un sillage fin (07/09 : 8 sprites de 0,42 u superposes faisaient une barre)
-          f.material.rotation = t * 3 + i;
-          f.material.opacity = flameTrail[i].y > -50 ? 0.42 * (1 - u * 0.8) : 0;
-        });
-      } else {
-        spear.group.visible = false;
-        for (const f of flames) f.material.opacity = 0;
-        if (k >= 1 || dartsK < 0.55) for (const v of flameTrail) v.set(0, -100, 0);
+        tmpQuat.setFromUnitVectors(new Vector3(0, 0, 1), dartDir);
+        const near = 1 + 1.5 * (1 - k);
+        tmpMatrix.compose(tmpPos, tmpQuat, tmpScale.set(near, near, near * 1.6));
+        dartMesh.setMatrixAt(n++, tmpMatrix);
       }
+      dartMesh.count = n;
+      dartMesh.instanceMatrix.needsUpdate = true;
+      dartMesh.visible = n > 0;
     } else {
-      for (const d of volley) d.visible = false;
-      spear.group.visible = false;
-      for (const f of flames) f.material.opacity = 0;
+      dartMesh.visible = false;
     }
 
     // La lame d'obsidienne courbe : Tlahuizcalpantecuhtli change en

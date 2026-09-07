@@ -123,13 +123,15 @@ Idee forte retenue dans les fiches de scene (05/09) : LES DARDS DE L'AUBE.
   large tete plate en feuille bordee de lames d'obsidienne enchassees
   (Codex Mendoza, folios des guerriers ; Hassig, Aztec Warfare, 1988).
   Licence dite dans le code. https://en.wikipedia.org/wiki/Tepoztopilli
-- 07/09, etat final : c'est un DARD (tlacochtli), comme la Leyenda le dit,
-  et non une lance : tools/blender/tlacochtli.py ->
-  public/models/tlacochtli.glb (2208 triangles). PROPORTIONS HISTORIQUES,
-  echelle 1 u = 1 m, aucun grossissement pour la lisibilite : hampe de
-  1,68 m et 1,2 a 1,5 cm de diametre, pointe d'obsidienne taillee de 14 cm
-  sur 5,8 cm (arete centrale, bords irreguliers), ligatures sous la pointe
-  et a l'empennage, trois pennes de 22 cm, encoche. Materiaux nommes
-  (Shaft, Point, Binding, Fletch) ; les matieres de feu sont posees sur le
-  site. Sources des dimensions : dards d'atlatl mesoamericains de 1,5 a 2 m,
-  pointes de 10 a 15 cm (Hassig, Aztec Warfare ; collections MNA).
+- 07/09, ETAT FINAL : le dard reste celui du premier jet, un TRAIT DE
+  LUMIERE (boite fine 5 x 5 cm sur 1,6 m, matiere doree emissive), et non
+  un modele detaille. Deux essais modelises dans Blender ont ete faits puis
+  ECARTES par Sylvain (« c'est nul, une fleche », « catastrophe ») : une
+  lance tepoztopilli, puis un dard tlacochtli aux proportions historiques
+  (hampe 1,68 m, pointe d'obsidienne 14 x 5,8 cm, ligatures, trois pennes).
+  Les scripts et les GLB sont recuperables dans l'historique git
+  (tools/blender/tepoztopilli.py, tools/blender/tlacochtli.py). LECON : a
+  cette echelle et sous ce bloom, un objet detaille se lit moins bien qu'un
+  trait ; le detail se perd et la lueur l'epaissit.
+- Le dard du soleil part du meme endroit que les rayons divins : l'axe du
+  puits de lumiere (est-arc.beamAxis) a 6 u, pas du soleil a l'horizon.
