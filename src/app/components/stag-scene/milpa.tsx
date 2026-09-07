@@ -3,6 +3,8 @@
 import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useCurrentDirection } from "./use-current-direction";
+import { EAST_MILPA, eastMilpaPose, milpaRing } from "@/lib/milpa-frost";
+import { frostStore } from "./frost-store";
 import { useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Group } from "three";
 import { getMilpaGrowth } from "@/lib/reveal-arc";
@@ -47,21 +49,31 @@ function staggerForIndex(index: number): number {
   return (index * GOLDEN_RATIO_CONJUGATE) % 1;
 }
 
+/** Les positions du centre reportees sur la bordure de la Piedra : a l'Est
+ * SEULEMENT (07/09, Sylvain : ailleurs les plants du centre habillent le
+ * cerf de motifs vegetaux, c'est l'intention de depart). */
+const EAST_RING_POSITIONS = milpaRing(MIDGROUND_POSITIONS);
+
 function MilpaStalk({
   x,
   z,
   stagger,
   progressRef,
+  east = false,
 }: {
   x: number;
   z: number;
   stagger: number;
   progressRef: MutableRefObject<number>;
+  /** A l'Est : gelee, couchee et petite tant que le monde n'a pas degele. */
+  east?: boolean;
 }) {
   const { scene } = useGLTF(MODEL_PATH);
   const clone = useMemo(() => scene.clone(true), [scene]);
   const groupRef = useRef<Group>(null);
   const normalizedRef = useRef(false);
+  // L'azimut du plant : le sens dans lequel le gel l'a couche (vers l'exterieur).
+  const bendAzimuth = useMemo(() => Math.atan2(x, z), [x, z]);
 
   useFrame(() => {
     // Recadrage par bounding box, une fois, dans useFrame plutôt
@@ -84,8 +96,19 @@ function MilpaStalk({
       // reste ancrée au sol (position déjà recentrée sur y=0 ci-dessus),
       // donc la tige émerge du sol plutôt que de rétrécir uniformément
       // dans toutes les directions.
-      const growth = Math.max(0.001, getMilpaGrowth(progressRef.current, stagger));
-      groupRef.current.scale.set(1, growth, 1);
+      const scrollGrowth = getMilpaGrowth(progressRef.current, stagger);
+      if (east) {
+        // A l'Est, le gel commande : petite et couchee sous la glace, elle
+        // ne se releve et ne pousse qu'apres le degel (lib/milpa-frost).
+        const frost = frostStore.active ? frostStore.state.frost : 0;
+        const pose = eastMilpaPose(scrollGrowth, frost);
+        groupRef.current.scale.set(1, Math.max(0.001, pose.growth), 1);
+        // Couchee vers l'exterieur du cercle (le gel l'a pliee), chaque
+        // plant dans le sens ou il se trouve.
+        groupRef.current.rotation.set(Math.cos(bendAzimuth) * pose.bend, 0, -Math.sin(bendAzimuth) * pose.bend);
+      } else {
+        groupRef.current.scale.set(1, Math.max(0.001, scrollGrowth), 1);
+      }
     }
   });
 
@@ -107,6 +130,7 @@ export default function Milpa({ progressRef }: { progressRef: MutableRefObject<n
   // les plantes du bassin") : la milpa se retracte au Nord (fondu par
   // l'echelle), reste partout ailleurs.
   const direction = useCurrentDirection();
+  const east = direction === "dore";
   const northFadeRef = useRef(direction === "obsidienne" ? 0 : 1);
   const rootRef = useRef<Group>(null);
   useFrame(() => {
@@ -119,13 +143,14 @@ export default function Milpa({ progressRef }: { progressRef: MutableRefObject<n
   });
   return (
     <group ref={rootRef}>
-      {MIDGROUND_POSITIONS.map(([x, z], i) => (
+      {(east ? EAST_RING_POSITIONS : MIDGROUND_POSITIONS).map(([x, z], i) => (
         <MilpaStalk
           key={`mid-${i}`}
           x={x}
           z={z}
           stagger={staggerForIndex(i)}
           progressRef={progressRef}
+          east={east}
         />
       ))}
       {FOREGROUND_POSITIONS.map(([x, z], i) => (
@@ -137,6 +162,7 @@ export default function Milpa({ progressRef }: { progressRef: MutableRefObject<n
           // pour ne pas retomber sur les mêmes valeurs de stagger.
           stagger={staggerForIndex(MIDGROUND_POSITIONS.length + i)}
           progressRef={progressRef}
+          east={east}
         />
       ))}
     </group>

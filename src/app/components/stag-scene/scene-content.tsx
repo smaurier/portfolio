@@ -34,11 +34,11 @@ import FurShells from "./fur-shells";
 import CempasuchilPath from "./cempasuchil-path";
 import MictlanMist from "./mictlan-mist";
 import StagModel from "./stag-model";
-import Vines from "./vines";
 import { useCurrentDirection } from "./use-current-direction";
 import Cihuateteo from "./cihuateteo";
 import WestLeaves from "./west-leaves";
 import FrostWorld from "./frost-world";
+import CopalBraziers from "./copal-braziers";
 import SunBeam from "./sun-beam";
 
 /**
@@ -106,6 +106,12 @@ export default function SceneContent({
             <Suspense fallback={null}>
               <Grass />
             </Suspense>
+            {/* Le copal (07/09) : braseros au bord de la Piedra, la fumee de
+              * l'offrande monte avec le scroll. Remplace les lianes fleuries.
+              * Dans le repere du decor : poses sur le sol. */}
+            <Suspense fallback={null}>
+              <CopalBraziers />
+            </Suspense>
           </group>
           </CardinalOrientation>
         </EnvironmentDepthFade>
@@ -119,9 +125,6 @@ export default function SceneContent({
         </Suspense>
         <Suspense fallback={null}>
           <Milpa progressRef={progressRef} />
-        </Suspense>
-        <Suspense fallback={null}>
-          <Vines progressRef={progressRef} />
         </Suspense>
       </CursorRevealScene>
       {/* Le monde gele de l'Est (06/09) : givre sur tout, coque de glace du
