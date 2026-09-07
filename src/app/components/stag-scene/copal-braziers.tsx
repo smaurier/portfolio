@@ -14,9 +14,22 @@ import { useSceneRefs } from "./scene-refs-context";
 /**
  * CopalBraziers (07/09) : cinq braseros au bord de la Piedra. Le copalli
  * brule ; sa fumee monte plus haut a mesure qu'on descend la page (lib
- * copal : l'offrande monte avec le jour), teintee par direction. A l'Est
- * les feux sont eteints sous le gel et se rallument au degel. Remplace les
- * lianes fleuries (retirees le 07/09).
+ * copal : l'offrande monte avec le jour), teintee par direction.
+ *
+ * ⚠️ DEMONTE DES SCENES le 07/09 (Sylvain : « je trouve que le copal est de
+ * trop sur les scenes »), et il avait raison : une offrande qui monte avec
+ * le jour ne dit rien de la direction ou elle se trouve, alors que la regle
+ * du site est UNE idee forte par scene ; cinq colonnes de fumee posees sur
+ * la bordure de la Piedra ajoutaient du bruit autour du cerf et des
+ * gravures ; et le feu est deja pris ailleurs, avec une raison a chaque
+ * fois (l'anneau du Sud, les braises des porteuses a l'Ouest, la braise de
+ * Xolotl au Nord).
+ *
+ * GARDE EN RESERVE pour le chantier du CENTRE (Xiuhtecuhtli, le dieu du
+ * feu) : la, des braseros autour du foyer ne sont plus un ornement mais le
+ * sujet, et le Codex Fejervary-Mayer place justement le feu au milieu des
+ * quatre arbres. Pour le remonter : <CopalBraziers /> dans scene-content, a
+ * l'interieur de CardinalOrientation, et restreindre copalShows a jade.
  *
  * Vit dans le repere du decor tourne (CardinalOrientation) : les braseros
  * sont poses sur le sol, comme les pierres de l'annee.

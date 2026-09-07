@@ -38,7 +38,6 @@ import { useCurrentDirection } from "./use-current-direction";
 import Cihuateteo from "./cihuateteo";
 import WestLeaves from "./west-leaves";
 import FrostWorld from "./frost-world";
-import CopalBraziers from "./copal-braziers";
 import SunBeam from "./sun-beam";
 
 /**
@@ -105,12 +104,6 @@ export default function SceneContent({
             </Suspense>
             <Suspense fallback={null}>
               <Grass />
-            </Suspense>
-            {/* Le copal (07/09) : braseros au bord de la Piedra, la fumee de
-              * l'offrande monte avec le scroll. Remplace les lianes fleuries.
-              * Dans le repere du decor : poses sur le sol. */}
-            <Suspense fallback={null}>
-              <CopalBraziers />
             </Suspense>
           </group>
           </CardinalOrientation>
