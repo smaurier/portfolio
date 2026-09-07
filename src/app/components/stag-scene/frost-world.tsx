@@ -38,6 +38,9 @@ const SMOKE_SPRITE = "/img/particles/smoke_07.png";
  * Sylvain : le modele Blender et ses flammes ne convenaient pas). Un trait
  * de lumiere : une boite fine, matiere doree emissive. */
 const DART_LENGTH = 1.6;
+/** Section du dard (m). 5 cm -> 2,2 cm (Sylvain, 07/09 : « quelque chose
+ * d'encore plus fin ») : un trait, pas une barre. */
+const DART_THICK = 0.022;
 const PIEDRA_RADIUS = 3;
 const BREATHS = 3;
 const BREATH_PERIOD = 4.2;
@@ -262,8 +265,8 @@ export default function FrostWorld() {
   // Venus (si elle est reellement du matin, sinon une fois sur trois) et le
   // dard du soleil, toujours.
   const dartMesh = useMemo(() => {
-    const geo = new BoxGeometry(0.05, 0.05, DART_LENGTH);
-    const mat = new MeshStandardMaterial({ color: new Color("#fff1c8"), emissive: new Color("#ffb347"), emissiveIntensity: 2.2, transparent: true, opacity: 0.95, fog: false });
+    const geo = new BoxGeometry(DART_THICK, DART_THICK, DART_LENGTH);
+    const mat = new MeshStandardMaterial({ color: new Color("#fff1c8"), emissive: new Color("#ffb347"), emissiveIntensity: 1.7, transparent: true, opacity: 0.95, fog: false });
     const mesh = new InstancedMesh(geo, mat, VOLLEY + 1);
     mesh.count = 0;
     mesh.frustumCulled = false;
@@ -494,7 +497,7 @@ export default function FrostWorld() {
           tmpPos.lerpVectors(dartFrom, dartTo, k);
           dartDir.subVectors(dartTo, dartFrom).normalize();
           tmpQuat.setFromUnitVectors(new Vector3(0, 0, 1), dartDir);
-          tmpMatrix.compose(tmpPos, tmpQuat, tmpScale.set(1.4, 1.4, 2.2));
+          tmpMatrix.compose(tmpPos, tmpQuat, tmpScale.set(1, 1, 2.2));
           dartMesh.setMatrixAt(n++, tmpMatrix);
         }
       }
@@ -509,8 +512,10 @@ export default function FrostWorld() {
         tmpPos.lerpVectors(dartFrom, dartTo, k * k);
         dartDir.subVectors(dartTo, dartFrom).normalize();
         tmpQuat.setFromUnitVectors(new Vector3(0, 0, 1), dartDir);
+        // Il s'ETIRE en approchant, il ne s'EPAISSIT plus : la section reste
+        // constante, seule la longueur suit (07/09).
         const near = 1 + 1.5 * (1 - k);
-        tmpMatrix.compose(tmpPos, tmpQuat, tmpScale.set(near, near, near * 1.6));
+        tmpMatrix.compose(tmpPos, tmpQuat, tmpScale.set(1, 1, near * 1.6));
         dartMesh.setMatrixAt(n++, tmpMatrix);
       }
       dartMesh.count = n;
