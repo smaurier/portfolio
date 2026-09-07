@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, CylinderGeometry, DoubleSide, Group, Mesh, Object3D, Points, PointsMaterial, ShaderMaterial, SpotLight, Sprite, SpriteMaterial, Vector3 } from "three";
 import { useTexture } from "@react-three/drei";
-import { eastSunDirection } from "@/lib/est-arc";
+import { beamAxis, BEAM_HEIGHT } from "@/lib/est-arc";
 import { frostStore } from "./frost-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -24,12 +24,8 @@ import { useSceneRefs } from "./scene-refs-context";
  * Apparait quand le monde a degele (frostStore.beam), Est seulement.
  */
 
-const BEAM_HEIGHT = 18;
 const BEAM_TOP_RADIUS = 0.75;
 const BEAM_BOTTOM_RADIUS = 1.35;
-/** Le rayon tombe raide (licence de cinema : le soleil rasant ne ferait
- * pas de puits vertical), oriente vers l'azimut du soleil. */
-const BEAM_ELEVATION = (62 * Math.PI) / 180;
 const MOTES = 140;
 const SMOKE_SPRITE = "/img/particles/smoke_07.png";
 const BEAM_COLOR = new Color("#ffd28a");
@@ -163,10 +159,9 @@ export default function SunBeam() {
     }
     const t = state.clock.elapsedTime;
     material.uniforms.uTime.value = t;
-    // L'axe du rayon : vers l'azimut du soleil de l'Est, raide.
-    const sun = eastSunDirection(Math.max(0.6, sceneRefs?.progressRef.current ?? 0));
-    const az = Math.atan2(sun.x, sun.z);
-    axis.set(Math.sin(az) * Math.cos(BEAM_ELEVATION), Math.sin(BEAM_ELEVATION), Math.cos(az) * Math.cos(BEAM_ELEVATION)).normalize();
+    // L'axe du rayon (lib/est-arc, partage avec la lance du soleil).
+    const ax = beamAxis(sceneRefs?.progressRef.current ?? 0);
+    axis.set(ax.x, ax.y, ax.z).normalize();
     beam.position.set(0, 0.05, 0);
     beam.quaternion.setFromUnitVectors(up, axis);
     // Le projecteur : au loin sur l'axe, vise le cerf.

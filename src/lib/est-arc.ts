@@ -65,6 +65,17 @@ export function eastDay(p: number): number {
   return 0.3 + 0.7 * u * (2 - u);
 }
 
+/** L'axe du puits de lumiere sur le cerf (sun-beam) : vers l'azimut du
+ * soleil, raide (62 deg : licence de cinema). La lance du soleil part du
+ * sommet de cet axe (Sylvain, 07/09 : « du meme point d'ou vient le rayon »). */
+export const BEAM_ELEVATION_DEG = 62;
+export const BEAM_HEIGHT = 18;
+export function beamAxis(p: number): Dir3 {
+  const sun = eastSunDirection(Math.max(0.6, p));
+  const az = (Math.atan2(sun.x, sun.z) * 180) / Math.PI;
+  return fromAngles(az, BEAM_ELEVATION_DEG);
+}
+
 export function morningStarDirection(): Dir3 {
   return fromAngles(EST_ARC.venusAzimuthDeg, EST_ARC.venusElevationDeg);
 }
