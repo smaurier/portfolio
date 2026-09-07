@@ -6,7 +6,6 @@ import { useFrame } from "@react-three/fiber";
 import type { DirectionKey } from "../direction-colors";
 import { useAtmosphereHour } from "../use-atmosphere-hour";
 import { useSceneRefs } from "../scene-refs-context";
-import EastTonatiuh from "./east-tonatiuh";
 import WestEhecatl from "./west-ehecatl";
 import NorthMictlantecuhtli from "./north-mictlantecuhtli";
 import CenterXiuhtecuhtli from "./center-xiuhtecuhtli";
@@ -85,7 +84,8 @@ export default function CardinalAmbience() {
 
   return (
     <>
-      <EastTonatiuh alphaRef={alphaRefs.dore} />
+      {/* L'Est n'a plus de pluie de paillettes (07/09) : le puits de lumiere
+          sur le cerf (sun-beam.tsx) l'a remplacee. */}
       {/* Sud : plus d'ambiance en points depuis le 05/09 (retour Sylvain :
           « les petites particules bleues qui devaient illustrer les
           colibris n'ont plus lieu d'etre ») : les vrais colibris

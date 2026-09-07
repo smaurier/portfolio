@@ -435,6 +435,8 @@ export default function FrostWorld() {
     } else {
       frostStore.rear = 0;
     }
+    // Le puits de lumiere (sun-beam) : s'ouvre 1 s apres l'impact, en 3 s ; part au regel.
+    frostStore.beam = explodedRef.current && phase !== "refreeze" ? Math.min(1, Math.max(0, (t - explodedAtRef.current - 1.0) / 3)) : 0;
     // L'or dans les gravures : monte en 2,5 s apres l'impact, part au regel.
     frostStore.gold = explodedRef.current && phase !== "refreeze" ? Math.min(1, Math.max(0, (t - explodedAtRef.current - 0.6) / 2.5)) : 0;
 

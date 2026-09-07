@@ -39,6 +39,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import Cihuateteo from "./cihuateteo";
 import WestLeaves from "./west-leaves";
 import FrostWorld from "./frost-world";
+import SunBeam from "./sun-beam";
 
 /**
  * Contenu 3D partagé entre la home et les pages écho (Services/Projets/
@@ -127,6 +128,11 @@ export default function SceneContent({
        * cerf et de la Piedra, buee ; tout eclate au lever. */}
       <Suspense fallback={null}>
         <FrostWorld />
+      </Suspense>
+      {/* Le puits de lumiere sur le cerf (07/09, Est) : le rayon de soleil
+       * qui tombe sur lui une fois la glace eclatee. */}
+      <Suspense fallback={null}>
+        <SunBeam />
       </Suspense>
       <OrbitCamera progressRef={progressRef} />
       <CardinalAmbience />
