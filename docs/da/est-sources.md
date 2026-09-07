@@ -114,3 +114,12 @@ Idee forte retenue dans les fiches de scene (05/09) : LES DARDS DE L'AUBE.
 - Le code : lib/frost (machine d'etat), frost-store (givre par shader),
   frost-world (coque, buee, eclats, poudre, flash, dards, lame),
   frost-screen (simulateur de givre d'ecran), est-arc (soleil, aube, Venus).
+
+## Complement 07/09 : la lance du soleil
+
+- La Leyenda de los Soles parle de dards au propulseur (atlatl). A l'ecran,
+  un dard a empennage se lit comme une fleche (retour Sylvain) : la lance
+  du soleil est un TEPOZTOPILLI, la lance de guerre mexica : longue hampe,
+  large tete plate en feuille bordee de lames d'obsidienne enchassees
+  (Codex Mendoza, folios des guerriers ; Hassig, Aztec Warfare, 1988).
+  Licence dite dans le code. https://en.wikipedia.org/wiki/Tepoztopilli
