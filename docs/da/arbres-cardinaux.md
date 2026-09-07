@@ -56,30 +56,49 @@ cacao est petit avec de grandes feuilles et des cabosses sur le tronc, le
 Pseudobombax a une ecorce verte marbree et des fleurs en pinceau, le colorin
 est tortueux avec des epis rouges.
 
-## Fait le 07/09
+## Etat : RETIRE le 07/09, a REFAIRE (backlog)
 
-- `tools/blender/arbres-cardinaux.py` : un seul script, quatre especes
-  parametrees (hauteur, tronc, renflement, niveaux de branchement, feuille
-  simple ou palmee, fleurs, cabosses). Il exporte
-  `public/models/tree-<espece>.glb` et des rendus de controle.
-- Chaque GLB porte DEUX objets : `Wood` (tronc, branches, cabosses) et
-  `Foliage` (feuilles et fleurs), origine du feuillage au haut du tronc.
-  C'est ce qui permet au site de faire POUSSER le feuillage a part.
-- Tailles : jeunes sujets de 4,4 a 6 m (choix assume, un pochotl adulte fait
-  40 m). Poids apres deux passes d'allegement : cacao 6,8 k triangles,
-  colorin 25 k, pochotl 30 k, amapolli 33 k.
-- Signes retenus : cabosses sur le TRONC pour le cacao (cauliflorie, c'est
-  sa marque), epis rouges pour le colorin, fleurs en pinceau pour
-  l'amapolli, tronc renfle et houppier large pour le pochotl.
-- `src/lib/cardinal-trees.ts` (8 tests) : l'essence et la place de chaque
-  direction, aucune au Centre, et la pousse du feuillage (`foliageGrowth`).
-  Les azimuts evitent les DEUX regards qui comptent, l'ouverture (180) et
-  l'arrivee en bas de page (135) : sinon l'arbre se dresse derriere le cerf
-  (constate au Sud avant correction). Rayon 7 a 8 u.
-- `src/app/components/stag-scene/cardinal-tree.tsx` : charge le GLB de la
-  direction, met le feuillage a l'echelle avec le scroll, et a l'Est attend
-  le degel (l'arbre reste nu sous la glace, le dard le fait feuiller).
+Une premiere version a ete faite puis retiree le soir meme, a la demande de
+Sylvain : « le truc important ce sera surement de les voir a l'ecran en
+fonction de l'orientation, peut-etre un peu derriere dans le background ».
 
-Reste : mesurer les perfs sur une machine froide (les mesures du 07/09 au
-soir sont inutilisables : 6, 51 puis 19 images par seconde sur la meme page).
+Ce qui n'allait pas : UN arbre par page, plante a un azimut fixe. C'etait un
+accessoire qui traverse le cadre au fil de l'orbite, pas la carte du codex.
+Or la planche 1 montre les QUATRE arbres en meme temps autour du centre.
 
+Le bon dessin, pour la reprise :
+- les quatre arbres existent TOUJOURS, tous les quatre, dans le repere du
+  decor tourne (CardinalOrientation) et aux quatre points de la boussole du
+  decor ; c'est l'orientation de la page qui amene l'arbre de la direction
+  face au visiteur, les trois autres restant sur les cotes et derriere ;
+- BEAUCOUP PLUS LOIN (rayon 12 a 18 u) et donc en taille adulte (8 a 15 m),
+  lus comme du paysage et non comme des accessoires : ca leve aussi le
+  compromis des « jeunes sujets » de la premiere version ;
+- loin = peu de pixels : le feuillage peut etre bien plus leger (bouquets en
+  panneaux plutot que feuilles individuelles), ce qui repond a la question du
+  cout ; la desaturation par la profondeur les fond deja dans la brume ;
+- seul l'arbre que l'on regarde a besoin de repondre au scroll (feuillage qui
+  pousse) ; les autres restent des silhouettes ;
+- au Centre, les quatre arbres autour du foyer : c'est exactement l'image de
+  la planche 1, et ca nourrit le chantier Xiuhtecuhtli.
+
+Ce qui est GARDE de la premiere version : `tools/blender/arbres-cardinaux.py`
+(le script parametre, quatre especes, deux objets Wood et Foliage par GLB) et
+les enseignements ci-dessous. Les GLB, la lib et le composant sont retires du
+depot ; ils sont dans l'historique git au commit d602ad4.
+
+## Ce que la premiere version a appris
+
+- Un premier jet trop clairseme donne des baliveaux a bouquets : il faut 4
+  niveaux de branchement, 4 puis 3 branches, et des feuilles le long des
+  rameaux et pas seulement au bout.
+- Le placement doit eviter les DEUX regards qui comptent : l'ouverture
+  (azimut 180) et l'arrivee en bas de page (135). Un arbre a 146 se dressait
+  pile derriere le cerf.
+- Chaque GLB porte deux objets, `Wood` et `Foliage`, origine du feuillage au
+  haut du tronc : c'est ce qui permet de faire pousser le feuillage a part.
+- Signes propres a garder : cabosses sur le TRONC du cacao (cauliflorie),
+  epis rouges du colorin, fleurs en pinceau de l'amapolli, tronc renfle et
+  houppier large du pochotl.
+- Les mesures de fps du 07/09 au soir sont inutilisables (6, 51 puis 19 sur
+  la meme page, machine saturee) : refaire a froid.
