@@ -129,13 +129,23 @@
 
 @media (max-width: 767px) {
   .cluster {
-    bottom: calc(1.2rem + 56px);
+    /* 1,2rem de base (celle du bouton son et de la boussole) + la hauteur
+       du bouton son + 8 px de respiration : meme calcul que le 3rem + 52px
+       de l'ordinateur. */
+    bottom: calc(1.2rem + 52px);
     left: 1rem;
     gap: 6px;
   }
   .button {
-    width: 48px;
-    height: 48px;
+    /* 44 px et non 48 (08/09). Le +4 px datait du 28/08, avec le fond dense
+       et la bordure cardinale, pour repondre a « pas visible mobile » : ce
+       qui rendait les boutons visibles etait le CONTRASTE, gardé ici, pas
+       la taille. Les 4 px coutaient cher : sept boutons plus le bouton son
+       occupaient 428 px de haut, soit 51 % d'un ecran de 839 px, et 4 px de
+       plus de couloir a reserver au texte. 44 px reste la taille de
+       l'ordinateur et depasse largement le minimum RGAA de cible tactile. */
+    width: 44px;
+    height: 44px;
     background: rgba(var(--panel-rgb), 0.75);
     border-color: rgba(var(--accent-rgb), 0.4);
     opacity: 1;

@@ -14,6 +14,27 @@
   pointer-events: none;
 }
 
+/* LE COULOIR DES CONTROLES (08/09). Ce padding n'avait jamais connu
+   l'existence de la colonne de boutons, qui vit dans le meme coin bas
+   gauche : sur un Pixel 7, 412 px de large, 6vw vaut 25 px alors que la
+   colonne s'arrete a 60 px. Le texte commencait donc SOUS les boutons et
+   les lignes etaient litteralement coupees : on lisait « utres » au lieu
+   de « autres ». Mesure du test tests/e2e/controls-overlap.spec.ts avant
+   correction : « Masquer le texte » recouvrait 699 px2 du paragraphe, et
+   « Contemplation » 400 px2 du lien d'appel a l'action.
+
+   72 px = 1rem de marge gauche de la colonne + 44 px de bouton + 12 px de
+   respiration. Le bloc de texte est plafonne a 420 px et n'atteint pas
+   cette largeur sur telephone : il se decale, il ne se retrecit pas.
+   Si la taille des boutons change, ce nombre change avec elle, et le test
+   le dira. */
+@media (max-width: 767px) {
+  .overlay {
+    padding-left: 72px;
+    padding-right: 5vw;
+  }
+}
+
 /* Empile hero et à-propos verticalement — jamais superposés, y compris
    quand les deux sont visibles en même temps (prefers-reduced-motion, cf
    fading-block.tsx) : la pile grandit vers le haut au lieu de se

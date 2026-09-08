@@ -1,11 +1,18 @@
-/* Bouton mode recit accessible (29/08 chantier a11y). Coin bas
-   gauche, symetrique du bouton son (bas droite). Signature discrete
-   book icon, active = teinte cardinale jade. */
+/* Bouton mode recit accessible (29/08 chantier a11y). Signature discrete
+   book icon, active = teinte cardinale jade.
+   Le commentaire d'origine disait « coin bas gauche, symetrique du bouton
+   son (bas droite) » : le bouton son a depuis emigre au coin bas GAUCHE,
+   et personne n'a bouge celui-ci. Les deux se recouvraient donc, de
+   1181 px2 sur un Pixel 7 et de 336 px2 sur ordinateur (mesure du test
+   tests/e2e/controls-overlap.spec.ts), et c'etait le bouton
+   d'ACCESSIBILITE qui passait dessous, son z-index etant plus bas.
+   Corrige le 08/09 : il se pose a la DROITE du bouton son, sur la meme
+   ligne de base, la colonne de controles restant au-dessus des deux. */
 
 .toggle {
   position: fixed;
-  bottom: 16px;
-  left: 16px;
+  bottom: 3rem;
+  left: calc(2rem + 52px);
   z-index: 9000;
   width: 44px;
   height: 44px;
@@ -40,9 +47,11 @@
 
 @media (max-width: 767px) {
   .toggle {
-    bottom: 12px;
-    left: 12px;
-    width: 40px;
-    height: 40px;
+    /* Meme ligne de base que le bouton son (1,2rem) et juste a sa droite :
+       1rem de marge + 44 px de bouton + 8 px de respiration. */
+    bottom: 1.2rem;
+    left: calc(1rem + 52px);
+    width: 44px;
+    height: 44px;
   }
 }
