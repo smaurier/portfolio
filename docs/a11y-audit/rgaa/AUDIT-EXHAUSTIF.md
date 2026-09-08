@@ -388,9 +388,11 @@ Chaque critère est **🚫 NA** : `document.querySelectorAll('table').length = 0
 - **Test** : idem 10.9, implémentation cohérente sur toutes pages.
 - **Verdict** : ✅ **C**
 
-## 10.11 : Contenus peuvent-ils être présentés sans perte d'information ou de fonctionnalité et sans avoir recours à un défilement vertical pour une largeur d'affichage équivalente à 320px et à un défilement horizontal pour une hauteur équivalente à 256px ?
-- **Test manuel** : émuler viewport 320×256px, vérifier lecture verticale seule.
-- **Verdict** : 🔍 **M** (media queries responsive présentes, attendu C)
+## 10.11 : Contenus peuvent-ils être présentés sans perte d'information ou de fonctionnalité et sans avoir recours soit à un défilement vertical pour une fenêtre ayant une hauteur de 256 px, soit à un défilement horizontal pour une fenêtre ayant une largeur de 320 px ?
+- **Correction du 08/09** : l'énoncé de ce fichier inversait la largeur et la hauteur (« défilement vertical pour une largeur de 320px »). Relu dans `_rgaa-criteres.json` : le défilement vertical se juge sur une HAUTEUR de 256 px, l'horizontal sur une LARGEUR de 320 px.
+- **Test manuel** : émuler 320 px de large puis 256 px de haut, vérifier qu'aucun contenu ni fonctionnalité ne disparaît.
+- **Mesuré le 08/09** : à 412 px de large, la colonne de contrôles recouvrait le texte de l'accueil (699 px² sur le paragraphe) : des lettres manquaient, donc perte d'information. Corrigé et verrouillé par `tests/e2e/controls-overlap.spec.ts`.
+- **Verdict** : 🔍 **M**. ⛔ L'« attendu C » qui figurait ici reposait sur la seule PRÉSENCE de media queries : la mesure du 08/09 a montré le contraire. Ne pas conclure un critère de ce type sans l'avoir mesuré.
 
 ## 10.12 : Les propriétés d'espacement du texte peuvent-elles être redéfinies par l'utilisateur sans perte de contenu ou de fonctionnalité ?
 - **Protocole** : line-height ≥1.5×, letter-spacing ≥0.12×, word-spacing ≥0.16×, paragraph-spacing ≥2× doivent être **respectés si l'utilisateur les applique** : aucun style ne doit clip / cacher.
@@ -563,7 +565,8 @@ Chaque critère est **🚫 NA** : `document.querySelectorAll('form, input, texta
 
 ## 13.9 : Dans chaque page web, le contenu proposé est-il consultable quelle que soit l'orientation de l'écran (portrait ou paysage) ?
 - **Test manuel** : media queries responsive présentes. Portrait mobile + landscape testé partiellement.
-- **Verdict** : 🔍 **M** (attendu C : responsive complet CSS)
+- **Mesuré le 08/09 : ÉCHEC sur l'accueil, puis corrigé.** Téléphone couché (839 × 412 px), les règles mobiles étant calées sur la largeur, la colonne de contrôles gardait la géométrie de l'ordinateur : 456 px pour 412 px de hauteur, et le bouton du haut se retrouvait hors cadre, inatteignable. Resserrement sur `max-height` ; cas « Pixel 7 paysage » ajouté à `tests/e2e/controls-overlap.spec.ts`. Les quatre autres pages restent à coucher.
+- **Verdict** : 🔍 **M**. ⛔ Même leçon qu'en 10.11 : l'« attendu C » d'origine reposait sur la présence de CSS responsive, et c'est précisément ce critère qui était en échec.
 
 ## 13.10 : Les fonctionnalités utilisables au moyen d'un geste complexe peuvent-elles être aussi disponibles au moyen d'un geste simple ?
 - **Test** : aucun geste complexe (pas de swipe, pinch, drag). Nav via click ou clavier uniquement.

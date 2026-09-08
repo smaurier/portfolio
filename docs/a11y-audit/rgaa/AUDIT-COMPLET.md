@@ -299,8 +299,10 @@ Ajouter titles uniques par page dans `[slug]/page.tsx`. Fait partie du plan de c
 ### 10.10 Information n'est-elle pas donnée uniquement par la couleur ?
 - **Voir 3.1** : ✅ **C**
 
-### 10.11 Contenu adaptable : orientation, portrait/paysage, responsive
-- **Test manuel** : CSS media queries (`max-width: 767px`, `480px`) présentes. Portrait + landscape doit fonctionner.
+### 10.11 Contenus présentables sans perte d'information ni défilement (largeur 320 px, hauteur 256 px)
+- **Correction du 08/09** : ce fichier intitulait 10.11 « orientation, portrait/paysage » et 13.9 « ratio 400 % ». Les deux critères étaient INVERSÉS, énoncés et contenus. Énoncé officiel relu dans `_rgaa-criteres.json` : « les contenus peuvent-ils être présentés sans perte d'information ou de fonctionnalité et sans avoir recours soit à un défilement vertical pour une fenêtre ayant une hauteur de 256 px, soit à un défilement horizontal pour une fenêtre ayant une largeur de 320 px ». C'est donc bien ICI que se juge le zoom 400 % (WCAG 1.4.10 Reflow), et l'orientation se juge en 13.9.
+- **Mesuré le 08/09** : à 412 px de large, la colonne de contrôles recouvrait le texte de la scène, 699 px² sur le paragraphe et 400 px² sur le lien d'appel à l'action. Des lettres manquaient à l'écran, donc PERTE D'INFORMATION. Corrigé le même jour (couloir réservé à gauche) et verrouillé par `tests/e2e/controls-overlap.spec.ts`.
+- **Reste à faire** : la mesure à 320 × 256 px elle-même, sur les cinq pages. La seule présence de media queries ne prouve rien : c'est exactement ce que ce fichier concluait avant la mesure.
 - **Verdict** : 🔍 **M**
 
 ### 10.12 Espacement du texte peut être ajusté sans perte
@@ -422,9 +424,11 @@ Ajouter titles uniques par page dans `[slug]/page.tsx`. Fait partie du plan de c
 - **Test manuel** : media queries responsive présentes. Portrait mobile testé partiellement.
 - **Verdict** : ✅ **C** (responsive complet)
 
-### 13.9 Consultation adaptée sans perte d'information au ratio 400% ?
-- **Test manuel** : à tester (RGAA 4.1.2 remplace ancien 200% par 400% pour texte).
-- **Verdict** : 🔍 **M**
+### 13.9 Contenu consultable quelle que soit l'orientation de l'écran (portrait ou paysage)
+- **Énoncé officiel** : « dans chaque page web, le contenu proposé est-il consultable quelle que soit l'orientation de l'écran (portrait ou paysage) ? » (cf correction du 08/09 notée en 10.11).
+- **Mesuré le 08/09 : ÉCHEC sur l'accueil.** Téléphone couché, 839 × 412 px : les règles mobiles étant calées sur la LARGEUR, la colonne de contrôles gardait la géométrie de l'ordinateur, 456 px pour 412 px de hauteur, et le bouton « Masquer le texte » se retrouvait entièrement hors cadre à -44 px, donc inatteignable. Perte de fonctionnalité. Corrigé le même jour (resserrement sur `max-height`) et verrouillé par le cas « Pixel 7 paysage » de `tests/e2e/controls-overlap.spec.ts`.
+- **Reste à faire** : les quatre autres pages, couchées.
+- **Verdict** : 🔍 **M** (accueil vérifié et corrigé, les quatre autres restent)
 
 ### 13.10 Actions à la souris ont-elles alternative clavier ?
 - **Test** : tous liens/boutons focusables clavier. Compass dot = button. Bouton reading mode = button. Custom cursor décoratif seul, pas d'interaction requise.
@@ -467,8 +471,8 @@ Ambient drone + chimes contrôlables par 1 toggle unique. Manque slider volume i
 - **8.2** : validation W3C HTML : `npx html-validate` ou service en ligne
 - **10.2 / 10.3** : contenu sans CSS lisible
 - **10.4** : zoom 200%
-- **10.11** : orientation portrait/paysage
-- **13.9** : zoom 400% adaptation
+- **10.11** : contenus sans perte à 320 px de large et 256 px de haut. C'est ce critère qui porte le zoom 400 %, pas 13.9
+- **13.9** : orientation portrait/paysage
 
 ## Recommandations méthodo
 
