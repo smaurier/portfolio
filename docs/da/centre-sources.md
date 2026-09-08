@@ -148,3 +148,129 @@ trois entrees, une ligne chacune :
 Le reste existe : l'emissif sur les traits de la Piedra, le systeme de
 traces avec son abonnement (`subscribeTraces`), l'impulsion radiale de
 l'herbe pour repondre au clic, la chaine du cou du cerf avec ses butees.
+
+## Symboles verifies le 08/09 (deuxieme passe)
+
+### Les attributs de Xiuhtecuhtli sont DEJA dans le site
+
+Le Seigneur turquoise se reconnait a quatre attributs, tous PORTES, aucun
+n'etant son corps :
+
+- le **xiuhuitzolli**, le diademe de mosaique de turquoise du pouvoir, dont
+  les plumes s'ouvrent sur les cotes **comme du feu** ;
+- un **pectoral de papillon** de turquoise ;
+- le **xiuhtototl**, l'oiseau turquoise (Cotinga amabilis), qui plonge depuis
+  son front ;
+- le **xiuhcoatl**, le serpent de feu, porte dans son dos.
+
+<https://www.worldhistory.org/Xiuhtecuhtli/>
+<https://aztecart2017.ace.fordham.edu/exhibits/show/xiuhtecuhtli/iconography_-xiuhtecuhtli->
+<https://www.mexicolore.co.uk/aztecs/artefacts/xiuhuitzolli-royal-diadem>
+
+**Consequence pour nous, et elle est forte** : le serpent de feu vit deja dans
+le site, au Sud (xiuhcoatl-companion.tsx). Le papillon, l'oiseau et le diademe
+sont trois objets PORTABLES, donc trois signes possibles au Centre sans jamais
+modeliser le dieu. La regle du site tient sans effort : on montre ce qu'il
+porte, jamais lui. Et le Centre devient l'endroit ou converge ce qui est
+disperse dans les quatre directions.
+
+### Le rite qui donne au Centre son histoire
+
+Le nouveau-ne est place **pres du feu, et doit y rester quatre jours**. Le
+**tonalli**, l'une des trois entites animiques, siege au sommet du crane et
+regle la chaleur du corps : il faut donc le rechauffer des la naissance.
+Pendant ces quatre jours, **personne ne peut prendre de feu au foyer**, pour
+que le feu interieur de l'enfant ne soit pas emporte avec. Et le cordon
+ombilical d'une fille est **enterre pres du foyer** (celui d'un garcon, sur un
+champ de bataille).
+
+<https://www.mexicolore.co.uk/aztecs/aztec-life/notes-on-the-three-spirits-souls-animistic-forces>
+<https://www.mexicolore.co.uk/aztecs/home/aztec-concepts-of-the-human-body-1>
+
+**C'est l'histoire du Centre.** Les quatre directions sont des voyages ; le
+foyer est l'endroit ou l'on recoit son tonalli. Pour un portfolio, la lecture
+tombe juste sans qu'on ait a l'expliquer : le centre est l'endroit d'ou vient
+ce qu'on est, et les quatre directions sont ce qu'on en fait.
+
+### Ixtli : au centre de la pierre il y a un visage, et ce mot veut dire identite
+
+Presque tous les glyphes olin portent un **oeil central** ; sur la Piedra, cet
+oeil devient un **visage**. David Stuart : sa position au centre du glyphe en
+fait « une elaboration graphique du motif de l'oeil central qui apparait dans
+presque tous les autres exemples, plus simples, du signe Olin ». Et **ixtli**
+signifie « visage, oeil, surface », et peut signifier **l'identite** : le
+visage diagnostique d'une personne ou d'une chose. Le visage central est lu
+selon les auteurs comme Tonatiuh, comme Tlalteuctli, ou comme un portrait
+divinise de Moteuczoma II.
+
+<https://mayadecipherment.com/tag/nahui-ollin/>
+
+**A NE PAS reprendre tel quel** : on lit souvent que cet oeil central serait
+l'oeil perdu de Xolotl. La formule est belle et Xolotl marche deja dans notre
+Ouest et notre Nord, mais elle est donnee **sans aucune source** (« it is
+said »), y compris par le musee qui la publie, et l'etude savante de ce glyphe
+n'en dit rien. Donc : soit on ne s'en sert pas, soit on l'assume comme NOTRE
+licence, declaree comme telle dans le Codex. Jamais presentee comme attestee.
+<https://www.aao.org/museum-blog/detail/lost-eye-of-xolotl>
+
+## La desaturation par le feu (idee de Sylvain, 08/09)
+
+Idee : « une pierre qui brule, et plus on s'eloigne de la pierre, plus le tour
+est desature ». Elle est juste, et elle est presque gratuite : le mecanisme
+existe deja.
+
+depth-fade.ts (18/08, « plus on est loin et plus ca devient gris, comme en
+peinture ») fait exactement ce melange, mais ancre sur la CAMERA :
+
+    float t = smoothstep(uNear, uFar, length(vViewPosition));
+    float grey = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+    gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(grey), t);
+
+Il suffit de changer l'origine de la distance : au lieu de la camera, le
+foyer. Le moins couteux est de passer la position du foyer en espace CAMERA
+dans un uniform, mis a jour une fois par image cote JS (aucune varying
+supplementaire, aucun cout par fragment) :
+
+    float t = smoothstep(uNear, uFar, length(vViewPosition + uHearthView));
+
+vViewPosition valant -mvPosition.xyz dans three, la somme est bien la distance
+du fragment au foyer.
+
+Trois points a tenir :
+
+1. **Ca REMPLACE la desaturation par la camera sur jade, ca ne s'ajoute pas.**
+   Empilees, les deux se battent : un objet proche de l'oeil mais loin du feu
+   serait gris deux fois, et le degrade ne raconterait plus rien.
+2. **Plafonner le melange** (0,85 et non 1) : une peripherie totalement grise
+   se lit comme un bug de rendu, surtout sur mobile ou le cadre est plus
+   serre.
+3. **Le cerf n'est pas concerne** (il est deja exclu de depth-fade, il a
+   rim-light a la place), et c'est exactement ce qu'il faut : il se tient pres
+   du feu, il garde sa couleur.
+
+Et le sens tombe juste avec le rite ci-dessus : **la couleur est le tonalli que
+le feu donne**. Ce que le feu touche est vivant et colore ; le reste attend.
+Seule page du site ou la perspective atmospherique n'est pas une distance a
+l'oeil mais une distance a la chaleur.
+
+## ARBITRAGE A RENDRE : qui allume le feu ?
+
+Le 08/09, deux reponses opposees existent en meme temps dans le projet, et il
+faut en choisir une :
+
+- **Le brief ci-dessus (element 2)** : a l'arrivee le foyer est FROID, et le
+  premier scroll le fore (mamalhuaztli). Le geste d'origine du site est celui
+  du visiteur.
+- **Le chantier src/lib/foyer.ts** (ecrit le meme jour dans une autre
+  session) : le feu du foyer **ne s'eteint jamais**, c'est un etat et non un
+  evenement ; l'ecran de chargement est la nuit du rite, et « le visiteur
+  n'allume rien : le voile s'ecarte parce qu'il s'est approche assez pres pour
+  voir que le foyer brulait depuis le debut ».
+
+Les deux sont defendables et attestees : le feu domestique se garde, le Feu
+Nouveau se fore. Mais elles ne peuvent pas etre vraies **sur la meme page au
+meme moment**. Le rite du nouveau-ne tranche plutot pour la seconde : pendant
+quatre jours on ne prend meme pas de feu au foyer, il brule. Si on garde la
+seconde, le forage n'est pas perdu : il devient le geste du Feu Nouveau, donc
+de la mue d'or de fin de parcours, ou il a davantage de poids parce qu'il se
+merite.
