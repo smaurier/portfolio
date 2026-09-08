@@ -18,6 +18,11 @@ export default function AppleIcon() {
           display: "flex",
         }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element -- ImageResponse
+            (next/og) rend en Satori, pas dans un navigateur : next/image n'y
+            existe pas, et la source est deja une data URI embarquee au build.
+            La regle ne s'applique pas ici, on le dit plutot que de laisser un
+            avertissement permanent user le signal du lint. */}
         <img src={NAHUAL_ICON_DATA_URI} width={180} height={180} alt="" />
       </div>
     ),

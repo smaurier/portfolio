@@ -46,7 +46,13 @@ const SEQUENCE_FALLBACK_MS = 6000;
 export default function RevealTrigger() {
   const { progress } = useProgress();
   const progressRef = useRef(progress);
-  progressRef.current = progress;
+  // Ecrit dans un effet et non pendant le rendu (react-hooks/refs) : le ref
+  // n'est lu que dans des callbacks (timers, animationend) qui s'executent
+  // apres la peinture, donc un tour de retard n'a aucun effet observable.
+  // Declare AVANT l'effet principal pour que celui-ci voie deja la valeur.
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
   const sequenceDoneRef = useRef(false);
 
   useEffect(() => {

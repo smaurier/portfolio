@@ -24,12 +24,19 @@ import { useCurrentDirection } from "./use-current-direction";
  * gardent leur lissage ~800ms : la traversee = balayage de teintes.
  * Reduced motion : pas d'heures intermediaires, l'heure = la cible
  * (les consommateurs snappent deja, un flicker par heure serait pire).
+ *
+ * 08/09 : l'etat ne sert plus qu'a la TRAVERSEE. Au repos, l'heure EST la
+ * route, on la retourne directement au lieu de la recopier dans un etat
+ * depuis un effet. Rien a synchroniser, donc rien a desynchroniser : ca
+ * retire deux setState d'effet (react-hooks/set-state-in-effect) et une
+ * source de rendu en cascade, sans changer un pixel.
  */
 export function useAtmosphereHour(): DirectionKey {
   const route = useCurrentDirection();
   const transition = useCardinalTransition();
   const targetDirection = transition?.transitionDirection ?? null;
-  const [hour, setHour] = useState<DirectionKey>(route);
+  // L'heure du VOYAGE seulement : hors passage, elle ne sert a rien.
+  const [travelHour, setTravelHour] = useState<DirectionKey>(route);
 
   // Route courante en ref : le voyage capture son heure de DEPART au
   // moment ou la transition demarre (la route est encore l'ancienne,
@@ -39,26 +46,28 @@ export function useAtmosphereHour(): DirectionKey {
     routeRef.current = route;
   }, [route]);
 
-  // Au repos : l'heure suit la route (nav directe, back/forward).
-  useEffect(() => {
-    if (!targetDirection) setHour(route);
-  }, [targetDirection, route]);
-
   useEffect(() => {
     if (!targetDirection || !transition) return;
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setHour(targetDirection);
-      return;
-    }
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const from = routeRef.current;
     let raf = 0;
+    // Le setState vit dans le callback rAF, jamais dans le corps de
+    // l'effet : sous mouvement reduit on pose la cible en une image puis
+    // on s'arrete, au lieu de traverser les heures.
     const tick = () => {
-      setHour(journeyHour(from, targetDirection, transition.transitionProgressRef.current));
-      raf = requestAnimationFrame(tick);
+      setTravelHour(
+        reduced
+          ? targetDirection
+          : journeyHour(from, targetDirection, transition.transitionProgressRef.current),
+      );
+      if (!reduced) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [targetDirection, transition]);
 
-  return hour;
+  // Au repos, l'heure est la route ; en voyage, celle de la traversee.
+  return targetDirection ? travelHour : route;
 }
