@@ -4,6 +4,8 @@
 import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, type Points, type ShaderMaterial } from "three";
+import { hearthFlare } from "@/lib/foyer";
+import { foyerStore } from "../foyer-store";
 
 /**
  * Centre / Xiuhtecuhtli (28/08 task #43). Le dieu du feu et du temps,
@@ -14,8 +16,18 @@ import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, type Points, 
  * (y=0) dans un cercle de rayon 2 autour de l'origine, monte jusqu'à
  * y=4 avec rise curve, fade in-out, respawn. Densité modérée (60
  * embers) pour ne pas concurrencer les pétales SpiritParticles.
+ *
+ * Sursaut d'arrivee (08/09, chantier du foyer) : au moment ou le voile
+ * s'ecarte, le foyer parait plus vif, puis se pose. Ce n'est pas un
+ * allumage — le feu brulait deja, c'est ce qu'on voit quand on s'approche
+ * d'un feu. C'est ce sursaut qui recueille la flamme DOM du voile, au meme
+ * pixel et dans la meme couleur (cf lib/foyer, hearthFlare). uAlpha peut
+ * depasser 1 sans danger : le materiau est additif, la braise blanchit.
  */
 const EMBER_COUNT = 60;
+
+/** Combien le foyer est plus vif au premier instant de l'arrivee. */
+const ARRIVAL_FLARE = 1.6;
 
 export default function CenterXiuhtecuhtli({ alphaRef }: { alphaRef: MutableRefObject<number> }) {
   const pointsRef = useRef<Points>(null);
@@ -51,7 +63,8 @@ export default function CenterXiuhtecuhtli({ alphaRef }: { alphaRef: MutableRefO
 
   useFrame((state) => {
     if (!materialRef.current) return;
-    materialRef.current.uniforms.uAlpha.value = alphaRef.current;
+    materialRef.current.uniforms.uAlpha.value =
+      alphaRef.current * (1 + ARRIVAL_FLARE * hearthFlare(foyerStore.arrival));
     materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
   });
 

@@ -52,5 +52,8 @@ export default function NepantlaFrame({ children }: { children: ReactNode }) {
     transition?.completeArrival();
   }, [pathname, transition]);
 
-  return <div ref={ref}>{children}</div>;
+  // data-nepantla-frame : le seul crochet stable sur le contenu de page.
+  // Lu par FoyerArrival (hors des providers, il ne peut pas passer par le
+  // contexte) pour poser le contenu a l'arrivee sur le site.
+  return <div ref={ref} data-nepantla-frame="">{children}</div>;
 }

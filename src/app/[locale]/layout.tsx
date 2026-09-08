@@ -18,7 +18,6 @@ import FrostScreen from "../components/frost-screen";
 import SceneControls from "../components/scene-controls";
 import TiltCards from "../components/tilt-cards";
 import Header from "../components/header";
-import NahualIntro from "../components/nahual-intro";
 import SkipNav from "../components/skip-nav";
 import SmoothScroll from "../components/smooth-scroll";
 import FooterAztecYear from "../components/footer-aztec-year";
@@ -32,6 +31,7 @@ import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
 import { getPath } from "../../lib/routes";
+import { HEARTH_STORAGE_KEY, HEARTH_TTL_MS } from "../../lib/foyer";
 import {
   AUTHOR_EMAIL,
   AUTHOR_GITHUB,
@@ -231,9 +231,23 @@ export default async function LocaleLayout({
             HTML body ne commence a parser. Sans ca, body a
             background:#ffffff par defaut → flash blanc avant que le CSS
             Module du PiedraSkeleton s'applique. Le style se relache
-            quand html a data-loaded="true" (pose par LoadingSync). */}
+            quand html a data-loaded="true" (pose par RevealTrigger). */}
         <style dangerouslySetInnerHTML={{ __html: `
           html:not([data-loaded="true"]) body { background: #000 !important; }
+        ` }} />
+        {/* Le feu du foyer ne s'eteint jamais (08/09, cf src/lib/foyer.ts).
+            Un visiteur qui repasse dans la journee ne rejoue pas la
+            ceremonie d'arrivee : il trouve la maison deja allumee. La
+            decision doit etre prise AVANT le premier paint, sinon on voit
+            demarrer une sequence qu'on va couper : d'ou ce script inline,
+            meme raison d'etre que le style critique juste au-dessus.
+            Miroir volontaire de shouldPerformCeremony() : les constantes
+            viennent de la lib, seule la comparaison est reecrite ici.
+            FoyerArrival refait le calcul avec la lib au montage et
+            reconcilie l'attribut si les deux divergent (elle fait foi). */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          try{var t=parseInt(localStorage.getItem(${JSON.stringify(HEARTH_STORAGE_KEY)}),10),n=Date.now();
+          if(isFinite(t)&&n>=t&&n-t<${HEARTH_TTL_MS})document.documentElement.setAttribute("data-hearth","lit");}catch(e){}
         ` }} />
       </head>
       {/* nahual-lab-reveal posé en dur ici (pas seulement dans le useEffect
@@ -255,12 +269,12 @@ export default async function LocaleLayout({
             elements dans leur ordre DOM, donc le skeleton doit etre le
             premier a etre parse pour couvrir visuellement le reste. Hors
             des providers pour zero contexte a resoudre avant render. */}
-        {/* PiedraSkeleton monte son propre <RevealTrigger /> client
-            qui orchestre TOUTE la sequence event-driven (data-reveal-
-            done + data-loaded). Plus besoin de LoadingSync ici : il
-            reste dans le codebase (loading-sync.tsx) pour reference
-            historique, non monte. Cf reveal-trigger.tsx pour le
-            detail de l'orchestration. */}
+        {/* PiedraSkeleton monte son propre <RevealTrigger /> client qui
+            orchestre TOUTE la sequence event-driven (data-reveal-done +
+            data-loaded), et son <FoyerArrival /> qui joue l'arrivee quand
+            data-loaded apparait. Cf reveal-trigger.tsx et foyer-arrival.tsx.
+            LoadingSync et NahualIntro, tous deux remplaces et non montes,
+            ont ete supprimes le 08/09. */}
         <PiedraSkeleton
           phrase={loadingPhrase.phrase}
           translation={loadingPhrase.translation}
@@ -396,10 +410,6 @@ export default async function LocaleLayout({
               <span className="footerAztec"> · <FooterAztecYear locale={locale} initial={formatFooterAztecYear(locale)} /></span>
             </div>
           </footer>
-          {/* Intro cinématique retiree 28/08 (retour Sylvain "gros
-              encadré qui charge" : trop lourd au premier load).
-              Composant existe encore, remonte-le si besoin.
-              <NahualIntro locale={locale} /> */}
           {/* Curseur custom (28/08 task #47) : point cardinal + ring
               qui suit, morph cardinal au survol des liens nav
               (data-cardinal-direction), magnetic attraction sur CTAs

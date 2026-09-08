@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/immutability -- pattern gamedev r3f useFrame : mutation d'objets three a 60 fps (meme precedent que cihuateteo). */
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
@@ -6,6 +5,8 @@ import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import { AdditiveBlending, Color, CylinderGeometry, Group, Mesh, MeshStandardMaterial, NormalBlending, Sprite, SpriteMaterial } from "three";
 import { brazierPositions, COPAL, copalIntensity, copalShows, puffPose } from "@/lib/copal";
+import { brazierGlow } from "@/lib/foyer";
+import { foyerStore } from "./foyer-store";
 import { DIRECTION_COLOR_VIVID } from "./direction-colors";
 import { frostStore } from "./frost-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -109,13 +110,20 @@ export default function CopalBraziers() {
     smokeMaterial.color.lerp(tint, 0.05);
     const t = state.clock.elapsedTime;
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
-    for (const b of braziers) {
+    for (const [i, b] of braziers.entries()) {
+      // LES COUREURS DU RITE (08/09, chantier du foyer). A l'arrivee sur le
+      // site, la flamme ne saisit pas les cinq braseros d'un coup : elle
+      // fait le tour, l'un apres l'autre, comme les porteurs de torche qui
+      // vont rallumer les quartiers. Meme horloge que la camera et la
+      // flamme du voile (foyerStore.arrival). Hors arrivee, arrival vaut 1
+      // et brazierGlow rend 1 : aucun effet, aucun cout.
+      const lit = intensity * brazierGlow(i, foyerStore.arrival);
       // La braise palpite.
       const flicker = reduced ? 0.7 : 0.55 + 0.45 * Math.abs(Math.sin(t * 3.1 + b.puffs[0].seed));
-      b.ember.material.opacity = 0.55 * intensity * flicker;
+      b.ember.material.opacity = 0.55 * lit * flicker;
       for (const puff of b.puffs) {
         const age = reduced ? COPAL.puffLife * 0.5 : (t + puff.offset) % COPAL.puffLife;
-        const pose = puffPose(puff.seed, age, intensity);
+        const pose = puffPose(puff.seed, age, lit);
         puff.sprite.position.set(pose.x, BOWL_HEIGHT + pose.y, pose.z);
         puff.sprite.scale.setScalar(pose.size);
         puff.sprite.material.rotation = puff.seed + age * 0.25;

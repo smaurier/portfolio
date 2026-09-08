@@ -32,6 +32,8 @@ import SudSpines from "./sud-spines";
 import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
 import CempasuchilPath from "./cempasuchil-path";
+import CopalBraziers from "./copal-braziers";
+import { COPAL_DIRECTIONS } from "@/lib/copal";
 import MictlanMist from "./mictlan-mist";
 import StagModel from "./stag-model";
 import { useCurrentDirection } from "./use-current-direction";
@@ -92,6 +94,23 @@ export default function SceneContent({
           <Suspense fallback={null}>
             <PiedraGround />
           </Suspense>
+          {/* LE FOYER (08/09). Cinq braseros au bord de la Piedra, remontes
+              apres avoir ete demontes des scenes le 07/09 : ici ils ne sont
+              plus un ornement mais LE sujet. Xiuhtecuhtli est le dieu du
+              feu, et la planche 1 du Fejervary-Mayer place le foyer au
+              milieu des quatre arbres cardinaux. copalShows est restreint a
+              jade : ils ne brulent qu'au Centre. Ils prennent l'un apres
+              l'autre pendant l'arrivee sur le site (lib/foyer,
+              brazierGlow) : c'est ce que le voile promet en s'ouvrant.
+              Dans CardinalOrientation : poses sur le sol, comme les
+              pierres de l'annee. Sous MountForDirection (motif du 08/09) :
+              ni monte ni anime hors du Centre, et la liste des directions
+              vient de lib/copal pour qu'il n'y ait qu'une verite. */}
+          <MountForDirection is={COPAL_DIRECTIONS}>
+            <Suspense fallback={null}>
+              <CopalBraziers />
+            </Suspense>
+          </MountForDirection>
           {/* Aucune plante au Nord (03/09, retour Sylvain "enlever toutes les
             * plantes, meme les cactus") : le Mictlan est le lieu sans pousse,
             * seul le cempasuchil y est depose. Flore de fond, ocotillos,

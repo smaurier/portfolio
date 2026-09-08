@@ -13,6 +13,20 @@ import {
 import styles from "./loading-cycle.module.css";
 
 /**
+ * ⚠️ NON MONTE, GARDE EN RESERVE (arbitrage du 08/09, chantier du foyer).
+ * Le composant est complet et sa geometrie est testee (lib/serpent-loop).
+ *
+ * Pourquoi il ne revient pas maintenant : le voile porte deja la Piedra en
+ * trois rotations, la phrase, la traduction, cinq dots, deux ondes, le
+ * cercle d'union et le logo. Un huitieme element casserait la regle du
+ * site (une idee forte par ecran) et allongerait une attente qu'on cherche
+ * au contraire a raccourcir.
+ * Ce qui le ferait revenir : il remplacerait le CERCLE D'UNION, pas s'y
+ * ajouterait — les deux occupent le meme diametre et disent la meme chose
+ * (le cadran se referme quand le monde est pret). A ce moment-la, le trace
+ * dashoffset porterait la progression reelle du chargement, ce que le
+ * cercle d'union ne fait pas.
+ *
  * Les deux Xiuhcoatl (serpents de feu) qui encerclent le voile de
  * chargement : cf src/lib/serpent-loop.ts pour la géométrie et l'ancrage
  * mythologique (Piedra del Sol, orientation vérifiée par recherche le

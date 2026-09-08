@@ -11,34 +11,126 @@
   position: fixed;
   inset: 0;
   z-index: 9700;
+  color: var(--ink-warm);
+  text-align: center;
+  pointer-events: auto;
+  /* Centre du foyer : pose par FoyerArrival (projection du feu 3D) et
+     herite par .smoke (ses degrades) comme par .hearth (sa position).
+     Valeurs de repli si le JS ne repond pas : centre de l'ecran. */
+  --foyer-hole: 0.01px;
+  --foyer-x: 50%;
+  --foyer-y: 50%;
+}
+
+/* LA FUMEE (08/09, chantier du foyer). Le voile ne se fond plus en
+   opacite : c'est de la fumee de copal, et elle se retire depuis la
+   clarte du foyer. Un seul element anime : le masque (alpha) et la
+   braise qui borde la trouee (couleur) lisent la MEME variable
+   --foyer-hole, donc un seul repaint par frame et non deux calques
+   superposes. Le plateau du codex vit dedans : il est consomme avec
+   la fumee, il ne s'efface pas a part.
+
+   Rayon de repli 0.01px et non 0 : un degrade radial de rayon nul est
+   degenere (rendu comme la derniere borne selon les moteurs), on evite
+   d'en dependre. A 0.01px la trouee est invisible et le masque est
+   pleinement opaque partout. */
+.smoke {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: var(--veil-solid);
-  color: var(--ink-warm);
   padding: 24px;
-  text-align: center;
-  opacity: 1;
-  pointer-events: auto;
-  transition: opacity 0.6s ease-out;
+  background:
+    radial-gradient(
+      circle var(--foyer-hole) at var(--foyer-x) var(--foyer-y),
+      transparent 0%,
+      transparent 56%,
+      rgba(var(--foyer-ember-rgb), 0.34) 70%,
+      rgba(var(--foyer-ember-rgb), 0.1) 84%,
+      transparent 93%
+    ),
+    var(--veil-solid);
+  -webkit-mask-image: radial-gradient(
+    circle var(--foyer-hole) at var(--foyer-x) var(--foyer-y),
+    transparent 0%,
+    transparent 55%,
+    black 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--foyer-hole) at var(--foyer-x) var(--foyer-y),
+    transparent 0%,
+    transparent 55%,
+    black 100%
+  );
 }
 
-/* Fade out declenche par LoadingSync qui pose data-loaded="true" sur
-   <html> quand useProgress atteint 100 + MIN_VEIL_DURATION_MS ecoulee.
-   Selector sur html plutot que body : plus haut dans le DOM, atteint
-   quel que soit le parent. pointer-events: none pour ne pas bloquer
-   les interactions pendant le fondu de 0.6s. */
-:global(html[data-loaded="true"]) .skeleton {
+/* LE FOYER : la flamme du Centre. Coeur jade + halo orange, exactement
+   la palette des braises de CenterXiuhtecuhtli (uColor #00c078,
+   uAccent #f97316) : le relais DOM -> WebGL se fait sur la meme
+   couleur, au meme pixel. Decale par margin et non par translate :
+   GSAP garde `transform` pour lui (l'echelle de la flamme). */
+.hearth {
+  position: fixed;
+  left: var(--foyer-x);
+  top: var(--foyer-y);
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: 50%;
   opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    var(--ink-warm) 0%,
+    var(--cardinal-jade) 26%,
+    rgba(var(--foyer-ember-rgb), 0.85) 52%,
+    rgba(var(--foyer-ember-rgb), 0) 76%
+  );
+  will-change: transform, opacity;
+}
+
+/* Pont de vol : les quatre dots cardinaux y sont deposes, hors du
+   masque, pour rejoindre la boussole sans etre manges par la fumee. */
+.flightDeck {
+  position: fixed;
+  inset: 0;
   pointer-events: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    transition: none;
+/* Voile retire pour de bon : plus aucun calque, plus aucun cout. */
+:global(html[data-foyer="done"]) .skeleton {
+  display: none;
+}
+
+/* Filet de securite. Si l'orchestration JS ne repond pas (erreur,
+   GSAP indisponible), le voile s'efface quand meme peu apres
+   data-loaded. En marche normale il est deja retire (display:none)
+   bien avant l'expiration de ce delai : l'animation ne se voit jamais. */
+:global(html[data-loaded="true"]) .skeleton {
+  animation: veilSafety 500ms 2800ms ease-out both;
+}
+
+@keyframes veilSafety {
+  to {
+    opacity: 0;
+    visibility: hidden;
   }
+}
+
+/* LE FEU DU FOYER NE S'ETEINT JAMAIS (08/09, lib/foyer). Un visiteur
+   qui repasse dans la journee ne rejoue pas la ceremonie : il trouve la
+   maison deja allumee. Le voile reste (il couvre un vrai chargement)
+   mais il est nu : la Piedra tourne, rien d'autre ne se joue. L'attribut
+   est pose AVANT le premier paint par le script inline du layout, donc
+   aucune amorce de ceremonie n'est visible. */
+:global(html[data-hearth="lit"]) .phrase,
+:global(html[data-hearth="lit"]) .translation,
+:global(html[data-hearth="lit"]) .dots,
+:global(html[data-hearth="lit"]) .logoSignature {
+  display: none;
 }
 
 .stage {

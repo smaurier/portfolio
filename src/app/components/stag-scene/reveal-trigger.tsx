@@ -30,6 +30,11 @@ import { useProgress } from "@react-three/drei";
 /** Duree de respiration entre la fin du logo et le fade out du voile. */
 const HOLD_AFTER_SEQUENCE_MS = 1000;
 
+/** Foyer deja allume (visiteur qui revient dans la journee, cf lib/foyer) :
+ *  aucune ceremonie, donc rien a attendre. Le voile reste le temps du vrai
+ *  chargement et s'ouvre des que la scene est la. */
+const HOLD_WHEN_HEARTH_LIT_MS = 120;
+
 /** Fallback : si aucun animationend "translationCharReveal" ne remonte
  * dans ce delai, on marque quand meme la sequence pour ne pas bloquer. */
 const REVEAL_FALLBACK_MS = 6000;
@@ -53,6 +58,14 @@ export default function RevealTrigger() {
     const timers: ReturnType<typeof setTimeout>[] = [];
     let done = false;
 
+    // Le feu du foyer ne s'eteint jamais (08/09) : celui qui repasse dans
+    // la journee trouve la maison deja allumee. Le voile est alors NU (la
+    // Piedra tourne, le reste est masque en CSS par html[data-hearth]),
+    // donc aucun animationend ne remontera jamais : on ne peut pas
+    // attendre la sequence, il faut la declarer finie tout de suite.
+    const hearthLit = document.documentElement.getAttribute("data-hearth") === "lit";
+    const holdMs = hearthLit ? HOLD_WHEN_HEARTH_LIT_MS : HOLD_AFTER_SEQUENCE_MS;
+
     const tryPoseLoaded = () => {
       if (done) return;
       if (progressRef.current >= 100 && sequenceDoneRef.current) {
@@ -60,7 +73,7 @@ export default function RevealTrigger() {
         timers.push(
           setTimeout(() => {
             document.documentElement.setAttribute("data-loaded", "true");
-          }, HOLD_AFTER_SEQUENCE_MS),
+          }, holdMs),
         );
       }
     };
@@ -96,6 +109,11 @@ export default function RevealTrigger() {
       }
     };
 
+    if (hearthLit) {
+      skeleton.setAttribute("data-reveal-done", "true");
+      markSequenceDone();
+    }
+
     skeleton.addEventListener("animationend", onAnimEnd);
     // Fallback global : si la sequence texte ne signale jamais sa
     // fin (traduction vide, CSS change), on marque tout comme
@@ -119,10 +137,14 @@ export default function RevealTrigger() {
     if (progress < 100) return;
     if (!sequenceDoneRef.current) return;
     // Re-appel via un tick pour rester dans le flow des effets.
+    const hold =
+      document.documentElement.getAttribute("data-hearth") === "lit"
+        ? HOLD_WHEN_HEARTH_LIT_MS
+        : HOLD_AFTER_SEQUENCE_MS;
     const timer = setTimeout(() => {
       if (document.documentElement.getAttribute("data-loaded") === "true") return;
       document.documentElement.setAttribute("data-loaded", "true");
-    }, HOLD_AFTER_SEQUENCE_MS);
+    }, hold);
     return () => clearTimeout(timer);
   }, [progress]);
 

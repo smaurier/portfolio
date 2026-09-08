@@ -43,14 +43,19 @@ function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
-/** Ou le copal brule (07/09, retour Sylvain « tu as mis le copal sur toutes
- * les scenes ? Ce n'est pas bon ca ! ») : PAS AU NORD. Le Mictlan est le
- * bassin, l'eau noire et le froid ; un feu orange y brulait au bord de l'eau,
- * en plein royaume des morts. Ailleurs l'offrande a un sens : le foyer au
- * Centre (Xiuhtecuhtli), l'aube a l'Est (les feux se rallument au degel), le
- * midi au Sud, le couchant a l'Ouest. */
+/** Ou le copal brule. D'abord partout sauf au Nord (07/09), puis AU CENTRE
+ * ET NULLE PART AILLEURS (08/09, chantier du foyer) : c'etait deja le plan
+ * ecrit dans copal-braziers.tsx quand les braseros ont ete demontes des
+ * scenes (« je trouve que le copal est de trop sur les scenes », et c'etait
+ * juste : une offrande qui monte avec le jour ne dit rien de la direction ou
+ * elle se trouve, et le feu est deja pris ailleurs avec une raison a chaque
+ * fois). Au Centre, en revanche, ce n'est plus un ornement mais LE sujet :
+ * Xiuhtecuhtli est le dieu du feu, et la planche 1 du Fejervary-Mayer place
+ * justement le foyer au milieu des quatre arbres. */
+export const COPAL_DIRECTIONS: DirectionKey[] = ["jade"];
+
 export function copalShows(direction: DirectionKey): boolean {
-  return direction !== "obsidienne";
+  return COPAL_DIRECTIONS.includes(direction);
 }
 
 /** L'offrande : 0,15 au haut de la page, pleine en bas ; eteinte tant que

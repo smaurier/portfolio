@@ -81,6 +81,14 @@
   --cardinal-turquoise: #0f6bb8;
   --cardinal-cendre: #d76464;
   --cardinal-obsidienne: #6b3fa8;
+  /* Braise du foyer (08/09, chantier du foyer). Meme orange que l'accent
+     des braises 3D de Xiuhtecuhtli (uniform uAccent de
+     ambience/center-xiuhtecuhtli.tsx, #f97316) : la flamme DOM du voile et
+     les braises WebGL doivent etre de la MEME couleur, sinon le raccord de
+     medium se voit. Comme les cardinales, identique dans les deux themes :
+     c'est un signal, pas une surface. Si tu changes cette valeur, change
+     uAccent la-bas. */
+  --foyer-ember-rgb: 249, 115, 22;
   /* Hauteurs réelles de .header/.siteFooter, mesurées (getBoundingClientRect)
      plutôt que devinées — servent à réserver l'espace ailleurs maintenant
      que les deux sont en position:fixed (palier 2 DA Nahual, cf

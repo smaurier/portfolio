@@ -2,6 +2,7 @@
 
 import SplitText from "../split-text";
 import RevealTrigger from "./reveal-trigger";
+import FoyerArrival from "./foyer-arrival";
 import styles from "./piedra-skeleton.module.css";
 
 /**
@@ -18,14 +19,16 @@ import styles from "./piedra-skeleton.module.css";
  *  - anims CSS pures (rotations Ometeotl continues + reveal char +
  *    dots cardinaux qui jaillissent : tout timing en CSS custom
  *    properties, aucun rAF ni requestAnimationFrame)
- *  - fade out par CSS quand `html[data-loaded="true"]`
+ *  - ouverture pilotee par GSAP sur une horloge unique (lib/foyer)
  *  - pas de pourcentage (aveu de latence, aucun SOTY n'en affiche)
  *  - z-index 9700 pour couvrir compass/cursor/toggles sans avoir a
  *    les masquer un a un via body class + selectors [class*="..."]
  *
- * Le fade out est declenche par `<LoadingSync />` (petit client
- * component) qui pose `data-loaded="true"` sur <html> quand
- * useProgress atteint 100 + MIN_VEIL_DURATION_MS ecoulee.
+ * L'ouverture est declenchee par `<RevealTrigger />`, qui pose
+ * `data-loaded="true"` sur <html> quand useProgress atteint 100 ET que
+ * la sequence visible est finie, puis jouee par `<FoyerArrival />`
+ * (08/09) : la fumee se retire depuis la clarte du foyer au lieu d'un
+ * fondu d'opacite. Cf src/lib/foyer.ts.
  *
  * Piedra V2 (dessinee main par Sylvain) en 3 zones concentriques via
  * clip-path (coeur) + mask radial annulaire (bague / couronne), 3
@@ -60,8 +63,15 @@ export default function PiedraSkeleton({
       aria-label={label}
       data-testid="piedra-skeleton"
     >
+      {/* LA FUMEE (08/09, chantier du foyer). Le voile n'est plus un
+          calque qu'on fait disparaitre en opacite : c'est de la fumee de
+          copal, et elle se RETIRE depuis la clarte du foyer (masque
+          radial pilote par --foyer-hole). Le plateau du codex (Piedra,
+          phrase, traduction) est DEDANS : il est consomme avec elle,
+          d'un seul geste, au lieu de se fondre a part. Cf lib/foyer. */}
+      <div className={styles.smoke} data-foyer="smoke">
       <div className={styles.stage}>
-        <div className={styles.piedra}>
+        <div className={styles.piedra} data-foyer="plate">
           <div className={styles.rotatorForward}>
             <img src={PIEDRA_SRC} alt="" className={styles.inner} />
             <img src={PIEDRA_SRC} alt="" className={styles.outer} />
@@ -79,11 +89,11 @@ export default function PiedraSkeleton({
                 puis onde Est → Sud → Ouest → Nord (cycle jour nahua).
                 Chaque dot enchaine burst + pulse continu (B) qui respire
                 a 30 bpm apres son arrivee. */}
-            <span className={`${styles.dot} ${styles.dotCenter}`} />
-            <span className={`${styles.dot} ${styles.dotEast}`} />
-            <span className={`${styles.dot} ${styles.dotSouth}`} />
-            <span className={`${styles.dot} ${styles.dotWest}`} />
-            <span className={`${styles.dot} ${styles.dotNorth}`} />
+            <span className={`${styles.dot} ${styles.dotCenter}`} data-foyer-dot="jade" />
+            <span className={`${styles.dot} ${styles.dotEast}`} data-foyer-dot="dore" />
+            <span className={`${styles.dot} ${styles.dotSouth}`} data-foyer-dot="turquoise" />
+            <span className={`${styles.dot} ${styles.dotWest}`} data-foyer-dot="cendre" />
+            <span className={`${styles.dot} ${styles.dotNorth}`} data-foyer-dot="obsidienne" />
             {/* Cercle d'union (C) : mandala nahua : cadran des 5
                 directions du Codex Fejervary-Mayer refermé une fois
                 tous les dots poses. Fade in subtil, aucun trace stroke. */}
@@ -97,6 +107,18 @@ export default function PiedraSkeleton({
           <SplitText text={translation} ariaLabel={translation} />
         </p>
       </div>
+      </div>
+      {/* LE FOYER : la flamme du Centre, posee par FoyerArrival sur la
+          projection EXACTE du feu 3D (lib/foyer, projectToScreen). Elle
+          se leve quand la fumee l'atteint, puis passe la main aux
+          braises WebGL qui brulent au meme pixel : le raccord de medium
+          se fait sur un point brillant, seule facon de ne pas le voir. */}
+      <span className={styles.hearth} data-foyer="hearth" aria-hidden="true" />
+      {/* Pont de vol : les quatre dots cardinaux y sont deposes (hors du
+          masque) pour rejoindre la boussole. Le voile ne perd rien, il
+          se range : le quinconce montre pendant l'attente EST la croix a
+          cinq points de la boussole en bas a droite. */}
+      <div className={styles.flightDeck} data-foyer="deck" aria-hidden="true" />
       {/* Logo Nahual signature finale (31/08, etape 3/3) : positionne
           en top-left du voile, meme structure que le vrai .logoLink du
           header (mini-logo.svg 32x32 + gap 10px + texte casse normale
@@ -119,6 +141,11 @@ export default function PiedraSkeleton({
           du dernier char de la traduction : gate CSS pour toute la
           sequence post-reveal (dots + cercle + logo). */}
       <RevealTrigger />
+      {/* Orchestre l'arrivee quand data-loaded apparait : ouverture de la
+          fumee, vol des dots vers la boussole, descente de la camera,
+          et la decision « le foyer brule-t-il encore ? » pour un
+          visiteur qui revient. */}
+      <FoyerArrival />
     </div>
   );
 }

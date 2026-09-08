@@ -6,6 +6,8 @@ import { useFrame, useThree } from "@react-three/fiber";
 import type { PerspectiveCamera } from "three";
 import { getOrbitCameraPosition, getOrbitCameraTarget } from "@/lib/camera-path";
 import { swingAzimuth, swingSpeed } from "@/lib/nepantla";
+import { arrivalCamera } from "@/lib/foyer";
+import { foyerStore } from "./foyer-store";
 import { useCardinalTransition } from "./cardinal-transition-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -270,6 +272,20 @@ export default function OrbitCamera({
     const target = getOrbitCameraTarget();
     target.y += solarBlend * sud.targetLift;
 
+    // L'ARRIVEE (08/09, lib/foyer) : la camera descend l'axe du monde
+    // jusqu'a sa pose de repos. Grammaire jade : arriver au Centre n'est
+    // pas un voyage lateral (cf nepantla, enterOffset("jade") = implosion
+    // sans glissement) mais une descente sur l'axe. Jouee une seule fois,
+    // au boot, derriere puis pendant l'ouverture du voile. A arrival = 1,
+    // arrivalCamera rend EXACTEMENT le repos : aucun residu ne vient se
+    // battre avec le scroll, la parallaxe ou les blends directionnels.
+    const arrival = arrivalCamera(foyerStore.arrival);
+    if (arrival.lift !== 0) {
+      position.x *= arrival.radiusScale;
+      position.z *= arrival.radiusScale;
+      position.y += arrival.lift;
+    }
+
     // Parallaxe : décale la position caméra XY selon la souris, la cible
     // reste ancrée sur le cerf → orbite légère autour du sujet. Y inversé
     // (clientY descend, caméra doit monter).
@@ -321,7 +337,7 @@ export default function OrbitCamera({
       position.z *= dolly;
       position.y += speed * SWING_LIFT;
 
-      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45);
+      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45) + arrival.fovOffset;
       const perspCam = camera as PerspectiveCamera;
       if (perspCam.isPerspectiveCamera) {
         perspCam.fov = baseFov + speed * SWING_FOV;
@@ -330,7 +346,7 @@ export default function OrbitCamera({
     } else {
       // Retour repos FOV : safety, réévalue le base FOV responsive (+ la
       // focale solaire du Sud, continue le long de l'arc).
-      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45);
+      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45) + arrival.fovOffset;
       const perspCam = camera as PerspectiveCamera;
       if (perspCam.isPerspectiveCamera && Math.abs(perspCam.fov - baseFov) > 0.05) {
         perspCam.fov = baseFov;
@@ -359,6 +375,21 @@ export default function OrbitCamera({
     // Le regard reste ancre sur le cerf, y compris pendant l'orbite
     // Nepantla : le sujet ne quitte jamais le cadre, le monde defile.
     camera.lookAt(target.x + shakeX * 0.5, target.y + shakeY * 0.5, target.z);
+
+    // Publie la pose pour le voile (08/09) : il doit poser sa flamme
+    // EXACTEMENT sur la projection du foyer 3D, sinon l'oeil voit le saut
+    // au raccord DOM -> WebGL. La publier plutot que la recalculer cote
+    // DOM evite d'avoir deux verites sur le rig (mobile, blends, solaire).
+    // Six ecritures par frame, aucun state React.
+    const pose = foyerStore.camera;
+    pose.position.x = camera.position.x;
+    pose.position.y = camera.position.y;
+    pose.position.z = camera.position.z;
+    pose.target.x = target.x;
+    pose.target.y = target.y;
+    pose.target.z = target.z;
+    const publishedCam = camera as PerspectiveCamera;
+    if (publishedCam.isPerspectiveCamera) pose.fovDeg = publishedCam.fov;
   });
 
   return null;

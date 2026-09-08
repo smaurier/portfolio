@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brazierPositions, COPAL, copalIntensity, copalShows, puffPose } from "./copal";
+import { brazierPositions, COPAL, COPAL_DIRECTIONS, copalIntensity, copalShows, puffPose } from "./copal";
 
 describe("brazierPositions : les braseros en bordure de la Piedra", () => {
   it("sont tous sur le meme cercle, hors du disque, et repartis", () => {
@@ -75,11 +75,18 @@ describe("puffPose : la fumee monte, s'ecarte et se dissipe", () => {
   });
 });
 
-describe("copalShows : pas de feu dans le bassin des morts", () => {
-  it("aucun brasero au Nord, mais partout ailleurs", () => {
-    expect(copalShows("obsidienne")).toBe(false);
-    for (const d of ["jade", "dore", "turquoise", "cendre"] as const) {
-      expect(copalShows(d)).toBe(true);
+describe("copalShows : le feu est le sujet du Centre, et de lui seul", () => {
+  it("les braseros ne brulent qu'au Centre", () => {
+    expect(copalShows("jade")).toBe(true);
+    for (const d of ["dore", "turquoise", "cendre", "obsidienne"] as const) {
+      expect(copalShows(d)).toBe(false);
+    }
+  });
+
+  it("la table et le predicat disent la meme chose : le montage lit la table", () => {
+    expect(COPAL_DIRECTIONS).toEqual(["jade"]);
+    for (const d of ["jade", "dore", "turquoise", "cendre", "obsidienne"] as const) {
+      expect(copalShows(d)).toBe(COPAL_DIRECTIONS.includes(d));
     }
   });
 });
