@@ -152,6 +152,24 @@
   }
 }
 
+/* ECRAN COUCHE (08/09). Un telephone en paysage fait 839 px de large :
+   les regles mobiles ci-dessus, calees sur la LARGEUR, ne s'appliquent
+   donc pas, et c'est la geometrie de l'ordinateur qui sert, soit
+   100 px de decalage + 7 boutons de 44 + 6 espaces de 8 = 456 px pour
+   412 px de hauteur disponible. Le bouton du haut, « Masquer le texte »,
+   se retrouvait ENTIEREMENT hors cadre, a -44 px, donc inatteignable :
+   une perte de fonctionnalite, et le sujet meme du critere RGAA 13.9,
+   « le contenu est-il consultable quelle que soit l'orientation ».
+   On resserre donc sur la HAUTEUR et non sur la largeur : 58 + 308 + 24
+   = 390 px, il reste 22 px de marge. Verifie par
+   tests/e2e/controls-overlap.spec.ts, cas « Pixel 7 paysage ». */
+@media (max-height: 500px) {
+  .cluster {
+    bottom: calc(8px + 50px);
+    gap: 4px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .flash {
     animation: none;

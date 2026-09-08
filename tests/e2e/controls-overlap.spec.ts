@@ -44,8 +44,9 @@ function overlap(a: Box, b: Box): number {
   return dx > TOUCH_EPSILON && dy > TOUCH_EPSILON ? dx * dy : 0;
 }
 
-async function measure(page: Page): Promise<{ texts: Box[]; controls: Box[] }> {
+async function measure(page: Page): Promise<{ texts: Box[]; controls: Box[]; clipped: Box[] }> {
   return page.evaluate((minOpacity) => {
+    const TOUCH = 0.5;
     type B = { x: number; y: number; w: number; h: number; label: string };
 
     const onScreen = (r: DOMRect) =>
@@ -96,6 +97,18 @@ async function measure(page: Page): Promise<{ texts: Box[]; controls: Box[] }> {
       controls.push({ x: r.x, y: r.y, w: r.width, h: r.height, label: label(el) });
     }
 
+    // Un controle qui deborde du cadre est inatteignable : c'est une perte
+    // de FONCTIONNALITE, pas un defaut d'esthetique.
+    const clipped: B[] = [];
+    for (const el of Array.from(document.querySelectorAll("button, a[href]"))) {
+      if (!isIconControl(el)) continue;
+      if (!el.checkVisibility({ checkVisibilityCSS: true })) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) continue;
+      const inside = r.top >= -TOUCH && r.left >= -TOUCH && r.bottom <= innerHeight + TOUCH && r.right <= innerWidth + TOUCH;
+      if (!inside) clipped.push({ x: r.x, y: r.y, w: r.width, h: r.height, label: label(el) });
+    }
+
     const texts: B[] = [];
     for (const el of Array.from(document.querySelectorAll("h1, h2, p, a[href]"))) {
       if (isIconControl(el)) continue;
@@ -110,7 +123,7 @@ async function measure(page: Page): Promise<{ texts: Box[]; controls: Box[] }> {
       if (!onScreen(r)) continue;
       texts.push({ x: r.x, y: r.y, w: r.width, h: r.height, label: label(el) });
     }
-    return { texts, controls };
+    return { texts, controls, clipped };
   }, READABLE_OPACITY);
 }
 
@@ -121,6 +134,13 @@ const { defaultBrowserType: _pixelBrowser, ...PIXEL_7 } = devices["Pixel 7"];
 
 const CASES = [
   { name: "Pixel 7", use: PIXEL_7 },
+  // Le meme telephone couche : c'est le sujet meme du critere RGAA 13.9,
+  // « le contenu est-il consultable quelle que soit l'orientation ». La
+  // hauteur tombe a 412 px, ou une colonne de huit boutons ne tient pas.
+  {
+    name: "Pixel 7 paysage",
+    use: { ...PIXEL_7, viewport: { width: 839, height: 412 }, screen: { width: 839, height: 412 } },
+  },
   { name: "ordinateur", use: { viewport: { width: 1280, height: 800 } } },
 ];
 
@@ -182,6 +202,15 @@ for (const c of CASES) {
           }
         }
       }
+      expect(offenders, offenders.join(" ; ")).toEqual([]);
+    });
+
+    test("aucun controle ne deborde du cadre", async ({ page }) => {
+      const { clipped, controls } = await measure(page);
+      expect(controls.length + clipped.length, "controles detectes").toBeGreaterThan(3);
+      const offenders = clipped.map(
+        (c) => `« ${c.label} » sort du cadre (haut ${Math.round(c.y)}, bas ${Math.round(c.y + c.h)})`,
+      );
       expect(offenders, offenders.join(" ; ")).toEqual([]);
     });
 

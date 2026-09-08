@@ -55,3 +55,12 @@
     height: 44px;
   }
 }
+
+/* Ecran couche (08/09) : voir scene-controls.module.css. La colonne
+   entiere se resserre sur la hauteur pour tenir dans les 412 px d'un
+   telephone en paysage, ce bouton compris, qui en est la base. */
+@media (max-height: 500px) {
+  .toggle {
+    bottom: 8px;
+  }
+}

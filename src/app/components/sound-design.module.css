@@ -118,3 +118,18 @@
     left: 1rem;
   }
 }
+
+/* Ecran couche (08/09) : voir scene-controls.module.css. La colonne
+   entiere se resserre sur la hauteur pour tenir dans les 412 px d'un
+   telephone en paysage, ce bouton compris, qui en est la base.
+
+   C'est bien `.dock` qu'il faut deplacer et non `.toggle` : depuis
+   l'arrivee du reglage de volume le 05/09, le bouton est DANS le dock et
+   `.dock .toggle { position: static }`, donc sa position vient
+   entierement du dock. Les `bottom`/`left` poses sur `.toggle` plus haut
+   dans ce fichier ne servent plus a rien pour le placement. */
+@media (max-height: 500px) {
+  .dock {
+    bottom: 8px;
+  }
+}
