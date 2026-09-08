@@ -113,15 +113,15 @@ Correctifs possibles, du moins au plus lourd :
 une : les composants de direction etaient montes sur toutes les pages, ET
 leurs preloads etaient au niveau module. Gater le montage seul ne suffisait
 pas, le telechargement continuait. Correctifs 1 et 2 de la liste ci-dessus
-appliques, via  et
-. Mesure apres : l accueil demande 8
+appliques, via `src/lib/direction-assets.ts` et
+`stag-scene/mount-for-direction.tsx`. Mesure apres : l'accueil demande 8
 modeles au lieu de 12, 1,25 Mo au lieu de 5,68 Mo, et les appels de rendu ne
 bougent pas (133 -> 131), donc le gain est en octets et non en temps par
-image. Le correctif 3 (/) n a PAS ete fait : il reste
+image. Le correctif 3 (`dynamic()`/`lazy`) n'a PAS ete fait : il reste
 disponible si on veut aussi sortir le code des composants du paquet.
 
-Reste a traiter, trouve le 08/09 au soir : six fichiers  sont
-suivis dans  et donc SERVIS en production pour rien, 2,6 Mo.
+Reste a traiter, trouve le 08/09 au soir : six fichiers `.glb.bak` sont
+suivis dans `public/models` et donc SERVIS en production pour rien, 2,6 Mo.
 
 C etait le plus gros gain disponible, et il tombait au bon moment :
 l'accueil est a la fois la page la plus riche a venir (cf
