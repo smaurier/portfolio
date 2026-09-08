@@ -87,7 +87,7 @@ meme moment ne veulent rien dire sur ce poste (6, 51 puis 19 sur la meme
 page apres une longue session) : la seule mesure qui comptera est celle sur
 telephone reel, en USB (cf ordre de travail decide le 07/09).
 
-## Le probleme trouve : la page d'accueil telecharge TOUT
+## Le probleme trouve, et CORRIGE le 08/09 (commit 90ab019)
 
 A l'ouverture de `/fr`, le reseau montre **les douze modeles GLB**
 demandes, dont `xolotl.glb` (1,9 Mo), `cihuateotl.glb` (1,5 Mo),
@@ -109,7 +109,21 @@ Correctifs possibles, du moins au plus lourd :
 3. Charger les composants de direction en `dynamic()`/`lazy` pour sortir
    aussi leur code du paquet de l'accueil.
 
-C'est le plus gros gain disponible aujourd'hui, et il tombe au bon moment :
+**CORRIGE le 08/09, commit 90ab019.** Il fallait traiter DEUX causes et non
+une : les composants de direction etaient montes sur toutes les pages, ET
+leurs preloads etaient au niveau module. Gater le montage seul ne suffisait
+pas, le telechargement continuait. Correctifs 1 et 2 de la liste ci-dessus
+appliques, via  et
+. Mesure apres : l accueil demande 8
+modeles au lieu de 12, 1,25 Mo au lieu de 5,68 Mo, et les appels de rendu ne
+bougent pas (133 -> 131), donc le gain est en octets et non en temps par
+image. Le correctif 3 (/) n a PAS ete fait : il reste
+disponible si on veut aussi sortir le code des composants du paquet.
+
+Reste a traiter, trouve le 08/09 au soir : six fichiers  sont
+suivis dans  et donc SERVIS en production pour rien, 2,6 Mo.
+
+C etait le plus gros gain disponible, et il tombait au bon moment :
 l'accueil est a la fois la page la plus riche a venir (cf
 docs/da/centre-sources.md) et la premiere que le jury charge.
 
