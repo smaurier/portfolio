@@ -13,6 +13,7 @@ import { isBot } from "@/lib/is-bot";
 import { getFogTint } from "@/lib/direction-fog";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import XolotlCompanion from "./xolotl-companion";
+import MountForDirection, { PreloadOnIntent } from "./mount-for-direction";
 import EhecatlWind from "./ehecatl-wind";
 import styles from "./scene-stage.module.css";
 
@@ -156,7 +157,15 @@ export default function PersistentScene() {
             Mictlán. Spawn aléatoire session-based par direction :
             15% pages écho, 40% Mémoire (Nord), 0% home. Traverse
             fugitivement en fond ~18s. Voir codex.xolotl. */}
-        <XolotlCompanion />
+        {/* Xolotl : Ouest (etoile du soir) et Nord (son royaume) seulement.
+            Son modele pese 1,9 Mo : le monter partout le faisait telecharger
+            sur l'accueil (mesure du 08/09). */}
+        <MountForDirection is={["cendre", "obsidienne"]}>
+          <XolotlCompanion />
+        </MountForDirection>
+        {/* Precharge la direction survolee ou focalisee : navigation
+            instantanee sans payer a l'arrivee. */}
+        <PreloadOnIntent />
         {/* Ehecatl (03/09, etage 4 Nepantla) : le vent du passage
             cardinal rendu visible : filaments qui balaient l'orbite
             plus vite que la camera. Invisible hors transition. */}

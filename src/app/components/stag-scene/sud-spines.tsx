@@ -74,4 +74,5 @@ export default function SudSpines() {
   );
 }
 
-for (const sp of SPINE_SPECIES) useGLTF.preload(sp.path);
+// Pas de preload au niveau module (08/09) : monte au Sud seulement. Ces
+// modeles sont de toute facon partages avec la flore de fond, deja chargee.

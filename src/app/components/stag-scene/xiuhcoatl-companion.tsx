@@ -64,7 +64,8 @@ const STRIKE_CLIMB = { x: -6, y: 6.5, z: -9 };
 /** Cadence des points de chaleur (trainee qui deforme l'air). */
 const HEAT_EVERY_MS = 85;
 
-useGLTF.preload(MODEL_PATH);
+// Pas de preload au niveau module (08/09, 0,8 Mo sur l'accueil) : monte au
+// Sud seulement, precharge au survol du lien cardinal.
 
 function setOpacity(root: Group, opacity: number, uniforms: XiuhcoatlUniforms) {
   uniforms.uOpacity.value = opacity;

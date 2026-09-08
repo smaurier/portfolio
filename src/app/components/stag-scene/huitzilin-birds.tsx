@@ -37,7 +37,7 @@ const MODEL_PITCH = 0.68; // rad, redresse le corps : +atan(0.63/0.78), le bec v
 const FLAP_HZ = 14;
 const FLAP_AMPLITUDE = 0.75; // rad
 
-useGLTF.preload(MODEL_PATH);
+// Pas de preload au niveau module (08/09) : monte au Sud seulement.
 
 type BirdUniforms = { uTime: { value: number }; uFlap: { value: number }; uHue: { value: number }; uSat: { value: number }; uPhase: { value: number } };
 

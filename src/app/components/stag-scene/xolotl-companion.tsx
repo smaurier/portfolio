@@ -267,7 +267,8 @@ const WALK_TIME_SCALE = 1.0;
 
 // Preload GLB (drei helper) : chargement au premier render du site,
 // évite délai lag au premier spawn.
-useGLTF.preload("/models/xolotl.glb");
+// Pas de preload au niveau module (08/09, 1,9 Mo sur l'accueil) : monte a
+// l'Ouest et au Nord seulement, precharge au survol du lien cardinal.
 
 // Uniforms halo : type + helper de mutation. Passe par une fonction
 // plutot qu'une assignation directe dans useFrame, sinon

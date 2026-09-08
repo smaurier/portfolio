@@ -116,7 +116,10 @@ const SKIRT_LENGTH = 0.95;
 const HIP_SIDE = 0.15;
 const HIP_FRONT = 0.11;
 
-useGLTF.preload(MODEL_PATH);
+// Pas de preload au niveau module (08/09) : il partait a l'IMPORT, donc sur
+// TOUTES les pages, et telechargeait 1,5 Mo sur l'accueil. Le composant n'est
+// monte qu'a l'Ouest (mount-for-direction) et la direction est prechargee au
+// survol du lien cardinal (PreloadOnIntent).
 useTexture.preload(SMOKE_SPRITE);
 
 type BoneSet = { bone: Bone; rest: Quaternion; animated: boolean };

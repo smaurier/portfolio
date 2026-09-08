@@ -38,6 +38,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import Cihuateteo from "./cihuateteo";
 import WestLeaves from "./west-leaves";
 import FrostWorld from "./frost-world";
+import MountForDirection, { PreloadOnIntent } from "./mount-for-direction";
 import SunBeam from "./sun-beam";
 
 /**
@@ -156,9 +157,11 @@ export default function SceneContent({
       </Suspense>
       {/* Le serpent de feu du Sud (04/09) : passage rare au-dessus du cerf,
        * modele Blender charge par useGLTF, d'ou le Suspense. */}
-      <Suspense fallback={null}>
-        <XiuhcoatlCompanion />
-      </Suspense>
+      <MountForDirection is="turquoise">
+        <Suspense fallback={null}>
+          <XiuhcoatlCompanion />
+        </Suspense>
+      </MountForDirection>
       {/* Le ciel de midi du Sud (04/09) : dome hors fog, horizon = couleur
        * du brouillard, zenith plus profond ; noir en haut de page. */}
       <SudSky />
@@ -166,16 +169,20 @@ export default function SceneContent({
       <XiuhcoatlStrikeDirector />
       <PiedraRingFire />
       {/* L'annee en pierres, face au cerf (05/09). */}
-      <Suspense fallback={null}>
-        <YearStones />
-      </Suspense>
+      <MountForDirection is="turquoise">
+        <Suspense fallback={null}>
+          <YearStones />
+        </Suspense>
+      </MountForDirection>
       {/* La lune et les nuages du Sud (05/09) : la lune s'efface quand le
        * soleil monte, les nuages derivent et blanchissent au midi. */}
       <SudSkyBodies />
       {/* Les Cihuateteo (06/09, Ouest) : les porteuses du soleil, fantomes du carrefour. */}
-      <Suspense fallback={null}>
-        <Cihuateteo />
-      </Suspense>
+      <MountForDirection is="cendre">
+        <Suspense fallback={null}>
+          <Cihuateteo />
+        </Suspense>
+      </MountForDirection>
       {/* Ehecatl balaie la route (06/09, Ouest) : feuilles et cendres au sol, vers le couchant. */}
       <WestLeaves />
       {/* Les 400 etoiles du Sud (04/09, lead) : sur le dome de nuit, elles
@@ -183,18 +190,22 @@ export default function SceneContent({
       <CentzonStars />
       {/* Les colibris du Sud (04/09, contre-chant) : vrai modele Poly,
        * couleurs d'especes, ailes battues par shader, chasseurs d'etoiles. */}
-      <Suspense fallback={null}>
-        <HuitzilinBirds />
-      </Suspense>
+      <MountForDirection is="turquoise">
+        <Suspense fallback={null}>
+          <HuitzilinBirds />
+        </Suspense>
+      </MountForDirection>
       {/* Voie B (04/09) : l'anneau exterieur de la Piedra, les deux
        * xiuhcoatl graves, prend la matiere du serpent et s'embrase au midi. */}
       <Suspense fallback={null}>
         <PiedraXiuhcoatlRing />
       </Suspense>
       {/* Les epines du Sud (04/09) : agaves et nopals plus nombreux. */}
-      <Suspense fallback={null}>
-        <SudSpines />
-      </Suspense>
+      <MountForDirection is="turquoise">
+        <Suspense fallback={null}>
+          <SudSpines />
+        </Suspense>
+      </MountForDirection>
       {/* Bandelettes d'amate (02/09) : la protection de papier contre le
        * vent d'obsidienne, aux bois et sur le dos, simulateur Verlet.
        * Nord uniquement. */}
