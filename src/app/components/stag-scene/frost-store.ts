@@ -113,7 +113,23 @@ export function applyFrost(root: Object3D): void {
                // Liseree blanc serre (exposant 4), coeur bleu profond : aux angles
                // rasants (sol, herbe) tout devenait blanc neige (essai 07/09).
                float gFres = pow(1.0 - gNV, 4.0);
-               float spark = pow(frostNoise(vFrostW * 70.0), 16.0) * 2.0;
+               // Paillettes FILTREES (08/09). L'effet est voulu, son
+               // implementation aliasait : a la frequence 70 la periode du
+               // bruit valait 0,014 unite monde, plus fin qu'un brin
+               // d'herbe, donc bien au-dela de la frequence de Nyquist de
+               // l'ecran ; l'exposant 16 et le facteur 2 en faisaient des
+               // pics durs satures en blanc pur. Resultat au zoom 1:1 sur
+               // le sol gele de l'Est : un semis de points isoles lu comme
+               // du bruit de capteur, et non comme du givre.
+               // Trois corrections : frequence divisee par trois, pics
+               // adoucis (exposant 7, plus de saturation), et surtout
+               // extinction avec la DISTANCE, parce que c'est au loin que
+               // la periode du bruit passe sous le pixel. Au-dela de 20
+               // unites il n'y a plus de paillette du tout : les montagnes
+               // et le sol lointain cessent de grener.
+               float gDist = length(cameraPosition - vFrostW);
+               float spark = pow(frostNoise(vFrostW * 24.0), 7.0)
+                 * smoothstep(20.0, 5.0, gDist);
                vec3 glass = mix(vec3(0.14, 0.32, 0.6), vec3(0.9, 0.96, 1.0), gFres);
                // La couleur d'origine reste lisible dans l'epaisseur, teintee bleu.
                vec3 through = gl_FragColor.rgb * vec3(0.55, 0.72, 1.0);

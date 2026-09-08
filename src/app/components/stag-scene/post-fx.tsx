@@ -178,7 +178,30 @@ export default function PostFX() {
         luminanceSmoothing={0.3}
         mipmapBlur
       />
-      <ChromaticAberration ref={caRef as never} offset={[CA_BASE, CA_BASE]} />
+      {/* Aberration chromatique MODULEE PAR LE RAYON (08/09). Sans le
+          drapeau `radialModulation`, qui vaut `false` par defaut dans
+          postprocessing 6.39.4, le shader installe fait
+          `ra = texture(inputBuffer, uv + shift)` avec un shift CONSTANT sur
+          tout l'ecran, centre compris : ce n'est pas le comportement d'un
+          objectif, c'est un decalage R/B uniforme. Au zoom 1:1 en
+          production, chaque brin d'herbe sortait magenta d'un cote et cyan
+          de l'autre, et les traits graves de la Piedra pareil : lu comme un
+          artefact de compression, sur les cinq scenes.
+
+          Avec le drapeau, le shader calcule
+          `d = max(distance(uv, centre) * 2 - modulationOffset, 0)` puis
+          `mix(uv, uv + shift, d)` : d vaut 0 au centre, 1 au bord median,
+          1,41 dans les coins. `modulationOffset` est donc le RAYON PROPRE :
+          en dessous, aucun decalage. A 0,6, le centre du cadre est net, il
+          reste 40 % du decalage au bord median et 81 % dans les coins, la
+          ou un objectif le produit vraiment. L'intensite (`offset`) ne
+          change pas, seule sa repartition. Cout GPU nul. */}
+      <ChromaticAberration
+        ref={caRef as never}
+        offset={[CA_BASE, CA_BASE]}
+        radialModulation
+        modulationOffset={0.6}
+      />
       {/* Grade directionnel (01/09 etage 3) : saturation animee par
           useFrame selon la direction (0 partout sauf Nord -0.15,
           leçon Coco : l'air rabat les couleurs). Non-convolution :
