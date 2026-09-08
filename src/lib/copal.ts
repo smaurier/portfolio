@@ -27,6 +27,14 @@ export const COPAL = {
   riseHeight: 2.6,
   /** Derive laterale en montant (u). */
   drift: 0.5,
+  /**
+   * L'offrande a l'arrivee, avant tout scroll. 0,15 tant que le copal
+   * montait avec le jour sur toutes les pages (07/09) : c'etait un
+   * ornement, il pouvait etre discret. Au Centre il est LE sujet, et le
+   * voile promet un foyer en s'ouvrant : a scroll 0 il faut voir un feu,
+   * pas une braise. C'est un reglage a l'oeil, seul ce nombre bouge.
+   */
+  base: 0.45,
 };
 
 export type Brazier = { x: number; z: number };
@@ -58,11 +66,10 @@ export function copalShows(direction: DirectionKey): boolean {
   return COPAL_DIRECTIONS.includes(direction);
 }
 
-/** L'offrande : 0,15 au haut de la page, pleine en bas ; eteinte tant que
- * le monde est gele (`frost` : 1 gele, 0 degele). */
+/** L'offrande : `COPAL.base` au haut de la page, pleine en bas ; eteinte
+ * tant que le monde est gele (`frost` : 1 gele, 0 degele). */
 export function copalIntensity(progress: number, frost: number, c = COPAL): number {
-  void c;
-  const rise = 0.15 + 0.85 * clamp01(progress);
+  const rise = c.base + (1 - c.base) * clamp01(progress);
   return rise * (1 - clamp01(frost));
 }
 

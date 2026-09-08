@@ -24,8 +24,13 @@ describe("brazierPositions : les braseros en bordure de la Piedra", () => {
 });
 
 describe("copalIntensity : l'offrande monte avec le jour", () => {
-  it("faible au debut du scroll, pleine a la fin", () => {
-    expect(copalIntensity(0, 0)).toBeLessThan(0.25);
+  it("deja lisible a l'arrivee, pleine a la fin", () => {
+    // Le voile promet un foyer en s'ouvrant : a scroll 0 il doit y avoir un
+    // feu, pas une braise. Plancher releve le 08/09 (0,15 -> COPAL.base)
+    // quand le copal est devenu le SUJET du Centre au lieu d'un ornement
+    // qui montait avec le jour sur toutes les pages.
+    expect(copalIntensity(0, 0)).toBeCloseTo(COPAL.base, 6);
+    expect(copalIntensity(0, 0)).toBeGreaterThan(0.4);
     expect(copalIntensity(1, 0)).toBeCloseTo(1, 6);
     expect(copalIntensity(0.5, 0)).toBeGreaterThan(copalIntensity(0.2, 0));
   });
