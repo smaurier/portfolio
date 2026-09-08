@@ -253,3 +253,28 @@ export function getChapterOpacity(progress: number, chapterIdx: number): number 
   const fadeOut = Math.min(1, (1 - t) / 0.3);
   return Math.min(fadeIn, fadeOut);
 }
+
+/**
+ * LA LONGUEUR DE L'ARC (08/09). Deux ecrans de scroll : au-dela,
+ * `progress` vaut 1 et la scene tient sa pose finale. La valeur etait
+ * DUPLIQUEE dans scene-refs-context.tsx et scene-controls.tsx, deux copies
+ * qu'un seul reglage aurait fait diverger sans bruit. Elle vit ici, avec
+ * les autres constantes de l'arc, et un troisieme consommateur est arrive
+ * avec la cloche du climax (sound-design.tsx), qui doit lire exactement le
+ * meme progres que la scene.
+ */
+export const ARC_SCROLL_VIEWPORTS = 2;
+
+/** Hauteur de scroll que couvre l'arc, en pixels. */
+export function arcScrollHeight(viewportHeight: number): number {
+  if (!Number.isFinite(viewportHeight) || viewportHeight <= 0) return 0;
+  return viewportHeight * ARC_SCROLL_VIEWPORTS;
+}
+
+/** Le progres de l'arc pour une position de scroll donnee, borne a [0, 1]. */
+export function arcProgress(scrollY: number, viewportHeight: number): number {
+  const height = arcScrollHeight(viewportHeight);
+  if (height <= 0) return 0;
+  if (!Number.isFinite(scrollY)) return 0;
+  return clampProgress(scrollY / height);
+}

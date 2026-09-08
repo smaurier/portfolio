@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  arcProgress,
+  arcScrollHeight,
   getAmbientIntensity,
   getDirectionalIntensity,
   getFogColor,
@@ -247,5 +249,29 @@ describe("getMilpaGrowth", () => {
     for (const stagger of [0, 0.3, 0.7, 1]) {
       expect(getMilpaGrowth(0.5, stagger)).toBeCloseTo(1);
     }
+  });
+});
+
+describe("arcProgress : la longueur de l'arc, une seule source", () => {
+  it("vaut 0 en haut de page et 1 apres deux ecrans", () => {
+    expect(arcProgress(0, 800)).toBe(0);
+    expect(arcProgress(1600, 800)).toBe(1);
+    expect(arcProgress(800, 800)).toBeCloseTo(0.5, 5);
+  });
+
+  it("reste borne au-dela de l'arc : la scene tient sa pose finale", () => {
+    expect(arcProgress(5000, 800)).toBe(1);
+    expect(arcProgress(-100, 800)).toBe(0);
+  });
+
+  it("ne divise jamais par zero avant la premiere mesure du viewport", () => {
+    expect(arcProgress(400, 0)).toBe(0);
+    expect(arcScrollHeight(0)).toBe(0);
+    expect(arcProgress(400, Number.NaN)).toBe(0);
+  });
+
+  it("la hauteur de l'arc suit le viewport", () => {
+    expect(arcScrollHeight(800)).toBe(1600);
+    expect(arcScrollHeight(412)).toBe(824);
   });
 });

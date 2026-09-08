@@ -7,6 +7,7 @@ import { shortcutAction, type SceneAction } from "@/lib/scene-controls";
 import { contemplationStep } from "@/lib/contemplation";
 import { buildInstantSearch, parseInstant, shouldOfferResume, type LastVisit } from "@/lib/instant-link";
 import { tenochtitlanNow } from "@/lib/solar";
+import { arcScrollHeight } from "@/lib/reveal-arc";
 import { isShortcutsEnabled, subscribeShortcuts } from "@/lib/shortcuts";
 import { useReadingMode } from "../../lib/reading-mode-context";
 import { getSceneControls, hydrateSceneControls, setSceneControls, subscribeSceneControls, type SceneControlsState } from "./scene-controls-store";
@@ -53,11 +54,12 @@ export type SceneControlsLabels = {
   tenochtitlanNight: string;
 };
 
-const ARC_SCROLL_VIEWPORTS = 2;
 const LAST_VISIT_KEY = "nahual-last-visit";
 
 function arcPixels(): number {
-  return window.innerHeight * ARC_SCROLL_VIEWPORTS;
+  // 08/09 : la longueur de l'arc vient de reveal-arc.ts, plus de copie
+  // locale de la constante.
+  return arcScrollHeight(window.innerHeight);
 }
 
 function readLastVisit(): LastVisit | null {

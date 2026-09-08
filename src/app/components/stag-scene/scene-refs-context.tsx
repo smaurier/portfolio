@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from "react";
-import { clampProgress } from "@/lib/camera-path";
+import { arcProgress } from "@/lib/reveal-arc";
 import { getPerfProfile, type PerfProfile } from "@/lib/mobile-perf";
 import { getSceneControls, hydrateSceneControls, subscribeSceneControls } from "../scene-controls-store";
 
@@ -29,7 +29,10 @@ import { getSceneControls, hydrateSceneControls, subscribeSceneControls } from "
 // fixe : contenus courts (Contact) jouent quand même l'arc entier,
 // contenus longs jouent l'arc sur les 200vh initiaux puis contenu
 // continue au-dessus du canvas figé "chemins révélés".
-const ARC_SCROLL_VIEWPORTS = 2;
+// 08/09 : la constante et le calcul vivent dans reveal-arc.ts, avec le
+// reste de l'arc. Ils étaient recopiés ici ET dans scene-controls.tsx, et
+// la cloche du climax en fait un troisième lecteur : trois copies d'un
+// même réglage auraient divergé sans bruit.
 
 // Classe scope pour globals.css (les .header_bottom nav a etc.).
 const REVEAL_SCOPE_CLASS = "nahual-lab-reveal";
@@ -89,10 +92,7 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
 
     function handleScroll() {
       if (reducedMotionRef.current) return;
-      const arcScroll = window.innerHeight * ARC_SCROLL_VIEWPORTS;
-      progressRef.current = clampProgress(
-        arcScroll > 0 ? window.scrollY / arcScroll : 0,
-      );
+      progressRef.current = arcProgress(window.scrollY, window.innerHeight);
     }
 
     handleScroll();

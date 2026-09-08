@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./sound-design.module.css";
 import { useCurrentDirection } from "./stag-scene/use-current-direction";
 import { frostStore } from "./stag-scene/frost-store";
+import { armChime, stepChime } from "@/lib/climax-chime";
+import { arcProgress, getNavEmphasis } from "@/lib/reveal-arc";
 
 /**
  * Sound design cardinal (28/08 task #46). Sons génératifs Web Audio
@@ -323,24 +325,21 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     return () => window.removeEventListener("nahual:frost-shatter", onShatter);
   }, [muted]);
 
-  // Chime cardinal au click sur data-cardinal-direction
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-
-    function onClick(e: MouseEvent) {
+  /**
+   * L'accord d'une direction, enveloppe AR (attaque rapide, release
+   * exponentiel). Extrait du gestionnaire de clic le 08/09 pour que la
+   * cloche du climax joue exactement le meme son : un seul endroit ou
+   * regler le timbre.
+   */
+  const playChime = useCallback(
+    (dir: string) => {
       if (muted) return;
-      const target = e.target as HTMLElement | null;
-      const cardinal = target?.closest?.("[data-cardinal-direction]") as HTMLElement | null;
-      if (!cardinal) return;
-      const dir = cardinal.getAttribute("data-cardinal-direction");
-      if (!dir) return;
       const freqs = CHIME_FREQ[dir];
       if (!freqs) return;
       const ctx = ctxRef.current;
       const master = masterGainRef.current;
       if (!ctx || !master) return;
 
-      // Play chime : petit envelope AR (attack rapide, release exponentiel)
       const now = ctx.currentTime;
       for (const f of freqs) {
         const osc = ctx.createOscillator();
@@ -354,11 +353,57 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
         osc.start(now);
         osc.stop(now + 1.6);
       }
+    },
+    [muted],
+  );
+
+  // Chime cardinal au click sur data-cardinal-direction
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    function onClick(e: MouseEvent) {
+      const target = e.target as HTMLElement | null;
+      const cardinal = target?.closest?.("[data-cardinal-direction]") as HTMLElement | null;
+      const dir = cardinal?.getAttribute("data-cardinal-direction");
+      if (dir) playChime(dir);
     }
 
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
-  }, [muted]);
+  }, [playChime]);
+
+  /**
+   * LA CLOCHE DU CLIMAX (08/09). Jusqu'ici l'accord cardinal ne sonnait
+   * qu'au CLIC : le son habillait l'interface au lieu de raconter le
+   * parcours, et c'est l'ecart le plus net face aux laureats, qui font du
+   * son une couche narrative (docs/da/etat-de-l-art.md, septieme
+   * constante). Le meme accord sonne maintenant quand l'arc atteint son
+   * climax, sur les cinq pages, sans une dependance nouvelle : le son
+   * repond enfin au geste du visiteur.
+   *
+   * Le declenchement est dans src/lib/climax-chime.ts, pur et teste :
+   * une cloche qui sonne deux fois, ou qui sonne a l'ouverture parce qu'on
+   * arrive deja au-dela du seuil, s'entend immediatement.
+   *
+   * Rien sous mouvement reduit : l'arc y est fige a progress 0 (cf
+   * scene-refs-context), donc il n'y a pas de climax a souligner.
+   */
+  useEffect(() => {
+    if (muted || typeof window === "undefined") return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+    const emphasisNow = () => getNavEmphasis(arcProgress(window.scrollY, window.innerHeight));
+    let state = armChime(emphasisNow());
+
+    function onScroll() {
+      const next = stepChime(state, emphasisNow());
+      state = next.state;
+      if (next.fire) playChime(direction);
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [muted, direction, playChime]);
 
   function handleToggle() {
     const nextMuted = !muted;
