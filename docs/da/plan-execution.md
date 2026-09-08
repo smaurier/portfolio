@@ -549,3 +549,200 @@ impacts en WebGL du meilleur effet possible sans usine a gaz, et les sources
 de modeles librement reutilisables. Ses conclusions viendront completer cette
 phase 0 avec des references nommees, qui sont exactement ce que la porte 1
 exige.
+
+---
+
+# Ce que la recherche technique apporte au plan (09/09)
+
+Recherche demandee par Sylvain : « appuie-toi fortement sur ce qui existe
+partout sur Internet en etude de la concurrence pour voir comment tout ca
+peut etre implemente du meilleur effet ». Elle fournit les REFERENCES NOMMEES
+qu'exige la porte 1 de la phase 0, et elle a trouve un risque juridique.
+
+## Les cinq sites de reference, et ce qu'on vole a chacun
+
+1. **[joseph-san.com](https://joseph-san.com/)** ([analyse Codrops, 04/2026](https://tympanus.net/codrops/2026/04/28/more-than-a-portfolio-building-a-scroll-driven-3d-world-with-something-to-say/))
+   Verrouillage par blocs reserve au SEUL moment le plus important du site,
+   « the medium matches the weight of the message ». **A voler** : traiter la
+   frappe du Sud comme LE moment que les autres scenes servent, pas comme un
+   effet parmi d'autres.
+2. **[maxmilkin.com](https://maxmilkin.com/)** ([analyse Codrops, 12/2025](https://tympanus.net/codrops/2025/12/02/two-portfolios-one-process-where-design-motion-and-code-come-together/))
+   DOM et WebGL jamais pleinement visibles en meme temps : sequences, pas
+   empiles. **A voler** : la regle elle-meme, pour la tache A4.
+3. **[olhalazarieva.com](https://olhalazarieva.com/)** (meme analyse)
+   Le monde 3D orbite, le texte ne bouge JAMAIS. **A voler** : l'option la
+   plus sure cote RGAA, si faire bouger le texte pose probleme.
+4. **[jordan-breton.com](https://jordan-breton.com/)** (FWA site du jour, 02/10/2025)
+   Un diorama unique avec beaucoup de petits elements vivants (herbe,
+   cascade, feu, vent, papillons), et une camera qui ne navigue QUE entre des
+   points fixes decides a l'avance. Meme famille compositionnelle que nous.
+   **A voler** : la navigation par points fixes comme garantie structurelle
+   de cadrage au climax, jamais generalisee au reste du site.
+5. **[iventions.com](https://iventions.com/)** par tin.studio ([CSS Design Awards, mois d'octobre 2025](https://www.cssdesignawards.com/wotm/iventions/48253/))
+   Chaque projet traite comme une installation eclairee, « guided
+   walk-through rather than a grid ». **A voler** : exactement ce qui manque
+   a notre page Projets, un projet installe a la fois au lieu d'une liste de
+   cartes.
+
+## A4 precise : la technique exacte, avec nos propres precedents
+
+L'outil qui resout le probleme EXISTE DEJA dans le depot et n'est pas branche
+sur la frappe : `face-a-face-pin.tsx` est un epinglage GSAP ScrollTrigger
+avec `scrub` et relachement automatique, et il pilote `pinProgressRef` dans
+`scene-refs-context.tsx`, deja consomme par le bloom de `post-fx.tsx`.
+
+1. **Epingler la fenetre de la frappe** plutot que declencher sur un seuil
+   instantane : dupliquer le motif de `face-a-face-pin.tsx` autour de
+   `ignite > 0.7`, epinglage de 100 a 150vh, et ne poser `strikeAt` qu'une
+   fois l'epinglage engage. Un scroll rapide ne peut alors plus rater le
+   geste. Relachement cale sur la vraie duree de la sequence et non sur les
+   5 s copiees d'un autre contexte : `strike-sequence.ts` donne
+   **hitAt 1,6 s + shakeLen 1,5 s = 3,1 s**, ce qui recoupe exactement les
+   3,2 s mesurees a l'ecran.
+2. **Annoncer le coup** : `sound-design.tsx` ecoute DEJA un evenement
+   `'nahual:whoosh'` (bruit blanc filtre, utilise pour les transitions
+   cardinales). Le declencher 0,8 a 1 s avant l'impact donne une amorce
+   sonore gratuite. Cote visuel, `stiffIn` vaut 0,2 s dans
+   `strike-sequence.ts`, trop court pour etre percu comme un signal :
+   l'etirer a 0,6-0,8 s rend le raidissement du serpent visible AVANT le
+   flash.
+3. **Ecarter le contenu** : poser un drapeau (`stiffen > 0 || fire > 0.3`)
+   depuis `xiuhcoatl-strike-director.tsx`, et le lire en CSS exactement comme
+   le depot le fait deja pour `.nahual-lab-reveal` sur `<body>` et
+   `data-loaded` sur `<html>`. `.contentPage` descend a ~0,15 d'opacite avec
+   `pointer-events: none` pendant la fenetre, puis revient.
+
+**Constat de fond sur la page Projets** : `.contentPage` (`globals.css:557`)
+est une colonne centree de 720 px en flux normal, **strictement aveugle** au
+canvas fixe derriere elle. C'est elle qui couvre le centre pendant la frappe.
+Et le systeme de chapitres pilote par le scroll existe deja
+(`.chapterKicker` / `.chapterLine` dans `scene-text-overlay.module.css`) mais
+Projets ne l'utilise pas : la page est restee sur l'ancien flux.
+
+## A3 precise : pourquoi notre feu ne ressemble pas a du feu
+
+`piedra-ring-fire.tsx` emet 700 Points additifs dont le sprite est un
+**degrade radial genere au Canvas** (`spriteTexture()`). Ce sont donc des
+orbes rondes, pas des flammes. Trois pistes, par ordre de rapport
+effet / cout, aucune n'ajoute de dependance :
+
+- **Atlas anime (flipbook).** [CGHEVEN publie 20 flipbooks de feu en CC0](https://cgheven.com/assets/flipbooks),
+  gratuits et sans inscription, meme reflexe de licence que notre flore CC0.
+  Cout : quelques dizaines de Ko de texture, un attribut `aFrame` et un
+  remappage de `gl_PointCoord` sur la cellule. La boucle CPU qui tourne deja
+  sur 700 particules ne change pas. Reference technique :
+  [vfxapprentice, what are flipbooks](https://www.vfxapprentice.com/blog/what-are-flipbooks-in-games).
+- **Entierement procedural**, plus conforme a nos conventions puisqu'on ecrit
+  deja tout le bruit a la main : reutiliser `hash2` et `vnoise2` deja ecrits
+  dans `xiuhcoatl-heat-effect.ts` pour donner a chaque point une forme de
+  goutte de flamme (anisotropie verticale, bord bruite) au lieu du disque, ET
+  pour perturber la velocite des braises au lieu de l'amortissement lineaire
+  actuel. Reference : le curl noise comme champ de vitesse a divergence
+  nulle, [iagokrt/curl-noise-threejs](https://github.com/iagokrt/curl-noise-threejs).
+- **Trainee de mouvement sur les braises rapides** : deja codee a trois
+  fichiers de distance. `centzon-stars.tsx` fait exactement ca pour les
+  etoiles filantes, un `LineSegments` additif separe avec un alpha qui
+  s'eteint vers la queue. On copie le motif, pas une bibliotheque.
+
+**Bonus zero dependance** : `GodRaysEffect` est deja dans notre
+`postprocessing` installe, et son `lightSource` accepte un `Points`, donc
+directement celui de `PiedraRingFire`.
+[Documentation](https://pmndrs.github.io/postprocessing/public/docs/class/src/effects/GodRaysEffect.js~GodRaysEffect.html).
+⚠️ A tester ISOLE dans son propre `EffectGroup` avant integration : c'est
+exactement la lecon du crash du 01/09 documentee dans `post-fx.tsx` (un
+effet qui transforme les UV ne peut pas fusionner avec une convolution).
+
+---
+
+# PHASE I — Deux taches nouvelles, trouvees par la recherche
+
+## I1. Deux modeles sans ligne de credit nommee
+
+**⚠️ CORRECTION D'UNE ERREUR DE LA RECHERCHE.** Elle annoncait « aucun
+resultat » pour credits, attribution et licence dans le depot, et donc un
+risque juridique ouvert. C'est FAUX, verifie : une page de credits existe
+(route `credits`, `src/lib/routes.ts:13`) et elle est soignee. Elle nomme
+Quaternius en CC0 pour le cerf et une partie de la flore, le Xoloitzcuintle
+de Nyilonelycompany achete sur Fab.com, le ciel du Sud de Poly Haven en CC0
+avec ses deux auteurs, et surtout elle attribue DEJA correctement le colibri
+de Poly by Google en **CC BY 3.0**, c'est-a-dire le cas exact que la
+recherche craignait de voir manquer. La discipline est donc en place ; la
+recherche n'a pas su lire la structure du dictionnaire.
+
+**Le vrai trou, beaucoup plus petit** : sur les treize fichiers de
+`public/models`, deux ne sont couverts par aucune ligne nommee.
+`nopal-google.glb`, dont le nom suggere l'archive Google Poly, au catalogue
+en licence MIXTE CC0 / CC BY : s'il est en CC BY il faut le nommer comme le
+colibri l'est deja. Et `cihuateotl.glb`, dont l'origine n'est pas ecrite.
+La mention generale « une partie de la flore » couvre les fichiers
+`*-quaternius.glb` mais pas ces deux-la.
+
+**La tache** : retrouver l'origine exacte de ces deux fichiers, completer la
+section « Modeles 3D » des credits en fr, en et es, et ecrire la
+correspondance fichier par fichier dans `docs/credits-modeles.md` pour que
+le prochain import n'ait plus a chercher.
+
+**Oracle** : `docs/credits-modeles.md` liste les treize GLB avec origine,
+licence et URL. Zero fichier sans ligne.
+
+**Regle a poser dans la foulee** : plus aucun modele n'entre dans
+`public/models` sans sa ligne de licence dans le meme commit.
+
+## I2. Recompresser les modeles animes en meshopt
+
+`etat-de-l-art.md` note « `stag.glb` est en meshopt, les autres non
+verifies ». La recherche tranche le choix : **meshopt plutot que Draco pour
+nos modeles**, parce que Draco ne compresse QUE la geometrie alors que
+meshopt compresse aussi les animations et les morph targets, et decode plus
+vite sur un telephone milieu de gamme, ou le decodage Draco peut se voir
+comme un a-coup. Reference :
+[gltf-transform, EXTMeshoptCompression](https://gltf-transform.dev/modules/extensions/classes/EXTMeshoptCompression).
+
+**Candidats, par priorite** : `xolotl.glb` (1,9 Mo, le plus gros modele du
+site) puis `xiuhcoatl.glb` (780 Ko, skinne, 22 os).
+
+**Oracle** : poids avant / apres dans le commit, et les deux modeles
+s'affichent et s'animent toujours (capture de l'Ouest et du Sud).
+
+---
+
+# Ce que la recherche deconseille formellement
+
+1. **Intercepter les evenements wheel et touch** pour remplacer le scroll
+   natif. Casse la navigation clavier.
+   [Source](https://scrollytelling.ai/scrollytelling-design-patterns/).
+2. **Le raymarching volumetrique en boite** (motif classique THREE.Fire) pour
+   notre anneau de 700 particules reparties sur un large rayon : soit une
+   boite immense au cout plein ecran, soit N petites boites donc N appels de
+   rendu, sur un budget deja a 133-415 pour une cible mobile de 100-200.
+3. **Les HDRI Poly Haven en 8 a 16K tels quels** sur un site qui n'a encore
+   aucune texture compressee KTX2.
+4. **Garder Draco sur les modeles animes**, cf I2.
+5. **Installer une bibliotheque de shader de feu** trouvee sur npm, meme
+   « juste pour regarder » : plafond d'apprentissage. Le bon geste est de
+   lire son shader source, qui est public, et de transposer a la main les
+   quelques lignes utiles, ce qu'on fait deja pour tout le reste.
+
+# Une idee recue corrigee, qui debloque A4
+
+**L'epinglage GSAP n'est PAS le scroll-jacking que les guides
+d'accessibilite condamnent**, et la distinction n'est pas un detail : elle
+valide directement l'extension de `face-a-face-pin.tsx` a la frappe.
+
+Le `pin` de ScrollTrigger travaille AVEC la vraie barre de defilement du
+document : il fige visuellement l'element via un espaceur, mais le scroll
+natif reste maitre, donc Page suivante, Espace, les fleches et le
+glisser-deposer de la barre continuent de fonctionner. Ce que les guides
+visent, c'est l'interception des evenements wheel et touch pour remplacer la
+navigation par une position virtuelle pilotee en JS. Notre
+`face-a-face-pin.tsx` fait deja les choses correctement : il ne s'enregistre
+meme pas sous `prefers-reduced-motion` et ne touche jamais aux evenements
+wheel ou touch. **Consequence : on peut etendre ce motif a la frappe du Sud
+sans rouvrir d'arbitrage d'accessibilite**, le travail a ete fait a la
+conception du composant.
+
+*Verifie au passage, contre l'intuition* : le Smithsonian, avec plus de 1700
+scans 3D en CC0, n'a **rien d'exploitable** sur l'aztheque. Les seuls
+resultats « aztec » sur `3d.si.edu` sont des maillots de baseball nommes
+« Aztecas ». La vraie Piedra del Sol est au Museo Nacional de Antropologia de
+Mexico, hors du programme Smithsonian, et n'a aucun scan CC0 public connu.
