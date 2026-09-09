@@ -677,7 +677,12 @@ export default function XolotlCompanion() {
     // versionnee pour invalider les tirages faits sous une regle d'avant.
     const key = xolotlSpawnKey(direction);
     const cached = sessionStorage.getItem(key);
-    const shouldSpawn = decideSpawn(xolotlSpawnProbability(direction), cached);
+    // ?xolotl=1 force le passage (09/09), meme affordance que ?xiuhcoatl=1
+    // pour le serpent : sans elle, verifier son animation demande de
+    // recharger jusqu a ce que le tirage tombe bien, et un geste qu on ne
+    // peut pas reproduire a la demande ne se corrige pas.
+    const force = window.location.search.includes("xolotl=1");
+    const shouldSpawn = force || decideSpawn(xolotlSpawnProbability(direction), cached);
     sessionStorage.setItem(key, shouldSpawn ? "1" : "0");
     setSpawn(shouldSpawn);
     setStartedAt(null);
