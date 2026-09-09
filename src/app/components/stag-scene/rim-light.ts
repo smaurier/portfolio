@@ -152,6 +152,7 @@ export function applyRimLight(
             uniform float uRimIntensity;
             uniform float uRimPower;
             uniform float uBodyTintAmount;
+            #define BODY_TINT_CEIL 0.12
             uniform float uEdgeIntensity;
             uniform float uEdgePulse;
             uniform float uNorthDark;
@@ -175,7 +176,31 @@ export function applyRimLight(
             // retour Sylvain "cerf plein de couleurs à p=1" : l'ancien
             // plafond ×0.5 gardait un cerf lavé/washed-out au climax).
             vec3 bodyTinted = vec3(1.0) - (vec3(1.0) - gl_FragColor.rgb) * (vec3(1.0) - uRimColor);
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * 0.06);
+            // LA TEINTE NE DOIT PAS ECLAIRER (09/09). Le screen depose la
+            // couleur surtout dans les tons sombres et moyens : c'est ce que
+            // Sylvain voulait le 25/08, et c'est juste sur un cerf eclaire.
+            // Mais au climax du Centre le cerf EST dans les tons sombres --
+            // 16 % de luminance -- et un screen contre une base sombre
+            // remonte le vert a 54 %. Le rapport rouge/vert s'inverse : le
+            // nahual brun devient un cerf de jade qui se confond avec les
+            // feuilles de mais. Mesure sur la croupe : [45, 63, 37] avec la
+            // teinte, [46, 41, 24] sans (forcage de l'uniforme dans la page).
+            //
+            // Ce n'est donc PAS le coefficient qui etait trop grand, c'est
+            // l'operation : le calcul predit exactement le vert mesure (62
+            // attendu sur 255, 63 lu) a 6 % de melange. Ce qui explique
+            // l'histoire du plafond -- 0,85 puis 0,7, 0,5, 0,25, 0,12, 0,06 --
+            // six reductions qui n'ont jamais regle le probleme, parce
+            // qu'aucune ne touchait la cause.
+            //
+            // On garde donc le depot du screen et on RENORMALISE a la
+            // luminance d'origine : la couleur vient, la valeur reste. Le
+            // cerf garde son dos sombre, son poitrail clair et le modele de
+            // ses facettes, et prend la teinte de la direction.
+            float bodyLum = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+            float tintLum = dot(bodyTinted, vec3(0.299, 0.587, 0.114));
+            bodyTinted *= bodyLum / max(tintLum, 1e-4);
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, bodyTinted, uBodyTintAmount * BODY_TINT_CEIL);
             // Body tint plafond 0.12 (28/08 retour Sylvain "couleur
             // trop forte sur les cerfs, redistribuer sur autres
             // éléments"). Historique : 0.85 → 0.7+emissive →
@@ -229,6 +254,12 @@ export function applyRimLight(
     }
   });
 
+  // Lecture externe (verifications Playwright, console), meme motif que
+  // frostUniforms : ces uniformes vivent dans le SHADER patche et non sur
+  // le materiau, donc une sonde qui parcourt le graphe ne les voit pas. Sans
+  // ca, impossible de savoir lequel des quatre termes (rim, teinte de corps,
+  // lignes d aretes, noir du Nord) domine reellement une image.
+  if (typeof window !== "undefined") (window as unknown as { __nahualRim?: unknown }).__nahualRim = allUniforms;
   return allUniforms;
 }
 
