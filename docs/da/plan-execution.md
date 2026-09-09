@@ -42,6 +42,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | L2 audit des locales EN/ES | ✅ FAIT (constat) | `30bfa51` |
 | L3 les dix pages etrangeres ne finissent plus en francais | ✅ FAIT | `59e51b7` |
 | L4 Xolotl : l eau s eclaircit la ou il marche | ✅ FAIT | `460f124` |
+| M1 le site rendait en Arial (design hors 3D) | ✅ FAIT | `548c3bc` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
@@ -1394,3 +1395,67 @@ Ce qui serait defendable et peu cher : approfondir le nahuatl SOURCE la ou
 il vit deja. Un difrasismo en epigraphe avec sa source, par exemple, ou le
 nom nahuatl de chaque geste. La presence culturelle sans la revendication
 d une traduction.
+
+---
+
+# M1. Le site rendait en Arial, et l'echelle typographique n'en est pas une
+
+Premiere entree dans le poste qui pese le plus et qu'on n'avait pas touche :
+le design hors 3D, 40 % du bareme. J'y suis entre par ce qui se mesure --
+l'echelle typographique reelle, relevee sur le texte rendu de onze pages --
+et la premiere mesure a suffi.
+
+## Le defaut, corrige
+
+**920 elements de texte sur 931 rendaient en ARIAL.** `globals.css` posait
+`html, body { font-family: var(--font-geist) }` ligne 123, puis, dix-sept
+lignes plus bas, un bloc `body` avec `font-family: Arial, Helvetica,
+sans-serif` -- exactement ce que genere `create-next-app`. A specificite
+egale, la derniere gagne.
+
+Le site telechargeait donc `GeistVF.woff`, la police se chargeait
+correctement (verifie dans le navigateur : `geistSans 100 900 loaded`,
+`document.fonts.check` a vrai), `html` la rendait, et `body` l'ecrasait --
+donc tout ce qui herite de body. **Un reliquat de gabarit ecrasait la
+typographie du site.**
+
+Second defaut du meme releve : les CONTROLES n'heritent pas de la police.
+Les navigateurs donnent aux boutons, champs et listes leur propre famille
+systeme ; la page d'accueil comptait 16 boutons, 1 champ et 15 spans
+internes en Arial pendant que le reste passait en Geist. On herite la
+FAMILLE seulement, pas `font` entier : les tailles de nos boutons viennent
+de leurs modules et `font: inherit` les ecraserait.
+
+Verifie apres correction : 0 element hors Geist, et les retours a la ligne
+du codex sont identiques avant/apres, donc aucun reflux malgre le
+changement de metriques.
+
+## Les deux decisions qui restent, mesurees et NON tranchees
+
+**Treize tailles de police distinctes**, dont neuf entassees entre 11,2 et
+18,4 px :
+
+```
+11,2  11,5 (x1,03)  12,8 (x1,11)  13,6 (x1,06)  14,4 (x1,06)
+15,2 (x1,06)  15,7 (x1,03)  16 (x1,02)  17,6 (x1,10)  18,4 (x1,05)
+28,8 (x1,57)  32 (x1,11)  38,4 (x1,20)
+```
+
+15,2 / 15,7 / 16 px coexistent a moins d'un pixel d'ecart : aucun oeil ne
+les distingue, mais elles multiplient le CSS et interdisent tout rythme.
+Puis un saut de x1,57 vers 28,8. **Ce n'est pas une echelle, c'est un tas.**
+Une echelle a un rapport constant (1,25 tierce majeure, 1,333 quarte) ; la
+meme hierarchie tiendrait en cinq ou six tailles.
+
+**480 elements sans interlignage explicite**, donc au 1,2 du navigateur,
+trop serre pour du texte de lecture.
+
+Les deux sont des decisions de systeme graphique, pas des defauts : elles
+changent le rythme de toutes les pages. C'est le premier chantier a ouvrir
+sur les 40 %, et il appartient a Sylvain.
+
+## Autre chiffre du meme releve, pour memoire
+
+Trois graisses (400, 600, 700), ce qui est sain. Onze valeurs
+d'interlettrage, mais toutes calculees depuis des `em` a des tailles
+differentes : normal, pas un defaut.
