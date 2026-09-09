@@ -35,6 +35,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | H2 les cempasuchil du Nord portent leur lumiere | ✅ FAIT | `fb54620` |
 | J1 a11y : la Contemplation ne faisait rien en mouvement reduit | ✅ FAIT | `fe1cdd3` |
 | H3 le cerf du Centre redevient brun | ✅ FAIT | `0461329` |
+| H4 le titre passait sous le bandeau (telephone etroit) | ✅ FAIT | `56476ff` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
@@ -42,9 +43,18 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | F1 (le Sud), F2 (l'acte de sortie) | ⬜ a faire | |
 | G1 (le contenu), I2 (meshopt) | ⬜ a faire | |
 
-**Phases A et B terminees, plus I1, F3, D1, D2, D4, H1, H2 et J1.** Ce qui
-reste demande soit ta mesure (C1), soit une decision narrative (D3, E, F2),
-soit ta relecture (G1), soit ton go sur un outil de build (I2).
+**Le lot H est termine, avec A, B, I1, F3, D1, D2, D4 et J1.** Tout ce qui
+etait faisable sans toi est fait. Ce qui reste demande :
+
+- **ta mesure** : C1, le telephone en USB (et E1/E2 en dependent) ;
+- **une decision de mise en scene** : D3 le chapitrage du Nord, F2 l'acte de
+  sortie -- les deux sur la meme question, mesuree plus bas : le Nord et le
+  Sud gardent 50 % du cadre jusqu'a leur climax, l'Est et l'Ouest le
+  liberent (et ce n'est pas un mecanisme, juste des pages plus courtes) ;
+- **ta relecture** : G1, le contenu ;
+- **ton go** : I2, un outil de build pour meshopt (plafond d'apprentissage) ;
+- **ta decision d'accessibilite** : sous mouvement reduit et sans
+  contemplation, la scene reste sur l'etat d'arrivee (cf J1).
 
 ### Deux choses a relire par la session du foyer
 
@@ -1002,3 +1012,38 @@ mesure.
 Le plafond est desormais nomme (`BODY_TINT_CEIL`) : le fichier portait
 trois valeurs contradictoires, 0,06 dans le code, 0,12 et 0,35 dans deux
 commentaires.
+
+---
+
+# H4. Le telephone etroit, et deux trous dans l'oracle
+
+Mesure sur un Galaxy S9+ (320 x 658), page d'accueil : la premiere ligne du
+titre etait masquee par l'en-tete. On lisait « studio de creation » avec un
+fantome derriere, et le bouton de menu recouvrait 918 px2 du titre.
+
+La cause n'etait pas le rail de boutons, contrairement a ce que disait ma
+note du lot H. C'est une variable qui mentait. `--header-height` vaut 81px,
+la hauteur de l'en-tete a deux etages ; sous 767px le bandeau superieur et
+la nav disparaissent et l'en-tete ne mesure plus que 56px. Or cette
+variable sert precisement a reserver l'espace de l'en-tete « pour que le
+contenu texte ne passe pas dessous ». Avec les respirations de bureau qui
+s'y ajoutent, `<main>` portait **201px de marges sur un ecran de 658**, soit
+30 % de la hauteur : le bloc du heros (518px) ne pouvait pas tenir dans les
+457px restants, et comme il est ancre en bas, il debordait par le HAUT.
+Ce qu'on perdait etait donc le titre.
+
+**Les deux trous de l'oracle, tous deux capables de faire PASSER le test sur
+un vrai defaut :**
+
+1. Le telephone etroit n'etait pas dans les cadrages testes (Pixel 7,
+   Pixel 7 couche, ordinateur). Or 60px de colonne de boutons ne changent
+   pas de place quand l'ecran en perd 60.
+2. Un titre de moins de douze caracteres etait exempte de l'invariant. Le
+   seuil ecartait les micro-libelles, mais il exemptait « Projets » -- sept
+   lettres, et le titre de la page. Un titre est du texte lisible quelle que
+   soit sa longueur.
+
+**Ce qui reste et qui t'appartient** : sur un ecran de 320px, le paragraphe
+du heros fait 15 lignes et occupe presque tout l'ecran ; la scene ne se voit
+quasiment plus derriere. Le bloc TIENT maintenant, mais la question de la
+longueur du texte sur telephone est une decision de contenu.
