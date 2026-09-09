@@ -5,6 +5,7 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, LineSegments, Points, ShaderMaterial, type Group } from "three";
 import { CENTZON_COUNT, killedState, makeStarField, starState, starsArmed, throwFactor, thrownDir } from "@/lib/centzon-stars";
+import { advanceEnvelope } from "@/lib/envelope-clock";
 import { centzonStore } from "./centzon-store";
 import { markTrace } from "../traces-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -38,6 +39,8 @@ export default function CentzonStars() {
   // devient visible (arrivee au Sud), remis a zero quand on le quitte.
   /** Quand le voile est tombe : base du delai de calage. */
   const veilFellAtRef = useRef<number | null>(null);
+  /** Horloge du jet, bornee : voir lib/envelope-clock. */
+  const throwClockRef = useRef(0);
   const arrivedAtRef = useRef<number | null>(null);
 
   const pointsGeometry = useMemo(() => {
@@ -120,7 +123,7 @@ export default function CentzonStars() {
     []
   );
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const south = direction === "turquoise";
     blendRef.current += ((south ? 1 : 0) - blendRef.current) * 0.06;
     const blend = blendRef.current;
@@ -130,6 +133,8 @@ export default function CentzonStars() {
     if (!g.visible) {
       if (arrivedAtRef.current !== null) centzonStore.reset(); // nouvelle nuit au retour
       arrivedAtRef.current = null;
+      veilFellAtRef.current = null;
+      throwClockRef.current = 0;
       return;
     }
     g.position.copy(state.camera.position);
@@ -165,8 +170,15 @@ export default function CentzonStars() {
       }
       arrivedAtRef.current = state.clock.elapsedTime;
     }
+    // L'horloge du jet avance d'un PAS BORNE (09/09, cf lib/envelope-clock)
+    // et non sur l'ecart d'horloge de la scene. Le jet ne dure que ~2,1 s et
+    // il s'arme desormais au premier scroll, c'est-a-dire pile au moment ou
+    // une saccade est probable : sur la frappe du serpent, la meme forme de
+    // code avait fait sauter 3,9 s en une image et le geste entier n'avait
+    // jamais existe. Un ralenti se regarde, une image sautee ne se voit pas.
     // reduced-motion : pas de jet, elles sont en place tout de suite.
-    const since = reduced ? 1e9 : state.clock.elapsedTime - arrivedAtRef.current;
+    throwClockRef.current = reduced ? 1e9 : advanceEnvelope(throwClockRef.current, delta);
+    const since = throwClockRef.current;
     if (since > 2.5) markTrace("centzon-thrown"); // une trace : les 400 ont ete jetees devant vous
 
     const pos = pointsGeometry.getAttribute("position") as BufferAttribute;
