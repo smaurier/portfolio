@@ -1,7 +1,8 @@
 "use client";
 
+import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { strikeState } from "@/lib/strike-sequence";
+import { advanceStrike, strikeState } from "@/lib/strike-sequence";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { useSceneRefs } from "./scene-refs-context";
 import { markTrace } from "../traces-store";
@@ -14,10 +15,28 @@ import { markTrace } from "../traces-store";
  */
 export default function XiuhcoatlStrikeDirector() {
   const sceneRefs = useSceneRefs();
-  useFrame((state) => {
+  // L'horloge PROPRE de la frappe (09/09), avancee d'un pas borne par image
+  // plutot que lue sur `elapsedTime - strikeAt`. Mesure qui a motive ce
+  // changement : au declenchement, l'anneau s'embrase et son shader se
+  // compile, et l'horloge de la scene a saute de 3,9 s en UNE image. Toute
+  // l'enveloppe de 3,1 s etait consommee d'un coup, donc invisible. Voir
+  // `advanceStrike` dans lib/strike-sequence.
+  const sinceRef = useRef(-1);
+  const lastAtRef = useRef(-1);
+  useFrame((_state, delta) => {
     const at = xiuhcoatlStore.strikeAt;
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
-    const s = at >= 0 ? strikeState(state.clock.elapsedTime - at, reduced) : strikeState(-1, reduced);
+    if (at < 0) {
+      sinceRef.current = -1;
+      lastAtRef.current = -1;
+    } else if (at !== lastAtRef.current) {
+      // Nouvelle frappe : l'horloge repart de zero, jamais d'un ecart.
+      lastAtRef.current = at;
+      sinceRef.current = 0;
+    } else if (sinceRef.current >= 0) {
+      sinceRef.current = advanceStrike(sinceRef.current, delta);
+    }
+    const s = strikeState(sinceRef.current, reduced);
     const t = xiuhcoatlStore.strike;
     t.stiffen = s.stiffen;
     t.flash = s.flash;

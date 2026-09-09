@@ -12,6 +12,7 @@ import { createEmberFireMaterial, createTurquoiseMaterial, createXiuhcoatlUnifor
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { pushHeat, xiuhcoatlStore } from "./xiuhcoatl-store";
 import { isBot } from "@/lib/is-bot";
+import { advanceStrike } from "@/lib/strike-sequence";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import { tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -170,7 +171,7 @@ export default function XiuhcoatlCompanion() {
   const bankRef = useRef(0);
   const emberAccRef = useRef(0);
   const heatAtRef = useRef(0);
-  const strikeRef = useRef<{ at: number; from: { x: number; y: number; z: number }; hitDone: boolean } | null>(null);
+  const strikeRef = useRef<{ at: number; t: number; from: { x: number; y: number; z: number }; hitDone: boolean } | null>(null);
   // Les uniforms vivent avec la scene (cache useGLTF) : un remontage du
   // composant retrouve ceux que les matieres portent deja.
   const uniforms = useMemo<XiuhcoatlUniforms>(() => {
@@ -250,11 +251,18 @@ export default function XiuhcoatlCompanion() {
     // vol errant est mis de cote et reprend au point de sortie.
     const clockNow = _state.clock.elapsedTime;
     if (xiuhcoatlStore.strikeAt >= 0 && !strikeRef.current && clockNow - xiuhcoatlStore.strikeAt < 0.5) {
-      strikeRef.current = { at: clockNow, from: { x: s.x, y: s.y, z: s.z }, hitDone: false };
+      strikeRef.current = { at: clockNow, t: 0, from: { x: s.x, y: s.y, z: s.z }, hitDone: false };
     }
     const strike = strikeRef.current;
     if (strike) {
-      const u = Math.min(1, (clockNow - strike.at) / (STRIKE_MS / 1000));
+      // La charge avance d'un pas BORNE (le meme `dt` que le vol errant),
+      // et non sur `clockNow - strike.at` (09/09). Sur une saccade au
+      // declenchement, l'horloge de la scene a saute de 3,9 s en une image :
+      // le serpent franchissait toute sa courbe d'un coup, posait `strikeHit`
+      // immediatement, et le geste n'existait plus. Un ralenti se regarde,
+      // une image sautee ne se voit pas.
+      strike.t = advanceStrike(strike.t, dt);
+      const u = Math.min(1, strike.t / (STRIKE_MS / 1000));
       const a = strike.from, b = STRIKE_HIT, c = STRIKE_CLIMB;
       // Bezier quadratique passant PAR le point d'impact a u = 0.5.
       const ctrl = { x: 2 * b.x - 0.5 * (a.x + c.x), y: 2 * b.y - 0.5 * (a.y + c.y), z: 2 * b.z - 0.5 * (a.z + c.z) };

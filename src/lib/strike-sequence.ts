@@ -129,3 +129,44 @@ export function strikeState(sinceStart: number, reduced: boolean, spec: StrikeSp
 
   return { stiffen: clamp01(stiffen), flash: clamp01(flash), shake: clamp01(shake), lift: clamp01(lift), fire: clamp01(fire), tint: 0 };
 }
+
+/**
+ * LE PAS MAXIMUM DE LA FRAPPE (09/09). Plus petit que la plus courte
+ * fenetre de la sequence (`fireUp`, 0,05 s) : en dessous, aucun temps fort
+ * ne peut etre saute.
+ */
+export const STRIKE_MAX_STEP = 1 / 30;
+
+/**
+ * Avance l'horloge de la frappe d'une image, en BORNANT le pas.
+ *
+ * Pourquoi cette fonction existe, mesure du 09/09 : la frappe etait pilotee
+ * par `state.clock.elapsedTime - strikeAt`, une difference de temps reel non
+ * bornee. Or l'instant du declenchement est precisement celui ou une saccade
+ * est la plus probable, parce que l'anneau s'embrase et que son shader se
+ * compile. Releve dans le navigateur : l'horloge a saute de **3,9 s en une
+ * seule image**. Toute l'enveloppe de 3,1 s a donc ete consommee d'un coup :
+ * l'impact pose, le feu deja retombe a 0,04, le raidissement jamais vu. Un
+ * geste de trois secondes joue en une image, c'est-a-dire invisible. C'est
+ * exactement ce que Sylvain decrivait par « l'anneau de feu a ete enleve ».
+ *
+ * Le depot avait deja la lecon a un autre endroit : le vol errant du serpent
+ * borne son propre pas (`Math.max(1e-3, Math.min(delta, 1 / 30))`, contre
+ * des quaternions NaN). Ici l'enjeu n'est pas la stabilite numerique, c'est
+ * qu'un geste narratif ne doit jamais pouvoir etre enjambe.
+ *
+ * Conséquence assumée : sur une machine qui saccade, la frappe joue plus
+ * LENTEMENT que le temps reel, au lieu de disparaitre. Un ralenti se
+ * regarde ; une image sautee ne se voit pas.
+ */
+export function advanceStrike(since: number, delta: number, maxStep = STRIKE_MAX_STEP): number {
+  if (!Number.isFinite(since)) return 0;
+  // Un delta sans valeur (NaN) n'avance rien : on ne sait pas de combien.
+  // Un delta INFINI, en revanche, est une saccade comme une autre, en pire :
+  // il avance d'exactement un pas, comme les 3,9 s mesurees. Traiter les
+  // deux pareil ferait geler la sequence sur un cas qui doit la faire
+  // avancer.
+  if (Number.isNaN(delta)) return since;
+  if (delta <= 0) return since;
+  return since + Math.min(delta, maxStep);
+}

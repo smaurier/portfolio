@@ -49,6 +49,13 @@ export const xiuhcoatlStore = {
   strike: { stiffen: 0, flash: 0, shake: 0, lift: 0, fire: 0, tint: 0 },
 };
 
+// Lecture externe (verifications Playwright, console), meme motif que
+// frost-store : sans ca, la frappe est indebogable. C'est ce qui a permis de
+// trouver, le 09/09, que le serpent n'arrivait jamais pour la charge.
+if (typeof window !== "undefined") {
+  (window as unknown as { __nahualXiuhcoatl?: unknown }).__nahualXiuhcoatl = xiuhcoatlStore;
+}
+
 /** Ajoute un point, borne la file, purge les morts. */
 export function pushHeat(x: number, y: number, z: number, now: number): void {
   const t = xiuhcoatlStore.trail;
