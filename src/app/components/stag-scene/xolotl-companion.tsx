@@ -15,6 +15,7 @@ import { useReadingMode } from "@/lib/reading-mode-context";
 import type { DirectionKey } from "./direction-colors";
 import { useCurrentDirection } from "./use-current-direction";
 import { decideSpawn, xolotlSpawnKey, xolotlSpawnProbability } from "@/lib/xolotl-spawn";
+import { slewLimit, STANCE_SLEW } from "@/lib/stance-slew";
 import { OUEST_ARC } from "@/lib/ouest-arc";
 import { useSceneRefs } from "./scene-refs-context";
 import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
@@ -120,7 +121,19 @@ const HALF_BASE = 0.45;
  * 0.6 : la marche de la margelle demande 28.7 degres (mesure 03/09), le
  * garde-fou mordait donc pile dessus. C'est la geometrie qui doit decider,
  * pas la borne. */
-const MAX_PITCH = 0.6;
+/**
+ * 0,6 -> 0,37 rad, soit 34,4 -> 21,2 degres (09/09). La mesure montrait le
+ * tangage COLLE a 34,4 en grimpant sur la margelle. Or la geometrie n'en
+ * justifie pas la moitie : la pierre fait 34 cm de haut et l'empattement
+ * 90 cm, donc grimper dessus incline le corps de atan(0,34/0,90) = 20,7
+ * degres. L'exces venait des points d'appui, echantillonnes sous les
+ * coussinets EN MOUVEMENT, qui s'ecartent plus que l'empattement pendant
+ * le cycle de marche.
+ *
+ * Verifie que ca ne bride rien ailleurs : sur les dunes du decor le
+ * tangage mesure reste entre 0 et 10 degres.
+ */
+const MAX_PITCH = 0.37;
 /** Suivi de l'assiette, en 1/s. Simple filtre du premier ordre : il lisse
  * l'arete de la pierre sans jamais depasser sa cible (pas de ressort ici,
  * un depassement se lirait comme un rebond parasite). */
@@ -135,7 +148,22 @@ const ROLL_AXIS = new Vector3(1, 0, 0);
 const YAW_QUATERNION = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI / 2);
 /** Garde-fou de roulis : plus serre que l'assiette, un chien qui bancale
  * trop se lit comme une chute. */
-const MAX_ROLL = 0.35;
+/**
+ * 0,35 -> 0,18 rad, soit 20 -> 10,3 degres (09/09). La mesure montrait le
+ * roulis COLLE a son maximum pendant tout le franchissement de la
+ * margelle, alors que Xolotl l'aborde de face. La cause est la marche
+ * diagonale d'un quadrupede : au bord d'une marche, une patte avant est
+ * sur la pierre quand l'autre est encore dessous, et le plan ajuste sur
+ * les quatre coussinets traduit cet ecart en vrille.
+ *
+ * 10,3 degres n'est pas un chiffre rond mais la valeur que la GEOMETRIE
+ * justifie : la margelle est un anneau de rayon 6,4 et son chemin passe a
+ * z = -1,5, donc le bord de pierre croise son corps de biais, avec une
+ * pente projetee sur son axe lateral qui donne environ 9 degres au plus
+ * fort. Au-dela, ce n'est plus le relief qu'on lit, c'est le bruit de la
+ * demarche.
+ */
+const MAX_ROLL = 0.18;
 
 /** ---- POSE DES PATTES PAR CINEMATIQUE INVERSE (03/09, piste choisie par
  * Sylvain apres l'echec du modele analytique : "on va tester sur la 1").
@@ -836,16 +864,56 @@ export default function XolotlCompanion() {
     const sourceChanged = fromFeet !== stanceFromFeetRef.current;
     stanceFromFeetRef.current = fromFeet;
     const prevStance = sourceChanged ? null : stanceRef.current;
+    // Lissage exponentiel PUIS borne de vitesse (09/09, retour Sylvain sur
+    // l'entree dans le bassin). Le lissage seul ne pouvait rien : a 12 par
+    // seconde il converge a 91 % en 200 ms, donc il SUIT fidelement une
+    // cible qui s'inverse. Or au franchissement de la margelle de 34 cm la
+    // cible passe de +34 a -34 degres -- l'avant est sur la pierre, puis
+    // dans l'eau pendant que l'arriere y est encore. Mesure avant : un saut
+    // de 29,9 degres de tangage en 200 ms. La borne vit dans
+    // lib/stance-slew, avec ses tests.
+    const dtStance = Math.min(delta, 1 / 30);
     stanceRef.current = prevStance
       ? {
           y: prevStance.y + (stance.y - prevStance.y) * follow,
-          pitch: prevStance.pitch + (stance.pitch - prevStance.pitch) * follow,
-          roll: prevStance.roll + (rollTarget - prevStance.roll) * follow,
+          // La borne part de la valeur PRECEDENTE et vise la valeur lissee.
+          // Premier branchement rate : je partais de la valeur deja lissee,
+          // donc du saut deja commis, et la borne ne limitait que le
+          // mouvement au-dela. Mesure : le saut restait a 33 degres. C'est
+          // la composition qui compte, pas la presence de la borne.
+          pitch: slewLimit(
+            prevStance.pitch,
+            prevStance.pitch + (stance.pitch - prevStance.pitch) * follow,
+            dtStance,
+            STANCE_SLEW,
+          ),
+          roll: slewLimit(
+            prevStance.roll,
+            prevStance.roll + (rollTarget - prevStance.roll) * follow,
+            dtStance,
+            STANCE_SLEW,
+          ),
         }
       : { y: stance.y, pitch: stance.pitch, roll: rollTarget };
     const y = stanceRef.current.y;
     const pitch = stanceRef.current.pitch;
     const roll = stanceRef.current.roll;
+    // Lecture externe (verifications Playwright, console), meme motif que
+    // frostUniforms et __nahualRim : l'assiette est calculee par image et
+    // indebogable depuis l'image seule. Compte aussi les BASCULES de
+    // source, qui remettent le lissage a zero.
+    if (typeof window !== "undefined") {
+      const w = window as unknown as { __nahualXolotl?: { y: number; pitch: number; roll: number; source: string; bascules: number; r: number } };
+      const prec = w.__nahualXolotl;
+      w.__nahualXolotl = {
+        y: +y.toFixed(4),
+        pitch: +((pitch * 180) / Math.PI).toFixed(2),
+        roll: +((roll * 180) / Math.PI).toFixed(2),
+        source: fromFeet ? "appuis" : "repli",
+        bascules: (prec?.bascules ?? 0) + (sourceChanged ? 1 : 0),
+        r: +Math.hypot(x, zDepth).toFixed(3),
+      };
+    }
     g.position.set(x, y, zDepth);
     // Cap, puis roulis autour de l'axe de marche, puis assiette : chaque
     // rotation doit composer par-dessus la precedente, d'ou l'ordre.
