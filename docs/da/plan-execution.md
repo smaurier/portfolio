@@ -9,6 +9,58 @@ Sources : `docs/da/plan-jury.md` (premier panel, diagnostic et lots),
 `docs/da/etat-de-l-art.md` (les sept constantes et le budget mesure),
 `docs/da/centre-sources.md` (brief du Centre).
 
+## AVANCEMENT — nuit du 08 au 09/09 (session autonome)
+
+Sylvain : « on fait tout ca, ne m'attends pas, mets en place tout ce qui est
+prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
+
+| Tache | Etat | Commit |
+| --- | --- | --- |
+| A1 le serpent surgit a chaque visite | ✅ FAIT | `db48692` |
+| A2 la charge part vraiment | ✅ FAIT | `632d425` |
+| A3 la gerbe et la porte de chaleur | ✅ FAIT | `632d425` |
+| A4 le contenu s'ecarte pendant la frappe | ✅ FAIT | `cba5d97` |
+| B1 les 400 etoiles au bon moment | ✅ FAIT | `6e5d1d7` |
+| B2 la sortie de scene du Centre | ✅ FAIT | `ae018f6` |
+| B3 rubans des Cihuateteo groupes | ⬜ a faire | |
+| B4 FrostWorld et SunBeam gates | ⬜ a faire | |
+| C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
+| D1 a D4, E, F, G, I | ⬜ a faire | |
+
+**La phase A est terminee.** Le geste le plus spectaculaire du Sud etait mort
+de trois causes empilees, et les trois sont reparees et verrouillees par
+`tests/e2e/xiuhcoatl-strike.spec.ts`.
+
+### Ce que cette nuit a appris, et qui vaut pour tout le reste du plan
+
+1. **Un geste narratif pilote par une difference de temps reel non bornee
+   peut etre enjambe par une saccade** — et c'est au DECLENCHEMENT que la
+   saccade est la plus probable, puisque c'est la que les shaders se
+   compilent. Mesure : l'horloge de la scene a saute de 3,9 s en une image,
+   et l'enveloppe de 3,1 s de la frappe a ete consommee d'un coup. D'ou
+   `advanceStrike` : un pas borne par image, plus petit que la plus courte
+   fenetre de la sequence. **`frostStep` et `solarCamera` ont la meme forme
+   et meritent la meme borne.**
+2. **Une branche de RATTRAPAGE ne doit jamais vivre sous les gardes du cas
+   normal.** Le surgissement du serpent etait enferme derriere trois gardes
+   qui sont toutes vraies exactement quand il doit s'appliquer.
+3. **Trois de nos gestes jouaient devant une salle vide ou derriere un mur**,
+   et aucun n'etait mal fait : la frappe derriere les cartes de projets, les
+   400 etoiles pendant le fondu du voile, et la charge de 3,2 s que rien
+   n'annoncait. La question « ou est l'oeil a cet instant » est aussi
+   importante que la qualite de l'effet.
+4. **Un oracle doit viser ce qui compte, pas ce qui est facile a lire.**
+   « L'objet est dans le graphe » ne prouvait rien : le groupe du serpent est
+   TOUJOURS monte, avec `visible={false}`. Et un pic de 170 ms se mesure avec
+   un enregistreur de maximum, pas avec un sondage.
+
+### Ce qui reste et qui demande une decision, pas du code
+
+- **La mesure sur telephone (C1)** : elle t'appartient, en USB. La phase E,
+  l'arc vertical du Centre, ne doit pas commencer avant ses chiffres, c'est
+  ton arbitrage du 08/09.
+- Le plafond de densite de pixels, toujours ouvert, a trancher avec C1.
+
 ## Etat de reference, a ne pas regresser
 
 Mesure du 09/09 au moment d'ecrire ce plan. Toute tache doit laisser ces
