@@ -21,6 +21,7 @@ import {
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { strippedWarmth } from "@/lib/direction-arc";
 import { TEZCATL_EXTENT, tezcatlStore } from "./tezcatl-store";
 
 /**
@@ -64,6 +65,16 @@ const MIRROR_OPACITY = 0.15;
  * page il affleure a peine, plein bas il est entier. */
 const SCROLL_GATE_FLOOR = 0.3;
 const MIRROR_COLOR = new Color("#8a7fb0"); // la lueur froide du puits
+/**
+ * LA CHALEUR QUI RESTE DANS L'EAU (09/09). Au huitieme niveau de Mictlan,
+ * *Izmictlan Apochcalolca*, le mort est depouille de la derniere chose qui
+ * le retenait a la chair. Le tezcatl « ne reflete pas, il revele ou il
+ * ment » : a cet endroit seulement, il PREND. La derniere couleur chaude du
+ * reflet reste dans l'eau noire au lieu de remonter avec le cerf, qui
+ * continue, lui, dans sa lueur froide.
+ * Braise sourde et non flamme : ce n'est pas un feu, c'est ce qui reste.
+ */
+const KEPT_EMBER = new Color("#c85f2e");
 const MIRROR_RADIUS = 3.0; // = GROUND_RADIUS de PiedraGround
 /** Compression de la profondeur du reflet (02/09, retour Sylvain "le
  * reflet n'a pas ses bois, on doit les voir"). A l'echelle 1, le cerf
@@ -189,7 +200,14 @@ export default function StagMirror() {
     () =>
       new ShaderMaterial({
         uniforms: {
-          uColor: { value: MIRROR_COLOR },
+          // CLONE, jamais la constante (09/09) : la teinte est interpolee
+          // chaque image vers la braise du huitieme niveau. En passant
+          // MIRROR_COLOR directement, `lerp` mutait la constante partagee et
+          // s'accumulait : la couleur convergeait vers la braise quelle que
+          // soit la profondeur, et l'effet n'etait plus proportionnel. Trouve
+          // en relevant l'uniforme, pas en regardant l'image : sur une eau
+          // sombre, la difference etait sous le bruit de la pulsation.
+          uColor: { value: MIRROR_COLOR.clone() },
           uOpacity: { value: 0 },
           uRadiusInner: { value: MIRROR_RADIUS * 0.55 },
           uRadiusOuter: { value: MIRROR_RADIUS },
@@ -270,7 +288,14 @@ export default function StagMirror() {
     // Seule "vie" du reflet : lente pulsation (~25s). Figee en
     // reduced-motion : reflet statique lisible.
     const pulse = reduced ? 1 : 0.8 + 0.2 * Math.sin(state.clock.elapsedTime * 0.25);
-    material.uniforms.uOpacity.value = opacityRef.current * pulse;
+    // Le huitieme niveau : la teinte du reflet glisse du froid vers la
+    // braise a mesure qu'on touche le fond. C'est teyolia qui se depouille
+    // la, jamais tonalli, qui appartient au Centre (cf lib/direction-arc).
+    const kept = direction === "obsidienne" ? strippedWarmth(depth) : 0;
+    (material.uniforms.uColor.value as Color).copy(MIRROR_COLOR).lerp(KEPT_EMBER, kept);
+    // Ce qui reste dans l'eau se voit un peu plus que ce qui passait :
+    // sans ce gain, la braise se perdait dans une eau presque noire.
+    material.uniforms.uOpacity.value = opacityRef.current * pulse * (1 + 0.4 * kept);
     // Champ publie par TezcatlWater (texture ping-pong : la reference
     // change a chaque frame).
     material.uniforms.uRipple.value = tezcatlStore.ripple;
