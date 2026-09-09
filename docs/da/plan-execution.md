@@ -28,6 +28,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | F3 sortie de secours sans JavaScript | ✅ FAIT | `4632cb2` |
 | F1 l'arc du Sud (nuit de Coatepec -> zenith) | ✅ FAIT | `cb534f1` |
 | L'horloge des gestes, generalisee | ✅ FAIT | `2cbdc16` |
+| D4 l'atterrissage de l'Ouest (la danse est gardee) | ✅ FAIT | `1702e30` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D1 a D4 (les substitutions mythologiques) | ⬜ a faire | |
@@ -104,6 +105,23 @@ la bouffee de l'anneau, qui sont des scintillements et non des gestes.
 2. **Le correctif du melange profite surtout a l'EST**, pas au Sud : les
    nuages du haut de son ciel se lisent maintenant, avec la bande rouge de
    l'aube sous eux. C'est desormais le plus beau plan du site.
+
+### Constat qui change l'ordre du reste : le contenu couvre la scene
+
+En voulant affiner l'ombre du Sud au zenith (geste atteste, propose par le
+panel), je me suis heurte a autre chose : **sur les pages longues, les cartes
+de contenu couvrent la scene pendant presque tout l'arc**. Le Sud et le Nord
+font 4 600 et 5 700 px de haut, l'arc se joue sur les 1 600 premiers, et
+`.contentPage` est une colonne centree de 720 px, opaque, posee dessus. On ne
+peut donc pas juger, ni affiner, un geste 3D sur ces deux pages.
+
+C'est le meme constat que la recherche technique avait fait (reference
+`iventions.com` : « un parcours guide plutot qu'une grille ») et c'est
+maintenant mesure chez nous. **Tant que ce rapport contenu / scene n'est pas
+traite, tout raffinement visuel sur le Sud et le Nord est invisible.** Le
+mecanisme existe deja depuis la frappe (`data-strike` sur `<html>`, le
+contenu s'ecarte) : il reste a decider a quels autres moments il s'applique,
+et c'est une decision de conception, pas du code.
 
 ### Ce qui reste et qui demande une decision, pas du code
 
