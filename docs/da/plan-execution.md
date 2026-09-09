@@ -26,7 +26,10 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | B4 FrostWorld et SunBeam gates | ✅ FAIT | `b7914d4` |
 | I1 credits des modeles | ✅ FAIT | `6f55b0f` |
 | F3 sortie de secours sans JavaScript | ✅ FAIT | `4632cb2` |
+| F1 l'arc du Sud (nuit de Coatepec -> zenith) | ✅ FAIT | `cb534f1` |
+| L'horloge des gestes, generalisee | ✅ FAIT | `2cbdc16` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
+| I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D1 a D4 (les substitutions mythologiques) | ⬜ a faire | |
 | E1, E2 (l'arc vertical du Centre) | ⬜ apres C1 | |
 | F1 (le Sud), F2 (l'acte de sortie) | ⬜ a faire | |
@@ -74,6 +77,33 @@ de trois causes empilees, et les trois sont reparees et verrouillees par
    « L'objet est dans le graphe » ne prouvait rien : le groupe du serpent est
    TOUJOURS monte, avec `visible={false}`. Et un pic de 170 ms se mesure avec
    un enregistreur de maximum, pas avec un sondage.
+
+### Ce que la generalisation de l'horloge a appris
+
+J'ai verifie les autres enveloppes du projet au lieu de m'arreter au symptome
+de la frappe : **le gel de l'Est etait deja sauf** (`frostStep` recoit
+`Math.min(delta, 1/20)`, sa plus courte fenetre fait 1,4 s), **la camera
+solaire aussi** (elle est pilotee par le progres du scroll, pas par le
+temps), mais **le jet des quatre cents ne l'etait pas**, et c'etait le plus
+expose : il ne dure que 2,1 s et il s'arme desormais au premier scroll, donc
+pile quand la saccade arrive. Il aurait pu disparaitre exactement comme la
+frappe. La regle vit maintenant dans `lib/envelope-clock` avec sa mesure.
+
+Restent non bornees, assume : les decroissances courtes du cerf a l'impact et
+la bouffee de l'anneau, qui sont des scintillements et non des gestes.
+
+### Deux corrections a mon propre diagnostic du Sud
+
+1. **« Le ciel du Sud est plat »** : la cause principale n'est pas le
+   melange du dome mais le CADRAGE. A midi, la scene ne montre que 40 pixels
+   de ciel en haut du cadre, et **c'est voulu** : le rig solaire est
+   coherent, nuit = camera basse et regard leve (le ciel ou nait le soleil,
+   la lune, les etoiles), midi = camera haute et regard plongeant (la terre
+   en pleine lumiere). Je n'ai donc pas touche au rig. Le melange, lui, est
+   corrige : il ne remplace plus le degrade vertical, il s'y pose.
+2. **Le correctif du melange profite surtout a l'EST**, pas au Sud : les
+   nuages du haut de son ciel se lisent maintenant, avec la bande rouge de
+   l'aube sous eux. C'est desormais le plus beau plan du site.
 
 ### Ce qui reste et qui demande une decision, pas du code
 
