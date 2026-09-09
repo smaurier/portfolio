@@ -6,6 +6,7 @@ import { useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Object3D } from "three";
 import { generateRingPlacements, type FloraPlacement } from "@/lib/flora-placement";
 import { getTerrainHeight } from "@/lib/terrain-height";
+import { mergeByMaterial } from "@/lib/merge-meshes";
 
 /**
  * Végétation de fond, fixe dans le monde : palier 3 de la DA Nahual (cf
@@ -66,6 +67,23 @@ const INSTANCES_PER_SPECIES = 4;
 export function useNormalizedClone(path: string, targetHeight: number): Object3D {
   const { scene } = useGLTF(path);
   const clone = useMemo(() => {
+    // FUSION PAR MATERIAU (09/09), sur la SOURCE et non sur le clone.
+    //
+    // Mesure : `agave.glb` porte 79 sous-maillages pour un seul materiau,
+    // une feuille chacun, et il est clone neuf fois entre cette flore et
+    // les epines du Sud. A midi, la page Projets dessinait 1347 appels de
+    // rendu par image, dont 748 pour la seule passe d'ombres, quand un
+    // mobile milieu de gamme en tient 100 a 200.
+    //
+    // Sur la SOURCE, parce que `scene.clone(true)` PARTAGE les geometries
+    // entre tous les clones : fusionner un clone disposerait celles des
+    // autres. En fusionnant la source avant le premier clone, un seul
+    // passage profite a tous, et la fonction etant idempotente, le
+    // deuxieme composant qui demande le meme modele ne trouve plus rien a
+    // faire. Sans danger ici : ces cinq GLB ne sont utilises que par cette
+    // flore et par sud-spines, tous deux via cette fonction, et personne
+    // ne rend la scene source elle-meme.
+    mergeByMaterial(scene);
     const c = scene.clone(true);
     // Ombres (05/09) : la flore projette (visible au Sud seulement, la
     // directionnelle ne projette que la).
