@@ -29,9 +29,11 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | F1 l'arc du Sud (nuit de Coatepec -> zenith) | ✅ FAIT | `cb534f1` |
 | L'horloge des gestes, generalisee | ✅ FAIT | `2cbdc16` |
 | D4 l'atterrissage de l'Ouest (la danse est gardee) | ✅ FAIT | `1702e30` |
+| D1 le balai de l'Est (le degel cause la repousse) | ✅ FAIT | `fb5981a` |
+| D2 le 8e niveau du Nord (le reflet garde la chaleur) | ✅ FAIT | `1e510de` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
-| D1 a D4 (les substitutions mythologiques) | ⬜ a faire | |
+| D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
 | E1, E2 (l'arc vertical du Centre) | ⬜ apres C1 | |
 | F1 (le Sud), F2 (l'acte de sortie) | ⬜ a faire | |
 | G1 (le contenu), I2 (meshopt) | ⬜ a faire | |
