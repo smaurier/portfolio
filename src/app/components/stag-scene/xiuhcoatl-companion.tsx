@@ -171,6 +171,8 @@ export default function XiuhcoatlCompanion() {
   const bankRef = useRef(0);
   const emberAccRef = useRef(0);
   const heatAtRef = useRef(0);
+  /** Pour quelle frappe on a deja charge : -1 = aucune. */
+  const chargedForRef = useRef(-1);
   const strikeRef = useRef<{ at: number; t: number; from: { x: number; y: number; z: number }; hitDone: boolean } | null>(null);
   // Les uniforms vivent avec la scene (cache useGLTF) : un remontage du
   // composant retrouve ceux que les matieres portent deja.
@@ -218,21 +220,41 @@ export default function XiuhcoatlCompanion() {
   }, [present, actions]);
 
   useFrame((_state, delta) => {
-    const g = groupRef.current;
-    const w = wanderRef.current;
-    if (!g || !w) return;
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
-    // Le geste du mythe a lieu a CHAQUE visite : si le serpent n'etait pas
-    // la (tirage 1/3 du vol errant), il surgit du lointain pour la charge
-    // et reste ensuite. Sans lui, pas d'impact, donc pas de feu ni de
-    // chaleur (porte de chaleur, 05/09).
-    if (!present && !reduced && direction === "turquoise" && xiuhcoatlStore.strikeAt >= 0 && _state.clock.elapsedTime - xiuhcoatlStore.strikeAt < 0.5 && !isBot() && !readingMode.active) {
+    // LE GESTE DU MYTHE A LIEU A CHAQUE VISITE : si le serpent n'etait pas
+    // la (tirage 1/3 du vol errant), il surgit du lointain pour la charge et
+    // reste ensuite. Sans lui, pas d'impact, donc pas de feu ni de chaleur.
+    //
+    // Ce test passe AVANT TOUTE AUTRE GARDE, et c'est tout le correctif du
+    // 09/09. Mesure : trois visites normales, la frappe armee par le ciel, et
+    // aucun serpent, aucun feu. La branche existait depuis le 05/09 mais elle
+    // etait enfermee derriere TROIS gardes qui sont toutes vraies exactement
+    // quand elle doit s'appliquer :
+    //  1. `if (!present) return null` a la fin du composant : quand le
+    //     serpent est absent, rien n'est rendu, donc `groupRef.current` est
+    //     nul ;
+    //  2. `if (!g) return` en tete de cette boucle : sortie immediate ;
+    //  3. `if (!w) return` : la trajectoire de vol est nulle, justement parce
+    //     que le tirage a dit non.
+    // La lecon : une branche de RATTRAPAGE ne doit jamais vivre sous les
+    // gardes du cas normal.
+    //
+    // La fenetre de 0,5 s de temps reel a aussi disparu de la condition : une
+    // saccade au declenchement (l'anneau s'embrase, son shader se compile,
+    // l'horloge de la scene saute de 3,9 s, mesure du 09/09) la faisait
+    // manquer entierement. `strikeAt` reste pose jusqu'au depart du Sud et
+    // `present` passe a vrai tout de suite : la condition se referme
+    // d'elle-meme sans dependre d'un delai.
+    if (!present && !reduced && direction === "turquoise" && xiuhcoatlStore.strikeAt >= 0 && !isBot() && !readingMode.active) {
       wanderRef.current = initialWander(Math.floor(Math.random() * 1e6), XIUHCOATL_WANDER);
       bornAtRef.current = performance.now();
       bankRef.current = 0;
       setPresent(true);
       return;
     }
+    const g = groupRef.current;
+    const w = wanderRef.current;
+    if (!g || !w) return;
     if (!present || reduced) {
       g.visible = false;
       xiuhcoatlStore.presence = 0;
@@ -250,7 +272,13 @@ export default function XiuhcoatlCompanion() {
     // touche l'anneau (strikeHit) et l'anneau flambe. Pendant la charge, le
     // vol errant est mis de cote et reprend au point de sortie.
     const clockNow = _state.clock.elapsedTime;
-    if (xiuhcoatlStore.strikeAt >= 0 && !strikeRef.current && clockNow - xiuhcoatlStore.strikeAt < 0.5) {
+    // Une charge par frappe, sans fenetre de temps reel (09/09) : la
+    // condition « moins de 0,5 s apres l'ordre » sautait des que l'horloge
+    // sautait, et c'est exactement au declenchement qu'elle saute. On retient
+    // donc POUR QUELLE frappe on a deja charge, ce qui est exact quoi qu'il
+    // arrive a l'horloge.
+    if (xiuhcoatlStore.strikeAt >= 0 && !strikeRef.current && chargedForRef.current !== xiuhcoatlStore.strikeAt) {
+      chargedForRef.current = xiuhcoatlStore.strikeAt;
       strikeRef.current = { at: clockNow, t: 0, from: { x: s.x, y: s.y, z: s.z }, hitDone: false };
     }
     const strike = strikeRef.current;
