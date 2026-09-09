@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type M
 import { arcProgress } from "@/lib/reveal-arc";
 import { getPerfProfile, type PerfProfile } from "@/lib/mobile-perf";
 import { getSceneControls, hydrateSceneControls, subscribeSceneControls } from "../scene-controls-store";
+import { shouldReduceMotion } from "@/lib/reduced-motion";
 
 /**
  * Contexte partagé des refs et de l'état runtime de la scène 3D
@@ -77,7 +78,20 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    reducedMotionRef.current = reducedMotionQuery.matches;
+    // Le drapeau que TOUS les composants de la scene lisent pour figer
+    // leurs animations. La contemplation est une demande explicite de
+    // l'utilisateur : elle gagne sur la preference systeme (regle unique
+    // dans lib/reduced-motion, partagee avec le frameloop du canvas).
+    // Relu au changement de preference ET au changement de controles :
+    // avant le 09/09 il etait pose une seule fois au montage, si bien
+    // qu'un visiteur qui changeait sa preference systeme, ou qui demandait
+    // la contemplation, gardait l'ancien comportement pour la session.
+    const relireMouvement = () => {
+      reducedMotionRef.current = shouldReduceMotion(reducedMotionQuery.matches, getSceneControls().cinematic);
+    };
+    relireMouvement();
+    reducedMotionQuery.addEventListener("change", relireMouvement);
+    const desabonnerMouvement = subscribeSceneControls(relireMouvement);
 
     // Reset scroll uniquement au mount initial de la session (layout
     // persist entre navs SPA, donc ce reset ne se rejoue plus au
@@ -90,6 +104,13 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
 
     document.body.classList.add(REVEAL_SCOPE_CLASS);
 
+    // Mouvement reduit : l'arc NE PROGRESSE PAS. C'est la cause profonde
+    // du gel, plus encore que le frameloop du canvas -- la scene ne reste
+    // pas seulement sur la meme image, elle reste sur le meme ETAT (au Sud,
+    // la nuit d'arrivee, quoi qu'on scrolle). C'est le choix documente du
+    // 28/08 ("une scene statique lisible"), et le mode recit accessible
+    // est l'alternative offerte. Des que la contemplation est demandee,
+    // reducedMotionRef repasse a faux et l'arc se remet a suivre le scroll.
     function handleScroll() {
       if (reducedMotionRef.current) return;
       progressRef.current = arcProgress(window.scrollY, window.innerHeight);
@@ -99,6 +120,8 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      reducedMotionQuery.removeEventListener("change", relireMouvement);
+      desabonnerMouvement();
       document.body.classList.remove(REVEAL_SCOPE_CLASS);
       window.history.scrollRestoration = previousScrollRestoration;
     };

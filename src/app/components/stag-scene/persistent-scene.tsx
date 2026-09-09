@@ -10,6 +10,8 @@ import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { isBot } from "@/lib/is-bot";
+import { shouldRenderContinuously } from "@/lib/reduced-motion";
+import { getSceneControls, subscribeSceneControls } from "../scene-controls-store";
 import { getFogTint } from "@/lib/direction-fog";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import XolotlCompanion from "./xolotl-companion";
@@ -60,7 +62,9 @@ export default function PersistentScene() {
   // en tab background = drain CPU/GPU + batterie. "demand" gele le
   // canvas jusqu'a next invalidate. Bascule via visibilitychange.
   //
-  // Egalement "demand" en permanence si prefers-reduced-motion :
+  // Egalement "demand" si prefers-reduced-motion, SAUF contemplation
+  // explicitement demandee (09/09 : le bouton existait et ne faisait rien,
+  // 0,0 % des pixels du canvas changeaient apres le clic) :
   // gele le breath cycle du cerf, la parallax camera, les
   // particles, les ambiances 5 directions. Utilisateur voit une
   // scene statique lisible (RGAA 13.6, WCAG 2.3.3).
@@ -78,22 +82,28 @@ export default function PersistentScene() {
     if (typeof window === "undefined") return;
     const reducedMotionMq = window.matchMedia("(prefers-reduced-motion: reduce)");
     function computeFrameloop() {
-      if (reducedMotionMq.matches) return "demand" as const;
-      if (typeof document !== "undefined" && document.hidden) return "demand" as const;
-      return "always" as const;
+      // La regle vit dans lib/reduced-motion, partagee avec
+      // scene-refs-context : rendre les images et animer les composants
+      // sont deux decisions, mais c'est la MEME regle, et deux copies se
+      // desynchroniseraient. La contemplation, elle, est une demande
+      // explicite : elle gagne sur la preference systeme.
+      return shouldRenderContinuously({
+        prefersReduced: reducedMotionMq.matches,
+        cinematicRequested: getSceneControls().cinematic,
+        documentHidden: typeof document !== "undefined" && document.hidden,
+      })
+        ? ("always" as const)
+        : ("demand" as const);
     }
-    setFrameloop(computeFrameloop());
-    function onVisibility() {
-      setFrameloop(computeFrameloop());
-    }
-    function onReducedMotionChange() {
-      setFrameloop(computeFrameloop());
-    }
-    document.addEventListener("visibilitychange", onVisibility);
-    reducedMotionMq.addEventListener("change", onReducedMotionChange);
+    const relire = () => setFrameloop(computeFrameloop());
+    relire();
+    document.addEventListener("visibilitychange", relire);
+    reducedMotionMq.addEventListener("change", relire);
+    const desabonner = subscribeSceneControls(relire);
     return () => {
-      document.removeEventListener("visibilitychange", onVisibility);
-      reducedMotionMq.removeEventListener("change", onReducedMotionChange);
+      document.removeEventListener("visibilitychange", relire);
+      reducedMotionMq.removeEventListener("change", relire);
+      desabonner();
     };
   }, []);
 
