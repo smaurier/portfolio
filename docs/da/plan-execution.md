@@ -31,6 +31,9 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | D4 l'atterrissage de l'Ouest (la danse est gardee) | ✅ FAIT | `1702e30` |
 | D1 le balai de l'Est (le degel cause la repousse) | ✅ FAIT | `fb5981a` |
 | D2 le 8e niveau du Nord (le reflet garde la chaleur) | ✅ FAIT | `1e510de` |
+| H1 le ciel d'avant-jour de l'Est (plus de trou noir) | ✅ FAIT | `6c712f2` |
+| H2 les cempasuchil du Nord portent leur lumiere | ✅ FAIT | `fb54620` |
+| J1 a11y : la Contemplation ne faisait rien en mouvement reduit | ✅ FAIT | `fe1cdd3` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
@@ -38,9 +41,9 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | F1 (le Sud), F2 (l'acte de sortie) | ⬜ a faire | |
 | G1 (le contenu), I2 (meshopt) | ⬜ a faire | |
 
-**Phases A et B terminees, plus I1 et F3.** Quinze commits dans la nuit du 08
-au 09/09. Ce qui reste demande soit ta mesure (C1), soit une decision
-narrative (D, E, F1), soit ta relecture (G1).
+**Phases A et B terminees, plus I1, F3, D1, D2, D4, H1, H2 et J1.** Ce qui
+reste demande soit ta mesure (C1), soit une decision narrative (D3, E, F2),
+soit ta relecture (G1), soit ton go sur un outil de build (I2).
 
 ### Deux choses a relire par la session du foyer
 
@@ -869,3 +872,82 @@ scans 3D en CC0, n'a **rien d'exploitable** sur l'aztheque. Les seuls
 resultats « aztec » sur `3d.si.edu` sont des maillots de baseball nommes
 « Aztecas ». La vraie Piedra del Sol est au Museo Nacional de Antropologia de
 Mexico, hors du programme Smithsonian, et n'a aucun scan CC0 public connu.
+
+---
+
+# J1. Le bouton qui ne faisait rien (accessibilite)
+
+Trouve en verifiant une hypothese fausse, ce qui vaut d'etre note : je
+croyais que le mouvement reduit DESATURAIT la scene (une premiere mesure de
+couleur des cempasuchil le suggerait). Mesure sur trois pages : faux, la
+saturation est egale ou superieure. Mais la meme mesure a montre autre
+chose -- au Sud, la clarte du cadre tombait de 30 % a 10 %.
+
+Cause : sous mouvement reduit, `handleScroll` retournait sans rien faire.
+L'arc ne progressait pas. La scene ne restait pas seulement sur la meme
+image, elle restait sur le meme ETAT : au Sud, la nuit d'arrivee, quoi
+qu'on scrolle, alors que toute la page raconte le soleil qui monte.
+
+C'est un choix documente (« une scene statique lisible ») et le mode recit
+accessible est l'alternative offerte, donc je n'y touche pas. Mais le site
+offre AUSSI « Contemplation : la scene deroule seule », et ce bouton ne
+faisait rien : 0,0 % des pixels du canvas changeaient dans les 4,5 s
+suivant le clic. Trois causes empilees (frameloop « demand » sans jamais
+d'invalidate, `reducedMotionRef` figeant chaque composant, l'arc qui ne
+progresse pas). La regle vit maintenant dans `lib/reduced-motion` : la
+preference systeme gele tout, SAUF demande explicite.
+
+**Reste ta decision** : sous mouvement reduit et SANS contemplation, la
+scene reste sur l'etat d'arrivee. Trois options : garder (le recit
+accessible est l'alternative), rendre une image quand le scroll se pose
+(discret, pas d'animation continue, la scene suit la lecture), ou signaler
+a l'utilisateur que la scene est figee et qu'un bouton la reveille. Je n'ai
+pas tranche : c'est une decision d'accessibilite sur un choix que tu as
+documente.
+
+## Deux pieges de sonde, tous deux capables de faire passer un test vide
+
+1. **`is-bot` demonte le Canvas.** Une sonde Playwright sans UA normal
+   mesure une page SANS WebGL. Ca m'a coute une fausse piste sur le ciel de
+   l'Est (je cherchais pourquoi un correctif ne changeait rien, alors que
+   la scene n'etait pas montee). D'ou la garde `sceneMontee` dans le spec.
+2. **`test.use({ reducedMotion: "reduce" })` ne prend pas** dans ce projet :
+   `matchMedia` repond faux, le frameloop reste « always ». Un test
+   d'accessibilite ecrit ainsi mesure l'etat NORMAL et passe quand meme.
+   Il faut `page.emulateMedia()`, avant la navigation.
+
+Et une regle de methode : **ne jamais comparer une capture en mouvement
+reduit avec une capture normale.** La premiere mesure des cempasuchil
+annoncait 43 % de saturation contre 62 % en realite, uniquement pour cette
+raison.
+
+---
+
+# Ce que le contenu couvre vraiment, mesure
+
+Je t'avais dit que « sur les pages longues, la colonne de contenu couvre la
+scene pendant presque tout l'arc ». C'etait a la fois trop large et mal
+cible. Mesure (union par grille des blocs de texte visibles, cinq pages,
+huit points de l'arc, `node .scratch/geo-contenu.mjs`) :
+
+| | p 0,45 | p 0,60 | p 0,75 | p 0,90 | p 1,00 |
+| --- | --- | --- | --- | --- | --- |
+| Centre | 0 % | 0 % | 0 % | 0 % | 0 % |
+| Est | 40 % | 26 % | 10 % | 0 % | 0 % |
+| Ouest | 19 % | 4 % | 0 % | 0 % | 0 % |
+| Nord | 50 % | 50 % | 50 % | 50 % | 50 % |
+| Sud | 50 % | 50 % | 50 % | 50 % | 50 % |
+
+Trois corrections a ce que j'affirmais :
+
+- Le contenu n'ETEINT pas la scene : dans la region qu'il occupe, le cadre
+  est plus clair avec lui que sans (les cartes ajoutent du texte clair sur
+  un panneau translucide). Un seul bloc du Sud a un fond a 88 % d'opacite.
+- La colonne du Nord est CENTREE : ce n'est pas « la scene » qui est
+  couverte, c'est le CERF, tandis que la peripherie (ou vivent les
+  cempasuchil, les lames, les fleches) reste libre. C'est la que porte tout
+  affinage visuel sur ces deux pages.
+- L'Est et l'Ouest ne « liberent » pas le cadre par un mecanisme : leurs
+  pages sont simplement plus courtes que 200vh. Il n'y a rien a copier de
+  chez eux ; il n'y a qu'une decision de mise en scene a prendre pour le
+  Nord et le Sud, et elle est a toi (D3, F2).
