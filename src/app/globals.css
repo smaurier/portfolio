@@ -137,7 +137,15 @@ html {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  /* PAS de font-family ici (09/09). Cette ligne etait
+     `font-family: Arial, Helvetica, sans-serif`, exactement ce que genere
+     create-next-app, et comme elle vient APRES la regle `html, body` qui
+     pose `var(--font-geist)`, a specificite egale, c est elle qui gagnait.
+     Le site telechargeait donc GeistVF.woff, la police se chargeait bien
+     (verifie : `geistSans 100 900 loaded` et `document.fonts.check` a
+     vrai), et il rendait tout en ARIAL. Mesure sur onze pages : 920
+     elements de texte sur 931 en Arial. Le reliquat du gabarit ecrasait la
+     typographie du site. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -146,6 +154,20 @@ body {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+}
+
+/* Les CONTROLES n heritent pas de la police (09/09). Les navigateurs
+   donnent aux boutons, champs et listes leur propre famille systeme :
+   mesure sur la page d accueil, 16 boutons, 1 champ et 15 spans internes
+   rendus en Arial pendant que le reste du site est en Geist. On herite la
+   FAMILLE seulement, pas `font` entier : les tailles et les interlignages
+   de nos boutons sont poses par leurs modules, et `font: inherit` les
+   ecraserait. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 a {
