@@ -22,10 +22,31 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | A4 le contenu s'ecarte pendant la frappe | ✅ FAIT | `cba5d97` |
 | B1 les 400 etoiles au bon moment | ✅ FAIT | `6e5d1d7` |
 | B2 la sortie de scene du Centre | ✅ FAIT | `ae018f6` |
-| B3 rubans des Cihuateteo groupes | ⬜ a faire | |
-| B4 FrostWorld et SunBeam gates | ⬜ a faire | |
+| B3 rubans des Cihuateteo groupes | ✅ FAIT, 415 -> 392 appels | `b2b1bf2` |
+| B4 FrostWorld et SunBeam gates | ✅ FAIT | `b7914d4` |
+| I1 credits des modeles | ✅ FAIT | `6f55b0f` |
+| F3 sortie de secours sans JavaScript | ✅ FAIT | `4632cb2` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
-| D1 a D4, E, F, G, I | ⬜ a faire | |
+| D1 a D4 (les substitutions mythologiques) | ⬜ a faire | |
+| E1, E2 (l'arc vertical du Centre) | ⬜ apres C1 | |
+| F1 (le Sud), F2 (l'acte de sortie) | ⬜ a faire | |
+| G1 (le contenu), I2 (meshopt) | ⬜ a faire | |
+
+**Phases A et B terminees, plus I1 et F3.** Quinze commits dans la nuit du 08
+au 09/09. Ce qui reste demande soit ta mesure (C1), soit une decision
+narrative (D, E, F1), soit ta relecture (G1).
+
+### Deux choses a relire par la session du foyer
+
+1. **Deux tests du voile etaient DEJA rouges** avant cette nuit, verifie en
+   mettant mes modifications de cote : ils visaient
+   `html[data-loaded="true"] .skeleton { opacity: 0; pointer-events: none }`,
+   que le chantier du foyer a remplace le 08/09 par un retrait franc. Je les
+   ai reecrits sur le COMPORTEMENT (le voile ne recouvre plus rien au centre
+   une fois l'arrivee jouee) plutot que sur le mecanisme. A valider.
+2. **L'accueil est passe de 133 a 178 appels de rendu** depuis la mesure du
+   08/09, et ce n'est pas mon fait : c'est le feu du Centre. Pour une cible
+   mobile de 100 a 200, la marge a fondu. C1 devient urgent.
 
 **La phase A est terminee.** Le geste le plus spectaculaire du Sud etait mort
 de trois causes empilees, et les trois sont reparees et verrouillees par
