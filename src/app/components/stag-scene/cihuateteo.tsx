@@ -133,7 +133,7 @@ type Bearer = {
   skirt: Strip[];
   skirtGeometry: BufferGeometry;
   hipsBone: Object3D | null;
-  papers: { strip: Strip; geometry: BufferGeometry; peg: { x: number; z: number }; phase: number }[];
+  papers: { strip: Strip; slot: number; peg: { x: number; z: number }; phase: number }[];
   smokes: Sprite[];
   embers: { sprite: Sprite; x: number; z: number; phase: number }[];
   headBone: Object3D | null;
@@ -263,9 +263,16 @@ export default function Cihuateteo() {
       }
       const hair = bearerHair(i).map((strand) => ({ strand, strip: createStrip(HAIR_POINTS, strand.length, { x: 0, y: BEARER_HEIGHT, z: 0 }) }));
       const skirt = Array.from({ length: SKIRT_STRIPS }, () => createStrip(SKIRT_POINTS, SKIRT_LENGTH, { x: 0, y: 1, z: 0 }));
+      // Les papiers vivent dans UN SEUL faisceau partage par les quatre
+      // porteuses (09/09) : ils sont simules en espace monde et ajoutes au
+      // meme groupe, donc rien n'empeche de les reunir. Avant, chacun avait
+      // sa geometrie et son mesh : 12 appels de rendu pour douze rubans, sur
+      // la page deja mesuree a 415 appels pour une cible mobile de 100 a 200.
+      // Le meme fichier utilisait deja l'API de faisceau pour les cheveux et
+      // la jupe, deux blocs plus haut.
       const papers = Array.from({ length: PAPERS_PER_BEARER }, (_, k) => ({
         strip: createStrip(PAPER_POINTS, 0.35 + 0.2 * hash(i * 7 + k, 1), { x: 0, y: 0.1, z: 0 }),
-        geometry: createRibbonGeometry(PAPER_POINTS),
+        slot: i * PAPERS_PER_BEARER + k,
         peg: { x: (hash(i * 7 + k, 2) - 0.5) * 1.6, z: 0.4 + hash(i * 7 + k, 3) * 0.6 },
         phase: hash(i * 7 + k, 4) * 6.28,
       }));
@@ -286,6 +293,12 @@ export default function Cihuateteo() {
     });
   }, [scene, walkClip, animatedBones, smokeMaterial, emberMaterial]);
 
+  /** Le faisceau UNIQUE des papiers des quatre porteuses (09/09). */
+  const paperGeometry = useMemo(
+    () => createRibbonBundleGeometry(CIHUATETEO.count * PAPERS_PER_BEARER, PAPER_POINTS),
+    [],
+  );
+
   // La litiere : deux brancards et des plumes de quetzal en rubans.
   const litter = useMemo(() => {
     const group = new Group();
@@ -298,17 +311,35 @@ export default function Cihuateteo() {
       pole.raycast = () => null;
       group.add(pole);
     }
-    const feathers = Array.from({ length: FEATHERS }, (_, k) => ({
-      strip: createStrip(FEATHER_POINTS, FEATHER_LENGTH * (0.7 + 0.5 * hash(k, 9)), { x: 0, y: 0, z: 0 }),
-      geometry: createRibbonGeometry(FEATHER_POINTS),
-      anchor: { x: -1.2 + (k % 7) * 0.4, z: k < 7 ? -0.45 : 0.45 },
-      phase: hash(k, 8) * 6.28,
-    }));
+    // Deux faisceaux et non quatorze meshes (09/09) : un par materiau, la
+    // pointe etant en fusion additive et le corps en fusion normale. On ne
+    // peut donc pas tout reunir, mais 14 appels tombent a 2.
+    let tips = 0;
+    let bodies = 0;
+    const feathers = Array.from({ length: FEATHERS }, (_, k) => {
+      const tip = k % 3 === 0;
+      return {
+        strip: createStrip(FEATHER_POINTS, FEATHER_LENGTH * (0.7 + 0.5 * hash(k, 9)), { x: 0, y: 0, z: 0 }),
+        tip,
+        slot: tip ? tips++ : bodies++,
+        anchor: { x: -1.2 + (k % 7) * 0.4, z: k < 7 ? -0.45 : 0.45 },
+        phase: hash(k, 8) * 6.28,
+      };
+    });
+    const tipCount = tips;
+    const bodyCount = bodies;
     const glow = new Sprite(glowMaterial);
     glow.scale.setScalar(2.4);
     glow.raycast = () => null;
     group.add(glow);
-    return { group, feathers, poleMaterial, glow };
+    return {
+      group,
+      feathers,
+      tipGeometry: createRibbonBundleGeometry(tipCount, FEATHER_POINTS),
+      bodyGeometry: createRibbonBundleGeometry(bodyCount, FEATHER_POINTS),
+      poleMaterial,
+      glow,
+    };
   }, [glowMaterial]);
 
   // Les papillons : un seul nuage pour les quatre.
@@ -393,28 +424,31 @@ export default function Cihuateteo() {
       skirtMesh.raycast = () => null;
       skirtMesh.renderOrder = 996;
       add(skirtMesh);
-      for (const p of b.papers) {
-        const m = new Mesh(p.geometry, paperMaterial);
-        m.frustumCulled = false;
-        m.raycast = () => null;
-        add(m);
-      }
+
       for (const s of b.smokes) add(s);
       for (const e of b.embers) add(e.sprite);
     }
+    // Un seul mesh pour les douze papiers, deux pour les quatorze plumes.
+    const paperMesh = new Mesh(paperGeometry, paperMaterial);
+    paperMesh.frustumCulled = false;
+    paperMesh.raycast = () => null;
+    add(paperMesh);
     add(litter.group);
-    litter.feathers.forEach((f, k) => {
-      const m = new Mesh(f.geometry, k % 3 === 0 ? featherTipMaterial : featherMaterial);
+    for (const [geometry, material] of [
+      [litter.tipGeometry, featherTipMaterial],
+      [litter.bodyGeometry, featherMaterial],
+    ] as const) {
+      const m = new Mesh(geometry, material);
       m.frustumCulled = false;
       m.raycast = () => null;
       m.renderOrder = 996;
       add(m);
-    });
+    }
     add(butterflyPoints);
     return () => {
       for (const o of added) g.remove(o);
     };
-  }, [bearers, litter, butterflyPoints, hairMaterial, clothMaterial, paperMaterial, featherMaterial, featherTipMaterial]);
+  }, [bearers, litter, butterflyPoints, hairMaterial, clothMaterial, paperGeometry, paperMaterial, featherMaterial, featherTipMaterial]);
   useEffect(
     () => () => {
       butterflyGeometry.dispose();
@@ -422,11 +456,13 @@ export default function Cihuateteo() {
       for (const b of bearers) {
         b.hairGeometry.dispose();
         b.skirtGeometry.dispose();
-        for (const p of b.papers) p.geometry.dispose();
+
       }
-      for (const f of litter.feathers) f.geometry.dispose();
+      paperGeometry.dispose();
+      litter.tipGeometry.dispose();
+      litter.bodyGeometry.dispose();
     },
-    [butterflyGeometry, butterflyMaterial, bearers, litter]
+    [butterflyGeometry, butterflyMaterial, bearers, litter, paperGeometry]
   );
 
   useFrame((state, delta) => {
@@ -540,7 +576,7 @@ export default function Cihuateteo() {
         const pz = pose.z + Math.cos(pose.yaw + Math.PI / 2) * p.peg.x + Math.cos(pose.yaw) * p.peg.z;
         const wind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 1.4 + Math.sin(time * 2.1 + p.phase) * 0.8, y: 1.6 + Math.sin(time * 3.3 + p.phase) * 0.8, z: WIND_BASE.z + Math.cos(time * 1.6 + p.phase) * 0.6 };
         stepStrip(p.strip, dt, { x: px, y: 0.12, z: pz }, wind, { gravity: 2.5, damping: 0.975, windResponse: 1.6, iterations: 5 });
-        updateRibbon(p.geometry, p.strip, 0.09);
+        writeRibbonSlot(paperGeometry, p.slot, p.strip, 0.09);
       }
       // Les braises de l'offrande, a ses pieds : elles ne s'allument qu'au
       // carrefour (settle) et rougeoient au gre des rafales.
@@ -561,6 +597,9 @@ export default function Cihuateteo() {
         s.material.opacity = 0.4 * opacity;
       });
     });
+    // Les douze papiers ecrivent dans le MEME faisceau : on ne le referme
+    // donc qu'une fois, apres la boucle des porteuses.
+    finishRibbonBundle(paperGeometry);
     hairMaterial.opacity = opacity;
     clothMaterial.opacity = opacity;
     paperMaterial.opacity = 0.9 * blend * settle;
@@ -579,8 +618,10 @@ export default function Cihuateteo() {
       scratch.set(f.anchor.x, 0, f.anchor.z).applyMatrix4(litter.group.matrixWorld);
       const wind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 0.7 + Math.sin(time * 1.4 + f.phase) * 0.5, y: 0.3 * (1 - settle) + Math.sin(time * 2.2 + f.phase) * 0.3, z: WIND_BASE.z + Math.cos(time * 1.1 + f.phase) * 0.5 };
       stepStrip(f.strip, dt, { x: scratch.x, y: scratch.y, z: scratch.z }, wind, { gravity: 2.2 + 1.5 * settle, damping: 0.97, windResponse: 1.0, iterations: 5 });
-      updateRibbon(f.geometry, f.strip, (u) => 0.06 * (0.5 + 0.5 * Math.sin(u * Math.PI)));
+      writeRibbonSlot(f.tip ? litter.tipGeometry : litter.bodyGeometry, f.slot, f.strip, (u) => 0.06 * (0.5 + 0.5 * Math.sin(u * Math.PI)));
     }
+    finishRibbonBundle(litter.tipGeometry);
+    finishRibbonBundle(litter.bodyGeometry);
 
     // Les papillons : naissent d'elles, montent et s'eloignent vers l'ouest.
     if (!reduced) {
