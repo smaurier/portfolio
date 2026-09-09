@@ -1316,7 +1316,7 @@ productions de studio, et rien de ce soir ne change ce jugement.
 Trois retours de Sylvain (« trop court », « encore trop rigide », « il
 devrait presque se poser au sol »), une seule cause trouvee au film image
 par image : une Bezier quadratique parcourue uniformement en parametre,
-donc le contact tombait a la vitesse MAXIMALE.  porte
+donc le contact tombait a la vitesse MAXIMALE. `lib/strike-path` porte
 maintenant plongee / rasement au sol / remontee, onze tests, raccords
 Hermite a vitesses appariees.
 
@@ -1346,15 +1346,15 @@ recoit deja la locale), et les dix-huit chaines espagnoles manquantes des
 etudes de cas sont ecrites. Vocabulaire aligne sur ce que les
 dictionnaires disaient DEJA, pas invente a cote.
 
- compare les trois dictionnaires cle par cle,
+`lib/i18n-parity.test.ts` compare les trois dictionnaires cle par cle,
 index de tableau compris : c est exactement la granularite ou le trou se
 cachait, un tableau plus court se rendant simplement plus court sans
 qu aucune erreur ne le dise.
 
-**Reste du meme audit, non corrige** :  et
- portent encore du francais en dur. Le premier est un
+**Reste du meme audit, non corrige** : `shortcuts-toggle.tsx` et
+`easter-egg.tsx` portent encore du francais en dur. Le premier est un
 panneau d accessibilite, donc du texte dans une autre langue que celle de
-la page sans attribut  : point RGAA autant que point de traduction.
+la page sans attribut `lang` : point RGAA autant que point de traduction.
 
 ## Sur une locale NAHUATL, question de Sylvain
 
