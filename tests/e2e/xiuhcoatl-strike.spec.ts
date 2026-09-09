@@ -133,4 +133,53 @@ test.describe("la frappe du xiuhcoatl", () => {
     // La porte de chaleur ne s'ouvre qu'apres l'impact.
     expect(peak.gate, "l'air tremble apres l'impact").toBeGreaterThan(0.9);
   });
+
+  test("le contenu s'ecarte pendant la frappe, puis revient", async ({ page }) => {
+    // Mesure du 09/09 : au point de scroll ou la frappe se declenche, les
+    // cartes de projets couvraient TOUT le centre de l'ecran. Le geste le
+    // plus spectaculaire du site se jouait derriere un mur de texte opaque.
+    await page.goto("/fr/projets?scene=1");
+    await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, {
+      timeout: 60_000,
+    });
+    await page.waitForTimeout(4000);
+
+    // On enregistre l'opacite MINIMALE atteinte par le contenu, pour la meme
+    // raison que le pic du feu : la fenetre est courte et un sondage peut
+    // l'enjamber.
+    await page.evaluate(() => {
+      const w = window as unknown as { __minOpacity?: number };
+      w.__minOpacity = 1;
+      const tick = () => {
+        const el = document.querySelector(".contentPage") ?? document.querySelector("[class*='contentPage']");
+        if (el) {
+          const o = Number(getComputedStyle(el).opacity || "1");
+          w.__minOpacity = Math.min(w.__minOpacity ?? 1, o);
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+
+    await page.evaluate(() => window.scrollTo({ top: window.innerHeight * 1.6, behavior: "instant" }));
+    await page.waitForFunction(() => document.documentElement.dataset.strike === "1", null, {
+      timeout: 30_000,
+    });
+
+    // La frappe finit, et le contenu doit revenir : sinon on aurait echange
+    // un defaut contre un pire, du texte disparu pour de bon.
+    await page.waitForFunction(() => document.documentElement.dataset.strike === undefined, null, {
+      timeout: 30_000,
+    });
+    await page.waitForTimeout(900);
+
+    const min = await page.evaluate(() => (window as unknown as { __minOpacity: number }).__minOpacity);
+    expect(min, "le contenu s'est bien efface pendant la frappe").toBeLessThan(0.3);
+
+    const back = await page.evaluate(() => {
+      const el = document.querySelector(".contentPage") ?? document.querySelector("[class*='contentPage']");
+      return el ? Number(getComputedStyle(el).opacity || "1") : -1;
+    });
+    expect(back, "le contenu est revenu apres la frappe").toBeGreaterThan(0.9);
+  });
 });

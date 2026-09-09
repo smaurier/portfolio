@@ -1515,3 +1515,49 @@ body.nahual-cinematic,
 body.nahual-cinematic * {
   cursor: none !important;
 }
+
+/* LA FRAPPE DEGAGE LE CENTRE (09/09). `html[data-strike="1"]` est pose par
+   XiuhcoatlStrikeDirector pendant l'enveloppe de la frappe du serpent de feu
+   au Sud, et seulement pendant. Mesure du meme jour : a ce point du scroll,
+   les cartes de projets couvraient tout le centre de l'ecran, donc le geste
+   le plus spectaculaire du site se jouait derriere un mur de texte.
+
+   Le contenu s'ecarte, il ne disparait pas : opacite basse et leger recul,
+   puis retour. Reference : maxmilkin.com, ou le DOM et le WebGL ne sont
+   jamais pleinement visibles en meme temps, ils se relaient
+   (cf docs/da/plan-execution.md).
+
+   Trois secondes, une fois par visite, et jamais en mouvement reduit :
+   sous `prefers-reduced-motion`, le ciel n'arme meme pas la frappe
+   (sud-sky.tsx), donc cet etat n'est jamais pose. La regle de transition est
+   quand meme neutralisee la, par principe. */
+html[data-strike="1"] .contentPage {
+  /* 0,06 et non 0,12 : a 0,12 les panneaux de verre des cartes teintaient
+     encore le centre du cadre, verifie a la capture. Et le retrait est plus
+     franc (2,5rem) : il faut que le mouvement se lise comme « le contenu
+     s'incline », pas comme un bug d'opacite. */
+  opacity: 0.06;
+  transform: translateY(2.5rem);
+  pointer-events: none;
+}
+
+.contentPage {
+  /* Le retrait est plus rapide que le retour : on degage vite pour ne rien
+     manquer du geste, on revient doucement pour ne pas brusquer la lecture. */
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+html:not([data-strike]) .contentPage {
+  transition: opacity 0.7s ease-in, transform 0.7s ease-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contentPage {
+    transition: none;
+  }
+  html[data-strike="1"] .contentPage {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+}

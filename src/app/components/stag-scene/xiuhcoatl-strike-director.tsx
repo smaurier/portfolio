@@ -21,6 +21,7 @@ export default function XiuhcoatlStrikeDirector() {
   // compile, et l'horloge de la scene a saute de 3,9 s en UNE image. Toute
   // l'enveloppe de 3,1 s etait consommee d'un coup, donc invisible. Voir
   // `advanceStrike` dans lib/strike-sequence.
+  const activeRef = useRef(false);
   const sinceRef = useRef(-1);
   const lastAtRef = useRef(-1);
   useFrame((_state, delta) => {
@@ -45,6 +46,25 @@ export default function XiuhcoatlStrikeDirector() {
     t.fire = s.fire;
     t.tint = s.tint;
     if (s.fire > 0.5 || s.tint > 0.2) markTrace("xiuhcoatl-strike"); // une trace : la frappe
+
+    // LE CONTENU S'ECARTE PENDANT LA FRAPPE (09/09). Mesure du meme jour :
+    // au point de scroll ou la frappe se declenche, les cartes de projets
+    // couvraient TOUT le centre de l'ecran. L'effet le plus spectaculaire du
+    // site se jouait derriere un mur de texte opaque, et aucune qualite de
+    // modelisation n'y aurait rien change.
+    //
+    // On pose un etat sur <html> et c'est le CSS qui decide de la maniere :
+    // meme motif que `data-loaded` et que `body.nahual-lab-reveal`, deja
+    // employes par le projet. Ecrit seulement quand la valeur CHANGE, pas a
+    // chaque image.
+    const active = s.stiffen > 0.01 || s.fire > 0.02;
+    if (active !== activeRef.current) {
+      activeRef.current = active;
+      if (typeof document !== "undefined") {
+        if (active) document.documentElement.dataset.strike = "1";
+        else delete document.documentElement.dataset.strike;
+      }
+    }
   });
   return null;
 }
