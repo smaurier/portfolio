@@ -34,6 +34,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | H1 le ciel d'avant-jour de l'Est (plus de trou noir) | ✅ FAIT | `6c712f2` |
 | H2 les cempasuchil du Nord portent leur lumiere | ✅ FAIT | `fb54620` |
 | J1 a11y : la Contemplation ne faisait rien en mouvement reduit | ✅ FAIT | `fe1cdd3` |
+| H3 le cerf du Centre redevient brun | ✅ FAIT | `0461329` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
@@ -951,3 +952,53 @@ Trois corrections a ce que j'affirmais :
   pages sont simplement plus courtes que 200vh. Il n'y a rien a copier de
   chez eux ; il n'y a qu'une decision de mise en scene a prendre pour le
   Nord et le Sud, et elle est a toi (D3, F2).
+
+---
+
+# H3. Le cerf de jade, et la lecon sur les plafonds
+
+Sur la page d'accueil, au climax, le cerf etait du meme vert que les
+feuilles de mais, sans variation de valeur : on ne distinguait plus
+l'animal du decor. L'intention contraire est ecrite depuis le 28/08 (« le
+cerf reste nahual brun mystique plutot que decoration monochrome
+cardinale »).
+
+**Une heure de fausses pistes, toutes eliminees par la mesure** : la
+lumiere (blanche), le brouillard (jade mais facteur 0 sur le cerf, qui est
+a 4,25 unites pour un near a 10), la carte d'environnement (aucune), le
+tone mapping (aucun), l'albedo (brun), le rim, les lignes d'aretes, le
+halo. La methode qui a fini par trancher : exposer les uniformes du cerf
+(`window.__nahualRim`, meme motif que `frostUniforms`) puis **forcer chaque
+terme a zero avec un getter**, qui survit aux ecritures par image :
+
+```js
+Object.defineProperty(u.uBodyTintAmount, "value", { get: () => 0, set: () => {} });
+```
+
+C'etait la teinte de corps, a son plafond DOCUMENTE de 6 %.
+
+## La lecon, qui vaut au-dela de ce cerf
+
+Le screen blend depose la couleur dans les tons sombres et moyens. Sur un
+cerf eclaire c'est exactement ce qu'on veut (et ce que Sylvain a demande le
+25/08). Mais au Centre le cerf EST dans les tons sombres -- 16 % de
+luminance -- et un screen contre une base sombre remonte le vert a 54 % :
+6 % de melange ajoutent alors 22 points de vert sur 255 **sans toucher au
+rouge**, puisque le jade n'a pas de rouge. Le rapport rouge/vert s'inverse.
+
+Le calcul predit exactement la mesure : 62 attendu, 63 lu.
+
+Donc ce n'etait JAMAIS le coefficient qui etait trop grand. Ce qui explique
+l'histoire du plafond, 0,85 -> 0,7 -> 0,5 -> 0,25 -> 0,12 -> 0,06 : six
+reductions successives, aucune ne touchant la cause. **Quand un reglage a
+ete divise six fois sans que le defaut disparaisse, ce n'est pas le reglage,
+c'est l'operation.**
+
+Correction : on garde le depot du screen et on renormalise a la luminance
+d'origine. La couleur vient, la valeur reste. Vert/rouge sur la croupe :
+1,40 -> 0,96. Les quatre autres pages sont inchangees, a l'oeil comme a la
+mesure.
+
+Le plafond est desormais nomme (`BODY_TINT_CEIL`) : le fichier portait
+trois valeurs contradictoires, 0,06 dans le code, 0,12 et 0,35 dans deux
+commentaires.
