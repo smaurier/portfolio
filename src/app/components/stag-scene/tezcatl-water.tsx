@@ -238,6 +238,22 @@ export default function TezcatlWater() {
           uHeight: { value: sim.heightTexture },
           uTexel: { value: sim.texel },
           uOpacity: { value: 0 },
+          /**
+           * LA CLARTE AUTOUR DE XOLOTL (09/09, retour Sylvain : « pareil
+           * pour xolotl qui rentre dans le bassin, l'animation est tres
+           * bizarre »). Mesure du film : il marche sur le FOND, racine a
+           * y = 0 sur dix-sept images consecutives, alors que l'eau est a
+           * 0,25. Comme la nappe est un miroir OPAQUE, tout ce qui est sous
+           * la ligne d'eau est invisible : ce qui traversait le bassin etait
+           * un torse, pattes coupees net, deux moignons sous le ventre.
+           * Rien ne disait qu'il marchait.
+           *
+           * L'eau s'eclaircit donc la ou il passe, pour qu'on VOIE ses
+           * pattes sous la surface. Arbitrage de Sylvain entre trois
+           * options, celle-ci etant la plus juste physiquement.
+           */
+          uXoloPos: { value: new Vector2(1e6, 1e6) },
+          uXoloClarity: { value: 0 },
           uColor: { value: WATER_COLOR },
           uSpec: { value: SPEC_COLOR },
           uRim: { value: RIM_COLOR },
@@ -271,6 +287,8 @@ export default function TezcatlWater() {
           uniform sampler2D uHeight;
           uniform float uTexel;
           uniform float uOpacity;
+          uniform vec2 uXoloPos;
+          uniform float uXoloClarity;
           uniform vec3 uColor;
           uniform vec3 uSpec;
           uniform vec3 uRim;
@@ -317,14 +335,23 @@ export default function TezcatlWater() {
             float emberSpec = pow(max(dot(n, hEmber), 0.0), 40.0) * uEmberStrength * 1.0 / (1.0 + emberDist * emberDist * 0.15);
             float emberGlow = uEmberStrength * 0.35 / (1.0 + emberDist * emberDist * 0.6);
             vec3 col = uColor + uRim * fresnel * 0.35 + uSpec * (spec * 0.5 + slope * 0.18) + uRim * shore * 0.55 + uEmberColor * (emberSpec + emberGlow);
-            float a = (uOpacity + fresnel * 0.15 + spec * 0.3 + slope * 0.15 + shore * 0.35 + emberSpec * 0.8 + emberGlow * 0.6) * mask;
+            // La fenetre claire autour de Xolotl. On ne baisse QUE le
+            // terme de base : le fresnel, le speculaire et la pente portent
+            // le sillage, et les effacer reviendrait a echanger un defaut
+            // contre un autre -- des pattes visibles dans une eau morte.
+            float xd = length(vWorldPos.xz - uXoloPos);
+            float clarte = uXoloClarity * (1.0 - smoothstep(0.95, 2.35, xd));
+            float baseA = uOpacity * (1.0 - 0.88 * clarte);
+            float a = (baseA + fresnel * 0.15 + spec * 0.3 + slope * 0.15 + shore * 0.35 + emberSpec * 0.8 + emberGlow * 0.6) * mask;
             // Reflet planaire (le Xolotl de braise) : echantillonnage projectif,
             // decale par la pente des ondes (le sillage deforme le reflet, c'est
             // aussi ce qui rend le sillage lisible). Couleur premultipliee.
             if (uReflStrength > 0.0) {
               vec2 ruv = vReflUv.xy / vReflUv.w + vec2(hR - hL, hT - hB) * uReflRefract;
               float inside = step(0.0, ruv.x) * step(ruv.x, 1.0) * step(0.0, ruv.y) * step(ruv.y, 1.0);
-              vec4 refl = texture2D(uReflection, ruv) * inside * uReflStrength;
+              // Une fenetre claire ne reflete pas : sinon on verrait a la
+              // fois ses pattes AU TRAVERS et son reflet PAR-DESSUS.
+              vec4 refl = texture2D(uReflection, ruv) * inside * uReflStrength * (1.0 - 0.85 * clarte);
               col += refl.rgb;
               a += refl.a * 0.9;
             }
@@ -429,6 +456,12 @@ export default function TezcatlWater() {
     tezcatlStore.rippleTexel = sim.texel;
     material.uniforms.uHeight.value = sim.heightTexture;
     material.uniforms.uOpacity.value = opacityRef.current;
+    // Sa presence pilote la clarte : `ember.intensity` vaut son opacite au
+    // Nord et zero partout ailleurs, donc une seule source de verite pour
+    // « a quel point est-il la ».
+    const xolo = tezcatlStore.xolotl;
+    if (xolo) (material.uniforms.uXoloPos.value as Vector2).set(xolo.x, xolo.z);
+    material.uniforms.uXoloClarity.value = xolo ? tezcatlStore.ember.intensity : 0;
     const ember = tezcatlStore.ember;
     (material.uniforms.uEmberPos.value as Vector3).set(ember.x, ember.y, ember.z);
     material.uniforms.uEmberStrength.value = ember.intensity;
