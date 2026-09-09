@@ -37,6 +37,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | H3 le cerf du Centre redevient brun | ✅ FAIT | `0461329` |
 | H4 le titre passait sous le bandeau (telephone etroit) | ✅ FAIT | `56476ff` |
 | K1 le Sud passe de 1349 a 211 appels de rendu | ✅ FAIT | `010e62d` |
+| K2 la Piedra rend 98 304 triangles | ✅ FAIT | `d1f0c53` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
@@ -1167,3 +1168,52 @@ pages lourdes que tu voulais mesurer (Contact, Memoire, Services) tiennent
 maintenant sous 200 appels. Le prochain gros poste n'est plus les appels
 mais les **triangles** : 316 k a l'accueil, 351 k a Contact, 374 k au Sud,
 pour un repere de 200 a 300 k.
+
+---
+
+# K2. Les triangles, et ou s'arrete ce que je peux decider
+
+Les appels de rendu regles, le poste suivant etait les triangles : 347 615
+visibles a l'accueil pour un repere mobile de 200 a 300 k. Deux surfaces
+PLATES en faisaient 47 % -- la Piedra 131 072 et le sol 32 768.
+
+131 072 = 256 x 256 x 2. Le disque est subdivise a 256 pour qu'un
+displacementMap y grave la pierre, mais ce relief ne vaut plus que 0,03
+unite depuis le retour du 30/08 (« reliefs moins forts ») : ce qu'on lit de
+la gravure vient de la carte de COULEUR. A 128 comme a 64 segments, l'ecart
+avec 256 reste sous le bruit d'animation, sur trois cadrages dont le plus
+proche de l'arc et midi au Sud. Ramene a 128 : 98 304 triangles rendus, et
+le double de resolution garde pour les cadrages non testes.
+
+## Le budget, apres K1 et K2
+
+| page | appels avant | appels apres | triangles apres |
+| --- | --- | --- | --- |
+| Accueil | 178 | 178 | 249 311 |
+| Memoire | 160 | 160 | 155 020 |
+| Services | 375 | 141 | 253 834 |
+| Projets | 1349 | 211 | 274 526 |
+| Contact | 363 | 148 | 273 859 |
+
+Les deux mesures sont desormais dans le repere mobile (100 a 200 appels,
+200 a 300 k triangles) sur les cinq pages, alors que le Sud etait a huit
+fois le plafond.
+
+## ⛔ Ou s'arrete ce que je peux decider seul
+
+Le poste dominant est maintenant l'HERBE : 120 516 triangles sur chaque
+page, soit 44 a 48 % du total, pour 20 086 brins instancies en un seul
+appel de rendu. Le gain est la, et il est gros -- mais la densite de
+l'herbe EST la texture du site. C'est deja pour la proteger que le plafond
+de densite de pixels n'a pas ete baisse le 08/09.
+
+Donc : le prochain gain sur les triangles est une decision de DA, pas une
+correction, et il attend la mesure telephone pour savoir s'il est meme
+necessaire. Trois leviers possibles le jour ou tu decides : moins de brins,
+un brin a moins de triangles (6 aujourd'hui), ou une densite qui decroit
+avec la distance.
+
+Meme frontiere pour les modeles :  pese 23 520
+triangles a lui seul (28 exemplaires a 840 triangles), et le decimer
+demanderait un outil de maillage -- meme famille que I2, meme plafond
+d'apprentissage, donc ton go.
