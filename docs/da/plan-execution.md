@@ -56,6 +56,35 @@ etait faisable sans toi est fait. Ce qui reste demande :
 - **ta decision d'accessibilite** : sous mouvement reduit et sans
   contemplation, la scene reste sur l'etat d'arrivee (cf J1).
 
+### Pour la session du foyer : un avertissement d'hydratation, diagnostique
+
+Reproduction exacte : dans une MEME session de navigateur, charger `/fr`
+(rien), puis `/fr/memoire` (un avertissement React), puis `/fr/contact` (un
+de plus). React nomme l'element fautif :
+
+```
+<html lang="fr"
+-     data-hearth="lit"
+>
+```
+
+Le HTML servi ne porte PAS `data-hearth` (verifie au curl) : c'est le script
+inline du layout qui le pose avant le premier paint, comme prevu, et React
+ne le trouve pas dans son propre arbre. D'ou la deuxieme visite seulement :
+a la premiere, aucune visite n'est enregistree, donc ceremonie, donc pas
+d'attribut, donc pas d'ecart.
+
+C'est le motif classique du script de theme, et la correction est d'une
+ligne : `suppressHydrationWarning` sur le `<html>` de
+`src/app/[locale]/layout.tsx`. Il y en a deja un dans ce fichier (ligne 282,
+pour les extensions de navigateur), mais pas sur `<html>`.
+
+Je n'y touche pas : c'est votre chantier et le fichier peut etre ouvert chez
+vous. Consequence reelle : un avertissement en dev, et en production React
+garde l'attribut du DOM sans le reconcilier -- ce qui est le comportement
+voulu ici. Rien de visible, mais ca pollue la console d'un jury qui
+inspecte.
+
 ### Deux choses a relire par la session du foyer
 
 1. **Deux tests du voile etaient DEJA rouges** avant cette nuit, verifie en
