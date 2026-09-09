@@ -36,6 +36,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | J1 a11y : la Contemplation ne faisait rien en mouvement reduit | ✅ FAIT | `fe1cdd3` |
 | H3 le cerf du Centre redevient brun | ✅ FAIT | `0461329` |
 | H4 le titre passait sous le bandeau (telephone etroit) | ✅ FAIT | `56476ff` |
+| K1 le Sud passe de 1349 a 211 appels de rendu | ✅ FAIT | `010e62d` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
@@ -1076,3 +1077,93 @@ un vrai defaut :**
 du heros fait 15 lignes et occupe presque tout l'ecran ; la scene ne se voit
 quasiment plus derriere. Le bloc TIENT maintenant, mais la question de la
 longueur du texte sur telephone est une decision de contenu.
+
+---
+
+# K1. Le Sud etait a 1550 appels de rendu, et personne ne l'avait mesure
+
+Trouve en relevant le budget des cinq pages apres les changements de rendu
+de la nuit, par simple prudence. La table du 08/09 dans
+`docs/da/etat-de-l-art.md` disait « accueil 133 appels, Contact 415 » : le
+Sud n'y figurait pas. Il etait a **1550 appels par image**, huit fois le
+plafond d'un mobile milieu de gamme, sur la page Projets qu'un jury ouvre.
+
+## La chaine, mesuree pas a pas
+
+**La passe d'ombres en coutait 748 sur 1349.** Mesure obtenue en
+neutralisant le `castShadow` de la directionnelle avec un getter dans la
+page vivante : 1281 appels avec, 533 sans.
+
+**Premiere hypothese, fausse, et l'image l'a dit** : couper les ombres de
+la flore pour ne garder que le cerf et la Piedra faisait tomber les appels
+a 603 mais changeait **62 % des pixels**, avec un ecart moyen de 38 sur
+255. Les ombres de la flore SONT le « jeu d'ombres delicats » du Sud. Piste
+abandonnee.
+
+**Deuxieme hypothese, la bonne** : sur 891 maillages visibles, 842
+partageaient un couple geometrie-materiau avec un autre. Et la cause tient
+dans un seul fichier : **`agave.glb` porte 79 sous-maillages pour UN SEUL
+materiau**, une feuille chacun, et il est clone neuf fois entre
+`background-flora` (4 exemplaires) et `sud-spines` (5). 711 appels pour des
+plantes qu'on peut dessiner en une.
+
+## Ce qui a ete fait
+
+`lib/merge-meshes` fusionne, sous une racine, les maillages qui partagent
+un materiau, en cuisant les matrices des noeuds intermediaires dans les
+sommets. Huit tests, dont l'invariant qui compte : la boite englobante
+monde est identique avant et apres, y compris sous des parents tournes et
+mis a l'echelle.
+
+Applique sur la **source** et non sur le clone, parce que
+`scene.clone(true)` PARTAGE les geometries : fusionner un clone disposerait
+celles des autres. Un seul passage profite aux neuf clones.
+
+| page | avant | apres |
+| --- | --- | --- |
+| Sud | 1349 | **211** |
+| Ouest | 363 | **148** |
+| Est (mi-arc) | 375 | **141** |
+| Est (arrivee) | 169 | **91** |
+| Centre | 178 | 178 |
+| Nord | 160 | 160 |
+
+Pour memoire, le lot B3 de la nuit precedente avait gagne 23 appels a
+l'Ouest en groupant les papiers et les plumes. Celui-ci en gagne 215 sur la
+meme page.
+
+## La lecon de methode : mesurer l'image contre son BRUIT, pas dans l'absolu
+
+Le vent et le mais bougent en continu. Deux captures a 1,5 s d'ecart,
+**sans rien changer**, differaient deja de 24 % des pixels au Sud. Sans ce
+temoin, j'aurais attribue ce bruit a la fusion et rejete un gain de 86 %.
+Avec lui : ecart avant/apres 23,8 % contre un temoin a 24,0 au Sud, 1,8 %
+contre 3,7 a l'Ouest. Sous le bruit dans les deux cas.
+
+Corollaire : **il faut aussi figer ce qui n'est pas la scene.** Ma premiere
+comparaison donnait 66 % d'ecart, uniquement parce que les cartes de
+contenu s'etaient effacees et que l'eclairage de l'arc convergeait encore
+entre les deux captures. Le protocole final masque contenu, en-tete et
+rail, puis attend douze secondes.
+
+## ⚠️ Une reserve, a regarder de ton oeil
+
+A l'Est le monde est en verre, donc les materiaux sont translucides, et 79
+feuilles triees separement ne se composent pas comme une geometrie unique.
+**Au zoom 3x sur l'image d'aube, l'agave de droite montre une forme
+circulaire a sa base qui n'y etait pas.** A l'echelle 1:1, sur l'image
+d'ARRIVEE, je ne distingue rien, plein cadre comme au recadrage.
+
+Le compromis me parait tenable pour 234 appels sur une page que la mesure
+telephone dira tendue, et c'est reversible en supprimant la ligne
+`mergeByMaterial(scene)` dans `background-flora.tsx`. Mais l'Est est ta
+scene la plus forte : la decision est a toi.
+
+## Ce que ca change pour C1
+
+La mesure telephone devient bien plus interessante : avant, le Sud aurait
+donne un resultat catastrophique qui aurait masque tout le reste. Les trois
+pages lourdes que tu voulais mesurer (Contact, Memoire, Services) tiennent
+maintenant sous 200 appels. Le prochain gros poste n'est plus les appels
+mais les **triangles** : 316 k a l'accueil, 351 k a Contact, 374 k au Sud,
+pour un repere de 200 a 300 k.
