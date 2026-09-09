@@ -13,6 +13,7 @@ import { getRevealFloor } from "@/lib/reveal-arc";
 import { pushHeat, xiuhcoatlStore } from "./xiuhcoatl-store";
 import { isBot } from "@/lib/is-bot";
 import { advanceStrike } from "@/lib/strike-sequence";
+import { strikePathAt, STRIKE_PATH } from "@/lib/strike-path";
 import { useReadingMode } from "@/lib/reading-mode-context";
 import { tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -59,9 +60,21 @@ const BANK_GAIN = 0.45;
 const BANK_MAX = 0.35;
 /** LA CHARGE (05/09) : duree du pique sur la Piedra, point d'impact (bord
  * de l'anneau), et hauteur de reprise. */
-const STRIKE_MS = 3200;
-const STRIKE_HIT = { x: 2.6, y: 0.55, z: 0.6 };
-const STRIKE_CLIMB = { x: -6, y: 6.5, z: -9 };
+/**
+ * La trajectoire vit dans lib/strike-path depuis le 09/09 : plongee,
+ * rasement au sol qui touche l'anneau, remontee. Les trois points et les
+ * trois durees y sont, avec leurs tests. Ce qui restait ici -- une Bezier
+ * quadratique parcourue uniformement -- ne pouvait pas porter le geste :
+ * son seul moment interessant tombait a sa vitesse maximale.
+ */
+/**
+ * Ce que le raidissement retire d'ondulation, au plus fort (09/09, retour
+ * Sylvain « encore trop rigide »). A 1, le serpent se petrifiait en barre
+ * droite exactement au moment qu'on regarde : l'image le montrait comme un
+ * tube peint. A 0,65 il se TEND -- l'ondulation garde un tiers de son
+ * poids -- ce qui se lit comme un muscle et non comme un os.
+ */
+const SLITHER_CUT = 0.65;
 /** Cadence des points de chaleur (trainee qui deforme l'air). */
 const HEAT_EVERY_MS = 85;
 
@@ -290,22 +303,19 @@ export default function XiuhcoatlCompanion() {
       // immediatement, et le geste n'existait plus. Un ralenti se regarde,
       // une image sautee ne se voit pas.
       strike.t = advanceStrike(strike.t, dt);
-      const u = Math.min(1, strike.t / (STRIKE_MS / 1000));
-      const a = strike.from, b = STRIKE_HIT, c = STRIKE_CLIMB;
-      // Bezier quadratique passant PAR le point d'impact a u = 0.5.
-      const ctrl = { x: 2 * b.x - 0.5 * (a.x + c.x), y: 2 * b.y - 0.5 * (a.y + c.y), z: 2 * b.z - 0.5 * (a.z + c.z) };
-      const k0 = (1 - u) * (1 - u), k1 = 2 * (1 - u) * u, k2 = u * u;
-      const px = k0 * a.x + k1 * ctrl.x + k2 * c.x, py = k0 * a.y + k1 * ctrl.y + k2 * c.y, pz = k0 * a.z + k1 * ctrl.z + k2 * c.z;
-      const tx = 2 * (1 - u) * (ctrl.x - a.x) + 2 * u * (c.x - ctrl.x), ty = 2 * (1 - u) * (ctrl.y - a.y) + 2 * u * (c.y - ctrl.y), tz = 2 * (1 - u) * (ctrl.z - a.z) + 2 * u * (c.z - ctrl.z);
-      const tl = Math.hypot(tx, ty, tz) || 1;
-      const heading = Math.atan2(tz / tl, tx / tl);
-      const pitch = Math.asin(Math.max(-1, Math.min(1, ty / tl)));
-      s = { ...s, x: px, y: py, z: pz, heading, pitch };
-      if (!strike.hitDone && u >= 0.5) {
+      const e = strikePathAt(strike.t, strike.from);
+      const tl = Math.hypot(e.tan.x, e.tan.y, e.tan.z) || 1;
+      const heading = Math.atan2(e.tan.z / tl, e.tan.x / tl);
+      const pitch = Math.asin(Math.max(-1, Math.min(1, e.tan.y / tl)));
+      s = { ...s, x: e.pos.x, y: e.pos.y, z: e.pos.z, heading, pitch };
+      // L'impact est desormais un INSTANT de la sequence et non une moitie
+      // de parametre : la meme valeur pilote le feu, la raideur, la
+      // secousse et la position.
+      if (!strike.hitDone && strike.t >= STRIKE_PATH.hitAt) {
         strike.hitDone = true;
         xiuhcoatlStore.strikeHit = clockNow;
       }
-      if (u >= 1) strikeRef.current = null;
+      if (strike.t >= STRIKE_PATH.total) strikeRef.current = null;
     }
     wanderRef.current = s;
 
@@ -314,7 +324,7 @@ export default function XiuhcoatlCompanion() {
     // revient vers la pose de repos (droite), et la braise monte.
     const stiffen = xiuhcoatlStore.strike.stiffen;
     const slither = actions["Slither"];
-    if (slither) slither.setEffectiveWeight(1 - stiffen);
+    if (slither) slither.setEffectiveWeight(1 - SLITHER_CUT * stiffen);
     // LA NUIT (05/09, retour Sylvain « trop voyant lorsque c'est la nuit,
     // les scenes devaient etre tres sombres ») : un feu dans la nuit, c'est
     // surtout ce qu'il eclaire. En tete de page ses braises et ses flammes

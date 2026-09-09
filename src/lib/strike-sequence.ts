@@ -45,10 +45,22 @@ export type StrikeSpec = {
 };
 
 export const STRIKE_SEQ: StrikeSpec = {
-  hitAt: 1.6,
-  stiffIn: 0.2,
-  stiffHold: 0.3,
-  stiffRelease: 0.6,
+  /**
+   * 1,6 -> 2,2 (09/09, retour Sylvain « trop court et encore trop rigide »).
+   * Le film image par image donnait la mesure : le serpent partait a 33
+   * unites du centre et les avalait en 0,6 s. Ce qui manquait n'etait pas la
+   * duree totale mais la PLONGEE : le temps de le voir venir.
+   */
+  hitAt: 2.2,
+  /**
+   * 0,2 -> 0,55, et la tenue comme le relachement s'allongent avec. La
+   * raideur montait de 0 a 1 en 0,2 s et retombait a 0,04 en 0,16 s : un
+   * tic, pas un geste. Le serpent se tend maintenant sur plus d'un demi-
+   * seconde avant de toucher, ce qui se lit comme une intention.
+   */
+  stiffIn: 0.55,
+  stiffHold: 0.45,
+  stiffRelease: 0.9,
   flashLen: 0.28,
   shakeTau: 0.45,
   shakeLen: 1.5,

@@ -25,7 +25,10 @@ describe("strikeState : la frappe du xiuhcoatl, une enveloppe pure du temps", ()
   });
 
   it("le serpent se raidit dans les 200 ms AVANT l'impact, pas avant", () => {
-    expect(at(HIT - 0.5).stiffen).toBe(0);
+    // Exprime par la SPEC et non par un 0,5 en dur (09/09) : la fenetre de
+    // raidissement s'est allongee a 0,55 s, et un seuil magique aurait
+    // rougi un test dont l'intention (« rien avant la fenetre ») reste vraie.
+    expect(at(HIT - STRIKE_SEQ.stiffIn - 0.1).stiffen).toBe(0);
     expect(at(HIT - 0.1).stiffen).toBeGreaterThan(0.3);
     expect(at(HIT).stiffen).toBeCloseTo(1, 6);
     // et se detend apres
