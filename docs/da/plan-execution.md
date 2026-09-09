@@ -1351,10 +1351,23 @@ index de tableau compris : c est exactement la granularite ou le trou se
 cachait, un tableau plus court se rendant simplement plus court sans
 qu aucune erreur ne le dise.
 
-**Reste du meme audit, non corrige** : `shortcuts-toggle.tsx` et
-`easter-egg.tsx` portent encore du francais en dur. Le premier est un
-panneau d accessibilite, donc du texte dans une autre langue que celle de
-la page sans attribut `lang` : point RGAA autant que point de traduction.
+**CORRECTION du 09/09 au soir, mon erreur** : j avais annonce que
+`shortcuts-toggle.tsx` et `easter-egg.tsx` portaient encore du francais en
+dur, et qu il y avait la un point RGAA. **C est faux.** Les deux fichiers
+ont leurs tables par locale, completes en fr/en/es. J avais lu un grep sans
+verifier la structure : le francais est bien DANS le fichier, mais dans une
+table indexee par langue.
+
+Audit refait proprement, sur les VINGT-DEUX pages etrangeres (11 routes x
+en/es, le codex et les cinq pages legales incluses, qui manquaient a ma
+premiere passe) et sur le texte REELLEMENT rendu : **zero fuite de
+francais**.
+
+Une lecon de sonde de plus, de la meme famille que les autres : mon
+detecteur a d abord signale neuf pages, toutes a tort. En JavaScript, ``
+traite les lettres accentuees comme des NON-lettres, donc `est` matche
+« Está » et « estándar ». **Un oracle se valide avant d etre cru**, y
+compris quand il dit ce qu on attendait.
 
 ## Sur une locale NAHUATL, question de Sylvain
 
