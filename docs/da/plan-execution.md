@@ -43,6 +43,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | L3 les dix pages etrangeres ne finissent plus en francais | ✅ FAIT | `59e51b7` |
 | L4 Xolotl : l eau s eclaircit la ou il marche | ✅ FAIT | `460f124` |
 | M1 le site rendait en Arial (design hors 3D) | ✅ FAIT | `548c3bc` |
+| M2 RGAA 3.2 : l appel a l action passait a 1,41 | ✅ FAIT | `1155be7` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
@@ -1459,3 +1460,84 @@ sur les 40 %, et il appartient a Sylvain.
 Trois graisses (400, 600, 700), ce qui est sain. Onze valeurs
 d'interlettrage, mais toutes calculees depuis des `em` a des tailles
 differentes : normal, pas un defaut.
+
+---
+
+# M2. Le contraste reel, mesure sur les pixels du fond
+
+Suite de l'entree dans les 40 %. Le fond de ce site est une scene 3D
+animee : le rapport de contraste d'un paragraphe depend donc de ce qui
+passe derriere lui, et **aucun audit statique ne peut le dire**. Il fallait
+mesurer les pixels.
+
+Methode : une capture avec le texte, une avec les GLYPHES rendus
+transparents (la boite et son fond propre restent en place), puis le
+rapport pixel par pixel, l'opacite du texte composee avec le fond. 215
+blocs sur six pages, a deux moments de l'arc, seuils RGAA 3.2 (4,5:1
+courant, 3:1 texte large).
+
+## Corrige : l'appel a l'action etait a 1,41:1
+
+Sur 100 % de sa surface, la ou il faut 4,5. « Discutons de votre projet » a
+mi-arc de la page Services, en creme sur le monde de glace presque blanc,
+avec pour tout fond un filet de 1 px. Juste sous la carte intitulee « Audit
+accessibilite RGAA ».
+
+Son etat SURVOLE etait deja lisible : le defaut ne tenait qu'au repos. Fond
+pose, meme matiere que les cartes. Mediane 2,01 -> 7,81, part sous le seuil
+100 % -> 8,8 %.
+
+## Reste SIX blocs, et ils ne font qu'UNE decision
+
+| page | bloc | part sous 4,5:1 | mediane |
+| --- | --- | --- | --- |
+| Services @0,45 | paragraphe « Specialisation en cours de certification » | 78 % | 3,56 |
+| Projets @0,45 | paragraphe « Trois projets recents » | 72 % | 3,22 |
+| Services @0,45 | paragraphe « Audit de conformite RGAA/WCAG » | 50 % | 4,49 |
+| Codex @0,45 | Tonatiuh | 39 % | 4,70 |
+| Codex @0,45 | Huitzilopochtli | 27 % | 5,02 |
+| Codex @0,45 | Xiuhtecuhtli, Mictlantecuhtli | 24 % / 20 % | 5,09 / 5,58 |
+
+Verifie, et ce n'est pas ce que je croyais : derriere les noms du codex le
+fond n'est PAS la scene claire, il est sombre (mediane 25 a 40 sur 255).
+Ce qui les fait tomber, ce sont les zones les plus CLAIRES de leur propre
+panneau, jusqu'a 76, ou un vert de luminance moyenne perd sa marge.
+
+Donc les six cas ont la meme racine : **les panneaux translucides laissent
+passer assez de scene pour que le texte perde son contraste quand la scene
+s'eclaircit.** Le panneau des cartes vaut 0,32 a 0,38 d'opacite, valeur
+choisie apres ton retour « trop lourds avec le contour marque » du 27/08.
+Je n'y touche donc pas : c'est une decision de DA, et c'est la tienne.
+
+Trois voies, dans l'ordre ou je les recommanderais :
+
+1. **Un fond qui suit la scene.** Une variable CSS portant la luminosite de
+   la scene, ecrite par le rig (il connait deja le jour de l'arc), et les
+   panneaux se densifient quand le monde s'eclaircit. C'est la seule voie
+   qui respecte a la fois le « trop lourds » de la nuit et le seuil de midi,
+   et elle est dans l'esprit du site, ou tout suit l'arc.
+2. **Monter l'opacite des panneaux** de 0,32 a 0,55 environ. Une ligne, mais
+   elle alourdit les scenes sombres, exactement ce que tu avais refuse.
+3. **Ne rien changer et l'assumer** : trois paragraphes et quatre noms sur
+   215 blocs, sur les seules pages claires, a mi-arc. Defendable comme
+   derogation documentee, mais c'est un critere de niveau A du RGAA, et ton
+   examen est le 23/10.
+
+## Trois corrections de mon propre oracle, chacune changeant le resultat
+
+C'est la lecon du jour, et elle vaut plus que le correctif.
+
+1. Il comptait le texte DECORATIF. Le reflet en miroir des cartes du Nord
+   est `aria-hidden="true"` : hors critere. Trois faux positifs a 100 %
+   sous le seuil.
+2. Il masquait les blocs en `visibility: hidden` pour lire le fond, ce qui
+   retire AUSSI leur fond propre. Un bouton a fond translucide etait donc
+   mesure contre la scene nue, et l'oracle ne pouvait pas voir sa propre
+   correction. Corrige en rendant les glyphes transparents.
+3. Il classait par 5e centile. Un p05 de 1,18 avec une mediane a 16 ne
+   signale que les coins arrondis d'un fond propre. Ce qui dit la
+   lisibilite est la PART de surface sous le seuil.
+
+**Un oracle se valide avant d'etre cru, y compris quand il dit ce qu'on
+attendait.** Sans ces trois corrections, ce rapport annoncait 21 echecs
+dont trois inventes, et ratait le seul vrai.
