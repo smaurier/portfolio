@@ -25,8 +25,8 @@ import { useSceneRefs } from "./scene-refs-context";
  *    pour deformer la geometrie via displacementMap. Blanc = relief
  *    up, noir = plat.
  *
- * Plan subdivise finement (256x256) pour que le displacementMap
- * produise un vrai relief lisible. Rayon 3 unites (dans la zone plate
+ * Plan subdivise (128x128) pour que le displacementMap produise un relief
+ * lisible. 256 -> 128 le 09/09 : voir la note sur GROUND_SEGMENTS. Rayon 3 unites (dans la zone plate
  * de terrain-height.ts, pas de conflit avec le sol sculpte). Position
  * legerement au-dessus du sol principal (Y=0.005) pour eviter Z-fighting.
  *
@@ -43,7 +43,26 @@ const PIEDRA_MAP = "/img/piedra-del-sol-v2.webp";
 const PIEDRA_HEIGHTMAP = "/img/piedra-del-sol-height.webp";
 const goldPatched = new WeakSet<MeshPhysicalMaterial>();
 const GROUND_RADIUS = 3;
-const GROUND_SEGMENTS = 256;
+/**
+ * 256 -> 128 (09/09). A 256, ce disque de 6 unites de large comptait
+ * 131 072 triangles, soit 38 % de tous les triangles visibles de la page
+ * d'accueil (347 615 mesures), pour un repere mobile de 200 a 300 k. Or le
+ * relief du displacementMap ne vaut que 0,03 unite depuis le 30/08 (« baisse
+ * un peu opacite, reliefs moins forts ») : ce que l'on lit de la gravure
+ * vient de la carte de COULEUR, pas de la deformation.
+ *
+ * Verifie et non suppose, sur trois cadrages et contre le BRUIT
+ * d'animation (deux captures a 1,5 s d'ecart differant deja de 6 a 24 %
+ * des pixels selon la page) : a 128 comme a 64 segments, l'ecart avec 256
+ * reste SOUS ce bruit, y compris au cadrage le plus proche de l'arc et
+ * a midi au Sud, ou la gravure se lit le mieux. Comparaison des gravures
+ * au 1:1 : identiques.
+ *
+ * 128 et non 64, alors que 64 mesurait aussi bien : il rend 98 304 des
+ * 122 880 triangles disponibles et garde le double de resolution de relief
+ * pour les cadrages non testes, dont l'arc vertical du Centre a venir.
+ */
+const GROUND_SEGMENTS = 128;
 // Retour Sylvain 30/08 : "baisse un peu opacite, reliefs moins forts"
 // Reduits d'environ moitie : displacement 0.06→0.03, bias -0.03→-0.015,
 // opacite 0.55→0.35. Gravure plus subtile, moins dominante.
