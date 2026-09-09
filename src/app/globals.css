@@ -800,6 +800,23 @@ body.nahual-lab-reveal .ctaButton {
   border-radius: 999px;
   font-weight: 600;
   color: #f2ece1;
+  /* UN FOND, ET PAS SEULEMENT AU SURVOL (09/09). Mesure du contraste reel
+     sur les pixels du fond : a mi-arc de la page Services, ou le monde de
+     glace est presque blanc, ce bouton tombait a 1,41:1 sur 100 % de sa
+     surface, la ou RGAA 3.2 demande 4,5:1. Il n'avait qu'un filet de 1 px
+     et du texte creme, donc rien entre les lettres et la scene. Son etat
+     SURVOLE, lui, etait parfaitement lisible : le defaut ne tenait qu'a
+     l'etat de repos.
+
+     0,62 n'est pas choisi a l'oeil : le creme #f2ece1 vaut 0,80 de
+     luminance relative, donc le fond compose doit rester sous 0,139 pour
+     tenir 4,5:1, soit environ 105 sur 255 ; sur une glace a 210, il faut
+     donc au moins 0,54 d'opacite. 0,62 laisse la marge des etats plus
+     clairs encore. Meme matiere que les cartes (meme teinte, meme flou),
+     pour ne pas introduire un langage de plus. */
+  background: rgba(13, 12, 17, 0.62);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   transition: background 0.2s, color 0.2s;
 }
 
