@@ -40,6 +40,8 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | K2 la Piedra rend 98 304 triangles | ✅ FAIT | `d1f0c53` |
 | L1 la frappe du serpent rechoregraphiee | ✅ FAIT | `1b81dbe` |
 | L2 audit des locales EN/ES | ✅ FAIT (constat) | `30bfa51` |
+| L3 les dix pages etrangeres ne finissent plus en francais | ✅ FAIT | `59e51b7` |
+| L4 Xolotl : l eau s eclaircit la ou il marche | ✅ FAIT | `460f124` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
@@ -1304,3 +1306,78 @@ comparaison avec les laureats, pas dans le bareme.
 
 Site du mois : possible ensuite. SOTY : toujours un autre ordre, celui des
 productions de studio, et rien de ce soir ne change ce jugement.
+
+---
+
+# L. Les deux gestes retouches sur retour, et la traduction
+
+## L1. Le serpent
+
+Trois retours de Sylvain (« trop court », « encore trop rigide », « il
+devrait presque se poser au sol »), une seule cause trouvee au film image
+par image : une Bezier quadratique parcourue uniformement en parametre,
+donc le contact tombait a la vitesse MAXIMALE.  porte
+maintenant plongee / rasement au sol / remontee, onze tests, raccords
+Hermite a vitesses appariees.
+
+Ce que je n ai PAS fait, et qui reste a lui : allonger le corps. La seule
+longueur disponible passe par l echelle, qui l epaissit d autant, et c est
+deja son epaisseur qui le fait lire comme un tube segmente. Ce qui lui
+manque est de l articulation, pas de la taille.
+
+## L4. Xolotl
+
+Meme methode : filmer d abord. Il marche sur le FOND du bassin, racine a
+y = 0 sur dix-sept images, alors que l eau est a 0,25 ; la nappe etant un
+miroir opaque, ce qui traversait etait un torse aux pattes coupees. Trois
+options mesurees et portees a l arbitrage de Sylvain ; il a choisi la plus
+juste physiquement, une fenetre claire dans l eau autour de lui.
+
+Le detail qui fait la difference entre corriger et deplacer le probleme :
+ne baisser QUE le terme de base de l alpha. Le fresnel, le speculaire et la
+pente portent le sillage, et les effacer aurait echange des pattes
+invisibles contre des pattes visibles dans une eau morte.
+
+## L3. La traduction, et le garde-fou
+
+Les quinze lignes de sortie de scene sont parties dans les dictionnaires
+(elles vivaient dans le composant, en francais seulement, alors qu il
+recoit deja la locale), et les dix-huit chaines espagnoles manquantes des
+etudes de cas sont ecrites. Vocabulaire aligne sur ce que les
+dictionnaires disaient DEJA, pas invente a cote.
+
+ compare les trois dictionnaires cle par cle,
+index de tableau compris : c est exactement la granularite ou le trou se
+cachait, un tableau plus court se rendant simplement plus court sans
+qu aucune erreur ne le dise.
+
+**Reste du meme audit, non corrige** :  et
+ portent encore du francais en dur. Le premier est un
+panneau d accessibilite, donc du texte dans une autre langue que celle de
+la page sans attribut  : point RGAA autant que point de traduction.
+
+## Sur une locale NAHUATL, question de Sylvain
+
+Mon avis : non, et pas par manque d ambition.
+
+Le site PORTE deja le nahuatl, et c est sa force : teyolia, tonalli,
+Tlalxicco, Mictlampa, xiuhcoatl, cempoalxochitl. Chaque terme est sourcé
+dans le Codex. Une locale entiere est autre chose : 411 chaines
+d interface.
+
+Et la question « quel nahuatl » n a pas de reponse simple. Le nahuatl
+classique du XVIe siecle, celui des codex, n a pas de mot pour
+« portfolio », « faire defiler » ou « raccourcis clavier ». Les variantes
+modernes (Huasteca, Centre, Guerrero) diffèrent notablement et chacune a
+son orthographe. Choisir est une decision linguistique et politique, pas
+graphique.
+
+Surtout : ni lui ni moi ne pourrions le RELIRE. Or toute la credibilite du
+site tient a la distinction entre atteste et notre licence. Mettre au coeur
+de l interface du texte qu on ne peut pas verifier attaque exactement ce
+qui le rend solide.
+
+Ce qui serait defendable et peu cher : approfondir le nahuatl SOURCE la ou
+il vit deja. Un difrasismo en epigraphe avec sa source, par exemple, ou le
+nom nahuatl de chaque geste. La presence culturelle sans la revendication
+d une traduction.
