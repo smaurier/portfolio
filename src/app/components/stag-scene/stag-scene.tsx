@@ -5,8 +5,10 @@ import { renderWithNahuatl } from "@/lib/nahuatl";
 import RevealText from "../reveal-text";
 import CardinalLink from "./cardinal-link";
 import FadingBlock from "./fading-block";
+import PageClosure from "./page-closure";
 import SceneStage from "./scene-stage";
 import overlayStyles from "./scene-text-overlay.module.css";
+import type { Locale } from "../../../dictionaries";
 
 export type HomeContent = {
   heroTitle: string;
@@ -32,10 +34,12 @@ export type HomeContent = {
  */
 export default function StagScene({
   home,
+  locale,
   servicesHref,
   sceneDescription,
 }: {
   home: HomeContent;
+  locale: Locale;
   servicesHref: string;
   /** Conserve pour compat call-site (page.js passe encore contactHref).
    * A retirer au prochain nettoyage de dictionnaire home (aboutText,
@@ -51,6 +55,7 @@ export default function StagScene({
   return (
     <SceneStage
       overlay={({ progressRef, reducedMotionRef }) => (
+        <>
         <main id="main" tabIndex={-1}>
           {/* Recit canonique pour lecteurs d'ecran (29/08 chantier
               a11y). Le tree accessibility est structure : description
@@ -111,6 +116,22 @@ export default function StagScene({
             </FadingBlock>
           ))}
         </main>
+        </>
+      )}
+      closure={({ progressRef, reducedMotionRef }) => (
+        /* LA SORTIE DU CENTRE (09/09). Son texte existait depuis le debut
+           dans page-closure.tsx (entree `jade` : « Le nombril du monde.
+           D'ou partent les chemins »), mais le composant n'etait monte que
+           par les quatre pages echo : la page la plus vue du site n'avait
+           jamais eu de fin. En prime, cliquer ce lien declenche le voyage
+           cardinal complet (NepantlaFrame, swingAzimuth), que le Centre
+           n'avait pas non plus. */
+        <PageClosure
+          directionKey="jade"
+          locale={locale}
+          progressRef={progressRef}
+          reducedMotionRef={reducedMotionRef}
+        />
       )}
     />
   );

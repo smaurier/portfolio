@@ -29,10 +29,21 @@ export type SceneStageOverlayCtx = Pick<SceneRefs, "progressRef" | "reducedMotio
 
 export default function SceneStage({
   overlay,
+  closure,
   children,
   directionKey = "jade",
 }: {
   overlay?: (ctx: SceneStageOverlayCtx) => ReactNode;
+  /**
+   * La SORTIE de scene (09/09), rendue a cote de l'overlay de texte et non
+   * dedans. Les quatre pages echo passent leur `PageClosure` comme
+   * `overlay`, ce qui marche parce qu'elles n'ont rien d'autre a mettre
+   * dessus. Le Centre, lui, a deja son texte dans l'overlay : y ajouter la
+   * sortie en faisait un frere de flex, pousse hors du cadre (mesure :
+   * y = -1008 px). D'ou cet emplacement propre, qui dit aussi la verite :
+   * une sortie de scene n'est pas du texte de scene.
+   */
+  closure?: (ctx: SceneStageOverlayCtx) => ReactNode;
   children?: ReactNode;
   directionKey?: DirectionKey;
 }) {
@@ -79,6 +90,7 @@ export default function SceneStage({
   return (
     <>
       {overlay && <SceneTextOverlay>{overlay(overlayCtx)}</SceneTextOverlay>}
+      {closure && <div className={styles.closureSlot}>{closure(overlayCtx)}</div>}
       <div className={styles.flow}>{children}</div>
     </>
   );

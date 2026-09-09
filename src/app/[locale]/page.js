@@ -19,6 +19,7 @@ export default function Home({ params }) {
   return (
     <StagScene
       home={dict.home}
+      locale={locale}
       servicesHref={getPath(locale, "services")}
       contactHref={getPath(locale, "contact")}
       sceneDescription={dict.common.sceneDescriptions.jade}
