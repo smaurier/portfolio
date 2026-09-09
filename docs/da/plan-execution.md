@@ -44,6 +44,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | L4 Xolotl : l eau s eclaircit la ou il marche | ✅ FAIT | `460f124` |
 | M1 le site rendait en Arial (design hors 3D) | ✅ FAIT | `548c3bc` |
 | M2 RGAA 3.2 : l appel a l action passait a 1,41 | ✅ FAIT | `1155be7` |
+| L5 Xolotl : l entree et la sortie cessent de basculer | ✅ FAIT | `7798dc6` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
@@ -1541,3 +1542,61 @@ C'est la lecon du jour, et elle vaut plus que le correctif.
 **Un oracle se valide avant d'etre cru, y compris quand il dit ce qu'on
 attendait.** Sans ces trois corrections, ce rapport annoncait 21 echecs
 dont trois inventes, et ratait le seul vrai.
+
+---
+
+# Point SOTY, mise a jour de fin de session (09/09, nuit)
+
+Le point precedent, ecrit quelques heures plus tot dans ce meme document,
+listait quatre blocages : perfs et mobile jamais mesures, accueil la plus
+faible, design hors 3D intact et premier poste de la note, son coupe.
+
+**Ce qui a bouge depuis ce point-la :**
+
+Le design hors 3D n'est plus « intact ». Il n'est pas travaille pour
+autant, mais deux DEFAUTS y ont ete trouves et corriges, et ce sont deux
+choses qu'un jury aurait vues avant tout le reste :
+
+- le site rendait en **Arial** sur 920 elements de texte sur 931, un
+  reliquat de `create-next-app` ecrasant la police variable qu'il
+  telecharge deja ;
+- un appel a l'action etait a **1,41:1** de contraste sur 100 % de sa
+  surface, la ou RGAA 3.2 demande 4,5.
+
+La credibilite internationale est reglee : les dix pages etrangeres ne
+finissent plus en francais, et les trois etudes de cas espagnoles ne
+s'arretent plus au premier paragraphe.
+
+Et les deux gestes que Sylvain avait nommes sont corriges avec leurs
+mesures : le serpent plonge, rase l'anneau au sol et repart ; Xolotl cesse
+de basculer de 30 degres en deux dixiemes de seconde en entrant dans le
+bassin.
+
+## Ce qui garde le site du jour hors de portee, aujourd'hui
+
+**Plus rien de technique.** C'est le changement de la journee. Les appels de
+rendu et les triangles sont dans le repere mobile sur les cinq pages, le
+mobile etroit et le paysage sont tenus par des tests, l'accessibilite a
+gagne trois corrections reelles.
+
+Ce qui reste tient en QUATRE decisions, et les quatre sont a Sylvain :
+
+1. **L'echelle typographique.** Treize tailles dont neuf a moins de 11 %
+   d'ecart, et 480 elements sans interlignage explicite. C'est la moitie
+   visible des 40 % du bareme, et il faut choisir un rapport.
+2. **Le fond du texte sur la scene.** Six blocs sous le seuil de contraste
+   quand le monde s'eclaircit, parce que les panneaux a 0,32 laissent
+   passer la scene. Trois voies proposees en M2.
+3. **Le son.** Toujours generatif et coupe par defaut, toujours le plus
+   gros ecart avec les laureats.
+4. **La mesure telephone (C1)**, qui debloque l'arc vertical du Centre.
+
+## Estimation
+
+Site du jour : atteignable, et desormais sans obstacle technique. Le chemin
+critique passe par la typographie et par la mesure telephone.
+
+Site du mois : possible ensuite, si le son devient une couche narrative.
+
+SOTY : toujours un autre ordre, celui des productions de studio. Rien de
+cette session ne change ce jugement, et le dire autrement serait mentir.
