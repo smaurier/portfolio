@@ -771,5 +771,32 @@
       }
     ],
     "loadingLabel": "Chargement de la scène"
+  },
+  "closure": {
+    "jade": {
+      "cardinal": "Centre · Tlalxicco",
+      "poetic": "Le nombril du monde. D'où partent les chemins.",
+      "nextLabel": "Est · Doré"
+    },
+    "dore": {
+      "cardinal": "Est · Tlahuizcalpan",
+      "poetic": "L'aube dorée. Tonatiuh se lève, la journée s'ouvre.",
+      "nextLabel": "Sud · Turquoise"
+    },
+    "turquoise": {
+      "cardinal": "Sud · Huitztlampa",
+      "poetic": "Xochitl, la fleur. Huitzilopochtli veille sur ce qui pousse.",
+      "nextLabel": "Ouest · Cendre"
+    },
+    "cendre": {
+      "cardinal": "Ouest · Cihuatlampa",
+      "poetic": "Le crépuscule mauve. Cihuateteo raccompagnent le soleil.",
+      "nextLabel": "Nord · Obsidienne"
+    },
+    "obsidienne": {
+      "cardinal": "Nord · Mictlampa",
+      "poetic": "Le lieu du repos. Mictlán reçoit ce qui a été vécu.",
+      "nextLabel": "Retour au Centre"
+    }
   }
 }

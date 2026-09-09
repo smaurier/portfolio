@@ -771,5 +771,32 @@
       }
     ],
     "loadingLabel": "Loading the scene"
+  },
+  "closure": {
+    "jade": {
+      "cardinal": "Center · Tlalxicco",
+      "poetic": "The navel of the world. Where the paths begin.",
+      "nextLabel": "East · Golden"
+    },
+    "dore": {
+      "cardinal": "East · Tlahuizcalpan",
+      "poetic": "The golden dawn. Tonatiuh rises, the day opens.",
+      "nextLabel": "South · Turquoise"
+    },
+    "turquoise": {
+      "cardinal": "South · Huitztlampa",
+      "poetic": "Xochitl, the flower. Huitzilopochtli watches over what grows.",
+      "nextLabel": "West · Ash"
+    },
+    "cendre": {
+      "cardinal": "West · Cihuatlampa",
+      "poetic": "The mauve twilight. The Cihuateteo walk the sun home.",
+      "nextLabel": "North · Obsidian"
+    },
+    "obsidienne": {
+      "cardinal": "North · Mictlampa",
+      "poetic": "The place of rest. Mictlán receives what has been lived.",
+      "nextLabel": "Back to the Center"
+    }
   }
 }

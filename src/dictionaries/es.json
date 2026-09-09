@@ -182,6 +182,18 @@
           {
             "title": "La postura técnica",
             "text": "Cada no-conformidad identificada por Nuada se entrega con el código de corrección directamente implementable, probado sobre un fork del proyecto cliente cuando es posible. No hay «recomendación» vaga, no hay «investigar del lado del equipo»: un diff Git, una explicación del porqué, un test de no-regresión. El auditor se convierte en contribuidor temporal, no en consultor que deja atrás un nudo de problemas."
+          },
+          {
+            "title": "La arquitectura del sitio",
+            "text": "Astro para la generación estática, i18n nativo para fr/en/es sin sobrecoste, MDX para los artículos de fondo, alojamiento en Netlify con ramas de previsualización para cada nuevo contenido. El sitio cumple él mismo el RGAA 4.1 por construcción: ningún apaño posterior a la auditoría, cada componente se piensa accesible desde su escritura inicial. Un enfoque de accesibilidad guiado por los tests, que sirve de ejemplo."
+          },
+          {
+            "title": "Lo que Nuada me enseña",
+            "text": "Construir Nuada me ha obligado a formalizar lo implícito: lo que hacía por intuición en las misiones de cliente (entregar código en lugar de texto) se convierte en un método reproducible. El verdadero entregable de una auditoría de accesibilidad no es un documento, es una base de código más accesible que antes."
+          },
+          {
+            "title": "Las próximas etapas",
+            "text": "Una vez validada la certificación RGAA (examen de access42 el 23 de octubre de 2026), Nuada puede pasar de sitio de presentación a herramienta real: automatización parcial de las auditorías con axe-core en la integración continua, comparador antes/después en cada pull request, base pública de patrones accesibles reutilizables."
           }
         ]
       }
@@ -208,6 +220,18 @@
           {
             "title": "Enfoque de dirección artística",
             "text": "En lugar de un sitio llamativo, un diseño que respira seriedad técnica. Fotos de productos sobre fondo despejado, tipografía industrial sobria pero moderna, paleta ajustada azul profundo + naranja funcional como cinta de señalización. El logo rediseñado conserva el espíritu «K» del fundador pero con proporciones áureas, legible a 16px como a 2m en una feria."
+          },
+          {
+            "title": "El desafío editorial",
+            "text": "El vocabulario es ultraespecializado. « Balancín de equilibrado », « cabrestante hidráulico subacuático de 30 t », « conformidad DNV/LOLER ». El sitio debía seguir siendo accesible para los compradores técnicos (que conocen el sector) sin asustar a los más generalistas (ejército, industria). Solución: una doble lectura sistemática, un título explícito en lenguaje corriente y un subtítulo técnico preciso con el vocabulario del oficio."
+          },
+          {
+            "title": "El impacto concreto",
+            "text": "Tiempo de carga dividido por 3 (WordPress optimizado, imágenes WebP, caché de Cloudflare). Diseño adaptable mobile-first. Formularios de presupuesto unificados, con condiciones precargadas según el sector objetivo. Comentarios del cliente: los primeros contactos entrantes son más cualificados, porque los prospectos llegan habiendo entendido la especialización antes de escribir."
+          },
+          {
+            "title": "Lo que saco de aquí",
+            "text": "En un mercado B2B de nicho, la dirección artística cuenta más de lo que se piensa. La credibilidad técnica pasa por decisiones gráficas coherentes con el oficio: ningún efecto de creative dev innecesario, pero cada elemento debe señalar « sabemos de lo que hablamos »."
           }
         ]
       }
@@ -234,6 +258,18 @@
           {
             "title": "Arquitectura elegida",
             "text": "Synapse es un plugin que bootstrap una estructura de memoria versionada vía Git, con sincronización automática en segundo plano en cada cambio significativo. La memoria es tipada: feedback, project, user, reference. Cada entrada tiene un frontmatter YAML explícito, una descripción corta, un tipo. Un sistema de linking `[[nombre]]` teje las entradas entre sí como un mini grafo de conocimiento."
+          },
+          {
+            "title": "Las decisiones técnicas",
+            "text": "Node.js + TypeScript para el multiplataforma. Hooks nativos de Claude Code (SessionStart, SessionEnd, UserPromptSubmit) para interceptar los momentos clave sin recurrir al monkey-patching. Sincronización Git en segundo plano mediante `child_process` no bloqueante. Caché local inteligente para evitar idas y venidas de red innecesarias. Detección de colisiones de sincronización: si dos máquinas escriben a la vez, Synapse intenta una fusión automática entrada por entrada y avisa al usuario en caso de conflicto."
+          },
+          {
+            "title": "La calidad como obligación",
+            "text": "283 tests desde la primera publicación, integración continua en verde, cobertura superior al 80 %. ¿Por qué tanto rigor para un plugin personal? Porque la memoria es un bien valioso: un fallo que sobrescribe una entrada en silencio es contexto perdido que no volveré a encontrar. Aquí el TDD no es un dogma, es la garantía de que la memoria no se corrompe."
+          },
+          {
+            "title": "La apertura a la comunidad",
+            "text": "Publicado en código abierto desde el primer commit en github.com/smaurier/claude-synapse. Documentación cuidada, ejemplos concretos, ADR (Architecture Decision Records) para dejar rastro de las decisiones. Ambición: que otros usuarios de Claude Code con varias máquinas puedan arrancar su propio sistema. Sin modelo de negocio y sin versión premium: una herramienta que resuelve un problema real para quienes lo tienen."
           }
         ]
       }
@@ -735,5 +771,32 @@
       }
     ],
     "loadingLabel": "Cargando la escena"
+  },
+  "closure": {
+    "jade": {
+      "cardinal": "Centro · Tlalxicco",
+      "poetic": "El ombligo del mundo. De donde parten los caminos.",
+      "nextLabel": "Este · Dorado"
+    },
+    "dore": {
+      "cardinal": "Este · Tlahuizcalpan",
+      "poetic": "El alba dorada. Tonatiuh se alza, el día se abre.",
+      "nextLabel": "Sur · Turquesa"
+    },
+    "turquoise": {
+      "cardinal": "Sur · Huitztlampa",
+      "poetic": "Xóchitl, la flor. Huitzilopochtli vela por lo que crece.",
+      "nextLabel": "Oeste · Ceniza"
+    },
+    "cendre": {
+      "cardinal": "Oeste · Cihuatlampa",
+      "poetic": "El crepúsculo malva. Las Cihuateteo acompañan al sol.",
+      "nextLabel": "Norte · Obsidiana"
+    },
+    "obsidienne": {
+      "cardinal": "Norte · Mictlampa",
+      "poetic": "El lugar del reposo. Mictlán recibe lo que fue vivido.",
+      "nextLabel": "Volver al Centro"
+    }
   }
 }

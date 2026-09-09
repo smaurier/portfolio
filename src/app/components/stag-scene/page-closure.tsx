@@ -4,7 +4,7 @@ import { useEffect, useRef, type CSSProperties, type MutableRefObject } from "re
 import CardinalLink from "./cardinal-link";
 import { getNavEmphasis } from "@/lib/reveal-arc";
 import { getPath, type PageKey } from "@/lib/routes";
-import type { Locale } from "../../../dictionaries";
+import { getDictionary, type Locale } from "../../../dictionaries";
 import {
   DIRECTION_ACCENT_COMPLEMENTARY,
   DIRECTION_COLOR_VIVID,
@@ -34,44 +34,24 @@ import styles from "./page-closure.module.css";
  * enchaînées au lieu d'un simple opacity fade.
  */
 
-type ClosureContent = {
-  cardinal: string;
-  poetic: string;
-  nextKey: PageKey | null;
-  nextLabel: string;
-};
-
-const CLOSURES: Record<DirectionKey, ClosureContent> = {
-  jade: {
-    cardinal: "Centre · Tlalxicco",
-    poetic: "Le nombril du monde. D'où partent les chemins.",
-    nextKey: "services",
-    nextLabel: "Est · Doré",
-  },
-  dore: {
-    cardinal: "Est · Tlahuizcalpan",
-    poetic: "L'aube dorée. Tonatiuh se lève, la journée s'ouvre.",
-    nextKey: "projets",
-    nextLabel: "Sud · Turquoise",
-  },
-  turquoise: {
-    cardinal: "Sud · Huitztlampa",
-    poetic: "Xochitl, la fleur. Huitzilopochtli veille sur ce qui pousse.",
-    nextKey: "contact",
-    nextLabel: "Ouest · Cendre",
-  },
-  cendre: {
-    cardinal: "Ouest · Cihuatlampa",
-    poetic: "Le crépuscule mauve. Cihuateteo raccompagnent le soleil.",
-    nextKey: "memoire",
-    nextLabel: "Nord · Obsidienne",
-  },
-  obsidienne: {
-    cardinal: "Nord · Mictlampa",
-    poetic: "Le lieu du repos. Mictlán reçoit ce qui a été vécu.",
-    nextKey: null,
-    nextLabel: "Retour au Centre",
-  },
+/**
+ * LES TEXTES SONT PARTIS DANS LES DICTIONNAIRES (09/09). Cette table etait
+ * en francais SEULEMENT, alors que le composant recoit deja la locale pour
+ * construire son lien : les dix pages etrangeres finissaient donc sur « Le
+ * nombril du monde. D'ou partent les chemins. » ou « Retour au Centre ».
+ * Mesure sur les dix URL : `lang` correct, titres traduits, mais une a deux
+ * fuites de francais par page, toutes venant d'ici. Et c'est la DERNIERE
+ * chose qu'un visiteur lit sur chaque page.
+ *
+ * Ne reste ici que la ROUTE suivante, qui n'est pas du texte. Le garde-fou
+ * contre la rechute est `lib/i18n-parity.test.ts`.
+ */
+const NEXT_KEY: Record<DirectionKey, PageKey | null> = {
+  jade: "services",
+  dore: "projets",
+  turquoise: "contact",
+  cendre: "memoire",
+  obsidienne: null,
 };
 
 export default function PageClosure({
@@ -86,8 +66,9 @@ export default function PageClosure({
   reducedMotionRef: MutableRefObject<boolean>;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const closure = CLOSURES[directionKey];
-  const nextHref = closure.nextKey ? getPath(locale, closure.nextKey) : `/${locale}`;
+  const closure = getDictionary(locale).closure[directionKey];
+  const nextKey = NEXT_KEY[directionKey];
+  const nextHref = nextKey ? getPath(locale, nextKey) : `/${locale}`;
 
   // Toggle `.revealed` en fonction de getNavEmphasis via rAF : pas de
   // useState pour éviter re-renders. Sous prefers-reduced-motion, le CSS
@@ -142,7 +123,7 @@ export default function PageClosure({
       <CardinalLink href={nextHref} className={styles.cta} tabIndex={-1}>
         {closure.nextLabel}
         <span className={styles.arrow} aria-hidden>
-          {closure.nextKey ? "→" : "↺"}
+          {nextKey ? "→" : "↺"}
         </span>
       </CardinalLink>
     </div>
