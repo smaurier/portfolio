@@ -18,6 +18,8 @@
  *    climax est insupportable, d'ou l'hysteresis.
  */
 
+import { armLatch, stepLatch, type LatchState } from "./threshold-latch";
+
 export const CLIMAX_CHIME = {
   /** L'emphase de nav a laquelle l'accord sonne, en montant. */
   fireAt: 0.45,
@@ -25,29 +27,20 @@ export const CLIMAX_CHIME = {
   rearmAt: 0.1,
 } as const;
 
-export type ChimeState = {
-  /** Prete a sonner : le seuil n'a pas encore ete franchi depuis le bas. */
-  readonly armed: boolean;
-};
+export type ChimeState = LatchState;
 
 /**
  * Etat de depart, decide par la position d'arrivee : si l'on arrive deja
  * au-dela du seuil, la cloche part DESARMEE et il faudra redescendre.
+ *
+ * Le mecanisme lui-meme vit dans `lib/threshold-latch` depuis le 09/09 :
+ * l'atterrissage des Cihuateteo avait exactement le meme besoin, et deux
+ * copies d'une regle a hysteresis, c'est deux fois l'occasion de se tromper.
  */
 export function armChime(emphasisAtArrival: number): ChimeState {
-  const p = safe(emphasisAtArrival);
-  return { armed: p < CLIMAX_CHIME.fireAt };
+  return armLatch(emphasisAtArrival, CLIMAX_CHIME);
 }
 
 export function stepChime(state: ChimeState, emphasis: number): { state: ChimeState; fire: boolean } {
-  if (!Number.isFinite(emphasis)) return { state, fire: false };
-  const p = safe(emphasis);
-  if (state.armed && p >= CLIMAX_CHIME.fireAt) return { state: { armed: false }, fire: true };
-  if (!state.armed && p <= CLIMAX_CHIME.rearmAt) return { state: { armed: true }, fire: false };
-  return { state, fire: false };
-}
-
-function safe(v: number): number {
-  if (!Number.isFinite(v)) return 0;
-  return Math.min(1, Math.max(0, v));
+  return stepLatch(state, emphasis, CLIMAX_CHIME);
 }

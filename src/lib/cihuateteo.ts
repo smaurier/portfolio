@@ -1,3 +1,4 @@
+import type { LatchSpec } from "./threshold-latch";
 import type { Dir3 } from "./direction-light";
 
 /**
@@ -155,4 +156,65 @@ export function bearerHair(seed: number, count = HAIR_STRANDS): HairStrand[] {
       speed: 0.5 + 1.2 * hash(k, 8),
     };
   });
+}
+
+/**
+ * L'ATTERRISSAGE (09/09, geste propose par le panel de mythologie et garde
+ * apres l'arbitrage de Sylvain : « garder la danse ET ajouter
+ * l'atterrissage »).
+ *
+ * Ce qui manquait a l'Ouest : leur descente etait une PRESENCE, pas un
+ * evenement. `descentBlend` est un fondu continu, donc rien ne se passe
+ * jamais vraiment. Or ce qui est atteste est precisement un evenement : les
+ * Cihuateteo descendent a cinq dates du calendrier (1 Cerf, 1 Pluie,
+ * 1 Singe, 1 Maison, 1 Aigle), elles hantent les CARREFOURS, et on y laisse
+ * des offrandes pour les apaiser (Sahagun, cf docs/da/ouest-sources.md).
+ * Le moment ou elles touchent le sol au carrefour devient donc un impact, et
+ * c'est cet instant qui enflamme les offrandes deja posees devant le cerf.
+ *
+ * Ce qu'on ne fait PAS, et c'est une regle : jamais dramatiser ce qu'elles
+ * font une fois descendues. Jamais d'enfant a l'ecran, jamais un geste qui
+ * mime un enlevement, meme scrupuleusement atteste.
+ */
+export const LANDING = {
+  /** Le `settle` a partir duquel elles touchent le sol, en montant. */
+  touchAt: 0.82,
+  /** Il faut redescendre sous ca pour que l'atterrissage puisse rejouer. */
+  rearmAt: 0.35,
+  /** Embrasement des offrandes : montee, puis decroissance. */
+  flareUp: 0.14,
+  flareTau: 0.6,
+  /** Le souffle au sol, qui couche l'herbe autour d'elles. */
+  gustTau: 0.85,
+};
+
+/**
+ * Le meme reglage, sous la forme que veut `lib/threshold-latch`. On garde
+ * `touchAt` dans LANDING parce que « le seuil de contact » se lit mieux la
+ * ou on parle d'atterrissage, et on traduit ici une fois pour toutes.
+ */
+export const LANDING_LATCH: LatchSpec = { fireAt: LANDING.touchAt, rearmAt: LANDING.rearmAt };
+
+export type LandingState = {
+  /** 0..1 : les offrandes prennent, puis retombent a leur braise. */
+  flare: number;
+  /** 0..1 : le souffle au ras du sol. */
+  gust: number;
+};
+
+const LANDING_ZERO: LandingState = { flare: 0, gust: 0 };
+
+/**
+ * L'enveloppe de l'atterrissage, `since` secondes apres le contact.
+ * Fonction pure : les composants ne lisent que des nombres.
+ */
+export function landingState(since: number, spec = LANDING): LandingState {
+  if (!Number.isFinite(since) || since < 0) return LANDING_ZERO;
+  const flare =
+    since < spec.flareUp
+      ? smoothstep(0, spec.flareUp, since)
+      : Math.exp(-(since - spec.flareUp) / spec.flareTau);
+  const gust = Math.exp(-since / spec.gustTau);
+  const c = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+  return { flare: c(flare), gust: c(gust) };
 }

@@ -30,9 +30,12 @@ import {
   type Object3D,
 } from "three";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
-import { bearerHair, bearerOpacity, bearerPose, CIHUATETEO, descentBlend, HAIR_STRANDS, litterPose, wispRate, type HairStrand } from "@/lib/cihuateteo";
+import { CIHUATETEO, HAIR_STRANDS, LANDING, LANDING_LATCH, bearerHair, bearerOpacity, bearerPose, descentBlend, landingState, litterPose, type HairStrand, wispRate } from "@/lib/cihuateteo";
 import { createStrip, stepStrip, type Strip } from "@/lib/paper-strip";
 import { remapWestArc } from "@/lib/ouest-arc";
+import { armLatch, stepLatch, type LatchState } from "@/lib/threshold-latch";
+import { advanceEnvelope } from "@/lib/envelope-clock";
+import { cihuateteoStore } from "./cihuateteo-store";
 import { dayAtArc } from "@/lib/arc-day";
 import { sunDirection } from "@/lib/direction-light";
 import { CHALK_COLOR, createCihuateotlMaterial, createCihuateotlUniforms, type CihuateotlUniforms } from "./cihuateotl-material";
@@ -401,6 +404,10 @@ export default function Cihuateteo() {
     p.raycast = () => null;
     return p;
   }, [butterflyGeometry, butterflyMaterial]);
+  /** Verrou du contact au sol : une date, pas une rampe. */
+  const latchRef = useRef<LatchState | null>(null);
+  /** Horloge bornee depuis le contact ; null = pas encore touche. */
+  const touchClockRef = useRef<number | null>(null);
   const spawnAcc = useRef(0);
   const seedRef = useRef(0);
 
@@ -480,6 +487,25 @@ export default function Cihuateteo() {
     const time = state.clock.elapsedTime;
     const dt = Math.min(delta, 1 / 30);
     const settle = descentBlend(dusk);
+    // L'ATTERRISSAGE (09/09) : leur descente etait une PRESENCE, un fondu
+    // continu ou rien ne se passait jamais vraiment. Le contact au sol
+    // devient un evenement, et c'est lui qui enflamme les offrandes deja
+    // posees devant le cerf. Verrou a hysteresis (lib/threshold-latch) pour
+    // avoir une DATE, et horloge bornee (lib/envelope-clock) pour que le
+    // geste ne puisse pas etre enjambe par une saccade.
+    if (latchRef.current === null) latchRef.current = armLatch(settle, LANDING_LATCH);
+    const landed = stepLatch(latchRef.current, settle, LANDING_LATCH);
+    latchRef.current = landed.state;
+    let collectSpots = false;
+    if (landed.fire && !reduced) {
+      touchClockRef.current = 0;
+      collectSpots = true;
+      cihuateteoStore.spots.length = 0;
+    }
+    if (touchClockRef.current !== null) {
+      touchClockRef.current = advanceEnvelope(touchClockRef.current, delta);
+    }
+    const landing = landingState(touchClockRef.current ?? -1);
     const opacity = bearerOpacity(dusk) * blend;
     const gust = 1 + 0.45 * Math.sin(time * 0.7) + 0.25 * Math.sin(time * 1.9 + 1.3);
     // Au carrefour la danse ralentit de moitie, sans s'eteindre.
@@ -487,6 +513,9 @@ export default function Cihuateteo() {
 
     bearers.forEach((b, i) => {
       const pose = bearerPose(i, CIHUATETEO.count, dusk, sun, reduced ? 0 : time);
+      // L'herbe a besoin de savoir OU elles ont touche : c'est elle qui
+      // possede la grille de simulation.
+      if (collectSpots) cihuateteoStore.spots.push({ x: pose.x, z: pose.z });
       // Le battement : chaque porteuse a son decalage, l'ensemble garde le
       // meme tempo (une danse de groupe, pas quatre solos).
       const beat = time * DANCE.beatHz * Math.PI * 2 + i * 0.9;
@@ -585,8 +614,13 @@ export default function Cihuateteo() {
         const ez = pose.z - Math.sin(pose.yaw + Math.PI / 2) * e.x + Math.cos(pose.yaw) * e.z;
         const flicker = 0.55 + 0.45 * Math.max(0, Math.sin(time * 5.1 + e.phase) * 0.6 + Math.sin(time * 13.7 + e.phase * 3) * 0.4) * (0.6 + 0.4 * gust);
         e.sprite.position.set(ex, 0.06 + 0.03 * k, ez);
-        e.sprite.scale.setScalar(0.22 + 0.08 * k);
-        e.sprite.material.opacity = settle * blend * flicker;
+        // Au contact, les offrandes PRENNENT : les braises grossissent le
+        // temps de l'embrasement, sinon le geste ne se lit pas (verifie a la
+        // capture : a taille constante, on croyait voir le brancard bruler).
+        e.sprite.scale.setScalar((0.22 + 0.08 * k) * (1 + 1.4 * landing.flare));
+        // L'embrasement de l'atterrissage se pose PAR-DESSUS la braise
+        // ordinaire : c'est le contact qui les allume, puis elles retombent.
+        e.sprite.material.opacity = Math.min(1, settle * blend * flicker * (1 + 2.2 * landing.flare));
       });
       // La fumee autour d'elle : trois volutes lentes.
       b.smokes.forEach((s, k) => {
@@ -600,9 +634,11 @@ export default function Cihuateteo() {
     // Les douze papiers ecrivent dans le MEME faisceau : on ne le referme
     // donc qu'une fois, apres la boucle des porteuses.
     finishRibbonBundle(paperGeometry);
+    // Les positions sont prises, l'herbe peut souffler.
+    if (collectSpots) cihuateteoStore.landing += 1;
     hairMaterial.opacity = opacity;
     clothMaterial.opacity = opacity;
-    paperMaterial.opacity = 0.9 * blend * settle;
+    paperMaterial.opacity = Math.min(1, 0.9 * blend * settle * (1 + 0.8 * landing.flare));
 
     // La litiere de plumes de quetzal, le soleil dessus.
     const lp = litterPose(CIHUATETEO.count, dusk, sun, reduced ? 0 : time);

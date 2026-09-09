@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { bearerHair, bearerOpacity, bearerPose, CIHUATETEO, HAIR_STRANDS, litterPose, wispRate } from "./cihuateteo";
+import {
+  CIHUATETEO,
+  HAIR_STRANDS,
+  LANDING,
+  bearerHair,
+  bearerOpacity,
+  bearerPose,
+  landingState,
+  litterPose,
+  wispRate,
+} from "./cihuateteo";
 import { getOrbitCameraPosition } from "./camera-path";
 
 const sun = { x: 0.6, y: 0.25, z: 0.76 }; // soleil bas, a l'ouest du decor (+x)
@@ -114,5 +124,45 @@ describe("bearerHair : chacune sa chevelure, massive", () => {
 
   it("est deterministe : la meme graine, la meme chevelure", () => {
     expect(bearerHair(3)).toEqual(bearerHair(3));
+  });
+});
+
+describe("landingState : l'atterrissage est un evenement, pas un fondu", () => {
+  it("rien avant le contact", () => {
+    expect(landingState(-1)).toEqual({ flare: 0, gust: 0 });
+    expect(landingState(0).flare).toBe(0);
+  });
+
+  it("les offrandes prennent tout de suite, puis retombent a leur braise", () => {
+    expect(landingState(LANDING.flareUp).flare).toBeGreaterThan(0.95);
+    expect(landingState(LANDING.flareUp + LANDING.flareTau).flare).toBeLessThan(0.45);
+    expect(landingState(4).flare).toBeLessThan(0.02);
+  });
+
+  it("le souffle au sol part fort et s'eteint", () => {
+    expect(landingState(0).gust).toBeGreaterThan(0.95);
+    expect(landingState(3).gust).toBeLessThan(0.05);
+  });
+
+  it("la decroissance est monotone apres le pic", () => {
+    let last = 2;
+    for (let t = LANDING.flareUp; t < 4; t += 0.05) {
+      const f = landingState(t).flare;
+      expect(f).toBeLessThanOrEqual(last + 1e-9);
+      last = f;
+    }
+  });
+
+  it("le seuil de rearmement est franchement sous celui du contact", () => {
+    expect(LANDING.rearmAt).toBeLessThan(LANDING.touchAt);
+    expect(LANDING.touchAt - LANDING.rearmAt).toBeGreaterThan(0.25);
+  });
+
+  it("tolere des valeurs absurdes", () => {
+    for (const v of [Number.NaN, Number.POSITIVE_INFINITY, -1e9]) {
+      const s = landingState(v);
+      expect(Number.isFinite(s.flare)).toBe(true);
+      expect(Number.isFinite(s.gust)).toBe(true);
+    }
   });
 });

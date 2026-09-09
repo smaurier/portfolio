@@ -35,6 +35,7 @@ import { addShaderModifier } from "./shader-patch";
 import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { frostStore } from "./frost-store";
+import { cihuateteoStore } from "./cihuateteo-store";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 
 /**
@@ -243,6 +244,7 @@ export default function Grass() {
   // L'onde d'Ollin : le press est projete au sol, la prairie se couche en
   // cercle depuis le point d'impact.
   const pressRef = useRef<Vector2 | null>(null);
+  const lastLandingRef = useRef(0);
   const lastFrostRef = useRef(0);
   const windScratch = useMemo(() => ({ x: 0, z: 0 }), []);
   useEffect(() => {
@@ -295,6 +297,18 @@ export default function Grass() {
         lastStrikeRef.current = xiuhcoatlStore.strikeHit;
         const l = rotateY(STRIKE_POINT, -angle);
         applyRadialImpulse(grid, l.x, l.z, 8, 9);
+      }
+      // L'ATTERRISSAGE DES CIHUATETEO (09/09) : quatre souffles, un sous
+      // chaque porteuse qui touche le sol au carrefour. Plus court et plus
+      // large que la frappe du serpent : ce n'est pas un coup, c'est un
+      // poser. Le compteur plutot qu'une date, comme pour les autres
+      // impacts : exact meme si l'horloge saute.
+      if (cihuateteoStore.landing > lastLandingRef.current) {
+        lastLandingRef.current = cihuateteoStore.landing;
+        for (const spot of cihuateteoStore.spots) {
+          const l = rotateY(spot, -angle);
+          applyRadialImpulse(grid, l.x, l.z, 5, 4);
+        }
       }
       // L'explosion du gel de l'Est (06/09) : une onde qui couche toute la prairie.
       if (frostStore.impulse > lastFrostRef.current) {
