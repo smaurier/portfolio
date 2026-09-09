@@ -38,6 +38,8 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | H4 le titre passait sous le bandeau (telephone etroit) | ✅ FAIT | `56476ff` |
 | K1 le Sud passe de 1349 a 211 appels de rendu | ✅ FAIT | `010e62d` |
 | K2 la Piedra rend 98 304 triangles | ✅ FAIT | `d1f0c53` |
+| L1 la frappe du serpent rechoregraphiee | ✅ FAIT | `1b81dbe` |
+| L2 audit des locales EN/ES | ✅ FAIT (constat) | `30bfa51` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
@@ -1217,3 +1219,88 @@ Meme frontiere pour les modeles : le maillage hibiscus_flower-Mesh pese 23 520
 triangles a lui seul (28 exemplaires a 840 triangles), et le decimer
 demanderait un outil de maillage -- meme famille que I2, meme plafond
 d'apprentissage, donc ton go.
+
+---
+
+# Ou en est-on du site du jour, au 09/09/2026 au soir
+
+Passe demandee par Sylvain. La reference est l'avis du 07/09, qui listait
+quatre blocages dans l'ordre : perfs et mobile jamais mesures alors que
+l'usabilite pese 30 %, la page d'ACCUEIL la plus faible alors que c'est
+celle que le jury voit d'abord, le design hors 3D qui pese 40 % et sur
+lequel on n'avait presque pas travaille, et le sound design coupe par
+defaut.
+
+## Ce qui a change, avec les chiffres
+
+**Blocage 1, perfs et mobile : leve pour la partie mesurable.** Les appels
+de rendu par image sont passes de 133-1550 a 91-216 sur les cinq pages, les
+triangles de 253-394 k a 155-275 k. Les deux mesures sont desormais dans le
+repere d'un mobile milieu de gamme (100-200 appels, 200-300 k triangles),
+alors que la page Projets etait a huit fois le plafond sans que personne
+l'ait releve. Cote mise en page : le rail de controles ne recouvre plus le
+texte sur un telephone etroit (320 px), l'orientation paysage ne perd plus
+un bouton hors cadre, et le titre ne passe plus sous le bandeau. **Ce qui
+manque encore est ta mesure sur l'appareil reel (C1)** : les fps apres deux
+ou trois minutes, quand le telephone se bride en chauffant.
+
+**Blocage 2, la page d'accueil : entamee, pas finie.** Elle avait zero
+geste ; elle a maintenant sa sortie de scene (qui n'avait jamais ete
+affichee), son foyer, et son cerf a cesse d'etre une decoration monochrome
+verte. Il lui manque son arc vertical -- la camera qui pique vers le zenith,
+la colonne de fumee, la Voie lactee -- et cet arc est scelle derriere ta
+mesure telephone.
+
+**Blocage 3, le design hors 3D : inchange.** Aucune ligne de typographie,
+de grille, de panneaux ou de transitions d'interface n'a bouge depuis le
+07/09. **C'est desormais le premier poste de la note**, et de loin : 40 %
+du bareme, sur lequel on n'a rien fait, quand les 30 % d'usabilite viennent
+d'etre serieusement traites.
+
+**Blocage 4, le son : inchange.** Toujours generatif et coupe par defaut.
+L'ecart avec les laureats reste celui identifie le 08/09 dans
+`etat-de-l-art.md` : ils en font une couche narrative, nous un habillage.
+Une seule chose a bouge : l'accord cardinal sonne maintenant au climax de
+l'arc et non plus seulement au clic.
+
+## Ce qui s'est renforce sans etre au programme
+
+L'accessibilite, qui n'est pas notee en tant que telle mais qui porte
+l'usabilite : le mouvement reduit ne gele plus un bouton qui ne repond pas,
+le site franchit son voile sans JavaScript, et trois invariants de
+geometrie des controles sont tenus par des tests sur quatre cadrages.
+
+Et la matiere mythologique, qui est le vrai differenciateur du site : le
+balai de l'Est, le 8e niveau du Nord, l'atterrissage de l'Ouest, l'arc du
+Sud, le ciel d'avant-jour, les cempasuchil qui gardent leur lumiere, et la
+frappe du serpent qui plonge, rase l'anneau et repart. C'est la partie du
+site qu'aucun concurrent ne peut copier, parce qu'elle demande de LIRE des
+sources.
+
+## Un defaut neuf, trouve ce soir, et qui coute cher pour son prix
+
+**Les dix pages etrangeres affichent la sortie de scene en francais.** Un
+jury Awwwards est international et ouvrira le site en anglais : la derniere
+chose qu'il lit sur chaque page est « Le nombril du monde. D'ou partent les
+chemins. » ou « Retour au Centre ». Mesure sur les dix URL : `lang` correct,
+titres traduits, mais une a deux fuites de francais par page, toutes venant
+de la table `CLOSURES` de `page-closure.tsx`, restee monolingue alors que le
+composant recoit deja la locale.
+
+**Et l'espagnol manque 18 chaines**, qui ne sont pas des miettes : les trois
+derniers blocs de recit de CHACUNE des trois etudes de cas. En espagnol,
+chaque projet s'arrete au premier paragraphe une fois l'etude ouverte.
+
+C'est le meilleur rapport effort/note du moment : quinze lignes de table et
+dix-huit chaines, contre une credibilite entamee sur la langue meme du jury.
+
+## Mon estimation, revue
+
+Site du jour : atteignable, et l'obstacle n'est plus technique. Il reste
+trois choses, dans cet ordre de levier -- le design hors 3D (40 % de la
+note, rien de fait), la traduction (peu cher, tres visible), l'arc du
+Centre (bloque sur ta mesure). Le son vient apres : il pese dans la
+comparaison avec les laureats, pas dans le bareme.
+
+Site du mois : possible ensuite. SOTY : toujours un autre ordre, celui des
+productions de studio, et rien de ce soir ne change ce jugement.
