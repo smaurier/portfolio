@@ -4,7 +4,7 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, LineSegments, Points, ShaderMaterial, type Group } from "three";
-import { CENTZON_COUNT, killedState, makeStarField, starState, throwFactor, thrownDir } from "@/lib/centzon-stars";
+import { CENTZON_COUNT, killedState, makeStarField, starState, starsArmed, throwFactor, thrownDir } from "@/lib/centzon-stars";
 import { centzonStore } from "./centzon-store";
 import { markTrace } from "../traces-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -36,6 +36,8 @@ export default function CentzonStars() {
   const stars = useMemo(() => makeStarField(SEED), []);
   // Le jet des 400 a l'arrivee : chronometre depuis le moment ou le champ
   // devient visible (arrivee au Sud), remis a zero quand on le quitte.
+  /** Quand le voile est tombe : base du delai de calage. */
+  const veilFellAtRef = useRef<number | null>(null);
   const arrivedAtRef = useRef<number | null>(null);
 
   const pointsGeometry = useMemo(() => {
@@ -134,15 +136,34 @@ export default function CentzonStars() {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
     const p = sceneRefs?.progressRef.current ?? 0;
     const t = reduced ? 0 : state.clock.elapsedTime;
-    // L'arrivee, c'est quand le VOILE de chargement tombe (html[data-loaded],
-    // pose par LoadingSync), pas quand le champ se monte derriere le voile :
-    // sinon le jet des 400 se jouait avant qu'on voie la scene (retour
-    // Sylvain 05/09 « je ne vois pas l'apparition des 400 »). Un demi-seconde
-    // de plus pour le fondu du voile.
-    if (arrivedAtRef.current === null) {
+    // QUAND JETER LES QUATRE CENTS. La regle est dans lib/centzon-stars
+    // (`starsArmed`, pure et testee) : le voile tombe, le fondu a fini, et
+    // le visiteur a commence a descendre, donc la camera du Sud a leve les
+    // yeux vers le dome. Avec un filet pour qui ne scrolle jamais.
+    //
+    // Avant le 09/09, l'arme etait une minuterie : 0,5 s apres la chute du
+    // voile. Le commentaire d'origine citait deja le retour de Sylvain du
+    // 05/09, « je ne vois pas l'apparition des 400 », et la reponse avait ete
+    // d'ajouter une demi-seconde. Le probleme n'etait pas le delai : a cet
+    // instant l'oeil est sur le chrome de la page, pas sur le ciel. Le geste
+    // jouait devant une salle vide.
+    if (veilFellAtRef.current === null) {
       const loaded = typeof document !== "undefined" && document.documentElement.getAttribute("data-loaded") === "true";
       if (!loaded) return;
-      arrivedAtRef.current = state.clock.elapsedTime + 0.5;
+      veilFellAtRef.current = state.clock.elapsedTime;
+    }
+    if (arrivedAtRef.current === null) {
+      const waited = state.clock.elapsedTime - veilFellAtRef.current;
+      if (!starsArmed({ loaded: true, progress: p, waited })) {
+        // Tant qu'on n'a pas jete, les quatre cents N'EXISTENT PAS. La
+        // visibilite est posee plus haut par le fondu de direction, mais les
+        // positions ne sont ecrites qu'a partir du jet : sans ce masquage,
+        // l'attente montrerait un champ non initialise. Et narrativement
+        // c'est juste : elles apparaissent EN ETANT jetees.
+        g.visible = false;
+        return;
+      }
+      arrivedAtRef.current = state.clock.elapsedTime;
     }
     // reduced-motion : pas de jet, elles sont en place tout de suite.
     const since = reduced ? 1e9 : state.clock.elapsedTime - arrivedAtRef.current;
@@ -189,7 +210,7 @@ export default function CentzonStars() {
   });
 
   return (
-    <group ref={groupRef} visible={false}>
+    <group ref={groupRef} name="CentzonStars" visible={false}>
       <points ref={pointsRef} geometry={pointsGeometry} material={pointsMaterial} frustumCulled={false} raycast={() => null} renderOrder={-99} />
       <lineSegments ref={linesRef} geometry={linesGeometry} material={linesMaterial} frustumCulled={false} raycast={() => null} renderOrder={-98} />
     </group>

@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { CENTZON_COUNT, CENTZON_SPEC, KILL_FALL_SECONDS, killedState, makeStarField, starState, throwFactor, thrownDir } from "./centzon-stars";
+import {
+  CENTZON_COUNT,
+  CENTZON_SPEC,
+  KILL_FALL_SECONDS,
+  killedState,
+  makeStarField,
+  starState,
+  starsArmed,
+  throwFactor,
+  thrownDir,
+} from "./centzon-stars";
 
 const FIELD = makeStarField(7);
 
@@ -136,5 +146,33 @@ describe("killedState (une etoile prise par un colibri)", () => {
     expect(mid.offset.y).toBeLessThan(0);
     expect(mid.alpha).toBeGreaterThan(0);
     expect(killedState(s, KILL_FALL_SECONDS + 0.01)).toEqual({ alpha: 0, offset: { x: 0, y: 0, z: 0 }, streak: 0 });
+  });
+});
+
+describe("starsArmed : le jet doit avoir un public", () => {
+  it("ne part pas tant que le voile de chargement n'est pas tombe", () => {
+    expect(starsArmed({ loaded: false, progress: 0.5, waited: 9 })).toBe(false);
+  });
+
+  it("ne part pas dans la seconde du voile, quand l'oeil est encore sur le chrome", () => {
+    // Mesure du 09/09 : le jet s'armait 0,5 s apres la chute du voile, donc
+    // pendant son fondu. Un commentaire du 05/09 citait deja le retour de
+    // Sylvain, « je ne vois pas l'apparition des 400 » : on avait ajoute une
+    // demi-seconde, et ca n'avait pas suffi, parce que le probleme n'etait
+    // pas le delai.
+    expect(starsArmed({ loaded: true, progress: 0, waited: 0.6 })).toBe(false);
+  });
+
+  it("part des que le visiteur a commence a descendre : la camera leve les yeux vers le dome", () => {
+    expect(starsArmed({ loaded: true, progress: 0.16, waited: 1.6 })).toBe(true);
+  });
+
+  it("part quand meme, plus tard, pour qui ne scrolle jamais : le mythe ne doit pas dependre d'un geste", () => {
+    expect(starsArmed({ loaded: true, progress: 0, waited: 5 })).toBe(false);
+    expect(starsArmed({ loaded: true, progress: 0, waited: 7 })).toBe(true);
+  });
+
+  it("tolere des valeurs manquantes sans jamais tirer par accident", () => {
+    expect(starsArmed({ loaded: true, progress: Number.NaN, waited: Number.NaN })).toBe(false);
   });
 });

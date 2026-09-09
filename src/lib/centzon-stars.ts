@@ -171,3 +171,50 @@ export function starState(star: Star, p: number, t: number): StarState {
     streak: Math.sin(u * Math.PI),
   };
 }
+
+/**
+ * QUAND JETER LES QUATRE CENTS (09/09).
+ *
+ * Le jet s'armait 0,5 s apres la chute du voile de chargement. Un commentaire
+ * du 05/09 citait deja le retour de Sylvain, « je ne vois pas l'apparition
+ * des 400 », et on avait ajoute une demi-seconde. Ca n'a pas suffi, parce que
+ * le probleme n'etait pas le delai : a cet instant l'oeil est encore sur le
+ * chrome de la page, pas sur le dome du ciel. Le geste jouait devant une
+ * salle vide, comme la frappe du serpent jouait derriere un mur de texte.
+ *
+ * On arme donc sur le REGARD et non sur une minuterie : le visiteur a
+ * commence a descendre, donc la camera du Sud a commence a lever les yeux
+ * vers le dome (contre-plongee de `solarCamera`), donc le ciel est dans le
+ * cadre. Avec un filet : qui ne scrolle jamais voit le jet quand meme, plus
+ * tard. Un mythe ne doit pas dependre d'un geste du visiteur.
+ *
+ * Evolution prevue (lot F1 du plan) : lier le jet a la FRAPPE plutot qu'a
+ * l'arrivee. Mythologiquement, les quatre cents sont disperses PAR la
+ * victoire du soleil, donc la dispersion et le coup sont le meme evenement.
+ */
+export const STARS_ARM = {
+  /** Progres du scroll a partir duquel le dome est dans le cadre. */
+  progress: 0.15,
+  /** Delai minimum apres la chute du voile, pour laisser le fondu finir. */
+  settle: 1.2,
+  /** Filet pour qui ne scrolle pas : au-dela, on jette de toute facon. */
+  patience: 6,
+} as const;
+
+export function starsArmed({
+  loaded,
+  progress,
+  waited,
+}: {
+  loaded: boolean;
+  /** Progres de l'arc, 0..1. */
+  progress: number;
+  /** Secondes ecoulees depuis la chute du voile. */
+  waited: number;
+}): boolean {
+  if (!loaded) return false;
+  if (!Number.isFinite(progress) || !Number.isFinite(waited)) return false;
+  if (waited < STARS_ARM.settle) return false;
+  if (progress >= STARS_ARM.progress) return true;
+  return waited >= STARS_ARM.patience;
+}
