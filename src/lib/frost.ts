@@ -40,10 +40,25 @@ export type FrostState = {
   screen: number;
   /** Echelle de temps des animations (cerf, vent) : 0 = fige. */
   timeScale: number;
+  /**
+   * LE BALAI (09/09) : 0 = rien n'est balaye, 1 = tout le champ l'est.
+   *
+   * Itztlacoliuhqui, le dieu du gel ne du dard retourne, porte aussi un
+   * BALAI DE PAILLE (tlachpanoni), « qui nettoie le chemin pour la vie
+   * nouvelle » (Andrews, cf docs/da/est-sources.md). Le degel n'est donc pas
+   * une disparition uniforme : c'est un FRONT qui traverse le champ dans le
+   * sens ou la lumiere avance. Le givre reste devant lui et a disparu
+   * derriere.
+   *
+   * Ce qui change a l'ecran : avant, le monde de verre s'effacait partout a
+   * la fois, ce qui ne racontait rien ; et la repousse du mais ressemblait a
+   * une coincidence. Maintenant, c'est le passage du balai qui la CAUSE.
+   */
+  sweep: number;
 };
 
 export function createFrostState(): FrostState {
-  return { phase: "frozen", t: 0, frost: 1, darts: 0, shatter: 0, screen: 0, timeScale: 0 };
+  return { phase: "frozen", t: 0, frost: 1, darts: 0, shatter: 0, screen: 0, timeScale: 0, sweep: 0 };
 }
 
 function clamp01(v: number): number {
@@ -66,6 +81,7 @@ export function frostStep(s: FrostState, progress: number, dt: number, reduced: 
   switch (s.phase) {
     case "frozen":
       s.frost = 1; s.shatter = 0; s.darts = 0; s.screen = 0; s.timeScale = 0;
+      s.sweep = 0;
       if (progress >= FROST.shatterAt) {
         enter(s, reduced ? "thawed" : "shatter");
         if (reduced) { s.frost = 0; s.shatter = 1; s.timeScale = 1; }
@@ -75,24 +91,29 @@ export function frostStep(s: FrostState, progress: number, dt: number, reduced: 
       // Le prelude : les dards volent, le monde reste gele, puis tout eclate.
       const pre = FROST.preludeSeconds;
       if (s.t < pre) {
-        s.darts = s.t / pre; s.frost = 1; s.shatter = 0; s.timeScale = 0; s.screen = 0;
+        s.darts = s.t / pre; s.frost = 1; s.shatter = 0; s.timeScale = 0; s.screen = 0; s.sweep = 0;
         break;
       }
       s.darts = 1;
       const k = clamp01((s.t - pre) / FROST.shatterSeconds);
       s.shatter = k;
-      // Le givre tombe vite (la coque part au premier instant), le reste fond.
-      s.frost = 1 - smoothstep(0, 0.35, k);
+      // LE BALAI passe d'abord, le givre global ne tombe qu'apres lui (09/09).
+      // Avant, `frost` chutait sur les 35 premiers pour cent de l'explosion
+      // et le monde se degelait PARTOUT A LA FOIS : le degel n'etait pas un
+      // geste. Desormais le front traverse le champ, et la chute globale
+      // n'est plus qu'un filet de securite derriere lui.
+      s.sweep = smoothstep(0.04, 0.62, k);
+      s.frost = 1 - smoothstep(0.55, 0.9, k);
       s.timeScale = smoothstep(0.1, 0.6, k);
       s.screen = 0;
       if (k >= 1) { enter(s, "thawed"); s.frost = 0; s.shatter = 1; s.timeScale = 1; }
       break;
     }
     case "thawed":
-      s.frost = 0; s.shatter = 1; s.darts = 0; s.screen = 0; s.timeScale = 1;
+      s.frost = 0; s.shatter = 1; s.darts = 0; s.screen = 0; s.timeScale = 1; s.sweep = 1;
       if (progress <= FROST.refreezeAt) {
         enter(s, reduced ? "frozen" : "refreeze");
-        if (reduced) { s.frost = 1; s.shatter = 0; s.timeScale = 0; }
+        if (reduced) { s.frost = 1; s.shatter = 0; s.timeScale = 0; s.sweep = 0; }
       }
       break;
     case "refreeze": {
@@ -101,6 +122,9 @@ export function frostStep(s: FrostState, progress: number, dt: number, reduced: 
       // derriere, le monde regele pendant que l'ecran est couvert.
       s.screen = smoothstep(0, 0.35, k) * (1 - smoothstep(0.6, 1, k));
       s.frost = smoothstep(0.2, 0.6, k);
+      // Le regel annule le balai : le givre doit pouvoir revenir PARTOUT,
+      // sinon la moitie du champ resterait a jamais degelee.
+      s.sweep = 1 - smoothstep(0.2, 0.6, k);
       s.shatter = 1 - smoothstep(0.2, 0.6, k);
       s.timeScale = 0;
       s.darts = 0;

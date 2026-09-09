@@ -96,3 +96,53 @@ describe("frost : le monde gele de l'Est, l'explosion au lever, le regel en marc
     expect(FROST.refreezeAt).toBeLessThan(FROST.shatterAt);
   });
 });
+
+describe("le balai d'Itztlacoliuhqui : le degel est un front, pas une disparition", () => {
+  it("rien n'est balaye tant que le monde est gele", () => {
+    const s = createFrostState();
+    expect(s.sweep).toBe(0);
+    frostStep(s, 0, 0.1, false);
+    expect(s.sweep).toBe(0);
+  });
+
+  it("le balai ne part pas pendant le prelude : les dards volent d'abord", () => {
+    const s = createFrostState();
+    frostStep(s, FROST.shatterAt + 0.01, 0.016, false);
+    expect(s.phase).toBe("shatter");
+    for (let t = 0; t < FROST.preludeSeconds - 0.1; t += 0.05) frostStep(s, 1, 0.05, false);
+    expect(s.darts).toBeGreaterThan(0.5);
+    expect(s.sweep, "le balai attend la fin du prelude").toBe(0);
+  });
+
+  it("le balai traverse le champ AVANT que le givre global ne tombe", () => {
+    const s = createFrostState();
+    frostStep(s, 1, 0.016, false);
+    for (let t = 0; t < FROST.preludeSeconds + 0.05; t += 0.05) frostStep(s, 1, 0.05, false);
+    // Au tiers de l'explosion, le balai est bien engage et le givre global
+    // n'a pas encore commence a tomber : c'est le front qui degele.
+    for (let t = 0; t < FROST.shatterSeconds * 0.33; t += 0.05) frostStep(s, 1, 0.05, false);
+    expect(s.sweep).toBeGreaterThan(0.3);
+    expect(s.frost, "le givre global attend derriere le balai").toBeGreaterThan(0.9);
+  });
+
+  it("tout est balaye et degele une fois l'explosion finie", () => {
+    const s = createFrostState();
+    frostStep(s, 1, 0.016, false);
+    for (let t = 0; t < FROST.preludeSeconds + FROST.shatterSeconds + 0.2; t += 0.05) frostStep(s, 1, 0.05, false);
+    expect(s.phase).toBe("thawed");
+    expect(s.sweep).toBe(1);
+    expect(s.frost).toBe(0);
+  });
+
+  it("le regel annule le balai : le givre doit pouvoir revenir partout", () => {
+    const s = createFrostState();
+    frostStep(s, 1, 0.016, false);
+    for (let t = 0; t < FROST.preludeSeconds + FROST.shatterSeconds + 0.2; t += 0.05) frostStep(s, 1, 0.05, false);
+    // On remonte : le monde regele.
+    frostStep(s, 0, 0.05, false);
+    expect(s.phase).toBe("refreeze");
+    for (let t = 0; t < FROST.refreezeSeconds + 0.2; t += 0.05) frostStep(s, 0, 0.05, false);
+    expect(s.sweep).toBeLessThan(0.05);
+    expect(s.frost).toBeGreaterThan(0.95);
+  });
+});

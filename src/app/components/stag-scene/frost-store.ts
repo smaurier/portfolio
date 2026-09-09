@@ -1,4 +1,4 @@
-import { MeshStandardMaterial, type Material, type Object3D } from "three";
+import { MeshStandardMaterial, Vector2, type Material, type Object3D } from "three";
 import { createFrostState, type FrostState } from "@/lib/frost";
 import { addShaderModifier } from "./shader-patch";
 
@@ -31,7 +31,43 @@ if (typeof window !== "undefined") (window as unknown as { __nahualFrost?: unkno
 export const frostUniforms = {
   uFrost: { value: 0 },
   uFrostTime: { value: 0 },
+  /**
+   * LE BALAI (09/09). Position du front, en unites monde, projetee sur
+   * `uSweepAxis` : le givre reste DEVANT lui et a disparu DERRIERE. Ce qui
+   * balaie n'est pas un objet mais la lumiere qui avance, dans l'axe du
+   * soleil de l'Est. Attestation du geste : Itztlacoliuhqui porte un balai
+   * de paille, « qui nettoie le chemin pour la vie nouvelle ».
+   */
+  uSweep: { value: -999 },
+  /** Direction horizontale du balayage, normalisee. */
+  uSweepAxis: { value: new Vector2(1, 0) },
 };
+
+// Lecture et pilotage externes (verifications Playwright, console) : sans ca,
+// un masque spatial est indebogable.
+if (typeof window !== "undefined") (window as unknown as { __nahualFrostUniforms?: unknown }).__nahualFrostUniforms = frostUniforms;
+
+/** Demi-largeur du front, en unites monde : la frontiere est floue, pas une
+ * ligne de coupe. */
+export const FROST_SWEEP_SOFT = 5;
+/** Le front part de la et va jusqu'a l'oppose : couvre tout le champ vu. */
+export const FROST_SWEEP_RANGE = 34;
+
+/**
+ * LE GIVRE EFFECTIF a une position monde, avec le balai. Meme calcul que le
+ * shader, pour que le processeur et la carte graphique racontent la MEME
+ * chose : c'est ce qui permet au mais de se relever exactement quand le
+ * front lui passe dessus, au lieu de se relever partout a la fois pendant
+ * que la glace est encore la a cote.
+ */
+export function frostAt(x: number, z: number): number {
+  const axis = frostUniforms.uSweepAxis.value;
+  const along = x * axis.x + z * axis.y;
+  const e0 = frostUniforms.uSweep.value - FROST_SWEEP_SOFT;
+  const e1 = frostUniforms.uSweep.value + FROST_SWEEP_SOFT;
+  const t = Math.min(1, Math.max(0, (along - e0) / (e1 - e0)));
+  return frostUniforms.uFrost.value * (t * t * (3 - 2 * t));
+}
 
 const FROST_GLSL = /* glsl */ `
   float frostHash(vec3 p) {
@@ -72,6 +108,9 @@ export function applyFrost(root: Object3D): void {
         shader.uniforms.uFrost = frostUniforms.uFrost;
         shader.uniforms.uFrostTime = frostUniforms.uFrostTime;
         shader.uniforms.uFrostAlpha = { value: alpha };
+        shader.uniforms.uSweep = frostUniforms.uSweep;
+        shader.uniforms.uSweepAxis = frostUniforms.uSweepAxis;
+        shader.uniforms.uSweepSoft = { value: FROST_SWEEP_SOFT };
         shader.vertexShader = shader.vertexShader
           .replace("#include <common>", "#include <common>\n varying vec3 vFrostW;\n varying vec3 vFrostN;")
           .replace(
@@ -91,6 +130,9 @@ export function applyFrost(root: Object3D): void {
              uniform float uFrost;
              uniform float uFrostTime;
              uniform float uFrostAlpha;
+             uniform float uSweep;
+             uniform vec2 uSweepAxis;
+             uniform float uSweepSoft;
              varying vec3 vFrostW;
              varying vec3 vFrostN;
              ${FROST_GLSL}`,
@@ -102,7 +144,19 @@ export function applyFrost(root: Object3D): void {
             // s'inserent AVANT l'inclusion ; en se placant apres, la glace
             // passe toujours en dernier et personne ne la grise.
             `#include <dithering_fragment>
-             if (uFrost > 0.001) {
+             // LE BALAI (09/09) : le givre reste DEVANT le front et a disparu
+             // derriere. Avant, le monde de verre s'effacait partout a la
+             // fois, ce qui ne racontait rien ; et la repousse du mais
+             // ressemblait a une coincidence au lieu d'etre causee.
+             // Le sens compte, et je l'ai eu a l'envers d'abord : le givre
+             // reste DEVANT le front (gAlong > uSweep) et disparait derriere.
+             // Avec l'autre signe, le front partant de -34, tout le champ
+             // etait deja degele a l'arrivee : le monde de verre de l'Est
+             // n'existait plus au chargement.
+             float gAlong = dot(vFrostW.xz, uSweepAxis);
+             float gAhead = smoothstep(uSweep - uSweepSoft, uSweep + uSweepSoft, gAlong);
+             float gFrost = uFrost * gAhead;
+             if (gFrost > 0.001) {
                // Un monde de GLACE (Sylvain, 07/09 : « tous les objets
                // translucides et bleutes, vitres ») : chaque surface devient
                // du verre bleu, le fond passe au travers, les bords se
@@ -134,8 +188,8 @@ export function applyFrost(root: Object3D): void {
                // La couleur d'origine reste lisible dans l'epaisseur, teintee bleu.
                vec3 through = gl_FragColor.rgb * vec3(0.55, 0.72, 1.0);
                vec3 iced = glass * (0.5 + 0.5 * gFres) + through * 0.45 + vec3(spark);
-               gl_FragColor.rgb = mix(gl_FragColor.rgb, iced, uFrost);
-               gl_FragColor.a = mix(gl_FragColor.a, uFrostAlpha + (1.0 - uFrostAlpha) * gFres, uFrost);
+               gl_FragColor.rgb = mix(gl_FragColor.rgb, iced, gFrost);
+               gl_FragColor.a = mix(gl_FragColor.a, uFrostAlpha + (1.0 - uFrostAlpha) * gFres, gFrost);
              }
 `,
           );

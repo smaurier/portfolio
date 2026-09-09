@@ -11,10 +11,11 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { isMorningStar } from "@/lib/venus";
 import { decideSpawn } from "@/lib/xolotl-spawn";
 import { FROST } from "@/lib/frost";
+import { EST_ARC } from "@/lib/est-arc";
 import { terrainHeightWorld } from "./cardinal-orientation";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { createFrostState, frostStep } from "@/lib/frost";
-import { applyFrost, frostStore, frostUniforms } from "./frost-store";
+import { FROST_SWEEP_RANGE, applyFrost, frostStore, frostUniforms } from "./frost-store";
 import { addShaderModifier } from "./shader-patch";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -134,6 +135,20 @@ function makeShardGeometry(): IcosahedronGeometry {
   geo.computeVertexNormals();
   return geo;
 }
+
+/**
+ * L'axe du balai : l'azimut du soleil de l'Est, projete au sol et normalise.
+ * Le givre reste devant le front et a disparu derriere, donc le degel avance
+ * comme la lumiere. Meme azimut que le puits de lumiere et les dards
+ * (`EST_ARC.sunAzimuthDeg`), pour que les trois racontent la meme chose.
+ */
+const SWEEP_AXIS = (() => {
+  const a = (EST_ARC.sunAzimuthDeg * Math.PI) / 180;
+  const x = Math.sin(a);
+  const z = Math.cos(a);
+  const l = Math.hypot(x, z) || 1;
+  return { x: x / l, z: z / l };
+})();
 
 export default function FrostWorld() {
   const direction = useCurrentDirection();
@@ -409,6 +424,15 @@ export default function FrostWorld() {
     const target = east ? frostStore.state.frost : 0;
     frostUniforms.uFrost.value += (target - frostUniforms.uFrost.value) * Math.min(1, dt * 6);
     frostUniforms.uFrostTime.value = state.clock.elapsedTime;
+    // LE BALAI (09/09) : le front traverse le champ dans l'axe du soleil de
+    // l'Est, du cote eclaire vers le cote encore dans l'ombre. Ce n'est pas
+    // un objet qui balaie, c'est la lumiere qui avance. Hors de l'Est on le
+    // renvoie loin derriere, pour que le masque laisse tout passer.
+    const sweep = east ? frostStore.state.sweep : 0;
+    frostUniforms.uSweep.value = east
+      ? -FROST_SWEEP_RANGE + sweep * (2 * FROST_SWEEP_RANGE)
+      : -999;
+    frostUniforms.uSweepAxis.value.set(SWEEP_AXIS.x, SWEEP_AXIS.z);
     // Le traverse de toute la scene (1900 objets) ne sert qu'a rattraper les
     // materiaux montes apres coup : une image sur 20 suffit.
     if ((frameRef.current = (frameRef.current + 1) % 20) === 0) applyFrost(state.scene);

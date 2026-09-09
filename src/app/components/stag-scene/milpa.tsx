@@ -4,7 +4,7 @@ import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useCurrentDirection } from "./use-current-direction";
 import { milpaPose, milpaRing } from "@/lib/milpa-frost";
-import { frostStore } from "./frost-store";
+import { frostAt, frostStore } from "./frost-store";
 import { useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Group } from "three";
 import { getMilpaGrowth } from "@/lib/reveal-arc";
@@ -102,7 +102,13 @@ function MilpaStalk({
       // Un seul chemin de code, et la rotation est TOUJOURS ecrite : la scene
       // persiste d'une page a l'autre, une rotation seulement ignoree restait
       // en place et le mais restait couche partout (07/09).
-      const frost = east && frostStore.active ? frostStore.state.frost : 0;
+      // LE BALAI (09/09) : chaque plant lit le givre de SA position, pas
+      // celui du monde. Il se releve donc exactement quand le front lui
+      // passe dessus, ce qui rend la repousse CAUSEE par le balai au lieu
+      // d'etre une coincidence. Attestation du geste : Itztlacoliuhqui porte
+      // un balai de paille « qui nettoie le chemin pour la vie nouvelle »
+      // (cf docs/da/est-sources.md).
+      const frost = east && frostStore.active ? frostAt(x, z) : 0;
       const pose = milpaPose(scrollGrowth, frost, east);
       groupRef.current.scale.set(1, Math.max(0.001, pose.growth), 1);
       // Couchee vers l'exterieur du cercle, chaque plant dans son sens.
