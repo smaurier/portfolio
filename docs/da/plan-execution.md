@@ -1213,7 +1213,7 @@ necessaire. Trois leviers possibles le jour ou tu decides : moins de brins,
 un brin a moins de triangles (6 aujourd'hui), ou une densite qui decroit
 avec la distance.
 
-Meme frontiere pour les modeles :  pese 23 520
+Meme frontiere pour les modeles : le maillage hibiscus_flower-Mesh pese 23 520
 triangles a lui seul (28 exemplaires a 840 triangles), et le decimer
 demanderait un outil de maillage -- meme famille que I2, meme plafond
 d'apprentissage, donc ton go.
