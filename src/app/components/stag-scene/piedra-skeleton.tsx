@@ -62,6 +62,10 @@ export default function PiedraSkeleton({
       aria-live="polite"
       aria-label={label}
       data-testid="piedra-skeleton"
+      /* Cible stable pour la sortie de secours sans JavaScript (09/09) :
+         un nom de classe de module CSS est hache, on ne peut pas le viser
+         depuis un <style> global. */
+      data-veil="1"
     >
       {/* LA FUMEE (08/09, chantier du foyer). Le voile n'est plus un
           calque qu'on fait disparaitre en opacite : c'est de la fumee de

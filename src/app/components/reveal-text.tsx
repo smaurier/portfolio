@@ -79,6 +79,12 @@ export default function RevealText({
       <span key={i} className={styles.word}>
         <span
           className={styles.inner}
+          /* Cible stable pour la sortie de secours sans JavaScript (09/09) :
+             `.inner` part a opacite 0 et n'est revele que par la classe
+             posee par l'IntersectionObserver. Sans JS, TOUT le texte revele
+             restait invisible, titres compris. Un nom de module CSS est
+             hache, on ne peut pas le viser depuis un <style> global. */
+          data-reveal-word=""
           style={{ ["--reveal-delay" as string]: `${delay}ms` }}
         >
           {word}

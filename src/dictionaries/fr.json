@@ -102,7 +102,8 @@
       "turquoise": "Vous vous dirigez vers le Sud. Huitzilopochtli veille sur ce qui pousse.",
       "cendre": "Vous vous dirigez vers l'Ouest. Les Cihuateteo raccompagnent le soleil.",
       "obsidienne": "Vous vous dirigez vers le Nord. Mictlantecuhtli garde ce qui a été vécu."
-    }
+    },
+    "noScript": "La scène 3D a besoin de JavaScript. Tout le contenu du site reste lisible sans elle."
   },
   "home": {
     "heroTitle": "Nahual · studio de création",

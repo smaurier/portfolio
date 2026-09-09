@@ -235,6 +235,23 @@ export default async function LocaleLayout({
         <style dangerouslySetInnerHTML={{ __html: `
           html:not([data-loaded="true"]) body { background: #000 !important; }
         ` }} />
+        {/* SANS JAVASCRIPT (09/09). Teste le 08/09 : le site n'est pas noir,
+            98 Ko de HTML sont bien servis et tout le texte est dans le DOM,
+            mais on ne franchit JAMAIS le voile, parce que `data-loaded` est
+            pose par le client. Le visiteur restait devant un ecran de
+            chargement definitif. Pour la vitrine d'un futur auditeur RGAA,
+            c'est un point de credibilite autant que d'ergonomie.
+            Le voile se cible par `data-veil` et non par sa classe : les noms
+            de modules CSS sont haches. */}
+        <noscript>
+          <style dangerouslySetInnerHTML={{ __html: `
+            [data-veil] { display: none !important; }
+            /* Tout le texte revele part a opacite 0 et n'est montre que par
+               une classe posee en JavaScript : sans lui, les titres et les
+               lignes de chapitre etaient invisibles. */
+            [data-reveal-word] { opacity: 1 !important; transform: none !important; }
+          ` }} />
+        </noscript>
         {/* Le feu du foyer ne s'eteint jamais (08/09, cf src/lib/foyer.ts).
             Un visiteur qui repasse dans la journee ne rejoue pas la
             ceremonie d'arrivee : il trouve la maison deja allumee. La
@@ -264,6 +281,32 @@ export default async function LocaleLayout({
         className={`${geistSans.variable} ${geistMono.variable} nahual-lab-reveal`}
         suppressHydrationWarning
       >
+        {/* Un mot au visiteur sans JavaScript (09/09) : la scene ne se
+            joue pas, mais tout le texte est la. Style en ligne plutot
+            qu'une classe : ce bandeau ne doit dependre d'aucune feuille. */}
+        <noscript>
+          <p
+            style={{
+              /* Fixe en BAS : en haut, l'en-tete du site est fixe et le
+                 recouvrait entierement (verifie a la capture). */
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10000,
+              margin: 0,
+              padding: "0.75rem 1rem",
+              background: "#0a0710",
+              color: "#f4ead5",
+              fontSize: "0.9rem",
+              textAlign: "center",
+              lineHeight: 1.5,
+              borderTop: "1px solid rgba(244, 234, 213, 0.25)",
+            }}
+          >
+            {dict.common.noScript}
+          </p>
+        </noscript>
         {/* PiedraSkeleton monte EN TOUT PREMIER dans le body (30/08 fix
             "je vois encore le html avant") : HTML streaming rend les
             elements dans leur ordre DOM, donc le skeleton doit etre le

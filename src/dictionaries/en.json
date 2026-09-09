@@ -102,7 +102,8 @@
       "turquoise": "You head South. Huitzilopochtli watches over what grows.",
       "cendre": "You head West. The Cihuateteo escort the sun back.",
       "obsidienne": "You head North. Mictlantecuhtli keeps what has been lived."
-    }
+    },
+    "noScript": "The 3D scene needs JavaScript. All the content of this site stays readable without it."
   },
   "home": {
     "heroTitle": "Nahual · creative studio",

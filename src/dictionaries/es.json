@@ -102,7 +102,8 @@
       "turquoise": "Se dirige hacia el Sur. Huitzilopochtli vela por lo que crece.",
       "cendre": "Se dirige hacia el Oeste. Las Cihuateteo acompañan de vuelta al sol.",
       "obsidienne": "Se dirige hacia el Norte. Mictlantecuhtli guarda lo que ha sido vivido."
-    }
+    },
+    "noScript": "La escena 3D necesita JavaScript. Todo el contenido del sitio sigue siendo legible sin ella."
   },
   "home": {
     "heroTitle": "Nahual · estudio creativo",
