@@ -143,12 +143,16 @@ export default function SceneContent({
       {/* Le monde gele de l'Est (06/09) : givre sur tout, coque de glace du
        * cerf et de la Piedra, buee ; tout eclate au lever. */}
       <Suspense fallback={null}>
-        <FrostWorld />
+        <MountForDirection is="dore">
+          <FrostWorld />
+        </MountForDirection>
       </Suspense>
       {/* Le puits de lumiere sur le cerf (07/09, Est) : le rayon de soleil
        * qui tombe sur lui une fois la glace eclatee. */}
       <Suspense fallback={null}>
-        <SunBeam />
+        <MountForDirection is="dore">
+          <SunBeam />
+        </MountForDirection>
       </Suspense>
       <OrbitCamera progressRef={progressRef} />
       <CardinalAmbience />

@@ -219,6 +219,26 @@ export default function FrostWorld() {
     };
   }, [shell, disc, breaths]);
 
+  /**
+   * FILET DE SECURITE DU GATE PAR DIRECTION (09/09). Ce composant est
+   * desormais monte a l'Est seulement. Si l'on quitte l'Est au milieu du
+   * gel, il est demonte et plus personne n'ecrit `uFrost` : sans cette
+   * remise a zero, tout le decor resterait en verre bleu sur les quatre
+   * autres pages, puisque les materiaux sont patches une fois pour
+   * toutes et ne lisent plus que l'uniform.
+   */
+  useEffect(
+    () => () => {
+      frostUniforms.uFrost.value = 0;
+      frostStore.active = false;
+      frostStore.gold = 0;
+      frostStore.rear = 0;
+      frostStore.beam = 0;
+      frostStore.state = createFrostState();
+    },
+    [],
+  );
+
   useEffect(() => () => {
     iceMaterial.dispose();
     iceMaterialStatic.dispose();
