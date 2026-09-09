@@ -69,7 +69,20 @@ export default function CempasuchilPath() {
         metalness: 0,
         side: DoubleSide,
         emissive: CEMPASUCHIL,
-        emissiveIntensity: 0.2,
+        // 0,2 -> 0,5 (09/09). Mesure des pixels de fleur au Nord, au meme
+        // scroll et avec la meme sonde avant et apres : teinte 21 deg,
+        // saturation 62 %, valeur 45 % -> teinte 22, saturation 63, valeur
+        // 55, et moitie plus de pixels qui lisent comme une fleur. Le defaut
+        // etait donc la VALEUR et non la saturation : sur l eau noire du
+        // Nord, la fleur etait juste sombre. (Une premiere mesure disait 43 %
+        // de saturation : elle venait d une sonde en mouvement reduit, qui
+        // desature la scene entiere -- comparer deux sondes ne prouve rien.)
+        // Ce sont EXACTEMENT ces fleurs qui guident les ames, et un chemin
+        // de souci eteint ne guide personne. Le Nord retire sa chaleur a tout
+        // le reste (c est deja la regle du miroir de tezcatl,
+        // lib/direction-arc) ; les cempasuchil la gardent, parce qu elles
+        // portent leur propre lumiere, comme les bougies d une ofrenda.
+        emissiveIntensity: 0.5,
       }),
     []
   );
