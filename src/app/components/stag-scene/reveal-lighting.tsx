@@ -14,7 +14,7 @@ import {
 import { remapNorthArc } from "@/lib/direction-arc";
 import { remapWestArc, westFogTint } from "@/lib/ouest-arc";
 import { eastFogTint } from "@/lib/est-arc";
-import { dayAtArc, sunInTheWest } from "@/lib/arc-day";
+import { dayAtArc, lightPAtArc, sunInTheWest } from "@/lib/arc-day";
 import { approachFog, getFogRange, type FogRange } from "@/lib/direction-fog";
 import { approachRig, getLightRig, rigAtArc, type LightRig } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
@@ -89,7 +89,9 @@ export default function RevealLighting({
     // Arc inverse a l'Ouest aussi (06/09, ouest-arc) : le soleil tombe, la
     // lumiere descend du clair au crepuscule.
     const west = direction === "cendre" ? remapWestArc(rawP) : null;
-    const p = north ? north.lightP : west ? west.lightP : rawP;
+    // Le progres de lumiere vient de arc-day (09/09) : une seule table pour
+    // les cinq directions, au lieu d'une chaine de ternaires par fichier.
+    const p = lightPAtArc(direction, rawP);
     const arrivalGlow = north?.arrivalGlow ?? 0;
     const blend = getRimColorBlend(p);
     // Crossfade du rig lumiere vers la direction courante (etage 2) :

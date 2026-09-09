@@ -115,7 +115,17 @@ export default function SudSky() {
               sky = mix(sky, sky * uTint, uTintMix);
               float band = smoothstep(0.0, 0.1, e);
               vec3 day = mix(uHorizon, sky, band);
-              col = mix(col, day, uDay);
+              // Le melange DECROIT avec l'elevation (09/09). Avant,
+              // mix(col, day, uDay) remplacait ENTIEREMENT le degrade des
+              // que uDay atteignait 1 : la photo etant echantillonnee sur une
+              // tranche d'elevation etroite (champ de 45 degres), le ciel du
+              // Sud devenait un aplat. Mesure a l'ecart-type sur la bande de
+              // ciel : 30/31/42 par canal au Sud contre 40/40/40 a l'Est.
+              // Desormais la photo apporte la brume et les nuages pres de
+              // l'horizon, la ou ils comptent, et le degrade garde sa
+              // profondeur au zenith.
+              float dayWeight = uDay * mix(1.0, 0.4, t);
+              col = mix(col, day, dayWeight);
             }
             // Le crepuscule de l'Ouest : une bande mauve-corail posee sur
             // l'horizon, qui monte quand le soleil est tombe.
