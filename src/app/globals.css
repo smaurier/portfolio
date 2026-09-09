@@ -411,6 +411,23 @@ body.nahual-lab-reveal .header {
 }
 
 @media (max-width: 767px) {
+  /* LA VARIABLE MENTAIT (09/09). --header-height vaut 81px, la hauteur de
+     l'en-tete a DEUX etages ; sous ce seuil le bandeau superieur et la nav
+     sont caches et l'en-tete ne mesure plus que 56px. Or cette variable
+     sert precisement a « reserver l'espace equivalent pour que le contenu
+     texte ne passe pas dessous » (commentaire d'origine) : elle reservait
+     25px de trop, cinq fois dans la feuille.
+
+     Conséquence mesuree sur un Galaxy S9+, 320 x 658, page d'accueil :
+     <main> portait 121px de marge haute et 80px de marge basse, soit 30 %
+     de la hauteur de l'ecran en marges. Le bloc de texte, ancre en bas,
+     debordait alors par le HAUT et la premiere ligne du titre passait sous
+     le bandeau : on lisait « studio de creation » avec un fantome
+     derriere, et le bouton de menu recouvrait 918 px2 du titre. */
+  :root {
+    --header-height: 56px;
+  }
+
   .mobileMenuButton {
     display: inline-flex;
   }
@@ -1559,5 +1576,20 @@ html:not([data-strike]) .contentPage {
     opacity: 1;
     transform: none;
     pointer-events: auto;
+  }
+}
+
+/* LES RESPIRATIONS DE BUREAU SUR UN ECRAN DE POCHE (09/09). 40px en haut
+   et 80px en bas s'ajoutaient a la hauteur d'en-tete deja reservee : sur un
+   Galaxy S9+ le bloc de texte du heros (518px) ne pouvait pas tenir dans
+   les 457px que ces marges laissaient, et il debordait sous le bandeau.
+   Mesure apres correction : le bloc tient, titre entier lisible et appel a
+   l'action au-dessus du pli. Les gouttieres se resserrent avec, pour la
+   meme raison -- 32px et 28px entre des blocs, c'est une echelle d'ecran
+   large. */
+@media (max-width: 767px) {
+  body.nahual-lab-reveal main {
+    padding: calc(12px + var(--header-height)) 6vw calc(24px + var(--footer-height));
+    gap: 20px;
   }
 }

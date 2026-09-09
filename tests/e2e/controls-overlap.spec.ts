@@ -115,7 +115,14 @@ async function measure(page: Page): Promise<{ texts: Box[]; controls: Box[]; cli
       if (!el.checkVisibility({ checkVisibilityCSS: true })) continue;
       if (effectiveOpacity(el) < minOpacity) continue;
       const text = el.textContent?.trim() ?? "";
-      if (text.length < 12) continue;
+      // Un TITRE est du texte lisible quelle que soit sa longueur (09/09).
+      // Le seuil de 12 caracteres servait a ecarter les micro-libelles, mais
+      // il exemptait « Projets » -- sept lettres, et le titre de la page. Le
+      // rail posait dessus son bouton plume sur un ecran de 352 px sans que
+      // ce test ne dise rien.
+      const estTitre = el.tagName === "H1" || el.tagName === "H2";
+      if (!estTitre && text.length < 12) continue;
+      if (estTitre && text.length < 2) continue;
       const r = el.getBoundingClientRect();
       // Le passage lecteur d'ecran est reduit a 1px : il n'est pas « lisible
       // a l'ecran » et ne doit pas compter.
@@ -131,6 +138,12 @@ async function measure(page: Page): Promise<{ texts: Box[]; controls: Box[]; cli
 // un autre worker) : on garde tout le reste du profil d'appareil, dont
 // `isMobile`, sans lequel la mise en page n'est pas celle du telephone.
 const { defaultBrowserType: _pixelBrowser, ...PIXEL_7 } = devices["Pixel 7"];
+// Le telephone ETROIT (09/09). Le Pixel 7 fait 412 px de large et passe ;
+// mesure sur un Galaxy S9+, 352 px, page Projets : le bouton plume est pose
+// sur le « P » de « Projets » et le suivant sur la ligne dessous. 60 px de
+// large ne changent pas de place quand l'ecran en perd 60, et c'est
+// precisement le format des telephones les plus repandus hors haut de gamme.
+const { defaultBrowserType: _galaxyBrowser, ...GALAXY_S9 } = devices["Galaxy S9+"];
 
 const CASES = [
   { name: "Pixel 7", use: PIXEL_7 },
@@ -141,6 +154,7 @@ const CASES = [
     name: "Pixel 7 paysage",
     use: { ...PIXEL_7, viewport: { width: 839, height: 412 }, screen: { width: 839, height: 412 } },
   },
+  { name: "telephone etroit", use: GALAXY_S9 },
   { name: "ordinateur", use: { viewport: { width: 1280, height: 800 } } },
 ];
 

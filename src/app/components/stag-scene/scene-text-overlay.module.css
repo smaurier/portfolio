@@ -32,6 +32,18 @@
   .overlay {
     padding-left: 72px;
     padding-right: 5vw;
+    /* Le bas aussi (09/09) : 48px de respiration s'ajoutaient a la marge
+       basse de <main>. Deux respirations empilees pour un seul bas de page.
+       28px et non 12 : la DERNIERE rangee de boutons en compte deux cote a
+       cote (la boussole dans le couloir, le mode recit juste a sa droite,
+       jusqu'a 115px), donc plus large que le couloir de 72px. Elargir le
+       couloir ne laisserait que 176px de texte sur un ecran de 320 ; on
+       remonte donc le bloc de la hauteur de cette rangee. */
+    padding-bottom: calc(var(--footer-height, 0px) + 28px);
+  }
+
+  .stack {
+    gap: 18px;
   }
 }
 
