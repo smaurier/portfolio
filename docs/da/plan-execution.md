@@ -56,9 +56,8 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | G1 Radar signaux, quatrieme fiche (NestJS) | ✅ FAIT, relecture de Sylvain attendue | `823eb67` |
 | D3 le chapitrage des pages a contenu | ✅ FAIT | `823eb67` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
-| I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
+| I2 les modeles nettoyes et compresses (go de Sylvain sur l outil, 11/09) | ✅ FAIT | `1b37b45` |
 | E1, E2 (l'arc vertical du Centre) | ✅ FAIT | `8394028` |
-| G1 (le contenu), I2 (meshopt) | ⬜ a faire | |
 
 **Le lot H est termine, avec A, B, I1, F3, D1, D2, D4 et J1.** Tout ce qui
 etait faisable sans toi est fait. Ce qui reste demande :
