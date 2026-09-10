@@ -1,0 +1,92 @@
+# Etat d'avancement SOTY
+
+**Mis a jour le 10/09/2026 au soir.** Ce fichier est le tableau de bord :
+une seule note par scene, une seule note de site, et ce qui separe l'une de
+l'autre du but. Il remplace la lecture croisee de `plan-jury.md` (08/09) et
+`revue-soty-10-09.md`, qui restent au dossier comme archives datees.
+
+**But** : une mention Awwwards, site du jour, un soir de decembre 2026.
+**Ponderation du jury** : design 40, utilisabilite 30, creativite 20,
+contenu 10.
+
+**Sur l'echelle, une precision honnete** : « 10/10 sur toutes les pages »
+n'est pas un objectif atteignable, c'est une asymptote. Notre convention,
+posee le 10/09 et tenue depuis : **8 = site du jour**, 9 = site du mois.
+C'est notre calibrage, pas un chiffre publie par Awwwards ; aucune de nos
+sources ne donne la distribution reelle des notes du jury.
+
+---
+
+## Ou on en est
+
+| scene | 08/09 | 10/09 matin | **ce soir** | ce qui la tient | ce qui manque |
+| --- | --- | --- | --- | --- | --- |
+| Centre / Accueil | 3 | 7,0 | **8,0** | 100 % du cadre en scene, son geste a elle (l'arc vertical, la colonne, l'arche), 0 image en retard | le climax tombe a 63,5 % de la page (F2) |
+| Est / Services | 8 | 8,0 | **8,3** | le monde de verre, huit gestes, le ciel d'avant-jour, 0 image en retard | deux blocs de texte sous le seuil de contraste |
+| Nord / Memoire | 7 | 7,0 | **7,8** | le disque grave, le bassin, le miroir, Xolotl ; 224 images en retard devenues 7 | la colonne de texte couvre la scene ; arc dilue (D3) |
+| Sud / Projets | 5 | 7,5 | **7,8** | 211 appels de rendu au lieu de 1349, la frappe rechoregraphiee, 0 image en retard | la colonne de texte couvre la scene ; l'arc nuit vers midi (F1) |
+| Ouest / Contact | 6,5 | 6,0 | **7,5** | la meilleure ARRIVEE du site ; 30 images par seconde devenues 59,9 | 13 % d'images en retard ; pas d'acte de sortie (F2) |
+| **le site** | | 7,0 | **8,0** | | |
+
+Les notes du 08/09 viennent d'un autre exercice (un panel sur douze
+captures) et d'une autre echelle : elles sont la pour montrer le
+mouvement, pas pour etre comparees terme a terme.
+
+## La meme chose, par axe du jury
+
+C'est ce tableau-la qui donne la note du site, et donc ou investir.
+
+| axe | poids | note | ce qui la retient |
+| --- | --- | --- | --- |
+| Design | 40 | 7,8 | l'echelle typographique (13 tailles, 9 a moins de 11 % l'une de l'autre) ; le rapport contenu / scene au Nord et au Sud ; six blocs de contraste |
+| Utilisabilite | 30 | 8,0 | le voile se leve a 22-41 s sous CPU x4 et Fast 3G ; 13 % d'images en retard a Contact ; le defilement mort apres le climax |
+| Creativite | 20 | 8,5 | le son est absent ; sinon chaque page a maintenant son geste |
+| Contenu | 10 | 8,0 | aucun des trois projets ne montre NestJS ni PostgreSQL (verifie : deux occurrences de « Node.js », zero des deux autres) |
+
+Moyenne ponderee : **8,02**.
+
+---
+
+## Ce qui separe du 9
+
+Classe par poids du jury multiplie par l'ecart, ce qui est l'ordre de
+rentabilite reel et non l'ordre des envies.
+
+| # | quoi | axe | a qui | etat |
+| --- | --- | --- | --- | --- |
+| 1 | L'echelle typographique | design 40 | **a toi** : quel rapport, 1,25 ou 1,333 | mesure, non traite |
+| 2 | Le rapport contenu / scene au Nord et au Sud | design 40 | **a toi** | mesure, non traite |
+| 3 | Le voile a 22-41 s | utilisabilite 30 | a moi | mesure, cause connue (le calcul, pas le reseau), non traite |
+| 4 | L'acte de sortie (F2) et le defilement mort | design + utilisabilite | **a toi**, puis a moi | mesure ce soir : l'arc finit a 63,5 % du defilement |
+| 5 | Le son | creativite 20 | **a toi** : la vraie question est l'invitation, pas le son | les cloches par direction existent deja et ne jouent qu'au clic |
+| 6 | Les 13 % d'images en retard de Contact | utilisabilite 30 | a moi | profil pris, postes nommes, cause de `getParameters` non diagnostiquee |
+| 7 | Les six blocs de contraste | utilisabilite 30 | **a toi** : l'opacite des panneaux | une seule decision, documentee le 27/08 |
+| 8 | NestJS et PostgreSQL dans les projets | contenu 10 | **a toi** | c'est ton differenciateur marche, et le jury n'y met que 10 % |
+
+## Ce que la mesure de ce soir a trouve, et qui n'etait pas prevu
+
+L'avertissement du panel du 08/09 etait juste, et il est arrive apres coup :
+
+> L'acte de sortie doit passer AVANT le climax zenithal du Centre, ou etre
+> concu avec lui.
+
+L'arc de revelation se termine a deux hauteurs d'ecran, mais la page en fait
+3319 pour un ecran de 800 : **l'arc finit a 63,5 % du defilement**, et les
+36,5 % restants, plus d'un ecran, se font sur une image figee. Le climax
+zenithal, construit ce soir, tombe donc au deux tiers de la page, et ce qui
+suit ne bouge plus.
+
+Ce n'est pas une regression : les 180vh morts sont anterieurs, c'est le lot
+5 du panel et il n'a jamais ete fait. Mais le climax du Centre les rend
+visibles au pire endroit, puisque c'est la page que le jury charge en
+premier. **C'est le point 4 ci-dessus, et il attend ton arbitrage.**
+
+## Convention de mise a jour
+
+Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
+jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
+et dans le tableau d'avancement de `plan-execution.md`.
+
+- **10/09 soir** : 7,0 -> 8,0. Cinq pages tiennent la mediane de 60 (Contact
+  passait a 30), le Centre gagne son geste, la profondeur de champ devient
+  permanente et juste, le vent de la prairie passe de 266 a 36 ms/s.
