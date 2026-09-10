@@ -45,6 +45,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | M1 le site rendait en Arial (design hors 3D) | ✅ FAIT | `548c3bc` |
 | M2 RGAA 3.2 : l appel a l action passait a 1,41 | ✅ FAIT | `1155be7` |
 | L5 Xolotl : l entree et la sortie cessent de basculer | ✅ FAIT | `7798dc6` |
+| N1 la braise de Xolotl recompilait la scene en cours d arc | ✅ FAIT | `b9d76b1` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
