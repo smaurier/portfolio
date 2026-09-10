@@ -39,11 +39,11 @@ C'est ce tableau-la qui donne la note du site, et donc ou investir.
 | axe | poids | note | ce qui la retient |
 | --- | --- | --- | --- |
 | Design | 40 | 7,9 | l'echelle typographique (13 tailles, 9 a moins de 11 % l'une de l'autre) ; le rapport contenu / scene au Nord et au Sud ; six blocs de contraste |
-| Utilisabilite | 30 | 8,2 | le voile se leve a 16,6 s en production sous CPU x4 et Fast 3G ; 13 % d'images en retard a Contact |
+| Utilisabilite | 30 | 8,4 | le voile : l'accueil reste borne par le JavaScript ; Contact et Memoire ont perdu la moitie de leur temps d'ouverture ; les rubans de Contact restent le premier poste |
 | Creativite | 20 | 8,5 | le son est absent ; sinon chaque page a maintenant son geste |
 | Contenu | 10 | 8,0 | aucun des trois projets ne montre NestJS ni PostgreSQL (verifie : deux occurrences de « Node.js », zero des deux autres) |
 
-Moyenne ponderee : **8,14**.
+Moyenne ponderee : **8,20**.
 
 ---
 
@@ -56,10 +56,10 @@ rentabilite reel et non l'ordre des envies.
 | --- | --- | --- | --- | --- |
 | 1 | L'echelle typographique | design 40 | **a toi** : quel rapport, 1,25 ou 1,333 | mesure, non traite |
 | 2 | Le rapport contenu / scene au Nord et au Sud | design 40 | **a toi** | mesure, non traite |
-| 3 | Le voile a **16,6 s** en production | utilisabilite 30 | a moi, puis **a toi** | entame : 22,5 -> 20,9 s en local. Cause vraie = les OCTETS, pas le calcul. Reste les modeles (830 Ko, lot I2) et le choix de lever le voile avant la flore |
+| 3 | Le voile | utilisabilite 30 | a moi | modeles nettoyes (`1b37b45`, 4,6 Mo retires) : Contact ouvre a 23 s au lieu de 41 en local, Memoire a 23 au lieu de 36. Reste le JavaScript (600 Ko compresses), qui borne l'accueil |
 | ~~4~~ | ~~L'acte de sortie (F2)~~ | design + utilisabilite | fait, `e308564` | l'arbitrage etait deja rendu le 08/09, je l'avais mal classe |
 | 5 | Le son | creativite 20 | **a toi** : la vraie question est l'invitation, pas le son | les cloches par direction existent deja et ne jouent qu'au clic |
-| 6 | Les 13 % d'images en retard de Contact | utilisabilite 30 | a moi | profil pris, postes nommes, cause de `getParameters` non diagnostiquee |
+| 6 | Les images en retard de Contact | utilisabilite 30 | fait ce qui etait gratuit, `4978f67` | decor fige, 40 meches sur mobile au lieu de 90 : A/B 55 % -> 30 % d'images en retard sur machine chargee. Le reste est du travail reel (rubans, `getParameters` non diagnostique) |
 | 7 | Les six blocs de contraste | utilisabilite 30 | **a toi** : l'opacite des panneaux | une seule decision, documentee le 27/08 |
 | 8 | NestJS et PostgreSQL dans les projets | contenu 10 | **a toi** | c'est ton differenciateur marche, et le jury n'y met que 10 % |
 
@@ -106,6 +106,9 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **10/09 nuit, troisieme passe** : 8,2 -> 8,3. Contact : le decor immobile
+  n'est plus recalcule a chaque image, 40 meches sur mobile. Les modeles :
+  4,6 Mo de donnees jamais referencees retirees (xolotl 1,9 Mo -> 71 Ko).
 - **10/09 nuit, seconde passe** : 8,1 -> 8,2. Le voile : trois ressources
   inutiles sorties de la fenetre de chargement, la chaine de post-traitement
   sortie du morceau principal. Et deux erreurs de mesure corrigees dans la
