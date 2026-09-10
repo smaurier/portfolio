@@ -125,6 +125,18 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
     <Link
       ref={ref}
       href={href}
+      /**
+       * Le prechargement des destinations cardinales est CENTRALISE dans
+       * NepantlaFrame, et il attend le voile (10/09). Next precharge un
+       * Link des qu'il entre dans le cadre, or ces liens-la sont dans
+       * l'en-tete, donc visibles des la premiere image : mesure sous Fast
+       * 3G, ils partaient a 13,9 s, en pleine fenetre de chargement, et
+       * disputaient la bande passante aux modeles que le voile attend.
+       * Ils partent maintenant avec les autres, une fois le voile leve.
+       * Avant {...rest} : un appelant peut toujours redemander le
+       * prechargement immediat s'il en a besoin.
+       */
+      prefetch={false}
       onClick={handleClick}
       data-cardinal-direction={direction ?? undefined}
       data-magnetic={direction ? "" : undefined}

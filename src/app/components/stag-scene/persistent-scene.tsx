@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/set-state-in-effect -- fichier 3D r3f : useFrame mutations 60 fps, refs pour valeurs frame-based, Math.random init particules. Patterns gamedev legitimes. */
 "use client";
 
+
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { deriveFogTint, readDirectionAccentColor, readDirectionColor } from "./direction-colors";
-import PostFX from "./post-fx";
 import SceneContent from "./scene-content";
 import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
@@ -18,6 +19,22 @@ import XolotlCompanion from "./xolotl-companion";
 import MountForDirection, { PreloadOnIntent } from "./mount-for-direction";
 import EhecatlWind from "./ehecatl-wind";
 import styles from "./scene-stage.module.css";
+
+/**
+ * LA CHAINE DE POST-TRAITEMENT, EN MORCEAU SEPARE (10/09).
+ *
+ * `postprocessing` fait 633 Ko de source et vivait dans le morceau
+ * principal, celui de 1,44 Mo (377 Ko compresses) que le navigateur
+ * telecharge avant de pouvoir seulement demander les modeles. Or le profil
+ * MOBILE coupe le post-traitement (`postFx: false`, lib/scene-controls) :
+ * un telephone payait donc le transfert d'une chaine d'effets qu'il
+ * n'allume jamais.
+ *
+ * En import dynamique, le morceau ne part que si `postFx` est vrai. Sur
+ * bureau il part au meme moment qu'avant, en parallele du reste ; sur
+ * mobile il ne part pas du tout. Aucun effet ne change.
+ */
+const PostFX = dynamic(() => import("./post-fx"), { ssr: false });
 
 /**
  * Scène 3D persistante montée UNE seule fois dans layout.tsx

@@ -7,6 +7,8 @@ import { BackSide, Color, LinearFilter, RepeatWrapping, ShaderMaterial, SRGBColo
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { horizonLuminance, skyDaylight, zenithInto, zenithSpread, ZENITH_SPREAD_DAY } from "@/lib/sky-zenith";
+import { skyPhotoNeeded, type SkyPhotoDirection } from "@/lib/sky-photo";
+import { whenRevealed } from "@/lib/apres-le-voile";
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { dayAtArc } from "@/lib/arc-day";
 import { remapWestArc } from "@/lib/ouest-arc";
@@ -73,7 +75,10 @@ const SKY_TINT_MIX = 0.65;
 /** Le dome par direction (06/09) : le Sud (midi turquoise, soleil a l'est,
  * azimut 300 deg) et l'Ouest (fin d'apres-midi, la photo tiree vers le
  * corail, soleil en miroir a l'ouest). Ailleurs, pas de dome. */
-const SKY_LOOK: Partial<Record<DirectionKey, { tint: Color; tintMix: number; sunAzimuthDeg: number; dusk: Color; night?: Color }>> = {
+// Le type est bati sur SKY_PHOTO_DIRECTIONS (lib/sky-photo) : la decision
+// d'AFFICHER et la decision de CHARGER ne peuvent plus divorcer. Ajouter une
+// direction ici sans l'ajouter la-bas, ou l'inverse, ne compile pas.
+const SKY_LOOK: Record<SkyPhotoDirection, { tint: Color; tintMix: number; sunAzimuthDeg: number; dusk: Color; night?: Color }> = {
   turquoise: { tint: SKY_TINT, tintMix: SKY_TINT_MIX, sunAzimuthDeg: 300, dusk: new Color("#000000") },
   cendre: { tint: new Color(1.0, 0.86, 0.8), tintMix: 0.55, sunAzimuthDeg: 60, dusk: new Color("#6a2e4f") },
   // L'Est (06/09) : l'aube, la photo tiree vers l'or, soleil face au regard
@@ -85,7 +90,7 @@ export default function SudSky() {
   const meshRef = useRef<Mesh>(null);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
-  const blendRef = useRef(SKY_LOOK[direction] ? 1 : 0);
+  const blendRef = useRef(skyPhotoNeeded(direction) ? 1 : 0);
   const material = useMemo(
     () =>
       new ShaderMaterial({
@@ -182,37 +187,56 @@ export default function SudSky() {
 
   // La photographie de ciel, chargee une fois ; le dome reste en degrade
   // tant qu'elle n'est pas la.
+  //
+  // QUAND (10/09) : tout de suite si cette page l'affiche, APRES LE VOILE
+  // sinon. Mesure : le voile se leve 1,1 s apres le dernier octet recu, donc
+  // 120 Ko charges pendant le chargement retardent l'ouverture, et au Centre
+  // comme au Nord cette texture ne sera jamais affichee. On ne l'abandonne
+  // pas pour autant : elle part des que le voile est leve, pour qu'un voyage
+  // cardinal vers le Sud la trouve deja en cache.
   useEffect(() => {
     let disposed = false;
     const loader = new TextureLoader();
-    loader.load(SKY_URL, (tex) => {
-      if (disposed) {
-        tex.dispose();
-        return;
-      }
-      tex.colorSpace = SRGBColorSpace;
-      // La jointure (retour Sylvain) : en ClampToEdge le bord u = 0 / u = 1 ne
-      // se referme pas, et les mipmaps choisissent un niveau minuscule sur la
-      // discontinuite de fract() : on boucle la texture et on coupe les mipmaps.
-      tex.wrapS = RepeatWrapping;
-      tex.wrapT = RepeatWrapping;
-      tex.minFilter = LinearFilter;
-      tex.magFilter = LinearFilter;
-      tex.generateMipmaps = false;
-      tex.needsUpdate = true;
-      material.uniforms.uSky.value = tex;
-      material.uniforms.uHasSky.value = 1;
-    });
+    const charger = () => {
+      if (disposed) return;
+      loader.load(SKY_URL, (tex) => {
+        if (disposed) {
+          tex.dispose();
+          return;
+        }
+        tex.colorSpace = SRGBColorSpace;
+        // La jointure (retour Sylvain) : en ClampToEdge le bord u = 0 / u = 1
+        // ne se referme pas, et les mipmaps choisissent un niveau minuscule
+        // sur la discontinuite de fract() : on boucle la texture et on coupe
+        // les mipmaps.
+        tex.wrapS = RepeatWrapping;
+        tex.wrapT = RepeatWrapping;
+        tex.minFilter = LinearFilter;
+        tex.magFilter = LinearFilter;
+        tex.generateMipmaps = false;
+        tex.needsUpdate = true;
+        material.uniforms.uSky.value = tex;
+        material.uniforms.uHasSky.value = 1;
+      });
+    };
+
+    let arret: (() => void) | undefined;
+    if (skyPhotoNeeded(direction)) {
+      charger();
+    } else {
+      arret = whenRevealed(charger);
+    }
     return () => {
       disposed = true;
+      arret?.();
       const tex = material.uniforms.uSky.value as Texture | null;
       if (tex) tex.dispose();
     };
-  }, [material]);
+  }, [material, direction]);
 
   useFrame((state) => {
     const south = direction === "turquoise";
-    const look = SKY_LOOK[direction];
+    const look = skyPhotoNeeded(direction) ? SKY_LOOK[direction] : undefined;
     blendRef.current += ((look ? 1 : 0) - blendRef.current) * 0.06;
     const blend = blendRef.current;
     // Souffle chaud : monte avec le midi, Sud seulement, rien en reduced-motion.
