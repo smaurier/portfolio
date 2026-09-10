@@ -5,6 +5,7 @@ import { useEffect, useRef, type MutableRefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { PerspectiveCamera } from "three";
 import { getOrbitCameraPosition, getOrbitCameraTarget } from "@/lib/camera-path";
+import { zenithTargetY } from "@/lib/zenith-arc";
 import { swingAzimuth, swingSpeed } from "@/lib/nepantla";
 import { arrivalCamera } from "@/lib/foyer";
 import { foyerStore } from "./foyer-store";
@@ -122,6 +123,12 @@ export default function OrbitCamera({
   // Camera Cihuatlampa (06/09) : la meme camera solaire, qui DESCEND avec le
   // soleil couchant (ouest-arc), recul plus discret qu'au Sud.
   const westBlendRef = useRef(direction === "cendre" ? 1 : 0);
+  // Camera du Centre (10/09, E1) : le Centre etait la seule page sans
+  // geste a elle. Le sien n'est pas un evenement de plus, c'est son axe :
+  // sur le dernier cinquieme de l'arc, le regard remonte l'axe du monde
+  // vers le zenith. Meme fondu que les autres directions, pour que le
+  // depart vers une autre page ne fasse pas retomber le regard d'un coup.
+  const jadeBlendRef = useRef(direction === "jade" ? 1 : 0);
   // L'heure de Tenochtitlan (05/09) : la camera orbite lentement autour du
   // cerf tant que le mode est actif (angle cumule, qui revient a zero en
   // douceur quand on en sort).
@@ -220,6 +227,9 @@ export default function OrbitCamera({
     const westTarget = direction === "cendre" ? 1 : 0;
     westBlendRef.current += (westTarget - westBlendRef.current) * 0.06;
     const wb = westBlendRef.current;
+    const jadeTarget = direction === "jade" ? 1 : 0;
+    jadeBlendRef.current += (jadeTarget - jadeBlendRef.current) * 0.06;
+    const jb = jadeBlendRef.current;
     // Le poids de la camera solaire : Sud ou Ouest.
     const solarBlend = Math.min(1, sb + wb);
     // Parcours : la même hélice partout ; au Nord, en miroir. Crossfade
@@ -284,6 +294,18 @@ export default function OrbitCamera({
       position.x *= arrival.radiusScale;
       position.z *= arrival.radiusScale;
       position.y += arrival.lift;
+    }
+
+    // L'ARC VERTICAL DU CENTRE (E1, 10/09) : le regard remonte l'axe du
+    // monde. La camera ne bouge pas de son orbite ni de son 3/4 de repos :
+    // c'est le REGARD qui monte, le long de la colonne de fumee du foyer.
+    // Plafonne a 78 degres par zenith-arc, jamais 90 : camera.up n'est
+    // touche nulle part dans le projet, et viser la verticale ferait
+    // degenerer lookAt en roulis.
+    if (jb > 0.001) {
+      const rayonAuSol = Math.hypot(position.x, position.z);
+      const vise = zenithTargetY(rawP, rayonAuSol, position.y, target.y);
+      target.y += (vise - target.y) * jb;
     }
 
     // Parallaxe : décale la position caméra XY selon la souris, la cible

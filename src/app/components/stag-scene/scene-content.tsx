@@ -33,6 +33,8 @@ import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
 import CempasuchilPath from "./cempasuchil-path";
 import CopalBraziers from "./copal-braziers";
+import FoyerColumn from "./foyer-column";
+import MilkyWay from "./milky-way";
 import { COPAL_DIRECTIONS } from "@/lib/copal";
 import MictlanMist from "./mictlan-mist";
 import StagModel from "./stag-model";
@@ -197,6 +199,17 @@ export default function SceneContent({
           <YearStones />
         </Suspense>
       </MountForDirection>
+      {/* La colonne du foyer (10/09, E2) : ce que les cinq offrandes du
+       * Centre deviennent ensemble, une colonne qui monte au ciel. Elle
+       * part avant le regard, qui la suit jusqu'au zenith. Centre seul.
+       * HORS de CardinalOrientation : elle monte sur l'axe du monde, qui
+       * ne tourne pas avec le decor. */}
+      <FoyerColumn />
+      {/* L'arche de Mixcoatl (10/09, E2) : la Voie lactee passe par le
+       * zenith, au bout de la colonne. Un etat, pas un evenement : elle
+       * est la des l'arrivee et se renforce quand le regard monte.
+       * Centre seul, le Sud a ses quatre cents etoiles. */}
+      <MilkyWay />
       {/* La lune et les nuages du Sud (05/09) : la lune s'efface quand le
        * soleil monte, les nuages derivent et blanchissent au midi. */}
       <SudSkyBodies />
