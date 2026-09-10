@@ -831,14 +831,25 @@ body.nahual-lab-reveal .ctaButton {
    Position relative (plus fixed) : le footer devient un vrai bas de
    page avec contenu long, revele en fin de scroll apres le sanctuaire
    100vh du canvas. Overrides --footer-height dans main padding.
-   margin-top 80vh (28/08 retour Sylvain "rajoute un peu de scroll
-   bas de page pour faire apparaitre le footer") — meme sur home
-   (main sans data-direction), un espace transparent laisse le
-   cerf visible en phase climax avant que le footer arrive. */
+   margin-top : 80vh le 28/08 sur retour Sylvain ("rajoute un peu de
+   scroll bas de page pour faire apparaitre le footer"), un espace
+   transparent qui laisse le cerf visible en phase climax avant que le
+   footer arrive. RAMENE A 30vh le 10/09 (F2, lot 5 du panel,
+   arbitrage "les deux").
+
+   L'INTENTION derriere ces 80vh, precisee par Sylvain le 10/09 : « je
+   voulais que l'on voie toute la scene meme avec le texte, c'est pour
+   ca que j'ai rajoute autant a la fin ». Elle est juste et elle est
+   gardee : il reste une fenetre ou la scene se voit SEULE, sans texte
+   par-dessus. Ce qui ne marchait pas est qu'on y regardait une image
+   FIGEE (mesure du 10/09 : l'arc finissait a 63,5 % du defilement, le
+   tiers restant ne bougeait plus). La fenetre est donc raccourcie juste
+   ce qu'il faut, et surtout REMPLIE : l'acte de sortie la couvre d'un
+   bout a l'autre (reveal-arc, EXIT_SCROLL_VIEWPORTS). */
 .siteFooter {
   position: relative;
   padding: 48px 6vw 24px;
-  margin-top: 80vh;
+  margin-top: 30vh;
   background: rgba(8, 6, 12, 0.92);
   backdrop-filter: blur(12px);
   color: #f4ead5;

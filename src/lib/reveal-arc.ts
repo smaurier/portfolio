@@ -278,3 +278,50 @@ export function arcProgress(scrollY: number, viewportHeight: number): number {
   if (!Number.isFinite(scrollY)) return 0;
   return clampProgress(scrollY / height);
 }
+
+/**
+ * L'ACTE DE SORTIE (F2, lot 5 du panel du 08/09, arbitrage de Sylvain :
+ * « les deux », raccourcir le flux ET ecrire un vrai depart).
+ *
+ * Mesure du 10/09 : l'arc se terminait a 63,5 % du defilement de la page,
+ * et le tiers restant, plus d'un ecran, se faisait sur une image FIGEE. Le
+ * panel avait nomme le piege d'avance : le climax zenithal du Centre y
+ * serait tombe aux deux tiers de la page que le jury charge en premier.
+ *
+ * Ce qui suit l'arc n'est donc plus du vide : le cadre se resserre, la
+ * camera prend de la hauteur, le cadre se ferme. La fenetre s'arrete AVANT
+ * le bas de page, pour que le pied de page se lise sur une scene deja
+ * partie et non pendant le geste.
+ *
+ * Sa LONGUEUR vient d'une intention de Sylvain, precisee le 10/09 : « je
+ * voulais que l'on voie toute la scene meme avec le texte, c'est pour ca
+ * que j'ai rajoute autant a la fin ». C'est pour ca qu'elle fait plus d'une
+ * demi-hauteur d'ecran et non le minimum : il doit rester un moment ou la
+ * scene se voit seule, sans texte par-dessus. Ce qui a change, c'est qu'on
+ * n'y regarde plus une image morte.
+ */
+export const EXIT_SCROLL_VIEWPORTS = 0.55;
+
+/**
+ * Le progres de l'acte de sortie.
+ *
+ * Il est ancre sur le BAS DE LA PAGE et non sur la fin de l'arc, et c'est
+ * une mesure qui l'a impose : les pages n'ont pas du tout la meme longueur.
+ * L'accueil offre 2119 px de defilement, ou l'arc en occupe 75 % ; Memoire
+ * en offre 4466, ou l'arc n'en occupe que 36 %. Une sortie calee sur la fin
+ * de l'arc s'y serait jouee au tiers de la page, camera qui monte et cadre
+ * qui se ferme pendant qu'on lit encore.
+ *
+ * Ancre en bas, l'acte tombe toujours la ou il veut dire quelque chose : la
+ * fenetre finale, celle ou le texte a fini de defiler et ou la scene se voit
+ * seule. Il ne peut jamais commencer avant la fin de l'arc, meme sur une
+ * page courte.
+ */
+export function exitProgress(scrollY: number, viewportHeight: number, maxScroll: number): number {
+  if (!Number.isFinite(scrollY) || !Number.isFinite(maxScroll)) return 0;
+  const fenetre = viewportHeight * EXIT_SCROLL_VIEWPORTS;
+  if (fenetre <= 0) return 0;
+  const debut = Math.max(arcScrollHeight(viewportHeight), maxScroll - fenetre);
+  if (maxScroll <= debut) return 0;
+  return clampProgress((scrollY - debut) / (maxScroll - debut));
+}

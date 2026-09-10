@@ -79,6 +79,12 @@ const SWING_DOLLY = 0.35; // recul relatif du rayon au pic de vitesse
 const SWING_LIFT = 0.9; // montee (unites monde) au pic de vitesse
 const SWING_FOV = 10; // ouverture FOV (degres) au pic de vitesse
 /** Vitesse de l'orbite de l'heure de Tenochtitlan (rad/s) : un tour en ~100 s. */
+/** L'acte de sortie (F2) : la camera prend cette hauteur, et la focale se
+ *  resserre de ces degres, sur la fenetre qui suit l'arc. Deux petits
+ *  nombres : c'est un depart, pas un mouvement de plus. */
+const EXIT_RISE = 0.6;
+const EXIT_FOV_CLOSE = 5;
+
 const CONTEMPLATION_SPIN = 0.063;
 
 export default function OrbitCamera({
@@ -296,6 +302,13 @@ export default function OrbitCamera({
       position.y += arrival.lift;
     }
 
+    // L'ACTE DE SORTIE (F2, 10/09) : apres l'arc, sur une fenetre courte,
+    // la camera prend de la hauteur et la focale se resserre. Applique
+    // AVANT l'arc vertical pour que la cible du Centre soit calculee sur la
+    // hauteur reelle de la camera.
+    const sortie = sceneRefs?.exitRef.current ?? 0;
+    position.y += sortie * EXIT_RISE;
+
     // L'ARC VERTICAL DU CENTRE (E1, 10/09) : le regard remonte l'axe du
     // monde. La camera ne bouge pas de son orbite ni de son 3/4 de repos :
     // c'est le REGARD qui monte, le long de la colonne de fumee du foyer.
@@ -360,18 +373,20 @@ export default function OrbitCamera({
       position.y += speed * SWING_LIFT;
 
       const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45) + arrival.fovOffset;
+      const fovSortie = baseFov - sortie * EXIT_FOV_CLOSE;
       const perspCam = camera as PerspectiveCamera;
       if (perspCam.isPerspectiveCamera) {
-        perspCam.fov = baseFov + speed * SWING_FOV;
+        perspCam.fov = fovSortie + speed * SWING_FOV;
         perspCam.updateProjectionMatrix();
       }
     } else {
       // Retour repos FOV : safety, réévalue le base FOV responsive (+ la
       // focale solaire du Sud, continue le long de l'arc).
       const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45) + arrival.fovOffset;
+      const fovSortie = baseFov - sortie * EXIT_FOV_CLOSE;
       const perspCam = camera as PerspectiveCamera;
-      if (perspCam.isPerspectiveCamera && Math.abs(perspCam.fov - baseFov) > 0.05) {
-        perspCam.fov = baseFov;
+      if (perspCam.isPerspectiveCamera && Math.abs(perspCam.fov - fovSortie) > 0.05) {
+        perspCam.fov = fovSortie;
         perspCam.updateProjectionMatrix();
       }
     }

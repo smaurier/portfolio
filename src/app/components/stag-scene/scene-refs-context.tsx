@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from "react";
-import { arcProgress } from "@/lib/reveal-arc";
+import { arcProgress, exitProgress } from "@/lib/reveal-arc";
 import { getPerfProfile, type PerfProfile } from "@/lib/mobile-perf";
 import { getSceneControls, hydrateSceneControls, subscribeSceneControls } from "../scene-controls-store";
 import { shouldReduceMotion } from "@/lib/reduced-motion";
@@ -48,6 +48,12 @@ export type SceneRefs = {
   // FaceAFacePin composant via GSAP ScrollTrigger scrub. Consommé par
   // PostFX (bloom boost) + OrbitCamera (dolly + fov).
   pinProgressRef: MutableRefObject<number>;
+  // L'ACTE DE SORTIE (10/09, F2) : 0..1 sur la fenetre courte QUI SUIT
+  // l'arc. Avant, ce defilement-la etait mort : mesure du 10/09, l'arc
+  // finissait a 63,5 % de la page et le tiers restant se faisait sur une
+  // image figee. Lu par OrbitCamera (le cadre se resserre, la camera prend
+  // de la hauteur) et PostFX (le cadre se ferme).
+  exitRef: MutableRefObject<number>;
 };
 
 const SceneRefsContext = createContext<SceneRefs | null>(null);
@@ -57,6 +63,7 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
   const reducedMotionRef = useRef(false);
   const noticedRef = useRef(false);
   const pinProgressRef = useRef(0);
+  const exitRef = useRef(0);
   const [viewportWidth, setViewportWidth] = useState(0);
   // Mode eco (05/09, controles de scene) : profil de rendu leger force.
   const [eco, setEco] = useState(false);
@@ -114,6 +121,11 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
     function handleScroll() {
       if (reducedMotionRef.current) return;
       progressRef.current = arcProgress(window.scrollY, window.innerHeight);
+      exitRef.current = exitProgress(
+        window.scrollY,
+        window.innerHeight,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
     }
 
     handleScroll();
@@ -128,7 +140,7 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<SceneRefs>(
-    () => ({ progressRef, noticedRef, reducedMotionRef, perfProfile, pinProgressRef }),
+    () => ({ progressRef, noticedRef, reducedMotionRef, perfProfile, pinProgressRef, exitRef }),
     [perfProfile],
   );
 

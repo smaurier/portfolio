@@ -112,7 +112,11 @@ export default function PostFX() {
     // directionnel s'ajoute par-dessus (Nord : cadre ferme).
     if (vignetteRef.current && refs) {
       const p = refs.progressRef.current;
-      vignetteRef.current.darkness = 0.9 - p * 0.25 + grade.vignetteAdd;
+      // L'acte de sortie (10/09, F2) : le cadre se ferme sur la fenetre qui
+      // suit l'arc. C'est le « fondu » de l'arbitrage du 08/09, obtenu avec
+      // la vignette qui existe deja plutot qu'avec un voile de plus.
+      const sortie = refs.exitRef.current;
+      vignetteRef.current.darkness = 0.9 - p * 0.25 + grade.vignetteAdd + sortie * 0.3;
     }
 
     if (!transition) return;
