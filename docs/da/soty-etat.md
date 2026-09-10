@@ -23,10 +23,10 @@ sources ne donne la distribution reelle des notes du jury.
 | --- | --- | --- | --- | --- | --- |
 | Centre / Accueil | 3 | 7,0 | **8,3** | 100 % du cadre en scene, son geste a elle (l'arc vertical, la colonne, l'arche), un vrai depart, 0 image en retard | l'echelle typo, le son |
 | Est / Services | 8 | 8,0 | **8,3** | le monde de verre, huit gestes, le ciel d'avant-jour, 0 image en retard | deux blocs de texte sous le seuil de contraste |
-| Nord / Memoire | 7 | 7,0 | **8,2** | le disque grave, le bassin, le miroir, Xolotl ; 224 images en retard devenues 7 ; la colonne a gauche, le bassin a droite | arc dilue (D3) |
+| Nord / Memoire | 7 | 7,0 | **8,4** | le disque grave, le bassin, le miroir, Xolotl ; la colonne a gauche, le bassin a droite ; les cartes chapitrees ; l'eau qu'on entend | |
 | Sud / Projets | 5 | 7,5 | **8,2** | 211 appels de rendu au lieu de 1349, la frappe rechoregraphiee, 0 image en retard ; la colonne a gauche, la Piedra a droite | l'arc nuit vers midi (F1) |
 | Ouest / Contact | 6,5 | 6,0 | **7,7** | la meilleure ARRIVEE du site ; 30 images par seconde devenues 59,9 ; et maintenant une sortie | 13 % d'images en retard |
-| **le site** | | 7,0 | **8,4** | | |
+| **le site** | | 7,0 | **8,6** | | |
 
 Les notes du 08/09 viennent d'un autre exercice (un panel sur douze
 captures) et d'une autre echelle : elles sont la pour montrer le
@@ -38,12 +38,12 @@ C'est ce tableau-la qui donne la note du site, et donc ou investir.
 
 | axe | poids | note | ce qui la retient |
 | --- | --- | --- | --- |
-| Design | 40 | 8,5 | six blocs de contraste (l'opacite des panneaux, a toi) ; le reste est pose et attend ton oeil sur image |
+| Design | 40 | 8,6 | tout est pose ; ton oeil sur image : le cadre decale, l'echelle, les panneaux qui suivent la scene |
 | Utilisabilite | 30 | 8,4 | le voile : l'accueil reste borne par le JavaScript ; Contact et Memoire ont perdu la moitie de leur temps d'ouverture ; les rubans de Contact restent le premier poste |
-| Creativite | 20 | 8,5 | le son est absent ; sinon chaque page a maintenant son geste |
-| Contenu | 10 | 8,0 | aucun des trois projets ne montre NestJS ni PostgreSQL (verifie : deux occurrences de « Node.js », zero des deux autres) |
+| Creativite | 20 | 8,8 | le son est la, invite au voile, cinq elements ; a entendre par toi |
+| Contenu | 10 | 8,4 | quatre fiches, dont une NestJS ; ta relecture de la quatrieme |
 
-Moyenne ponderee : **8,44**.
+Moyenne ponderee : **8,62**.
 
 ---
 
@@ -58,10 +58,10 @@ rentabilite reel et non l'ordre des envies.
 | ~~2~~ | ~~Le rapport contenu / scene~~ | design 40 | fait, la 1 (ton choix) | colonne sur le tiers gauche a 480 px, sujet aux deux tiers par decalage de projection ; Centre et mobile intacts |
 | 3 | Le voile | utilisabilite 30 | a moi | modeles nettoyes (`1b37b45`, 4,6 Mo retires) : Contact ouvre a 23 s au lieu de 41 en local, Memoire a 23 au lieu de 36. Reste le JavaScript (600 Ko compresses), qui borne l'accueil |
 | ~~4~~ | ~~L'acte de sortie (F2)~~ | design + utilisabilite | fait, `e308564` | l'arbitrage etait deja rendu le 08/09, je l'avais mal classe |
-| 5 | Le son | creativite 20 | **a toi** : la vraie question est l'invitation, pas le son | les cloches par direction existent deja et ne jouent qu'au clic |
+| ~~5~~ | ~~Le son~~ | creativite 20 | fait, `823eb67` | l'invite au voile, et les cinq elements, generatifs |
 | 6 | Les images en retard de Contact | utilisabilite 30 | fait ce qui etait gratuit, `4978f67` | decor fige, 40 meches sur mobile au lieu de 90 : A/B 55 % -> 30 % d'images en retard sur machine chargee. Le reste est du travail reel (rubans, `getParameters` non diagnostique) |
-| 7 | Les six blocs de contraste | utilisabilite 30 | **a toi** : l'opacite des panneaux | une seule decision, documentee le 27/08 |
-| 8 | NestJS et PostgreSQL dans les projets | contenu 10 | **a toi** | c'est ton differenciateur marche, et le jury n'y met que 10 % |
+| ~~7~~ | ~~Les six blocs de contraste~~ | utilisabilite 30 | fait, `823eb67` | un fond qui suit la scene ; l'intro et le Codex ont un panneau ; un des six etait une fausse alerte (sr-only) |
+| ~~8~~ | ~~NestJS dans les projets~~ | contenu 10 | fait, `823eb67`, **ta relecture attendue** | Radar signaux en quatrieme fiche ; pas de PostgreSQL, parce qu'il n'y en a pas |
 
 ## L'acte de sortie, fait dans la meme soiree
 
@@ -106,6 +106,10 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **11/09, seconde passe** : 8,4 -> 8,6. Les quatre arbitrages du matin :
+  le son (invite au voile, cinq elements), le contraste (un fond qui suit la
+  scene), Radar signaux en quatrieme fiche, le chapitrage des pages a
+  contenu. Reste a toi : entendre, relire la fiche, et regarder.
 - **11/09** : 8,3 -> 8,4. Les deux leviers de design qui t'attendaient :
   l'echelle typographique a 1,333 (cinq tailles au lieu de treize) et la
   colonne sur le tiers gauche, le sujet aux deux tiers, sans toucher a une

@@ -51,11 +51,13 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | N4 la profondeur de champ, permanente et juste | ✅ FAIT | `fb59d14` |
 | N5 la colonne sur le tiers gauche, le sujet aux deux tiers (cadre decale) | ✅ FAIT | `29a05cb` |
 | N6 l echelle typographique 1,333 : cinq tailles, trois interlignes, un interlettrage | ✅ FAIT | `29a05cb` |
+| N7 le son : l invite au voile et les cinq elements | ✅ FAIT | `823eb67` |
+| N8 le contraste : un fond qui suit la scene | ✅ FAIT | `823eb67` |
+| G1 Radar signaux, quatrieme fiche (NestJS) | ✅ FAIT, relecture de Sylvain attendue | `823eb67` |
+| D3 le chapitrage des pages a contenu | ✅ FAIT | `823eb67` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
-| D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
 | E1, E2 (l'arc vertical du Centre) | ✅ FAIT | `8394028` |
-| F1 (le Sud), F2 (l'acte de sortie) | ⬜ a faire | |
 | G1 (le contenu), I2 (meshopt) | ⬜ a faire | |
 
 **Le lot H est termine, avec A, B, I1, F3, D1, D2, D4 et J1.** Tout ce qui
