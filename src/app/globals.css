@@ -906,7 +906,9 @@ body.nahual-lab-reveal .ctaButton {
   margin: 0 auto 32px;
 }
 
-.footerCol h3 {
+/* h2 et non h3 (11/09, axe heading-order) : sous le h1 de la page, les
+   colonnes du pied de page sont le niveau suivant, pas celui d'apres. */
+.footerCol h2 {
   font-size: var(--t-petit);
   letter-spacing: var(--interlettre-caps);
   text-transform: uppercase;

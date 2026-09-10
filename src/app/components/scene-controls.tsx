@@ -35,6 +35,8 @@ import TracesPanel, { type TracesLabels } from "./traces-panel";
  */
 
 export type SceneControlsLabels = {
+  /** Le nom du landmark du rail (11/09, axe). */
+  landmark: string;
   textHide: string;
   textShow: string;
   fullscreenOn: string;
@@ -370,7 +372,7 @@ export default function SceneControls({ labels, traces, locale }: { labels: Scen
 
   return (
     <>
-      <div className={styles.cluster} role="group" aria-label={labels.textHide.split(" ")[0]}>
+      <div className={styles.cluster} role="region" aria-label={labels.landmark}>
         {buttons.map((b) => (
           <button
             key={b.action}

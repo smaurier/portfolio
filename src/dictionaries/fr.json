@@ -28,7 +28,8 @@
       "volume": "Volume",
       "choiceLabel": "Le son",
       "enterWith": "Entrer avec le son",
-      "enterWithout": "Entrer sans le son"
+      "enterWithout": "Entrer sans le son",
+      "landmark": "Son"
     },
     "sceneControls": {
       "textHide": "Masquer le texte",
@@ -46,7 +47,8 @@
       "resumeDismiss": "Non merci",
       "traces": "Ce que la scène vous a montré",
       "tenochtitlanClock": "Il est {time} à Tenochtitlan",
-      "tenochtitlanNight": "Il est {time} à Tenochtitlan, c'est la nuit"
+      "tenochtitlanNight": "Il est {time} à Tenochtitlan, c'est la nuit",
+      "landmark": "Commandes de la scène"
     },
     "traces": {
       "title": "Ce que la scène vous a montré",

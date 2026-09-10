@@ -15,6 +15,16 @@ const MOBILE_BREAKPOINT_PX = 768;
 // net à l'œil sur petit écran tout en réduisant sensiblement le nombre de
 // fragments à calculer par frame.
 const MOBILE_DPR_CAP = 1.5;
+// RESTE A 2 (11/09). Le panel du 08/09 proposait 1,5 (« le plafond de
+// densite est le poste de cout dominant ») ; Sylvain a demande de mesurer.
+// A/B entrelace, meme machine, meme page, a quelques minutes d'ecart, ecran
+// emule a densite 2, CPU x4, accueil a 45 % de l'arc :
+//   densite 2   : 35 images en retard sur 1167, 5e centile 59,5 im/s
+//   densite 1,5 : 296 images en retard sur 906, 5e centile 29,9 im/s
+// Trois courses a 1,5, toutes mauvaises. Sur cette machine (ANGLE d3d11),
+// un canvas a l'echelle 1,5 sur un ecran a densite 2 coute PLUS que le
+// 1:1, sans doute le reechantillonnage non entier a la composition. Et 1,5
+// est un peu moins net sur les bois et l'herbe. Le panel avait tort ici.
 const DESKTOP_DPR_CAP = 2;
 
 export type PerfProfile = {

@@ -143,7 +143,11 @@ export default function PersistentScene() {
   if (readingMode.active) return null;
 
   return (
-    <div className={styles.stage} data-direction={direction}>
+    // aria-hidden (11/09, axe « region ») : la scene est decorative pour les
+    // technologies d'assistance, son equivalent textuel vit dans <main>
+    // (common.sceneDescriptions). Rien de focalisable ne vit ici : les
+    // commandes sont dans le rail, hors de la scene.
+    <div className={styles.stage} data-direction={direction} aria-hidden="true">
       <Canvas
         // Sonde de dev (05/09) : la scene three exposee pour Playwright
         // (diagnostics visuels), jamais en production.

@@ -11,6 +11,7 @@ describe("getPerfProfile", () => {
   it("garde le rendu complet au-dessus du seuil mobile", () => {
     const profile = getPerfProfile(1440);
     expect(profile.postFx).toBe(true);
+    // 2, et non 1,5 : mesure du 11/09 dans mobile-perf.ts, 1,5 coute plus cher.
     expect(profile.dprCap).toBe(2);
   });
 

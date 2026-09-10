@@ -372,7 +372,7 @@ export default async function LocaleLayout({
           <footer className="siteFooter">
             <div className="footerCols">
               <div className="footerCol">
-                <h3>{dict.common.footer.navigation}</h3>
+                <h2>{dict.common.footer.navigation}</h2>
                 <ul>
                   <li><CardinalLink href={`/${locale}`} className="footerLink">{dict.common.nav.home}</CardinalLink></li>
                   <li><CardinalLink href={getPath(locale, "memoire")} className="footerLink">{dict.common.nav.memoire}</CardinalLink></li>
@@ -382,7 +382,7 @@ export default async function LocaleLayout({
                 </ul>
               </div>
               <div className="footerCol">
-                <h3>{dict.common.footer.resources}</h3>
+                <h2>{dict.common.footer.resources}</h2>
                 <ul>
                   <li><CardinalLink href={getPath(locale, "codex")} className="footerLink">{dict.common.nav.codex}</CardinalLink></li>
                   <li><CardinalLink href={getPath(locale, "credits")} className="footerLink">{dict.common.footer.credits}</CardinalLink></li>
@@ -390,7 +390,7 @@ export default async function LocaleLayout({
                 </ul>
               </div>
               <div className="footerCol">
-                <h3>{dict.common.footer.legal}</h3>
+                <h2>{dict.common.footer.legal}</h2>
                 <ul>
                   <li><CardinalLink href={getPath(locale, "mentionsLegales")} className="footerLink">{dict.common.footer.mentionsLegales}</CardinalLink></li>
                   <li><CardinalLink href={getPath(locale, "accessibilite")} className="footerLink">{dict.common.footer.accessibilite}</CardinalLink></li>
@@ -398,7 +398,7 @@ export default async function LocaleLayout({
                 </ul>
               </div>
               <div className="footerCol">
-                <h3>{dict.common.footer.contactCol}</h3>
+                <h2>{dict.common.footer.contactCol}</h2>
                 <ul>
                   <li>
                     <a

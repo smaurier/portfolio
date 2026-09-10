@@ -28,7 +28,8 @@
       "volume": "Volume",
       "choiceLabel": "Sound",
       "enterWith": "Enter with sound",
-      "enterWithout": "Enter without sound"
+      "enterWithout": "Enter without sound",
+      "landmark": "Sound"
     },
     "sceneControls": {
       "textHide": "Hide the text",
@@ -46,7 +47,8 @@
       "resumeDismiss": "No thanks",
       "traces": "What the scene has shown you",
       "tenochtitlanClock": "It is {time} in Tenochtitlan",
-      "tenochtitlanNight": "It is {time} in Tenochtitlan, night has fallen"
+      "tenochtitlanNight": "It is {time} in Tenochtitlan, night has fallen",
+      "landmark": "Scene controls"
     },
     "traces": {
       "title": "What the scene has shown you",

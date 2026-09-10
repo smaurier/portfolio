@@ -41,7 +41,7 @@ const CHIME_FREQ: Record<string, number[]> = {
   obsidienne: [110, 165, 220], // Nord : gong grave
 };
 
-export default function SoundDesign({ label }: { label: { on: string; off: string; volume: string } }) {
+export default function SoundDesign({ label }: { label: { on: string; off: string; volume: string; landmark: string } }) {
   const [muted, setMuted] = useState(true);
   // Volume (05/09, controles de scene) : un vrai reglage, 0..1, persiste.
   const [volume, setVolume] = useState(0.5);
@@ -694,8 +694,10 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     setMuted(nextMuted);
   }
 
+  // Un landmark (11/09, axe « region ») : le curseur de volume vivait hors de
+  // tout landmark.
   return (
-    <div className={styles.dock}>
+    <div className={styles.dock} role="region" aria-label={label.landmark}>
     <input
       type="range"
       className={styles.volume}

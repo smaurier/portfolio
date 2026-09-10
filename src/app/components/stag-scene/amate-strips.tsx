@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { BufferGeometry, DataTexture, DoubleSide, LinearFilter, MeshStandardMaterial, RGBAFormat, SRGBColorSpace, UnsignedByteType, Vector3, type Object3D } from "three";
+import { BufferGeometry, DataTexture, DoubleSide, LinearFilter, MeshStandardMaterial, RGBAFormat, SRGBColorSpace, UnsignedByteType, Vector3, type Object3D, type Group } from "three";
 import { bakeAmate } from "@/lib/amate-texture";
 import { createStrip, stepStrip, type Strip } from "@/lib/paper-strip";
 import { createRibbonGeometry, updateRibbon } from "./ribbon-geometry";
@@ -91,9 +91,19 @@ export default function AmateStrips() {
         side: DoubleSide,
         transparent: true,
         opacity: 0,
+        // UNE SEULE PASSE (11/09). three rend un materiau transparent double
+        // face en deux passes et pose material.needsUpdate a CHACUNE : sept
+        // rubans, quatorze recherches de programme par image, sur les cinq
+        // pages, c'etait le getParameters a 38 ms/s du profil de Contact, la
+        // derniere cause qu'on n'avait pas trouvee. Meme garde que
+        // cursor-reveal et les rubans des Cihuateteo.
+        forceSinglePass: true,
       }),
     [texture]
   );
+  // Et rien n'est rendu hors du Nord : sept maillages a opacite zero
+  // coutaient encore leurs appels de rendu sur les quatre autres pages.
+  const groupRef = useRef<Group>(null);
   const ribbons = useMemo<Ribbon[]>(
     () =>
       ANCHORS.map((anchor, i) => {
@@ -112,6 +122,7 @@ export default function AmateStrips() {
     const target = direction === "obsidienne" ? 1 : 0;
     fadeRef.current = reduced ? target : fadeRef.current + (target - fadeRef.current) * 0.05;
     material.opacity = fadeRef.current * 0.92;
+    if (groupRef.current) groupRef.current.visible = fadeRef.current >= 0.01;
     if (fadeRef.current < 0.01) return;
 
     // Os du cerf (arrive par Suspense) : recherche espacee tant qu'absents.
@@ -142,10 +153,10 @@ export default function AmateStrips() {
   });
 
   return (
-    <>
+    <group ref={groupRef}>
       {ribbons.map((r, i) => (
         <mesh key={i} geometry={r.geometry} material={material} frustumCulled={false} raycast={() => null} />
       ))}
-    </>
+    </group>
   );
 }
