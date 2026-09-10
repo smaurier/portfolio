@@ -998,7 +998,13 @@ export default function XolotlCompanion() {
     const north = direction === "obsidienne";
     // Totalement opaque hors des fondus d'entree/sortie (03/09).
     setMaterialOpacity(obsidianMaterial, north ? Math.min(1, opacity / PEAK_OPACITY) : 0);
-    if (emberRef.current) emberRef.current.intensity = north ? EMBER_INTENSITY * opacity : 0;
+    if (emberRef.current) {
+      emberRef.current.intensity = north ? EMBER_INTENSITY * opacity : 0;
+      // La braise n'est plus enfant du groupe (voir le rendu) : on la pose
+      // a la main, dans le meme repere, exactement ou elle etait (offset
+      // local 0.7 sous une echelle XOLOTL_SCALE).
+      emberRef.current.position.set(x, y + 0.7 * XOLOTL_SCALE, zDepth);
+    }
     // La braise publiee pour son reflet dans l'eau (tezcatl-water).
     tezcatlStore.ember.x = x;
     tezcatlStore.ember.y = y + 0.7 * XOLOTL_SCALE;
@@ -1095,16 +1101,32 @@ export default function XolotlCompanion() {
     }
   }, [alreadyWitnessed]);
 
-  if (!spawn) return null;
+  // La braise (Nord) : le Soleil qu'il escorte dans la nuit.
+  //
+  // Elle est montee des la PREMIERE image, et seulement au Nord ou elle
+  // eclaire vraiment. Ce n'est pas du rangement : le nombre de lumieres
+  // ponctuelles entre dans la cle de cache des programmes de three, donc
+  // faire apparaitre cette lumiere au milieu de l'arc fait RECOMPILER tous
+  // les materiaux eclaires de la scene, au pire moment. Mesure du 10/09 :
+  // onze programmes recompiles a Memoire, onze a Contact, ou la braise
+  // reste pourtant eteinte du debut a la fin.
+  //
+  // Les deux branches renvoient un fragment dont le premier enfant est la
+  // braise : React la garde a l'identique quand le reste apparait.
+  const braise =
+    direction === "obsidienne" ? (
+      <pointLight ref={emberRef} color={EMBER_COLOR} intensity={0} distance={EMBER_DISTANCE} decay={2} />
+    ) : null;
+
+  if (!spawn) return <>{braise}</>;
 
   return (
     <>
+      {braise}
       {/* Cap et assiette sont poses dans useFrame (quaternion : l'assiette
           doit composer par-dessus le cap). */}
       <group ref={groupRef} scale={XOLOTL_SCALE} visible={false}>
         <primitive object={scene} />
-        {/* La braise (Nord) : le Soleil qu'il escorte dans la nuit. */}
-        <pointLight ref={emberRef} color={EMBER_COLOR} intensity={0} distance={EMBER_DISTANCE} decay={2} position={[0, 0.7, 0]} />
         {/* Noyau emissif "myocarde" : ellipsoide asymetrique place au
             thorax du chien (Y=0.55 local avant scale 0.85). Base
             IcosahedronGeometry (low-poly, aspect organique irregulier

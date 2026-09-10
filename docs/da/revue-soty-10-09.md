@@ -226,18 +226,23 @@ même colonne centrée à 50 % qui masque le cerf.
 
 ## 5. Le programme vers 10, par levier décroissant
 
-### Levier 1 — Anticiper la compilation des shaders (à moi)
+### Levier 1 — Anticiper la compilation des shaders (fait, voir § 8)
 
-**Gain** : supprime la cause des 224 images en retard de Mémoire et d'une
-partie de Contact. C'est le levier qui sert directement « les effets
-exécutés parfaitement ».
+**Gain** : supprime la cause des 224 images en retard de Mémoire. C'est le
+levier qui sert directement « les effets exécutés parfaitement ».
 
-**Comment** : appliquer les modificateurs de shader le plus tôt possible
-(ils sont idempotents), puis `renderer.compileAsync(scene, camera)` avant
-de lever le voile. Le voile dure déjà 22 s : il y a tout le temps.
+**Ce qui a marché** : pas la chauffe des shaders, qui a aggravé la
+situation et a été retirée, mais la suppression de la cause elle-même. Une
+lumière ponctuelle qui apparaît en cours d'arc fait recompiler tous les
+matériaux éclairés ; la braise de Xolotl est maintenant montée dès la
+première image, et seulement là où elle sert. Vingt-deux des trente et une
+compilations tardives sont parties, les images en retard de Mémoire passent
+de 27 % à 8 %. Le détail, la mesure et ma propre erreur de diagnostic sont
+au § 8.
 
-**Oracle** : le nombre de programmes ne doit plus augmenter après
-l'arrivée. Mesuré par `.scratch/compil-tardive.mjs`, qui existe.
+**Oracle** : `.scratch/programmes-tardifs.mjs`, qui nomme les paramètres
+qui distinguent un programme tardif de son parent, plutôt que de les
+compter.
 
 **Cosmogonie** : aucune, c'est de l'artisanat pur.
 
@@ -358,69 +363,108 @@ par ce qu'elles rapportent.
 
 ---
 
-## 8. Addendum du 10/09 : la chauffe des shaders, essayee et RETIREE
+## 8. Addendum du 10/09 : la compilation tardive, cause trouvée et corrigée
 
-Le levier 1 annonce ci-dessus « ne demande aucun arbitrage ». Je l'ai
-implemente, mesure, et **retire** : mon propre oracle dit qu'il ne marche
-pas. Ce qui suit vaut mieux que le correctif, parce que ca retire deux
-pistes du tableau.
+Ce qui suit corrige deux choses écrites plus haut le même jour. Le
+correctif que j'annonçais « sans arbitrage » ne marchait pas, et une piste
+que j'avais déclarée fausse était la bonne.
 
-### Ce qui a ete essaye
+### 8.1 La chauffe des shaders : essayée, mesurée, retirée
 
 Un composant dans le Canvas qui attend `useProgress() >= 100`, laisse douze
-images aux traversees idempotentes pour poser leurs modificateurs, puis
-appelle `renderer.compileAsync(scene, camera)`.
+images aux traversées idempotentes pour poser leurs modificateurs, puis
+appelle `renderer.compileAsync(scene, camera)`. Le choix de `compileAsync`
+était bon et vérifié à la source : en three r185 il parcourt la scène en
+`traverse` et non `traverseVisible`, donc il couvre aussi les objets encore
+invisibles.
 
-Le choix de `compileAsync` etait bon et verifie a la source : en three r185
-il parcourt la scene en `traverse` et NON `traverseVisible`, donc il compile
-aussi les materiaux des objets encore invisibles. C'est exactement le cas
-des gestes qui n'arrivent qu'a mi-arc.
-
-### Le resultat, qui tranche contre moi
-
-| | a l'arrivee | apres tout le scroll |
+| | à l'arrivée | après tout le scroll |
 | --- | --- | --- |
 | sans chauffe | 32 | 49 |
 | avec chauffe | 50 | **67** |
 
-La chauffe a compile dix-huit programmes de plus, **et n'a empeche aucune
-des compilations tardives**. Elle ne protege rien et coute double. Retiree.
+Dix-huit programmes compilés en plus, et **aucune** compilation tardive
+empêchée. Retirée.
 
-Une premiere version comptait meme les images depuis le MONTAGE et non
-depuis le chargement des modeles : elle compilait une scene presque vide.
-Corrigee, puis retiree quand meme, le resultat etant le meme.
+### 8.2 La vraie cause : une lumière ponctuelle qui apparaît en cours d'arc
 
-### Deux pistes eliminees, ce qui a de la valeur
+La bonne question n'était pas *combien* de programmes se compilent tard,
+mais **lesquels**. three range chaque programme sous une clé de cache qui
+est la liste de tout ce qui le détermine. La queue de cette liste est de
+longueur fixe, donc on peut nommer chaque jeton en comptant depuis la fin,
+et lire la différence entre un programme tardif et son plus proche parent
+déjà compilé.
 
-**Ce n'est pas le premier rendu des objets tardifs.** `compileAsync` les
-couvre par construction (`traverse`), et pourtant les compilations tardives
-sont restees identiques.
+Le verdict est sans ambiguïté :
 
-**Ce n'est pas la lumiere de Xolotl.** L'hypothese etait seduisante : son
-`pointLight` de braise vit sous un `if (!spawn) return null`, donc il
-n'existe pas avant son passage, et changer le NOMBRE de lumieres d'une
-scene fait recompiler tous ses materiaux dans three. Et les deux pages qui
-echouent sont exactement les deux ou Xolotl peut passer. Mesure comparative,
-son passage force a « oui » puis a « non » : le compte de lumieres reste a
-trois dans les deux cas, et la croissance des programmes est identique.
-Hypothese fausse.
+| page | compilations tardives | dont `numPointLights: 0 -> 1` |
+| --- | --- | --- |
+| Mémoire | 17 | **11** |
+| Contact | 14 | **11** |
 
-### Ce qu'il reste, pour la prochaine passe
+Le nombre de lumières ponctuelles entre dans la clé de cache. Xolotl porte
+une braise (`pointLight`), et tout son sous-arbre vivait sous un
+`if (!spawn) return null` : la lumière **naissait au milieu de l'arc**, et
+sa naissance faisait recompiler tous les matériaux éclairés de la scène,
+exactement pendant son passage. À Contact, la braise n'est même jamais
+allumée : onze recompilations pour une lumière d'intensité nulle du début
+à la fin.
 
-Les programmes tardifs sont des VARIANTES que `compileAsync` ne produit
-pas. Or un programme est aussi determine par l'ETAT DE RENDU. La piste la
-plus forte est donc une **seconde passe de rendu avec un etat different** :
+### 8.3 Pourquoi j'avais innocenté cette piste, à tort
 
-- le reflet planaire du Nord, qui rend la scene dans une cible avec sa
-  propre camera (`tezcatl-water`) ;
-- la passe d'ombres du Sud, dont on sait depuis le 09/09 qu'elle dessine
-  748 objets par image.
+Ma sonde comparait deux courses, passage forcé à « oui » puis à « non », et
+trouvait le même compte de lumières. Elle forçait le « non » en écrivant
+`0` dans la clé `sessionStorage` du tirage. Or `decideSpawn` dit :
 
-Une passe qui n'existe pas au moment de la chauffe demandera ses propres
-programmes au moment ou elle se declenche. C'est verifiable : compter les
-programmes juste avant et juste apres la premiere image ou le reflet rend.
+```ts
+if (probability <= 0) return false;
+if (probability >= 1) return true;   // le Nord : probabilité 1
+if (cached !== null) return cached === "1";
+```
 
-**Le constat, lui, tient** : dix-sept compilations pendant l'arc a Memoire,
-quatorze a Contact, et 224 images en retard sur 844. Le defaut est reel et
-mesure ; c'est sa cause qui n'est pas encore trouvee, et je ne livre pas un
-correctif dont l'oracle dit qu'il aggrave.
+Au Nord, la règle prime sur le tirage caché, **et la fonction sort avant de
+lire le cache**. Mon « sans Xolotl » avait donc Xolotl. Je comparais une
+course avec lui à une autre course avec lui, et j'ai lu cette égalité comme
+une innocence.
+
+La leçon est celle que Sylvain répète : reproduire par le vrai chemin. Un
+drapeau qui court-circuite la logique métier ne prouve rien tant qu'on n'a
+pas vérifié qu'il produit vraiment l'état voulu.
+
+### 8.4 Le correctif, et ce qu'il donne
+
+La braise est montée dès la première image, et **seulement au Nord** où
+elle éclaire vraiment. Les deux branches de rendu renvoient un fragment
+dont le premier enfant est la braise, donc React la conserve à l'identique
+quand le reste du chien apparaît : le nombre de lumières ne change jamais.
+Sa position, qui venait de la hiérarchie, est maintenant posée à la main
+dans le même repère, au même endroit.
+
+| | avant | après |
+| --- | --- | --- |
+| Mémoire, programmes | 32 -> 49 | 32 -> **38** |
+| Contact, programmes | 26 -> 40 | 26 -> **29** |
+| Mémoire, images en retard | 224 / 844 | **92 / 1090** |
+| Mémoire, images en 20 s | 844 | **1090** |
+
+Vingt-deux des trente et une compilations tardives sont parties. À Mémoire,
+les images en retard passent de 27 % à 8 %, et la page rend 1090 images là
+où elle en rendait 844 dans la même fenêtre : 42 images par seconde en
+moyenne, contre 54 maintenant.
+
+Vérifié aussi : la braise s'allume toujours (intensité 9 au pic) et suit
+Xolotl d'un bout à l'autre du bassin ; à Contact elle n'existe plus du
+tout, ce qui ne change rien puisqu'elle y restait éteinte.
+
+**Contact ne bouge pas** (30 images par seconde médianes) : sa limite n'est
+pas la compilation, c'est l'herbe, 266 ms par seconde de processeur. C'est
+le levier 2, et il attend ton arbitrage.
+
+### 8.5 Ce qui reste
+
+Six compilations tardives à Mémoire, trois à Contact. Ce ne sont plus des
+recompilations de matériaux existants mais des **matériaux créés tard**
+(sources de shaders nouvelles, une sprite, une variante de peau animée).
+Les traiter demanderait de les instancier plus tôt, ce qui coûte de la
+mémoire à l'arrivée : le rapport n'est plus évident, et le défaut n'est
+plus au niveau où il ruinait un geste.
