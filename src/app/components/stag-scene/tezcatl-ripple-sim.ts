@@ -231,6 +231,16 @@ export class TezcatlRippleSim {
     gl.autoClear = prevAutoClear;
   }
 
+  /** Compile les trois programmes du simulateur AVANT le premier impact.
+   *  Sans cela, la coque et la goutte se compilaient au premier pas de
+   *  Xolotl dans l'eau, a 80 % de l'arc (mesure du 11/09 : deux arrets,
+   *  invisibles a compileAsync puisque le simulateur rend dans sa propre
+   *  scene). Un pas a amplitude nulle : les deux shaders ajoutent
+   *  `g * uAmount`, donc rien ne s'inscrit dans la hauteur. */
+  warm() {
+    this.step([{ u: 0.5, v: 0.5, amount: 0 }], 0, [{ u: 0.5, v: 0.5, du: 1, dv: 0, len: 0.03, width: 0.01, amount: 0 }]);
+  }
+
   dispose() {
     this.read.dispose();
     this.write.dispose();

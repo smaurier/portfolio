@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type PointLight } from "three";
 import { getMictlanSky } from "./mictlan-sky";
@@ -540,6 +540,9 @@ export default function XolotlCompanion() {
   const walkTimeScale = WALK_TIME_SCALE / northSlow;
   const readingMode = useReadingMode();
   const groupRef = useRef<Group>(null);
+  const gl = useThree((s) => s.gl);
+  const camera = useThree((s) => s.camera);
+  const rootScene = useThree((s) => s.scene);
   const coreRef = useRef<Mesh>(null);
   const haloRef = useRef<Mesh>(null);
   // useMemo (pas useRef.current) pour eviter la regle react-hooks/refs
@@ -720,6 +723,19 @@ export default function XolotlCompanion() {
   useEffect(() => {
     if (!spawn) return;
     const delay = alreadyWitnessed ? APPEAR_DELAY_REPEAT_MS : APPEAR_DELAY_FIRST_MS;
+    // Ses programmes se compilent PENDANT le delai, pas a la premiere image
+    // ou il apparait (mesure du 11/09 : un arret a 55 % de l'arc au Nord,
+    // la variante skinnee de l'obsidienne, restee tardive malgre la chauffe
+    // generale). La scene principale sert de contexte : lumieres, brouillard.
+    // Le clone passe aussi par le point de chauffe de l'eau, qui compile la
+    // variante du reflet (cible de rendu) ; un tour de boucle plus tard, le
+    // temps que l'eau ait pose ce point.
+    const warm = window.setTimeout(() => {
+      for (const g of [groupRef.current, cloneGroupRef.current]) {
+        if (g) void gl.compileAsync(g, camera, rootScene).catch(() => undefined);
+      }
+      if (cloneGroupRef.current) tezcatlStore.warmReflection?.(cloneGroupRef.current);
+    }, 0);
     // A l'Ouest (06/09), Venus du soir ne part qu'une fois le soleil entre
     // dans la terre : on attend le delai ET le bas de l'arc.
     const armedAt = performance.now();
@@ -754,8 +770,11 @@ export default function XolotlCompanion() {
       window.dispatchEvent(new CustomEvent("nahual-xolotl-state"));
     };
     timer = window.setTimeout(tick, delay);
-    return () => window.clearTimeout(timer);
-  }, [spawn, alreadyWitnessed, actions, walkTimeScale, direction, sceneRefs]);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(warm);
+    };
+  }, [spawn, alreadyWitnessed, actions, walkTimeScale, direction, sceneRefs, gl, camera, rootScene]);
 
   useFrame((_state, delta) => {
     const g = groupRef.current;

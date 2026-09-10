@@ -172,7 +172,7 @@ export default function TezcatlWater() {
   const meshRef = useRef<Mesh>(null);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
-  const { gl, size } = useThree();
+  const { gl, size, scene: rootScene } = useThree();
   const opacityRef = useRef(0);
   const prevPointerRef = useRef<SimUv | null>(null);
   const hitRef = useRef(new Vector3());
@@ -222,14 +222,30 @@ export default function TezcatlWater() {
     return m;
   }, []);
   useEffect(() => () => rimMaterial.dispose(), [rimMaterial]);
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    // Derriere le voile, jamais au premier impact (voir TezcatlRippleSim.warm).
+    sim.warm();
+    return () => {
       sim.dispose();
       tezcatlStore.ripple = ZERO_TEXTURE;
       tezcatlStore.rippleTexel = 1;
-    },
-    [sim]
-  );
+    };
+  }, [sim]);
+  useEffect(() => {
+    // Le miroir compile ses propres variantes (mesure du 11/09 : un arret a
+    // 55 % de l'arc, le clone de braise compile au premier reflet). Ici la
+    // cible est posee, donc three derive la variante en espace lineaire ;
+    // `compile` lit ces conditions de facon synchrone.
+    tezcatlStore.warmReflection = (root) => {
+      const prev = gl.getRenderTarget();
+      gl.setRenderTarget(reflection.target);
+      void gl.compileAsync(root, reflection.camera, rootScene).catch(() => undefined);
+      gl.setRenderTarget(prev);
+    };
+    return () => {
+      tezcatlStore.warmReflection = null;
+    };
+  }, [gl, reflection, rootScene]);
 
   const material = useMemo(
     () =>
