@@ -23,10 +23,10 @@ sources ne donne la distribution reelle des notes du jury.
 | --- | --- | --- | --- | --- | --- |
 | Centre / Accueil | 3 | 7,0 | **8,3** | 100 % du cadre en scene, son geste a elle (l'arc vertical, la colonne, l'arche), un vrai depart, 0 image en retard | l'echelle typo, le son |
 | Est / Services | 8 | 8,0 | **8,3** | le monde de verre, huit gestes, le ciel d'avant-jour, 0 image en retard | deux blocs de texte sous le seuil de contraste |
-| Nord / Memoire | 7 | 7,0 | **7,8** | le disque grave, le bassin, le miroir, Xolotl ; 224 images en retard devenues 7 | la colonne de texte couvre la scene ; arc dilue (D3) |
-| Sud / Projets | 5 | 7,5 | **7,8** | 211 appels de rendu au lieu de 1349, la frappe rechoregraphiee, 0 image en retard | la colonne de texte couvre la scene ; l'arc nuit vers midi (F1) |
+| Nord / Memoire | 7 | 7,0 | **8,2** | le disque grave, le bassin, le miroir, Xolotl ; 224 images en retard devenues 7 ; la colonne a gauche, le bassin a droite | arc dilue (D3) |
+| Sud / Projets | 5 | 7,5 | **8,2** | 211 appels de rendu au lieu de 1349, la frappe rechoregraphiee, 0 image en retard ; la colonne a gauche, la Piedra a droite | l'arc nuit vers midi (F1) |
 | Ouest / Contact | 6,5 | 6,0 | **7,7** | la meilleure ARRIVEE du site ; 30 images par seconde devenues 59,9 ; et maintenant une sortie | 13 % d'images en retard |
-| **le site** | | 7,0 | **8,1** | | |
+| **le site** | | 7,0 | **8,4** | | |
 
 Les notes du 08/09 viennent d'un autre exercice (un panel sur douze
 captures) et d'une autre echelle : elles sont la pour montrer le
@@ -38,12 +38,12 @@ C'est ce tableau-la qui donne la note du site, et donc ou investir.
 
 | axe | poids | note | ce qui la retient |
 | --- | --- | --- | --- |
-| Design | 40 | 7,9 | l'echelle typographique (13 tailles, 9 a moins de 11 % l'une de l'autre) ; le rapport contenu / scene au Nord et au Sud ; six blocs de contraste |
+| Design | 40 | 8,5 | six blocs de contraste (l'opacite des panneaux, a toi) ; le reste est pose et attend ton oeil sur image |
 | Utilisabilite | 30 | 8,4 | le voile : l'accueil reste borne par le JavaScript ; Contact et Memoire ont perdu la moitie de leur temps d'ouverture ; les rubans de Contact restent le premier poste |
 | Creativite | 20 | 8,5 | le son est absent ; sinon chaque page a maintenant son geste |
 | Contenu | 10 | 8,0 | aucun des trois projets ne montre NestJS ni PostgreSQL (verifie : deux occurrences de « Node.js », zero des deux autres) |
 
-Moyenne ponderee : **8,20**.
+Moyenne ponderee : **8,44**.
 
 ---
 
@@ -54,8 +54,8 @@ rentabilite reel et non l'ordre des envies.
 
 | # | quoi | axe | a qui | etat |
 | --- | --- | --- | --- | --- |
-| 1 | L'echelle typographique | design 40 | **a toi** : quel rapport, 1,25 ou 1,333 | mesure, non traite |
-| 2 | Le rapport contenu / scene au Nord et au Sud | design 40 | **a toi** | mesure, non traite |
+| ~~1~~ | ~~L'echelle typographique~~ | design 40 | fait, 1,333 (ton choix) | 13 tailles -> 5, 6 interlignes -> 3, 11 interlettrages -> 1. Le corps ne descend jamais sous 16 px |
+| ~~2~~ | ~~Le rapport contenu / scene~~ | design 40 | fait, la 1 (ton choix) | colonne sur le tiers gauche a 480 px, sujet aux deux tiers par decalage de projection ; Centre et mobile intacts |
 | 3 | Le voile | utilisabilite 30 | a moi | modeles nettoyes (`1b37b45`, 4,6 Mo retires) : Contact ouvre a 23 s au lieu de 41 en local, Memoire a 23 au lieu de 36. Reste le JavaScript (600 Ko compresses), qui borne l'accueil |
 | ~~4~~ | ~~L'acte de sortie (F2)~~ | design + utilisabilite | fait, `e308564` | l'arbitrage etait deja rendu le 08/09, je l'avais mal classe |
 | 5 | Le son | creativite 20 | **a toi** : la vraie question est l'invitation, pas le son | les cloches par direction existent deja et ne jouent qu'au clic |
@@ -106,6 +106,11 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **11/09** : 8,3 -> 8,4. Les deux leviers de design qui t'attendaient :
+  l'echelle typographique a 1,333 (cinq tailles au lieu de treize) et la
+  colonne sur le tiers gauche, le sujet aux deux tiers, sans toucher a une
+  seule trajectoire de camera. A regarder sur image : c'est ton oeil qui
+  valide, la mesure ne dit que ce qui a bouge.
 - **10/09 nuit, troisieme passe** : 8,2 -> 8,3. Contact : le decor immobile
   n'est plus recalcule a chaque image, 40 meches sur mobile. Les modeles :
   4,6 Mo de donnees jamais referencees retirees (xolotl 1,9 Mo -> 71 Ko).

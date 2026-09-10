@@ -122,8 +122,15 @@ chaque règle qui pose un `font-size` en dur y renvoie. Le relevé de
 tailles, trois interlignes, un interlettrage.
 
 Ce que ça ne touche pas : le voile (PiedraSkeleton a ses propres tailles,
-réglées à l'oeil pour la Piedra), le Codex (qui a sa propre grille), les
-tailles de la scène 3D (aucune n'est du DOM).
+réglées à l'oeil pour la Piedra) et les tailles de la scène 3D (aucune n'est
+du DOM). Le Codex, lui, a été mis sur l'échelle comme le reste : il n'avait
+pas de grille à lui, seulement ses propres valeurs.
+
+**Posé le 11/09**, sur ton choix de 1,333. Relevé après la passe :
+cinq tailles (12 / 16 / 21,3 / 28,4 / 37,9), trois interlignes, un seul
+interlettrage. Deux retouches que la mesure a imposées sur téléphone de
+320 px : les titres descendent d'un cran de plus sous 380 px, et le bloc du
+hero se resserre, sinon son titre remontait sous le bouton du menu.
 
 ## Recommandation
 

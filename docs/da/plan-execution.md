@@ -49,6 +49,8 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | N2 le vent de la prairie : 266 -> 36 ms/s | ✅ FAIT | `df51ad4` |
 | N3 Math.hypot dans les boucles interieures | ✅ FAIT | `98b285a` |
 | N4 la profondeur de champ, permanente et juste | ✅ FAIT | `fb59d14` |
+| N5 la colonne sur le tiers gauche, le sujet aux deux tiers (cadre decale) | ✅ FAIT | `29a05cb` |
+| N6 l echelle typographique 1,333 : cinq tailles, trois interlignes, un interlettrage | ✅ FAIT | `29a05cb` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 recompression meshopt | ⛔ **BLOQUE** : demande d'ajouter un outil de build (`@gltf-transform/cli` ou `gltfpack`), donc ton go sur le plafond d'apprentissage. Le decodeur au runtime existe deja, drei l'installe par defaut. | |
 | D3 le chapitrage du scroll au Nord | ⬜ a faire (le plus gros du lot D) | |
