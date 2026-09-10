@@ -60,7 +60,7 @@ export const GRASS_WIND_BY_DIRECTION: Record<DirectionKey, WindSpec> = {
 
 /** Trois nappes de rafales : rapports de frequence incommensurables,
  * poids qui somment a 1 (la borne strength + gustAmp tient). */
-const GUST_BANDS: readonly { freq: number; weight: number; phase: number; cross: number }[] = [
+export const GUST_BANDS: readonly { freq: number; weight: number; phase: number; cross: number }[] = [
   { freq: 1, weight: 0.5, phase: 0, cross: 0.35 },
   { freq: 1.618, weight: 0.3, phase: 2.1, cross: -0.6 },
   { freq: 2.414, weight: 0.2, phase: 4.4, cross: 0.9 },
@@ -131,8 +131,15 @@ export function cellCenter(grid: GrassGrid, i: number): Vec2 {
 
 /** Un pas de simulation : ressort vers gain * vent, amortissement,
  * integration semi-implicite, borne de flexion. `wind` recoit le centre
- * de la cellule et rend le vent la (deja dans le repere de la grille). */
-export function stepGrassGrid(grid: GrassGrid, dt: number, wind: (x: number, z: number) => Vec2, spec: SimSpec): void {
+ * de la cellule et rend le vent la (deja dans le repere de la grille).
+ * L'INDEX de cellule est passe aussi : c'est ce qui permet a l'appelant de
+ * lire un champ precalcule (grass-wind-cache) au lieu de le recalculer. */
+export function stepGrassGrid(
+  grid: GrassGrid,
+  dt: number,
+  wind: (x: number, z: number, i: number) => Vec2,
+  spec: SimSpec,
+): void {
   if (!(dt > 0)) return;
   const steps = Math.max(1, Math.ceil(dt / spec.maxDt));
   const h = dt / steps;
@@ -143,7 +150,7 @@ export function stepGrassGrid(grid: GrassGrid, dt: number, wind: (x: number, z: 
     for (let i = 0; i < n; i++) {
       const x = -grid.extent + ((i % grid.size) + 0.5) * cell;
       const z = -grid.extent + (Math.floor(i / grid.size) + 0.5) * cell;
-      const w = wind(x, z);
+      const w = wind(x, z, i);
       const tx = w.x * spec.windGain;
       const tz = w.z * spec.windGain;
       const bx = bend[2 * i], bz = bend[2 * i + 1];

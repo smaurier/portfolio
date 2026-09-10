@@ -29,6 +29,7 @@ import {
   stepGrassGrid,
   windAt,
 } from "@/lib/grass-sim";
+import { buildGustCache, gustMagnitude, gustTrig, type GustCache } from "@/lib/grass-wind-cache";
 import { getTerrainHeight } from "@/lib/terrain-height";
 import { orientationStore } from "./cardinal-orientation";
 import { addShaderModifier } from "./shader-patch";
@@ -247,6 +248,15 @@ export default function Grass() {
   const lastLandingRef = useRef(0);
   const lastFrostRef = useRef(0);
   const windScratch = useMemo(() => ({ x: 0, z: 0 }), []);
+  // Le champ de vent precalcule (10/09). Il vit dans un repere fige : on
+  // le reconstruit quand le decor a FINI de tourner, et on repasse par
+  // windAt tant qu il tourne, pour ne jamais payer la reconstruction
+  // pendant un mouvement de boussole.
+  const cacheRef = useRef<GustCache | null>(null);
+  const cacheSpecRef = useRef<unknown>(null);
+  const lastAngleRef = useRef(Number.NaN);
+  const trigRef = useRef(new Float32Array(8));
+  const centresRef = useMemo(() => new Float32Array(GRID_SIZE * GRID_SIZE * 2), []);
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
       pressRef.current = new Vector2((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
@@ -275,15 +285,50 @@ export default function Grass() {
     // partage, consomme aussitot par stepGrassGrid.
     const ca = Math.cos(angle), sa = Math.sin(angle);
     const keep = 1 - frozen;
-    const windLocal = (lx: number, lz: number) => {
-      const wx = lx * ca + lz * sa;
-      const wz = -lx * sa + lz * ca;
-      const ww = windAt(wx, wz, t, spec, windScratch);
-      const ox = ww.x * keep, oz = ww.z * keep;
-      windScratch.x = ox * ca - oz * sa;
-      windScratch.z = ox * sa + oz * ca;
-      return windScratch;
-    };
+    // Tant que le decor tourne, chemin direct ; des qu il est stable, on
+    // (re)construit le champ precalcule une fois pour toutes.
+    const tourne = Math.abs(angle - lastAngleRef.current) > 1e-4;
+    lastAngleRef.current = angle;
+    if (tourne) {
+      cacheRef.current = null;
+    } else if (cacheRef.current === null || cacheSpecRef.current !== spec) {
+      const cell = (2 * GRID_EXTENT) / GRID_SIZE;
+      for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+        const lx = -GRID_EXTENT + ((i % GRID_SIZE) + 0.5) * cell;
+        const lz = -GRID_EXTENT + (Math.floor(i / GRID_SIZE) + 0.5) * cell;
+        centresRef[2 * i] = lx * ca + lz * sa;
+        centresRef[2 * i + 1] = -lx * sa + lz * ca;
+      }
+      cacheRef.current = buildGustCache(centresRef, spec);
+      cacheSpecRef.current = spec;
+      trigRef.current = new Float32Array(cacheRef.current.bands * 2);
+    }
+    const cache = cacheRef.current;
+    let windLocal: (lx: number, lz: number, i: number) => { x: number; z: number };
+    if (cache) {
+      const trig = trigRef.current;
+      gustTrig(cache, t, trig);
+      // La direction du vent ne depend ni de la cellule ni du temps : on la
+      // ramene une seule fois dans le repere du decor.
+      const dlx = spec.dirX * ca - spec.dirZ * sa;
+      const dlz = spec.dirX * sa + spec.dirZ * ca;
+      windLocal = (_lx: number, _lz: number, i: number) => {
+        const m = gustMagnitude(cache, i, trig) * keep;
+        windScratch.x = dlx * m;
+        windScratch.z = dlz * m;
+        return windScratch;
+      };
+    } else {
+      windLocal = (lx: number, lz: number) => {
+        const wx = lx * ca + lz * sa;
+        const wz = -lx * sa + lz * ca;
+        const ww = windAt(wx, wz, t, spec, windScratch);
+        const ox = ww.x * keep, oz = ww.z * keep;
+        windScratch.x = ox * ca - oz * sa;
+        windScratch.z = ox * sa + oz * ca;
+        return windScratch;
+      };
+    }
     if (!reduced) {
       if (pressRef.current) {
         state.raycaster.setFromCamera(pressRef.current, state.camera);
@@ -322,7 +367,7 @@ export default function Grass() {
       const n = GRID_SIZE * GRID_SIZE;
       const cell = (2 * GRID_EXTENT) / GRID_SIZE;
       for (let i = 0; i < n; i++) {
-        const w = windLocal(-GRID_EXTENT + ((i % GRID_SIZE) + 0.5) * cell, -GRID_EXTENT + (Math.floor(i / GRID_SIZE) + 0.5) * cell);
+        const w = windLocal(-GRID_EXTENT + ((i % GRID_SIZE) + 0.5) * cell, -GRID_EXTENT + (Math.floor(i / GRID_SIZE) + 0.5) * cell, i);
         grid.bend[2 * i] = w.x * GRASS_SIM.windGain;
         grid.bend[2 * i + 1] = w.z * GRASS_SIM.windGain;
       }
