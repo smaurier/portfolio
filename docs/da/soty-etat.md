@@ -39,11 +39,11 @@ C'est ce tableau-la qui donne la note du site, et donc ou investir.
 | axe | poids | note | ce qui la retient |
 | --- | --- | --- | --- |
 | Design | 40 | 8,6 | tout est pose ; ton oeil sur image : le cadre decale, l'echelle, les panneaux qui suivent la scene |
-| Utilisabilite | 30 | 8,4 | le voile : l'accueil reste borne par le JavaScript ; Contact et Memoire ont perdu la moitie de leur temps d'ouverture ; les rubans de Contact restent le premier poste |
+| Utilisabilite | 30 | 8,5 | axe vert sur les cinq pages, zero avis ; le voile de l'accueil reste borne par le JavaScript (three, Next) ; a Contact, le graphe de scene est le premier poste |
 | Creativite | 20 | 8,8 | le son est la, invite au voile, cinq elements ; a entendre par toi |
 | Contenu | 10 | 8,4 | quatre fiches, dont une NestJS ; ta relecture de la quatrieme |
 
-Moyenne ponderee : **8,62**.
+Moyenne ponderee : **8,65**.
 
 ---
 
@@ -59,7 +59,7 @@ rentabilite reel et non l'ordre des envies.
 | 3 | Le voile | utilisabilite 30 | a moi | modeles nettoyes (`1b37b45`, 4,6 Mo retires) : Contact ouvre a 23 s au lieu de 41 en local, Memoire a 23 au lieu de 36. Reste le JavaScript (600 Ko compresses), qui borne l'accueil |
 | ~~4~~ | ~~L'acte de sortie (F2)~~ | design + utilisabilite | fait, `e308564` | l'arbitrage etait deja rendu le 08/09, je l'avais mal classe |
 | ~~5~~ | ~~Le son~~ | creativite 20 | fait, `823eb67` | l'invite au voile, et les cinq elements, generatifs |
-| 6 | Les images en retard de Contact | utilisabilite 30 | fait ce qui etait gratuit, `4978f67` | decor fige, 40 meches sur mobile au lieu de 90 : A/B 55 % -> 30 % d'images en retard sur machine chargee. Le reste est du travail reel (rubans, `getParameters` non diagnostique) |
+| ~~6~~ | ~~Les images en retard de Contact~~ | utilisabilite 30 | fait, `4978f67` puis `43d82ae` | decor fige, 40 meches sur mobile ; et la cause de `getParameters` trouvee : sept rubans d'amate rendus en deux passes a opacite zero sur les cinq pages. Reste le graphe de scene (941 objets, 368 os) |
 | ~~7~~ | ~~Les six blocs de contraste~~ | utilisabilite 30 | fait, `823eb67` | un fond qui suit la scene ; l'intro et le Codex ont un panneau ; un des six etait une fausse alerte (sr-only) |
 | ~~8~~ | ~~NestJS dans les projets~~ | contenu 10 | fait, `823eb67`, **ta relecture attendue** | Radar signaux en quatrieme fiche ; pas de PostgreSQL, parce qu'il n'y en a pas |
 
@@ -106,6 +106,12 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **11/09, troisieme passe** : 8,6 -> 8,65. axe en dependance de test,
+  cinq pages sans avis ; la densite au bureau mesuree en A/B entrelace et
+  gardee a 2 (1,5 coute plus cher ici, contre l'avis du panel) ; la derniere
+  cause de Contact trouvee, sept rubans d'amate rendus en deux passes sur
+  toutes les pages. Constante par constante, l'etat de l'art du 08/09 est
+  tenu sur six des sept ; la septieme l'est sur ce qui a un objet chez nous.
 - **11/09, seconde passe** : 8,4 -> 8,6. Les quatre arbitrages du matin :
   le son (invite au voile, cinq elements), le contraste (un fond qui suit la
   scene), Radar signaux en quatrieme fiche, le chapitrage des pages a
