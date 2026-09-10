@@ -355,3 +355,72 @@ Deux choses ne demandent aucun arbitrage et rendent le plus :
 
 Le reste attend une décision de ta part, et je les ai classées ci-dessus
 par ce qu'elles rapportent.
+
+---
+
+## 8. Addendum du 10/09 : la chauffe des shaders, essayee et RETIREE
+
+Le levier 1 annonce ci-dessus « ne demande aucun arbitrage ». Je l'ai
+implemente, mesure, et **retire** : mon propre oracle dit qu'il ne marche
+pas. Ce qui suit vaut mieux que le correctif, parce que ca retire deux
+pistes du tableau.
+
+### Ce qui a ete essaye
+
+Un composant dans le Canvas qui attend `useProgress() >= 100`, laisse douze
+images aux traversees idempotentes pour poser leurs modificateurs, puis
+appelle `renderer.compileAsync(scene, camera)`.
+
+Le choix de `compileAsync` etait bon et verifie a la source : en three r185
+il parcourt la scene en `traverse` et NON `traverseVisible`, donc il compile
+aussi les materiaux des objets encore invisibles. C'est exactement le cas
+des gestes qui n'arrivent qu'a mi-arc.
+
+### Le resultat, qui tranche contre moi
+
+| | a l'arrivee | apres tout le scroll |
+| --- | --- | --- |
+| sans chauffe | 32 | 49 |
+| avec chauffe | 50 | **67** |
+
+La chauffe a compile dix-huit programmes de plus, **et n'a empeche aucune
+des compilations tardives**. Elle ne protege rien et coute double. Retiree.
+
+Une premiere version comptait meme les images depuis le MONTAGE et non
+depuis le chargement des modeles : elle compilait une scene presque vide.
+Corrigee, puis retiree quand meme, le resultat etant le meme.
+
+### Deux pistes eliminees, ce qui a de la valeur
+
+**Ce n'est pas le premier rendu des objets tardifs.** `compileAsync` les
+couvre par construction (`traverse`), et pourtant les compilations tardives
+sont restees identiques.
+
+**Ce n'est pas la lumiere de Xolotl.** L'hypothese etait seduisante : son
+`pointLight` de braise vit sous un `if (!spawn) return null`, donc il
+n'existe pas avant son passage, et changer le NOMBRE de lumieres d'une
+scene fait recompiler tous ses materiaux dans three. Et les deux pages qui
+echouent sont exactement les deux ou Xolotl peut passer. Mesure comparative,
+son passage force a « oui » puis a « non » : le compte de lumieres reste a
+trois dans les deux cas, et la croissance des programmes est identique.
+Hypothese fausse.
+
+### Ce qu'il reste, pour la prochaine passe
+
+Les programmes tardifs sont des VARIANTES que `compileAsync` ne produit
+pas. Or un programme est aussi determine par l'ETAT DE RENDU. La piste la
+plus forte est donc une **seconde passe de rendu avec un etat different** :
+
+- le reflet planaire du Nord, qui rend la scene dans une cible avec sa
+  propre camera (`tezcatl-water`) ;
+- la passe d'ombres du Sud, dont on sait depuis le 09/09 qu'elle dessine
+  748 objets par image.
+
+Une passe qui n'existe pas au moment de la chauffe demandera ses propres
+programmes au moment ou elle se declenche. C'est verifiable : compter les
+programmes juste avant et juste apres la premiere image ou le reflet rend.
+
+**Le constat, lui, tient** : dix-sept compilations pendant l'arc a Memoire,
+quatorze a Contact, et 224 images en retard sur 844. Le defaut est reel et
+mesure ; c'est sa cause qui n'est pas encore trouvee, et je ne livre pas un
+correctif dont l'oracle dit qu'il aggrave.
