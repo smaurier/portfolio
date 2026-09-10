@@ -79,9 +79,16 @@ de Google (1,8 s). Mais le **voile ne se lève qu'à 22-39 s**. Le visiteur
 voit donc la page en moins de trois secondes, puis attend vingt à
 trente-six secondes de plus devant une phrase en nahuatl.
 
-Et le chargement n'est PAS lié au poids : 0,6 à 0,8 Mo transférés, soit
-trois secondes à 1,6 Mbit/s. **Le temps part dans le calcul**, pas dans le
-réseau. Compresser les textures ne servirait presque à rien.
+~~Et le chargement n'est PAS lié au poids : 0,6 à 0,8 Mo transférés, soit
+trois secondes à 1,6 Mbit/s. Le temps part dans le calcul, pas dans le
+réseau. Compresser les textures ne servirait presque à rien.~~
+
+**CE PARAGRAPHE ÉTAIT FAUX, sur les trois points, et le § 10 le corrige.**
+Les 0,6 Mo venaient d'une somme des en-têtes `content-length`, absents des
+réponses compressées : la vérité est 3,73 Mo décodés et 2,01 Mo sur le fil.
+Le voile se lève 1,1 s après le dernier octet reçu, donc il n'attend aucun
+calcul. Et les 22 à 41 s étaient mesurées sur un `next start` local qui ne
+compressait pas : le vrai site, servi par Netlify, ouvre à **16,6 s**.
 
 ### Où part le processeur (profil en temps propre)
 
@@ -535,3 +542,59 @@ au Sud (levier 5), l'échelle typographique (levier 6).
 - **Six compilations tardives à Mémoire, trois à Contact.** Ce sont des
   matériaux créés tard, plus des recompilations : les traiter coûterait de
   la mémoire à l'arrivée, le rapport n'est plus évident.
+
+---
+
+## 10. Le voile, mesuré pour de bon (10/09, nuit)
+
+Le § 3 disait que le temps de chargement partait dans le calcul. C'était
+faux, et voici comment on le sait.
+
+### La cascade, sous Fast 3G et CPU ×4
+
+| phase | de | à | ce qui se passe |
+| --- | --- | --- | --- |
+| le JavaScript | 0,6 s | 13,5 s | 2,14 Mo de scripts, dont un morceau de 1,44 Mo |
+| les modèles | 14,1 s | 21,3 s | huit `.glb`, 832 Ko, qui ne peuvent PAS commencer avant |
+| le voile | | 22,4 s | 1,1 s après le dernier octet |
+
+Les modèles ne partent qu'à 14,1 s parce que c'est le JavaScript qui les
+demande. Le fil principal, pendant tout ce temps, passe 20 % de son temps
+au repos : il attend.
+
+### Ce que ça coûte, et ce que ça ne coûte pas
+
+En production, Netlify compresse : le gros morceau passe de 1438 à 377 Ko,
+et le total du fil de 3,73 à **2,01 Mo**. Le voile s'ouvre alors à
+**16,6 s** au lieu de 22,4.
+
+Sur ces 2 Mo : le JavaScript en fait 600 Ko compressés, les modèles 830 Ko
+qui ne se compressent pas (binaire déjà serré), les images 460 Ko, les
+polices 130 Ko.
+
+### Ce qui a été fait dans la nuit
+
+Trois ressources partaient pendant la fenêtre de chargement sans être
+nécessaires pour l'ouvrir : la photographie de ciel (120 Ko, jamais
+affichée au Centre ni au Nord), les cinq préchargements de destinations, et
+les liens cardinaux de l'en-tête que Next préchargeait de son côté dès
+qu'ils entraient dans le cadre. Plus la chaîne de post-traitement (116 Ko),
+sortie du morceau principal parce que le profil mobile ne l'allume jamais.
+
+Mesure locale : 22,5 s puis 20,9 s ; 39 requêtes puis 29 ; 3,73 Mo puis
+3,42 Mo.
+
+### Ce qui reste, et à qui
+
+- **Les modèles, 830 Ko sur le fil, incompressibles.** C'est le lot I2, et
+  il est bloqué sur le plafond d'apprentissage : compresser un `.glb`
+  demande un outil de build (`gltfpack` ou `@gltf-transform/cli`). Le
+  décodeur au runtime existe déjà, drei l'installe par défaut. **Ton
+  arbitrage.**
+- **Le voile attend les huit modèles**, pas seulement le cerf et la Piedra.
+  Lever le voile sur la scène essentielle et laisser la flore arriver
+  ensuite gagnerait deux à trois secondes, au prix d'un remplissage visible.
+  **Ton arbitrage** : c'est une question de mise en scène, pas de technique.
+- **Le morceau principal fait encore 871 Ko** (plus 460). C'est three, react
+  et drei : il n'y a pas de gras évident à couper, seulement du découpage
+  par page à envisager, et toutes les pages partagent la même scène.

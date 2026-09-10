@@ -39,11 +39,11 @@ C'est ce tableau-la qui donne la note du site, et donc ou investir.
 | axe | poids | note | ce qui la retient |
 | --- | --- | --- | --- |
 | Design | 40 | 7,9 | l'echelle typographique (13 tailles, 9 a moins de 11 % l'une de l'autre) ; le rapport contenu / scene au Nord et au Sud ; six blocs de contraste |
-| Utilisabilite | 30 | 8,1 | le voile se leve a 22-41 s sous CPU x4 et Fast 3G ; 13 % d'images en retard a Contact |
+| Utilisabilite | 30 | 8,2 | le voile se leve a 16,6 s en production sous CPU x4 et Fast 3G ; 13 % d'images en retard a Contact |
 | Creativite | 20 | 8,5 | le son est absent ; sinon chaque page a maintenant son geste |
 | Contenu | 10 | 8,0 | aucun des trois projets ne montre NestJS ni PostgreSQL (verifie : deux occurrences de « Node.js », zero des deux autres) |
 
-Moyenne ponderee : **8,11**.
+Moyenne ponderee : **8,14**.
 
 ---
 
@@ -56,7 +56,7 @@ rentabilite reel et non l'ordre des envies.
 | --- | --- | --- | --- | --- |
 | 1 | L'echelle typographique | design 40 | **a toi** : quel rapport, 1,25 ou 1,333 | mesure, non traite |
 | 2 | Le rapport contenu / scene au Nord et au Sud | design 40 | **a toi** | mesure, non traite |
-| 3 | Le voile a 22-41 s | utilisabilite 30 | a moi | mesure, cause connue (le calcul, pas le reseau), non traite |
+| 3 | Le voile a **16,6 s** en production | utilisabilite 30 | a moi, puis **a toi** | entame : 22,5 -> 20,9 s en local. Cause vraie = les OCTETS, pas le calcul. Reste les modeles (830 Ko, lot I2) et le choix de lever le voile avant la flore |
 | ~~4~~ | ~~L'acte de sortie (F2)~~ | design + utilisabilite | fait, `e308564` | l'arbitrage etait deja rendu le 08/09, je l'avais mal classe |
 | 5 | Le son | creativite 20 | **a toi** : la vraie question est l'invitation, pas le son | les cloches par direction existent deja et ne jouent qu'au clic |
 | 6 | Les 13 % d'images en retard de Contact | utilisabilite 30 | a moi | profil pris, postes nommes, cause de `getParameters` non diagnostiquee |
@@ -106,6 +106,11 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **10/09 nuit, seconde passe** : 8,1 -> 8,2. Le voile : trois ressources
+  inutiles sorties de la fenetre de chargement, la chaine de post-traitement
+  sortie du morceau principal. Et deux erreurs de mesure corrigees dans la
+  revue : le poids reel est 2,01 Mo sur le fil et non 0,6, et le voile
+  n'attend pas le calcul mais les octets.
 - **10/09 nuit** : 8,0 -> 8,1. L'acte de sortie (F2) : le dernier tiers de
   page ne regarde plus une image figee, et le climax du Centre a un apres.
 - **10/09 soir** : 7,0 -> 8,0. Cinq pages tiennent la mediane de 60 (Contact
