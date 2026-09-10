@@ -39,11 +39,11 @@ C'est ce tableau-la qui donne la note du site, et donc ou investir.
 | axe | poids | note | ce qui la retient |
 | --- | --- | --- | --- |
 | Design | 40 | 8,6 | tout est pose ; ton oeil sur image : le cadre decale, l'echelle, les panneaux qui suivent la scene |
-| Utilisabilite | 30 | 8,5 | axe vert sur les cinq pages, zero avis ; le voile de l'accueil reste borne par le JavaScript (three, Next) ; a Contact, le graphe de scene est le premier poste |
+| Utilisabilite | 30 | 8,6 | axe vert sur les cinq pages, zero avis ; plus un programme compile en cours d'arc (tout se paie derriere le voile) ; le voile de l'accueil reste borne par le JavaScript (three, Next) ; a Contact, le graphe de scene est le premier poste |
 | Creativite | 20 | 8,8 | le son est la, invite au voile, cinq elements ; a entendre par toi |
 | Contenu | 10 | 8,4 | quatre fiches, dont une NestJS ; ta relecture de la quatrieme |
 
-Moyenne ponderee : **8,65**.
+Moyenne ponderee : **8,68**.
 
 ---
 
@@ -106,6 +106,11 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **11/09, quatrieme passe** : 8,65 -> 8,68. La chauffe des shaders,
+  retiree la veille, retrouve son sens une fois la braise reglee : le voile
+  attend la fin de la chauffe, le simulateur d'ondes fait un pas a blanc,
+  le miroir compile sa variante en espace lineaire. Plus une compilation
+  en cours d'arc, a Contact comme a Memoire (`86ae55c`).
 - **11/09, troisieme passe** : 8,6 -> 8,65. axe en dependance de test,
   cinq pages sans avis ; la densite au bureau mesuree en A/B entrelace et
   gardee a 2 (1,5 coute plus cher ici, contre l'avis du panel) ; la derniere
