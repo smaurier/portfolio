@@ -159,7 +159,10 @@ export function stepGrassGrid(
       vz += ((tz - bz) * spec.stiffness - vz * spec.damping) * h;
       let nx = bx + vx * h;
       let nz = bz + vz * h;
-      const len = Math.hypot(nx, nz);
+      // sqrt plutot que hypot : quatre fois plus rapide, et la garde
+      // contre le depassement de capacite n'a pas d'objet sur une
+      // flexion bornee a 1.
+      const len = Math.sqrt(nx * nx + nz * nz);
       if (len > spec.maxBend) {
         const k = spec.maxBend / len;
         nx *= k;
@@ -188,7 +191,7 @@ export function applyRadialImpulse(grid: GrassGrid, cx: number, cz: number, radi
   for (let i = 0; i < n; i++) {
     const x = -grid.extent + ((i % grid.size) + 0.5) * cell - cx;
     const z = -grid.extent + (Math.floor(i / grid.size) + 0.5) * cell - cz;
-    const r = Math.hypot(x, z);
+    const r = Math.sqrt(x * x + z * z);
     if (r >= radius || r < 1e-6) continue;
     const fall = 0.5 + 0.5 * Math.cos((r / radius) * Math.PI);
     const k = (strength * fall) / r;

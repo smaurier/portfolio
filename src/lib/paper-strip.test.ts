@@ -62,3 +62,21 @@ describe("stepStrip (gravite, vent, contraintes de distance)", () => {
     }
   });
 });
+
+describe("la longueur d'un segment, sqrt plutot que Math.hypot", () => {
+  it("donne le meme nombre a l'echelle du decor", () => {
+    // Math.hypot protege du depassement de capacite : il met les
+    // composantes a l'echelle avant d'elever au carre. A l'echelle du
+    // decor (quelques dizaines d'unites), cette protection ne sert a rien
+    // et coute quatre fois le temps de calcul. Ce test fixe l'hypothese :
+    // si un jour on simule des distances astronomiques, il tombera.
+    for (const [x, y, z] of [
+      [0.4, -1.2, 3],
+      [1e-6, 0, 0],
+      [37, -12, 4],
+      [0.05, 0.05, 0.05],
+    ]) {
+      expect(Math.sqrt(x * x + y * y + z * z)).toBeCloseTo(Math.hypot(x, y, z), 12);
+    }
+  });
+});

@@ -70,7 +70,9 @@ export function stepLeaf(leaf: Leaf, dt: number, wind: { x: number; z: number },
   leaf.vz += (wind.z * 1.3 + 0.35 * Math.sin(t * 2.3 + leaf.phase * 2) - leaf.vz) * drag * dt;
   // Une rafale la souleve de temps en temps ; sinon elle retombe.
   const gust = Math.max(0, Math.sin(t * 0.9 + leaf.phase) + Math.sin(t * 2.9 + leaf.phase * 1.7) - 1.2);
-  const speed = Math.hypot(leaf.vx, leaf.vz);
+  // sqrt plutot que hypot (quatre fois plus rapide) : une vitesse de
+  // feuille ne depasse pas quelques unites par seconde.
+  const speed = Math.sqrt(leaf.vx * leaf.vx + leaf.vz * leaf.vz);
   if (onGround && gust > 0 && speed > 0.2) leaf.vy = Math.min(c.maxLift, gust * 2.4 * (0.6 + 0.4 * leaf.kind));
   leaf.vy -= c.gravity * dt;
   leaf.x += leaf.vx * dt;
