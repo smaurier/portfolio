@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "models": "node scripts/optimise-models.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -25,6 +26,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@gltf-transform/cli": "^4.5.0",
     "@next/bundle-analyzer": "^16.3.3",
     "@playwright/test": "^1.62.1",
     "@types/node": "22.20.1",
