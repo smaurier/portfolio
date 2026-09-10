@@ -55,6 +55,9 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | N8 le contraste : un fond qui suit la scene | ✅ FAIT | `823eb67` |
 | G1 Radar signaux, quatrieme fiche (NestJS) | ✅ FAIT, relecture de Sylvain attendue | `823eb67` |
 | D3 le chapitrage des pages a contenu | ✅ FAIT | `823eb67` |
+| N9 axe a chaque commit, deux avis corriges (h2, landmarks), scene hors de l arbre d accessibilite | ✅ FAIT | `43d82ae` |
+| N10 la densite au bureau : mesuree, reste a 2 (1,5 coute plus cher ici) | ✅ MESURE | `43d82ae` |
+| N11 getParameters sur Contact : les bandelettes d amate rendues en deux passes sur les cinq pages | ✅ FAIT | `43d82ae` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 les modeles nettoyes et compresses (go de Sylvain sur l outil, 11/09) | ✅ FAIT | `1b37b45` |
 | E1, E2 (l'arc vertical du Centre) | ✅ FAIT | `8394028` |
