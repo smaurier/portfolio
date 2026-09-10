@@ -25,7 +25,10 @@
     "sound": {
       "on": "Activer le son",
       "off": "Couper le son",
-      "volume": "Volume"
+      "volume": "Volume",
+      "choiceLabel": "Le son",
+      "enterWith": "Entrer avec le son",
+      "enterWithout": "Entrer sans le son"
     },
     "sceneControls": {
       "textHide": "Masquer le texte",
@@ -152,7 +155,7 @@
   },
   "projets": {
     "title": "Projets",
-    "intro": "Trois projets récents. Case studies profonds plutôt qu'une galerie de captures.",
+    "intro": "Quatre projets récents. Case studies profonds plutôt qu'une galerie de captures.",
     "labels": {
       "context": "Contexte",
       "role": "Rôle",
@@ -270,6 +273,44 @@
           {
             "title": "L'ouverture communauté",
             "text": "Publié en open-source dès le premier commit sur github.com/smaurier/claude-synapse. Documentation soignée, exemples concrets, ADR (Architecture Decision Records) pour tracer les choix. Ambition : que d'autres utilisateurs Claude Code multi-machines puissent bootstrap leur propre système. Pas de business model, pas de premium · un outil qui règle un vrai problème pour ceux qui l'ont."
+          }
+        ]
+      }
+    },
+    "radar": {
+      "slug": "radar",
+      "title": "Radar signaux · veille économique en NestJS",
+      "text": "Moteur de veille sur données ouvertes françaises (BODACC, INPI, presse spécialisée) qui repère les entreprises en train de lever des fonds. NestJS mené en TDD, SQLite, et un serveur MCP pour l'interroger depuis un assistant.",
+      "context": "Une veille emploi ciblée sur les entreprises qui recrutent après une levée demande de croiser trois sources qui ne se parlent pas : les avis de modification de capital publiés au BODACC, les montants déposés à l'INPI, et le contexte donné par la presse spécialisée. Aucun outil gratuit ne le faisait.",
+      "role": "Conception, architecture, développement, tests, déploiement. Solo.",
+      "stack": "NestJS, TypeScript, SQLite (better-sqlite3), jest, Playwright + axe, serveur MCP, cron sur GitHub Actions.",
+      "highlights": "Premier projet NestJS mené en TDD de bout en bout, tests joués contre les vraies API. Un seul moteur cron pour des collecteurs indépendants. Serveur MCP en lecture : les signaux s'interrogent depuis un assistant plutôt que dans un tableau.",
+      "outcome": "Public sur GitHub, CI verte, cron en production sur GitHub Actions. Deux modes livrés : Dev (levées de fonds) et Freelance accessibilité.",
+      "cta": "Voir le code →",
+      "detail": {
+        "readMoreCta": "Lire l'étude complète →",
+        "backCta": "← Retour aux projets",
+        "hero": "Trois sources ouvertes, un moteur NestJS, et des signaux qu'on interroge en langage naturel.",
+        "narrative": [
+          {
+            "title": "Le besoin",
+            "text": "Chercher un poste dans une entreprise qui vient de lever des fonds, c'est arriver avant l'annonce de recrutement. L'information existe, elle est publique, mais elle est éparpillée entre trois sources qui ne se connaissent pas."
+          },
+          {
+            "title": "Trois sources qui ne se parlent pas",
+            "text": "Le BODACC publie les avis de modification de capital, sans montant. L'INPI porte le montant, sans contexte. La presse spécialisée donne le contexte, sans structure. Le moteur croise les trois : un avis au BODACC déclenche la recherche du montant à l'INPI et d'un article en presse, et le signal n'est émis que si les pièces concordent."
+          },
+          {
+            "title": "NestJS, en TDD",
+            "text": "C'est le premier projet NestJS mené en test d'abord de bout en bout : modules, injection de dépendances, planificateur. Les collecteurs ont été testés contre les vraies API tout au long du développement, pas contre des réponses inventées, parce qu'une API publique change sans prévenir."
+          },
+          {
+            "title": "Un serveur MCP pour l'interroger",
+            "text": "Les signaux vivent dans SQLite. Plutôt qu'un tableau de bord, un serveur MCP en lecture les expose : on pose la question à un assistant, « quelles entreprises de Lyon ont levé ce mois-ci ? », et il lit la base. La donnée reste à sa place, l'interface est la conversation."
+          },
+          {
+            "title": "Ce que ça a donné",
+            "text": "Le dépôt est public, l'intégration continue est verte, et le cron tourne en production sur GitHub Actions. Deux modes sont livrés : Dev, pour les levées de fonds, et Freelance accessibilité, qui repère les sites d'entreprises à auditer. Le client INPI est assez propre pour devenir un paquet à part : c'est la suite."
           }
         ]
       }

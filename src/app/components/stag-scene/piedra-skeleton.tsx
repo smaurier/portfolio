@@ -3,6 +3,7 @@
 import SplitText from "../split-text";
 import RevealTrigger from "./reveal-trigger";
 import FoyerArrival from "./foyer-arrival";
+import VeilSoundChoice from "./veil-sound-choice";
 import styles from "./piedra-skeleton.module.css";
 
 /**
@@ -50,10 +51,12 @@ export default function PiedraSkeleton({
   phrase,
   translation,
   label,
+  sound,
 }: {
   phrase: string;
   translation: string;
   label: string;
+  sound: { choiceLabel: string; enterWith: string; enterWithout: string };
 }) {
   return (
     <div
@@ -110,6 +113,9 @@ export default function PiedraSkeleton({
         <p className={styles.translation}>
           <SplitText text={translation} ariaLabel={translation} />
         </p>
+        {/* Le choix du son (11/09) : une invitation pendant l'attente, pas une
+            porte. Le voile s'ouvre de lui-meme, avec ou sans reponse. */}
+        <VeilSoundChoice label={sound} />
       </div>
       </div>
       {/* LE FOYER : la flamme du Centre, posee par FoyerArrival sur la

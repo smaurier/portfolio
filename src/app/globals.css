@@ -685,6 +685,12 @@ body.nahual-lab-reveal .contentPage a:not(.ctaButton) {
   }
 }
 
+/* UN FOND QUI SUIT LA SCENE (11/09). --scene-lum est ecrit par le rig de
+   lumiere (reveal-lighting) : 0 la nuit, 1 au zenith, la glace de l'Est
+   comptant comme du jour. L'audit du 10/09 trouvait six blocs sous 4,5:1,
+   tous a mi-arc sur les pages claires, pour une seule raison : la scene
+   s'eclaircit derriere des panneaux a 0,32. On ne touche pas a la nuit
+   (retour du 27/08) ; on densifie quand le monde s'eclaircit. */
 body.nahual-lab-reveal .serviceCard {
   /* Signature codex nocturne épurée (27/08 auto-critique) : retire
      border trait + border-left liseré + pulse cardiaque HTML + glow
@@ -703,8 +709,8 @@ body.nahual-lab-reveal .serviceCard {
   background:
     linear-gradient(
       135deg,
-      color-mix(in srgb, var(--direction-color, transparent) 4%, rgba(13, 12, 17, 0.32)),
-      color-mix(in srgb, var(--direction-color, transparent) 1.5%, rgba(13, 12, 17, 0.38))
+      color-mix(in srgb, var(--direction-color, transparent) 4%, rgba(13, 12, 17, calc(0.32 + 0.3 * var(--scene-lum, 0)))),
+      color-mix(in srgb, var(--direction-color, transparent) 1.5%, rgba(13, 12, 17, calc(0.38 + 0.3 * var(--scene-lum, 0))))
     );
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -772,8 +778,8 @@ body.nahual-lab-reveal .serviceCard::after {
     background:
       linear-gradient(
         135deg,
-        color-mix(in srgb, var(--direction-color, transparent) 8%, rgba(13, 12, 17, 0.28)),
-        color-mix(in srgb, var(--direction-color, transparent) 3%, rgba(13, 12, 17, 0.34))
+        color-mix(in srgb, var(--direction-color, transparent) 8%, rgba(13, 12, 17, calc(0.28 + 0.3 * var(--scene-lum, 0)))),
+        color-mix(in srgb, var(--direction-color, transparent) 3%, rgba(13, 12, 17, calc(0.34 + 0.3 * var(--scene-lum, 0))))
       );
   }
 }
@@ -1282,14 +1288,16 @@ body.reading-mode .projectCase {
 .codexPage {
   max-width: 780px;
 }
+/* LE CODEX SUR UN PANNEAU (11/09). Les noms des gardiens n'avaient aucun
+   fond derriere eux, seulement la scene : « Xiuhtecuhtli » tombait a 3,51:1
+   a mi-arc. La meme matiere que les cartes, qui suit la scene. */
 .codexSection {
-  margin: 3rem 0 1.5rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(244, 234, 213, 0.15);
-}
-.codexSection:first-of-type {
-  border-top: none;
-  padding-top: 0;
+  margin: 2rem 0 1rem;
+  padding: 20px 24px;
+  border-radius: 14px;
+  background: rgba(var(--panel-rgb), calc(0.3 + 0.3 * var(--scene-lum, 0)));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 .codexSection h2 {
   font-size: var(--t-chapeau);
@@ -1719,4 +1727,37 @@ html:not([data-strike]) .contentPage {
     padding: calc(12px + var(--header-height)) 6vw calc(24px + var(--footer-height));
     gap: 20px;
   }
+}
+
+/* LE CHAPITRAGE DES PAGES A CONTENU (11/09, lot D3, reveal-on-scroll) :
+   chaque carte apparait quand elle entre dans le cadre, une fois, en
+   opacite et en translation. Jamais masquee : elle fait la hauteur de la
+   page. Sous mouvement reduit, la classe d'attente n'est jamais posee. */
+.contentPage > .chapitre-attend {
+  opacity: 0;
+  transform: translateY(14px);
+}
+.contentPage > .chapitre-vu {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .contentPage > .chapitre-vu {
+    transition: none;
+  }
+}
+
+/* L'INTRO SANS PANNEAU (11/09). L'audit d'apres densification ne laissait
+   que deux blocs sous 4,5:1, et tous deux n'avaient AUCUN panneau : le
+   paragraphe d'introduction, pose nu sous le titre. Il prend la matiere des
+   cartes, qui suit la scene comme elles. */
+body.nahual-lab-reveal main[data-direction] .contentPage > p {
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: rgba(var(--panel-rgb), calc(0.3 + 0.3 * var(--scene-lum, 0)));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }

@@ -665,3 +665,37 @@
     transform: none;
   }
 }
+
+/* LE CHOIX DU SON (11/09) : deux boutons de meme poids, sous la traduction.
+   Le second n'est pas un lien discret : « sans le son » est un choix aussi
+   legitime que l'autre, et c'est le site d'un auditeur RGAA. Contraste tenu
+   sur le noir du voile ; cible de 44 px. */
+.soundChoice {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  /* Le voile est en aria-live : les boutons restent atteignables au clavier. */
+}
+.soundChoiceButton {
+  font: inherit;
+  font-size: var(--t-corps);
+  line-height: var(--il-titre);
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  /* Aucune couleur en dur dans un module (test css-tokens) : le fond reste
+     celui du voile, noir, et les bords sont l'encre attenuee. */
+  border: 1px solid var(--ink-muted);
+  background: transparent;
+  color: var(--ink-warm);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.soundChoiceButton:hover,
+.soundChoiceButton:focus-visible {
+  border-color: var(--ink-warm);
+  outline: 2px solid var(--ink-warm);
+  outline-offset: 2px;
+}

@@ -25,7 +25,10 @@
     "sound": {
       "on": "Turn sound on",
       "off": "Turn sound off",
-      "volume": "Volume"
+      "volume": "Volume",
+      "choiceLabel": "Sound",
+      "enterWith": "Enter with sound",
+      "enterWithout": "Enter without sound"
     },
     "sceneControls": {
       "textHide": "Hide the text",
@@ -152,7 +155,7 @@
   },
   "projets": {
     "title": "Projects",
-    "intro": "Three recent projects. Deep case studies rather than a screenshot gallery.",
+    "intro": "Four recent projects. Deep case studies rather than a gallery of screenshots.",
     "labels": {
       "context": "Context",
       "role": "Role",
@@ -270,6 +273,44 @@
           {
             "title": "Community opening",
             "text": "Published open-source from the first commit on github.com/smaurier/claude-synapse. Careful documentation, concrete examples, ADR (Architecture Decision Records) to trace choices. Ambition: that other multi-machine Claude Code users can bootstrap their own system. No business model, no premium · a tool solving a real problem for those who have it."
+          }
+        ]
+      }
+    },
+    "radar": {
+      "slug": "radar",
+      "title": "Radar signaux · business intelligence in NestJS",
+      "text": "A watch engine over French open data (BODACC, INPI, trade press) that spots companies in the middle of raising funds. NestJS built test-first, SQLite, and an MCP server so an assistant can query it.",
+      "context": "A job search aimed at companies that hire after a funding round means crossing three sources that do not talk to each other: capital change notices published in the BODACC, amounts filed with the INPI, and the context given by the trade press. No free tool did it.",
+      "role": "Design, architecture, development, tests, deployment. Solo.",
+      "stack": "NestJS, TypeScript, SQLite (better-sqlite3), jest, Playwright + axe, MCP server, cron on GitHub Actions.",
+      "highlights": "First NestJS project built test-first end to end, with tests run against the real APIs. One cron engine for independent collectors. A read-only MCP server: signals are queried from an assistant rather than read off a dashboard.",
+      "outcome": "Public on GitHub, green CI, cron in production on GitHub Actions. Two modes shipped: Dev (funding rounds) and Freelance accessibility.",
+      "cta": "See the code →",
+      "detail": {
+        "readMoreCta": "Read the full case study →",
+        "backCta": "← Back to projects",
+        "hero": "Three open sources, one NestJS engine, and signals you query in plain language.",
+        "narrative": [
+          {
+            "title": "The need",
+            "text": "Applying to a company that has just raised funds means arriving before the job posting. The information exists and it is public, but it is scattered across three sources that do not know each other."
+          },
+          {
+            "title": "Three sources that do not talk",
+            "text": "The BODACC publishes capital change notices, without amounts. The INPI holds the amount, without context. The trade press gives context, without structure. The engine crosses the three: a BODACC notice triggers the search for the INPI amount and a press article, and a signal is emitted only when the pieces agree."
+          },
+          {
+            "title": "NestJS, test-first",
+            "text": "This is the first NestJS project built test-first end to end: modules, dependency injection, scheduler. The collectors were tested against the real APIs throughout, not against invented responses, because a public API changes without notice."
+          },
+          {
+            "title": "An MCP server to query it",
+            "text": "Signals live in SQLite. Rather than a dashboard, a read-only MCP server exposes them: you ask an assistant, \"which Lyon companies raised this month?\", and it reads the database. The data stays where it is; the interface is the conversation."
+          },
+          {
+            "title": "What came out of it",
+            "text": "The repository is public, continuous integration is green, and the cron runs in production on GitHub Actions. Two modes shipped: Dev, for funding rounds, and Freelance accessibility, which spots company websites worth auditing. The INPI client is clean enough to become a package of its own: that is next."
           }
         ]
       }

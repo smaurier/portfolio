@@ -15,6 +15,7 @@ import { remapNorthArc } from "@/lib/direction-arc";
 import { remapWestArc, westFogTint } from "@/lib/ouest-arc";
 import { eastFogTint } from "@/lib/est-arc";
 import { dayAtArc, lightPAtArc, sunInTheWest } from "@/lib/arc-day";
+import { frostStore } from "./frost-store";
 import { approachFog, getFogRange, type FogRange } from "@/lib/direction-fog";
 import { approachRig, getLightRig, rigAtArc, type LightRig } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
@@ -79,6 +80,18 @@ export default function RevealLighting({
   const ambientColorScratch = useMemo(() => new Color(), []);
   const directionalColorScratch = useMemo(() => new Color(), []);
 
+  // LA LUMINOSITE DE LA SCENE, PUBLIEE AU CSS (11/09). Les panneaux de texte
+  // sont translucides (0,32 a 0,38 d'opacite, choix de Sylvain du 27/08 :
+  // « trop lourds avec le contour marque »), et l'audit du 10/09 a trouve
+  // six blocs sous 4,5:1, tous pour la meme raison : la scene s'eclaircit
+  // derriere eux a mi-arc. Plutot que d'alourdir la nuit, le rig, qui
+  // connait deja le jour de l'arc, le publie dans --scene-lum ; les panneaux
+  // se densifient avec lui (globals.css). A l'Est, le gel est blanc avant
+  // que le jour se leve : la glace compte comme du jour. Ecriture seulement
+  // quand la valeur bouge de plus d'un centieme, pour ne pas toucher le DOM
+  // a chaque image.
+  const sceneLumRef = useRef(-1);
+
   useFrame(() => {
     const rawP = progressRef.current;
     // Arc inverse au Nord (01/09, option A + arrivee, cf direction-arc) :
@@ -100,6 +113,15 @@ export default function RevealLighting({
     // de revelation l'emmene vers le jour (rigAtArc, identite pour les autres).
     const sc = getSceneControls();
     const rigTarget = rigAtArc(getLightRig(hour), dayAtArc(direction, rawP), sunInTheWest(direction, sc.cinematic && sc.cinematicAfternoon));
+
+    {
+      const frozen = frostStore.active ? frostStore.state.frost : 0;
+      const lum = Math.min(1, Math.max(dayAtArc(direction, rawP), direction === "dore" ? frozen * 0.8 : 0));
+      if (Math.abs(lum - sceneLumRef.current) > 0.01) {
+        sceneLumRef.current = lum;
+        document.documentElement.style.setProperty("--scene-lum", lum.toFixed(2));
+      }
+    }
     lightRigRef.current = sceneRefs?.reducedMotionRef.current
       ? { ...rigTarget }
       : approachRig(lightRigRef.current, rigTarget, 0.06);

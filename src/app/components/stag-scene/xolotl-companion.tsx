@@ -967,8 +967,8 @@ export default function XolotlCompanion() {
       const prevRadius = prevRadiusRef.current;
       if (prevRadius !== null) {
         const crossing = rimCrossing(prevRadius, radius, RIM_SPEC);
-        if (crossing === "enter") tezcatlStore.impacts.push({ x: x + 0.2, z: zDepth, amount: SPLASH_AMOUNT });
-        if (crossing === "exit") tezcatlStore.impacts.push({ x: x - 0.35, z: zDepth, amount: SPLASH_AMOUNT });
+        if (crossing === "enter") { tezcatlStore.impactSerial += 1; tezcatlStore.impacts.push({ x: x + 0.2, z: zDepth, amount: SPLASH_AMOUNT }); }
+        if (crossing === "exit") { tezcatlStore.impactSerial += 1; tezcatlStore.impacts.push({ x: x - 0.35, z: zDepth, amount: SPLASH_AMOUNT }); }
       }
       prevRadiusRef.current = radius;
     }
@@ -1019,6 +1019,7 @@ export default function XolotlCompanion() {
         stepRef.current += 1;
         const side = stepRef.current % 2 === 0 ? STEP_SIDE : -STEP_SIDE;
         tezcatlStore.impacts.push({ x: x - 0.25, z: zDepth + side, amount: STEP_AMOUNT * opacity });
+        tezcatlStore.impactSerial += 1;
       }
     }
 

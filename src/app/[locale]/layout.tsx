@@ -322,6 +322,7 @@ export default async function LocaleLayout({
           phrase={loadingPhrase.phrase}
           translation={loadingPhrase.translation}
           label={dict.lab.loadingLabel}
+          sound={dict.common.sound}
         />
         {/* Provider transition cardinale "cerf mène" (28/08) : expose
             transitionDirection + progressRef aux consommateurs scène

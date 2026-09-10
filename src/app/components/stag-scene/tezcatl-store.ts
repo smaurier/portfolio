@@ -49,6 +49,10 @@ export const tezcatlStore: {
   /** Impacts a faire onduler dans l'eau (monde x/z), pousses par
    * ObsidianArrows, consommes par TezcatlWater a chaque frame. */
   impacts: { x: number; z: number; amount: number }[];
+  /** Compteur des impacts de Xolotl (11/09) : le son y accroche un
+   *  « plip » par pas. Un compteur, jamais la longueur du tableau, que le
+   *  simulateur vide a chaque image. */
+  impactSerial: number;
   /** Xolotl en train de traverser (monde x/z), null sinon. Publie par
    * XolotlCompanion, lu par la couronne de cempasuchil qui converge vers
    * lui quand il est dans le bassin (03/09). */
@@ -67,6 +71,7 @@ export const tezcatlStore: {
   rippleTexel: 1,
   stagHit: null,
   impacts: [],
+  impactSerial: 0,
   xolotl: null,
   hull: null,
   vapors: [],

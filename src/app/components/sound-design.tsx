@@ -6,6 +6,11 @@ import { useCurrentDirection } from "./stag-scene/use-current-direction";
 import { frostStore } from "./stag-scene/frost-store";
 import { armChime, stepChime } from "@/lib/climax-chime";
 import { arcProgress, getNavEmphasis } from "@/lib/reveal-arc";
+import { dayAtArc } from "@/lib/arc-day";
+import { copalIntensity } from "@/lib/copal";
+import { xiuhcoatlStore } from "./stag-scene/xiuhcoatl-store";
+import { tezcatlStore } from "./stag-scene/tezcatl-store";
+import { SOUND_CHOICE_EVENT } from "./stag-scene/veil-sound-choice";
 
 /**
  * Sound design cardinal (28/08 task #46). Sons génératifs Web Audio
@@ -372,6 +377,259 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     return () => document.removeEventListener("click", onClick);
   }, [playChime]);
 
+  // LE SUD, LA CHALEUR (11/09). Un bourdon de midi : deux sinus graves un
+  // peu desaccordes sous un passe-bas, dont le volume MONTE AVEC LE JOUR de
+  // l'arc (lib/sud-arc via dayAtArc : la nuit de Coatepec, puis le zenith).
+  // La nuit il est inaudible ; a midi il chauffe. Meme motif de vie que le
+  // vent de l'Ouest : cree a l'arrivee, fondu au depart.
+  const heatRef = useRef<{ oscs: OscillatorNode[]; gain: GainNode } | null>(null);
+  useEffect(() => {
+    const ctx = ctxRef.current;
+    const master = masterGainRef.current;
+    const wantHeat = !muted && direction === "turquoise";
+    const current = heatRef.current;
+    if (!wantHeat || !ctx || !master) {
+      if (current && ctx) {
+        current.gain.gain.cancelScheduledValues(ctx.currentTime);
+        current.gain.gain.setValueAtTime(current.gain.gain.value, ctx.currentTime);
+        current.gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
+        heatRef.current = null;
+        window.setTimeout(() => {
+          for (const o of current.oscs) { try { o.stop(); } catch {} }
+        }, 1700);
+      }
+      return;
+    }
+    if (current) return;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 220;
+    const oscs: OscillatorNode[] = [];
+    for (const f of [55, 55.7, 110.3]) {
+      const o = ctx.createOscillator();
+      o.type = "triangle";
+      o.frequency.value = f;
+      o.connect(lp);
+      o.start();
+      oscs.push(o);
+    }
+    lp.connect(gain).connect(master);
+    heatRef.current = { oscs, gain };
+    // Le volume suit le jour : lu au defilement, lisse par la rampe.
+    let raf = 0;
+    const suivre = () => {
+      const day = dayAtArc("turquoise", arcProgress(window.scrollY, window.innerHeight));
+      const cible = 0.07 * day * day;
+      gain.gain.setTargetAtTime(cible, ctx.currentTime, 0.6);
+      raf = window.requestAnimationFrame(suivre);
+    };
+    raf = window.requestAnimationFrame(suivre);
+    return () => window.cancelAnimationFrame(raf);
+  }, [muted, direction]);
+
+  // LE TONNERRE SEC DE LA FRAPPE (11/09). Le compteur strikeHit du store
+  // avance quand le serpent touche l'anneau : un coup court, bruit
+  // passe-bas et sinus qui tombe, plus sec que le coup du gel de l'Est.
+  useEffect(() => {
+    if (muted || direction !== "turquoise") return;
+    let vu = xiuhcoatlStore.strikeHit;
+    const timer = window.setInterval(() => {
+      const ctx = ctxRef.current;
+      const master = masterGainRef.current;
+      if (!ctx || !master) return;
+      if (xiuhcoatlStore.strikeHit === vu) return;
+      vu = xiuhcoatlStore.strikeHit;
+      const now = ctx.currentTime;
+      const noise = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.6), ctx.sampleRate);
+      const d = noise.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const src = ctx.createBufferSource();
+      src.buffer = noise;
+      const lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.setValueAtTime(1400, now);
+      lp.frequency.exponentialRampToValueAtTime(120, now + 0.5);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.8, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+      src.connect(lp).connect(g).connect(master);
+      src.start(now);
+      src.stop(now + 0.65);
+      const sub = ctx.createOscillator();
+      sub.type = "sine";
+      sub.frequency.setValueAtTime(90, now);
+      sub.frequency.exponentialRampToValueAtTime(40, now + 0.35);
+      const sg = ctx.createGain();
+      sg.gain.setValueAtTime(0.0001, now);
+      sg.gain.exponentialRampToValueAtTime(0.5, now + 0.03);
+      sg.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+      sub.connect(sg).connect(master);
+      sub.start(now);
+      sub.stop(now + 0.5);
+    }, 90);
+    return () => window.clearInterval(timer);
+  }, [muted, direction]);
+
+  // LE NORD, L'EAU (11/09). Une nappe tres basse tant qu'on est au bassin,
+  // et un « plip » a chaque pas de Xolotl dans l'eau : le simulateur
+  // d'ondes recoit deja ses impacts (xolotl-companion), le store en tient
+  // le compte, et le son suit le compte. Chaque pas qu'on VOIT pousser une
+  // onde s'entend.
+  const waterRef = useRef<{ source: AudioBufferSourceNode; gain: GainNode; lfo: OscillatorNode } | null>(null);
+  useEffect(() => {
+    const ctx = ctxRef.current;
+    const master = masterGainRef.current;
+    const wantWater = !muted && direction === "obsidienne";
+    const current = waterRef.current;
+    if (!wantWater || !ctx || !master) {
+      if (current && ctx) {
+        current.gain.gain.cancelScheduledValues(ctx.currentTime);
+        current.gain.gain.setValueAtTime(current.gain.gain.value, ctx.currentTime);
+        current.gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
+        waterRef.current = null;
+        window.setTimeout(() => {
+          try { current.source.stop(); } catch {}
+          try { current.lfo.stop(); } catch {}
+        }, 1700);
+      }
+      return;
+    }
+    if (current) return;
+    const seconds = 4;
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    // Bruit brun : un blanc integre, plus grave et plus liquide.
+    let last = 0;
+    for (let i = 0; i < data.length; i++) {
+      const white = Math.random() * 2 - 1;
+      last = (last + 0.02 * white) / 1.02;
+      data[i] = last * 3.5;
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    const band = ctx.createBiquadFilter();
+    band.type = "bandpass";
+    band.frequency.value = 260;
+    band.Q.value = 0.8;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 0.08;
+    lfoGain.gain.value = 0.012;
+    lfo.connect(lfoGain).connect(gain.gain);
+    lfo.start();
+    source.connect(band).connect(gain).connect(master);
+    source.start();
+    gain.gain.linearRampToValueAtTime(0.035, ctx.currentTime + 2.5);
+    waterRef.current = { source, gain, lfo };
+    // Les pas : un compteur, jamais la longueur d'un tableau que le
+    // simulateur vide a chaque image.
+    let vu = tezcatlStore.impactSerial;
+    const timer = window.setInterval(() => {
+      const c = ctxRef.current;
+      const m = masterGainRef.current;
+      if (!c || !m) return;
+      const nouveaux = tezcatlStore.impactSerial - vu;
+      if (nouveaux <= 0) return;
+      vu = tezcatlStore.impactSerial;
+      const now = c.currentTime;
+      const o = c.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(820 + Math.random() * 240, now);
+      o.frequency.exponentialRampToValueAtTime(320, now + 0.09);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.09, now + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+      o.connect(g).connect(m);
+      o.start(now);
+      o.stop(now + 0.13);
+    }, 60);
+    return () => window.clearInterval(timer);
+  }, [muted, direction]);
+
+  // LE CENTRE, LE FEU (11/09). Le foyer qui ne s'eteint jamais : un lit
+  // chaud (bruit brun passe-bas) et des crepitements courts dont la cadence
+  // suit l'offrande, lib/copal, la meme intensite que les braseros a
+  // l'ecran. docs/da/etat-de-l-art.md l'avait ecrit : « le son commence
+  // ici, le feu qui crepite ».
+  const fireRef = useRef<{ source: AudioBufferSourceNode; gain: GainNode } | null>(null);
+  useEffect(() => {
+    const ctx = ctxRef.current;
+    const master = masterGainRef.current;
+    const wantFire = !muted && direction === "jade";
+    const current = fireRef.current;
+    if (!wantFire || !ctx || !master) {
+      if (current && ctx) {
+        current.gain.gain.cancelScheduledValues(ctx.currentTime);
+        current.gain.gain.setValueAtTime(current.gain.gain.value, ctx.currentTime);
+        current.gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
+        fireRef.current = null;
+        window.setTimeout(() => { try { current.source.stop(); } catch {} }, 1700);
+      }
+      return;
+    }
+    if (current) return;
+    const seconds = 3;
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < data.length; i++) {
+      const white = Math.random() * 2 - 1;
+      last = (last + 0.03 * white) / 1.03;
+      data[i] = last * 3;
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 180;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    source.connect(lp).connect(gain).connect(master);
+    source.start();
+    fireRef.current = { source, gain };
+    let timer = 0;
+    const crepite = () => {
+      const c = ctxRef.current;
+      const m = masterGainRef.current;
+      const offrande = copalIntensity(arcProgress(window.scrollY, window.innerHeight), 0);
+      if (c && m) {
+        gain.gain.setTargetAtTime(0.05 * offrande, c.currentTime, 0.8);
+        const now = c.currentTime;
+        const n = 1 + Math.floor(Math.random() * 3);
+        for (let k = 0; k < n; k++) {
+          const t0 = now + Math.random() * 0.25;
+          const pop = c.createBuffer(1, Math.floor(c.sampleRate * 0.03), c.sampleRate);
+          const d = pop.getChannelData(0);
+          for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+          const src = c.createBufferSource();
+          src.buffer = pop;
+          const bp = c.createBiquadFilter();
+          bp.type = "bandpass";
+          bp.frequency.value = 900 + Math.random() * 2200;
+          bp.Q.value = 2;
+          const g = c.createGain();
+          g.gain.setValueAtTime((0.05 + Math.random() * 0.1) * offrande, t0);
+          g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.03);
+          src.connect(bp).connect(g).connect(m);
+          src.start(t0);
+          src.stop(t0 + 0.04);
+        }
+      }
+      // Plus l'offrande est haute, plus ca crepite.
+      timer = window.setTimeout(crepite, 180 + Math.random() * (900 - 600 * offrande));
+    };
+    timer = window.setTimeout(crepite, 400);
+    return () => window.clearTimeout(timer);
+  }, [muted, direction]);
+
   /**
    * LA CLOCHE DU CLIMAX (08/09). Jusqu'ici l'accord cardinal ne sonnait
    * qu'au CLIC : le son habillait l'interface au lieu de raconter le
@@ -404,6 +662,26 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [muted, direction, playChime]);
+
+  // LE CHOIX DU VOILE (11/09). Deux boutons pendant l'attente ; celui qui
+  // choisit le son declenche ici, dans son clic, la creation du contexte :
+  // c'est le geste que le navigateur exige, et il ne se rejoue pas plus
+  // tard. « Sans le son » ne fait rien de plus que persister le silence.
+  useEffect(() => {
+    function onChoice(e: Event) {
+      const on = Boolean((e as CustomEvent<{ on: boolean }>).detail?.on);
+      if (!on) {
+        setMuted(true);
+        return;
+      }
+      const ctx = ensureContext();
+      if (!ctx) return;
+      if (ctx.state === "suspended") ctx.resume();
+      setMuted(false);
+    }
+    window.addEventListener(SOUND_CHOICE_EVENT, onChoice);
+    return () => window.removeEventListener(SOUND_CHOICE_EVENT, onChoice);
+  }, [ensureContext]);
 
   function handleToggle() {
     const nextMuted = !muted;

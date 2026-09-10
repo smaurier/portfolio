@@ -11,6 +11,7 @@ import { getDictionary, isLocale, locales, type Locale, type Dictionary } from "
 import { pageKeys, slugs, getPageKeyFromSlug, type PageKey, getPath } from "../../../lib/routes";
 import { renderWithNahuatl } from "../../../lib/nahuatl";
 import { SITE_URL, SITE_NAME } from "../../../lib/seo";
+import RevealOnScroll from "@/app/components/stag-scene/reveal-on-scroll";
 
 // Depuis le 25/08 (cf memory project-nahual-da) : plus de fenêtre écho
 // 320×320 par page : la scène 3D plein écran de la home est généralisée
@@ -68,6 +69,7 @@ export async function generateMetadata({
 function ServicesPage({ locale, dict }: { locale: Locale; dict: Dictionary["services"] }) {
   return (
     <div className="contentPage">
+      <RevealOnScroll />
       <h1>{dict.title}</h1>
       <p>{dict.intro}</p>
 
@@ -91,6 +93,7 @@ function ProjetsPage({ dict, locale, newWindowLabel }: { dict: Dictionary["proje
   const projetsSlug = slugs.projets[locale];
   return (
     <div className="contentPage">
+      <RevealOnScroll />
       <h1>{dict.title}</h1>
       <p>{dict.intro}</p>
 
@@ -139,6 +142,22 @@ function ProjetsPage({ dict, locale, newWindowLabel }: { dict: Dictionary["proje
         cta={dict.synapse.cta}
         detailHref={`/${locale}/${projetsSlug}/synapse`}
         detailCta={dict.synapse.detail.readMoreCta}
+        newWindowLabel={newWindowLabel}
+      />
+
+      <ProjectCase
+        title={dict.radar.title}
+        text={dict.radar.text}
+        context={dict.radar.context}
+        role={dict.radar.role}
+        stack={dict.radar.stack}
+        highlights={dict.radar.highlights}
+        outcome={dict.radar.outcome}
+        labels={dict.labels}
+        href="https://github.com/smaurier/radar-signaux"
+        cta={dict.radar.cta}
+        detailHref={`/${locale}/${projetsSlug}/radar`}
+        detailCta={dict.radar.detail.readMoreCta}
         newWindowLabel={newWindowLabel}
       />
 
@@ -222,6 +241,7 @@ function ProjectCase({
 function ContactPage({ dict, showEmailLabel, newWindowLabel }: { dict: Dictionary["contact"]; showEmailLabel: string; newWindowLabel: string }) {
   return (
     <div className="contentPage">
+      <RevealOnScroll />
       <h1>{dict.title}</h1>
       <p>{dict.intro}</p>
 
@@ -461,6 +481,7 @@ function LegalPage({
 function MemoirePage({ dict }: { dict: Dictionary["memoire"] }) {
   return (
     <div className="contentPage">
+      <RevealOnScroll />
       <h1>{renderWithNahuatl(dict.title)}</h1>
       <p>{renderWithNahuatl(dict.intro)}</p>
 

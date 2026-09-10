@@ -61,6 +61,11 @@
 }
 
 .block {
+  /* Le hero suit la scene (11/09) : aucun fond la nuit (alpha 0), un voile
+     leger quand le monde s'eclaircit -- l'Est gele, a l'arrivee, faisait
+     tomber un mot du hero sous 4,5:1 (mesure : p05 2,92). */
+  background: rgba(var(--panel-rgb), calc(0.45 * var(--scene-lum, 0)));
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   gap: 16px;

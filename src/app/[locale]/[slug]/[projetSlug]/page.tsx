@@ -6,6 +6,7 @@ import type { DirectionKey } from "../../../components/stag-scene/direction-colo
 import { getDictionary, isLocale, locales, type Locale, type Dictionary } from "../../../../dictionaries";
 import { slugs, getPageKeyFromSlug } from "../../../../lib/routes";
 import { SITE_URL, SITE_NAME, AUTHOR_NAME } from "../../../../lib/seo";
+import RevealOnScroll from "@/app/components/stag-scene/reveal-on-scroll";
 
 // Route nested case study projet (29/08 task #73). Structure :
 // /[locale]/projets/[projetSlug] (avec slugs localises services/
@@ -13,7 +14,7 @@ import { SITE_URL, SITE_NAME, AUTHOR_NAME } from "../../../../lib/seo";
 // "projects" (en) / "proyectos" (es), sinon notFound.
 // Direction : turquoise (Sud, meme que page projets liste).
 
-const PROJET_KEYS = ["nuada", "kleyfrance", "synapse"] as const;
+const PROJET_KEYS = ["nuada", "kleyfrance", "synapse", "radar"] as const;
 type ProjetKey = (typeof PROJET_KEYS)[number];
 
 export async function generateMetadata({
@@ -68,6 +69,7 @@ export function generateStaticParams() {
 function ProjetDetailContent({ projet, newWindowLabel, backHref }: { projet: Dictionary["projets"]["nuada"]; newWindowLabel: string; backHref: string }) {
   return (
     <div className="contentPage projetDetailPage">
+      <RevealOnScroll />
       <p className="projetDetailBack">
         <Link href={backHref} className="footerLink">{projet.detail.backCta}</Link>
       </p>
