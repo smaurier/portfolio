@@ -468,3 +468,70 @@ recompilations de matériaux existants mais des **matériaux créés tard**
 Les traiter demanderait de les instancier plus tôt, ce qui coûte de la
 mémoire à l'arrivée : le rapport n'est plus évident, et le défaut n'est
 plus au niveau où il ruinait un geste.
+
+---
+
+## 9. Ce que la nuit du 10/09 a change
+
+Trois arbitrages de Sylvain (l'herbe, la profondeur de champ, l'arc du
+Centre), et le défaut de compilation tardive dont la cause a fini par se
+laisser prendre.
+
+### La barre du métier, avant et après
+
+| page | images en retard, le matin | ce soir |
+| --- | --- | --- |
+| Accueil | 9 / 1193 | **0 / 1201** |
+| Services | 6 / 1196 | **0 / 1201** |
+| Projets | 6 / 1196 | **0 / 1202** |
+| Contact | **526 / 564**, 30 images par seconde | 141 / 1062, **59,9** |
+| Mémoire | **224 / 844** | 7 / 1182 |
+
+Les cinq pages tiennent maintenant la médiane de 60. Contact la tenait à
+moitié ce matin ; il reste son cinquième centile à 29,9, soit 13 % d'images
+en retard.
+
+### Les leviers, un par un
+
+**Levier 1, la compilation tardive : fait**, mais pas par la chauffe des
+shaders, qui aggravait (§ 8). La cause était une lumière ponctuelle qui
+naissait au milieu de l'arc. Vingt-deux des trente et une compilations
+tardives sont parties.
+
+**Levier 2, l'herbe : fait, et autrement que proposé.** Les deux options
+soumises à Sylvain valaient moins que ce que le code disait. Simuler à
+30 Hz aurait économisé 0,4 ms par image, parce que le coût n'était pas
+l'intégration mais le VENT : six sinus par cellule, 4096 cellules, soixante
+fois par seconde. Le champ voyage sans se déformer, donc il se précalcule :
+266 ms/s deviennent 36. Et la piste de la densité reposait sur une prémisse
+fausse : la prairie s'arrête déjà au pied des montagnes (`MAX_RADIUS = 16`,
+et les pentes sont exclues), et le profil mobile ne pose pas 26 000 brins
+mais 9 000.
+
+**Levier 4, la profondeur de champ : faite, et elle a révélé un défaut.**
+Les paramètres étaient en unités normalisées d'une version antérieure de
+`postprocessing` ; en unités monde, le plan de netteté était à trois
+centimètres de la caméra. Pendant chaque passage cardinal, tout le cadre
+partait dans le flou, le cerf compris.
+
+**Levier 7, l'arc vertical du Centre : fait.** Le regard remonte l'axe du
+monde sur le dernier cinquième, la colonne de fumée des cinq offrandes part
+avant lui, et l'arche de Mixcoatl passe au zénith.
+
+**Restent à toi** : le son (levier 3), le rapport contenu / scène au Nord et
+au Sud (levier 5), l'échelle typographique (levier 6).
+
+### Ce qui reste mesuré, et non traité
+
+- **Contact, 13 % d'images en retard.** Les postes, profil en temps propre :
+  `stepStrip` 95 ms/s (les rubans des Cihuateteo), `updateMatrixWorld` 88,
+  `writeRibbonSlot` 65, `stepLeaf` 46, `getParameters` 42. Ce dernier ne
+  devrait pas exister en régime établi : three ne recalcule les paramètres
+  d'un programme que si l'état de rendu a changé. C'est la même famille de
+  défaut que la lumière de Xolotl, et il n'est pas diagnostiqué.
+- **Le voile se lève encore à 22-41 secondes** sous CPU ×4 et Fast 3G. C'est
+  ce qu'un jury voit en premier, et le poids n'y est pour rien (0,6 Mo) :
+  le temps part dans le calcul.
+- **Six compilations tardives à Mémoire, trois à Contact.** Ce sont des
+  matériaux créés tard, plus des recompilations : les traiter coûterait de
+  la mémoire à l'arrivée, le rapport n'est plus évident.
