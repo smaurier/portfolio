@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useProgress } from "@react-three/drei";
+import { SHADERS_WARM_EVENT } from "./shader-warmup";
 
 /**
  * RevealTrigger / VeilOrchestrator (31/08 refonte event-driven).
@@ -30,6 +31,11 @@ import { useProgress } from "@react-three/drei";
 /** Duree de respiration entre la fin du logo et le fade out du voile. */
 const HOLD_AFTER_SEQUENCE_MS = 1000;
 
+/** La chauffe des shaders (11/09) : le voile l'attend, mais jamais plus que
+ *  ceci apres le chargement complet. Un pilote lent ou un evenement perdu
+ *  ne doivent pas tenir le visiteur devant le voile. */
+const WARMUP_FALLBACK_MS = 4000;
+
 /** Foyer deja allume (visiteur qui revient dans la journee, cf lib/foyer) :
  *  aucune ceremonie, donc rien a attendre. Le voile reste le temps du vrai
  *  chargement et s'ouvre des que la scene est la. */
@@ -54,6 +60,7 @@ export default function RevealTrigger() {
     progressRef.current = progress;
   }, [progress]);
   const sequenceDoneRef = useRef(false);
+  const warmRef = useRef(false);
 
   useEffect(() => {
     const skeleton = document.querySelector<HTMLElement>(
@@ -74,7 +81,7 @@ export default function RevealTrigger() {
 
     const tryPoseLoaded = () => {
       if (done) return;
-      if (progressRef.current >= 100 && sequenceDoneRef.current) {
+      if (progressRef.current >= 100 && sequenceDoneRef.current && warmRef.current) {
         done = true;
         timers.push(
           setTimeout(() => {
@@ -120,6 +127,15 @@ export default function RevealTrigger() {
       markSequenceDone();
     }
 
+    // La chauffe des shaders : l'evenement, ou le delai de secours compte
+    // depuis le chargement complet (voir l'effet sur progress plus bas).
+    const onWarm = () => {
+      if (warmRef.current) return;
+      warmRef.current = true;
+      tryPoseLoaded();
+    };
+    window.addEventListener(SHADERS_WARM_EVENT, onWarm);
+
     skeleton.addEventListener("animationend", onAnimEnd);
     // Fallback global : si la sequence texte ne signale jamais sa
     // fin (traduction vide, CSS change), on marque tout comme
@@ -131,17 +147,30 @@ export default function RevealTrigger() {
     timers.push(revealFallback);
 
     return () => {
+      window.removeEventListener(SHADERS_WARM_EVENT, onWarm);
       skeleton.removeEventListener("animationend", onAnimEnd);
       timers.forEach(clearTimeout);
     };
   }, []);
+
+  // Le delai de secours de la chauffe part du chargement complet.
+  useEffect(() => {
+    if (progress < 100 || warmRef.current) return;
+    const timer = setTimeout(() => {
+      if (warmRef.current) return;
+      warmRef.current = true;
+      // Meme chemin que l'evenement : on retente la pose de data-loaded.
+      window.dispatchEvent(new Event(SHADERS_WARM_EVENT));
+    }, WARMUP_FALLBACK_MS);
+    return () => clearTimeout(timer);
+  }, [progress]);
 
   // Reagit au changement de progress : quand les assets 3D finissent
   // de charger, on tente de poser data-loaded (si la sequence est
   // aussi finie).
   useEffect(() => {
     if (progress < 100) return;
-    if (!sequenceDoneRef.current) return;
+    if (!sequenceDoneRef.current || !warmRef.current) return;
     // Re-appel via un tick pour rester dans le flow des effets.
     const hold =
       document.documentElement.getAttribute("data-hearth") === "lit"

@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { deriveFogTint, readDirectionAccentColor, readDirectionColor } from "./direction-colors";
 import SceneContent from "./scene-content";
+import ShaderWarmup from "./shader-warmup";
 import { useSceneRefs } from "./scene-refs-context";
 import { useCurrentDirection } from "./use-current-direction";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
@@ -201,6 +202,9 @@ export default function PersistentScene() {
             cardinal rendu visible : filaments qui balaient l'orbite
             plus vite que la camera. Invisible hors transition. */}
         <EhecatlWind />
+        {/* La chauffe des shaders (11/09, deuxieme tentative) : compile pendant
+            le voile ce qui, sinon, se compilerait au milieu d'un geste. */}
+        <ShaderWarmup />
         {refs.perfProfile.postFx && <PostFX />}
       </Canvas>
     </div>
