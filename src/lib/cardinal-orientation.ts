@@ -58,7 +58,7 @@ export function toDecorLocal(x: number, z: number, angle: number): Vec2 {
   return rotateY({ x, z }, -angle);
 }
 
-function wrapAngle(a: number): number {
+export function wrapAngle(a: number): number {
   const w = Math.atan2(Math.sin(a), Math.cos(a));
   // atan2 rend ]-pi, pi] sauf -pi exactement pour certains arguments.
   return w <= -Math.PI ? Math.PI : w;

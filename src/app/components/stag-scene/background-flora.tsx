@@ -7,6 +7,7 @@ import { Box3, Vector3, type Object3D } from "three";
 import { generateRingPlacements, type FloraPlacement } from "@/lib/flora-placement";
 import { getTerrainHeight } from "@/lib/terrain-height";
 import { mergeByMaterial } from "@/lib/merge-meshes";
+import { freezeDecor } from "@/lib/freeze-decor";
 
 /**
  * Végétation de fond, fixe dans le monde : palier 3 de la DA Nahual (cf
@@ -114,6 +115,19 @@ export function useNormalizedClone(path: string, targetHeight: number): Object3D
     clone.scale.setScalar(scale);
     clone.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
     normalizedRef.current = true;
+    // POSE, DONC FIGE (10/09). Le modele ne bougera plus jamais, et
+    // `agave.glb` a lui seul porte des dizaines de noeuds : sans ca, three
+    // recompose la matrice de chacun a chaque image, pour toujours. Mesure
+    // sur Contact : 488 objets sur 941 ne bougent jamais. Le decor fige
+    // suit toujours la boussole, la propagation forcee traverse les objets
+    // figes (voir lib/freeze-decor).
+    //
+    // DEPUIS LE PARENT, et c'est la seule facon que ca serve : figer le
+    // clone seul ne gagne rien, parce que le groupe qui le porte reste,
+    // lui, en matrice automatique. Il se marque donc sale a chaque image et
+    // propage la mise a jour DE FORCE a tout ce qu'il contient, y compris
+    // aux objets figes. Premiere version mesuree : aucun gain.
+    freezeDecor(clone.parent ?? clone);
   });
 
   return clone;

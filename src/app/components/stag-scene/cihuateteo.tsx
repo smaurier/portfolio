@@ -250,6 +250,22 @@ export default function Cihuateteo() {
   const smokeMaterial = useMemo(() => new SpriteMaterial({ map: smokeTexture, color: new Color("#2b1c33"), transparent: true, opacity: 0, depthWrite: false, blending: NormalBlending, fog: false }), [smokeTexture]);
   const glowMaterial = useMemo(() => new SpriteMaterial({ map: glowTexture(), color: new Color("#ffd2a0"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }), []);
 
+  /**
+   * MECHES PAR PORTEUSE, SELON LE PROFIL (10/09).
+   *
+   * Chaque meche est une chaine de Verlet relachee quatre fois par image, et
+   * il y a quatre porteuses : mesure du profil processeur de la page Contact
+   * sous CPU x4, `stepStrip` plus `writeRibbonSlot` comptaient 171 ms par
+   * seconde, premier poste de la page, sur un budget de 16,7 ms par image.
+   * C'est aussi la seule page du site qui n'a jamais tenu la barre du
+   * metier.
+   *
+   * Le telephone en pose donc moins, exactement comme il pose 9 000 brins
+   * d'herbe au lieu de 26 000 : c'est le palier de qualite qui existe depuis
+   * le 05/09, pas une nouvelle regle. Sur ordinateur, rien ne change.
+   */
+  const meches = sceneRefs?.perfProfile.hairStrands ?? HAIR_STRANDS;
+
   const bearers = useMemo<Bearer[]>(() => {
     return Array.from({ length: CIHUATETEO.count }, (_, i) => {
       const inner = cloneSkinnedScene(scene) as Group;
@@ -264,7 +280,7 @@ export default function Cihuateteo() {
         action.time = (i / CIHUATETEO.count) * walkClip.duration;
         action.play();
       }
-      const hair = bearerHair(i).map((strand) => ({ strand, strip: createStrip(HAIR_POINTS, strand.length, { x: 0, y: BEARER_HEIGHT, z: 0 }) }));
+      const hair = bearerHair(i, meches).map((strand) => ({ strand, strip: createStrip(HAIR_POINTS, strand.length, { x: 0, y: BEARER_HEIGHT, z: 0 }) }));
       const skirt = Array.from({ length: SKIRT_STRIPS }, () => createStrip(SKIRT_POINTS, SKIRT_LENGTH, { x: 0, y: 1, z: 0 }));
       // Les papiers vivent dans UN SEUL faisceau partage par les quatre
       // porteuses (09/09) : ils sont simules en espace monde et ajoutes au
@@ -292,9 +308,12 @@ export default function Cihuateteo() {
         // Devant elle, entre les papiers : un petit foyer.
         return { sprite, x: (hash(i * 11 + k, 5) - 0.5) * 0.5, z: 0.55 + hash(i * 11 + k, 6) * 0.35, phase: hash(i * 11 + k, 7) * 6.28 };
       });
-      return { root, mixer, uniforms, bones: collectBones(inner, animatedBones), hair, hairGeometry: createRibbonBundleGeometry(HAIR_STRANDS, HAIR_POINTS), skirt, skirtGeometry: createRibbonBundleGeometry(SKIRT_STRIPS, SKIRT_POINTS), hipsBone: inner.getObjectByName("Hips") ?? null, papers, smokes, embers, headBone: inner.getObjectByName("Head") ?? null };
+      return { root, mixer, uniforms, bones: collectBones(inner, animatedBones), hair, hairGeometry: createRibbonBundleGeometry(meches, HAIR_POINTS), skirt, skirtGeometry: createRibbonBundleGeometry(SKIRT_STRIPS, SKIRT_POINTS), hipsBone: inner.getObjectByName("Hips") ?? null, papers, smokes, embers, headBone: inner.getObjectByName("Head") ?? null };
     });
-  }, [scene, walkClip, animatedBones, smokeMaterial, emberMaterial]);
+    // `meches` est dans les dependances : sans lui, un passage du seuil
+    // mobile laisserait des chaines de 90 meches ecrire dans un faisceau
+    // dimensionne pour 40.
+  }, [scene, walkClip, animatedBones, smokeMaterial, emberMaterial, meches]);
 
   /** Le faisceau UNIQUE des papiers des quatre porteuses (09/09). */
   const paperGeometry = useMemo(

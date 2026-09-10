@@ -30,6 +30,8 @@ export type PerfProfile = {
   shadows: boolean;
   /** Brins d'herbe de la prairie (05/09). */
   bladeCount: number;
+  /** Meches de cheveux par porteuse, a l'Ouest (10/09). */
+  hairStrands: number;
 };
 
 /**
@@ -49,5 +51,6 @@ export function getPerfProfile(viewportWidth: number, eco = false): PerfProfile 
     postFx: q.postFx,
     shadows: q.shadows,
     bladeCount: q.bladeCount,
+    hairStrands: q.hairStrands,
   };
 }

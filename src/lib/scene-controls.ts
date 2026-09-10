@@ -47,11 +47,19 @@ export type QualityProfile = {
   shadows: boolean;
   /** Brins d'herbe de la prairie. */
   bladeCount: number;
+  /**
+   * Meches de cheveux par porteuse, a l'Ouest (10/09). Chaque meche est
+   * une chaine de Verlet relachee quatre fois par image ; a quatre
+   * porteuses, c'etait le premier poste processeur de la page Contact,
+   * 171 ms par seconde avec l'ecriture des rubans, sur un budget de 16,7
+   * ms par image. Meme palier que l'herbe : le telephone en pose moins.
+   */
+  hairStrands: number;
 };
 
-const QUALITY_DESKTOP: QualityProfile = { dprCap: 2, postFx: true, shadows: true, bladeCount: 26000 };
-const QUALITY_MOBILE: QualityProfile = { dprCap: 1.5, postFx: false, shadows: false, bladeCount: 9000 };
-const QUALITY_ECO: QualityProfile = { dprCap: 1, postFx: false, shadows: false, bladeCount: 7000 };
+const QUALITY_DESKTOP: QualityProfile = { dprCap: 2, postFx: true, shadows: true, bladeCount: 26000, hairStrands: 90 };
+const QUALITY_MOBILE: QualityProfile = { dprCap: 1.5, postFx: false, shadows: false, bladeCount: 9000, hairStrands: 40 };
+const QUALITY_ECO: QualityProfile = { dprCap: 1, postFx: false, shadows: false, bladeCount: 7000, hairStrands: 28 };
 
 /** Le profil effectif : eco force le repli, sinon le profil de l'ecran. */
 export function resolveQuality(eco: boolean, isMobile: boolean): QualityProfile {
