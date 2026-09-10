@@ -47,14 +47,36 @@ const CA_BASE = 0.0006;
 const CA_BURST_ADD = 0.0012;
 
 /**
- * Focus rack (28/08 task #44). DOF quasi-inactif au repos (bokehScale 0)
- * pour économiser le shader pass ; monte à ~3 pendant le peak burst =
- * shallow DOF, arrière-plan flou tandis que le cerf reste net. Le focus
- * suit la caméra target (getOrbitCameraTarget = origine cerf).
- * focusDistance 0.03 correspond à ~5 units world (Z du cerf) avec la
- * caméra qui orbite radius ~5-6. focalLength 0.06 = bokeh subtile
- * mais lisible. Signature cinéma directe.
+ * LA PROFONDEUR DE CHAMP (28/08, refaite le 10/09).
+ *
+ * Ce qui ne marchait pas : `focusDistance` et `focusRange` sont en UNITES
+ * MONDE dans postprocessing 6.39 (le shader du cercle de confusion fait
+ * `distance - focusDistance` sur une distance de vue, pas sur une
+ * profondeur normalisée). On passait 0,03 et 0,06 : le plan de netteté
+ * était à trois centimètres de la caméra et la plage de netteté faisait six
+ * centimètres. Tant que le bokeh restait à zéro, personne ne le voyait ;
+ * mais pendant un passage cardinal, où il montait à 3, TOUT le cadre
+ * partait dans le flou, cerf compris. Le commentaire promettait un focus
+ * rack, le shader rendait un flou plat.
+ *
+ * Ce qu'on fait maintenant : la mise au point suit une CIBLE, l'origine du
+ * décor à hauteur de regard, et l'effet recalcule la distance à chaque
+ * image depuis la position réelle de la caméra. Toutes les pages sont
+ * bâties autour de cette origine (le cerf, le bassin, la Piedra, le
+ * carrefour) : une seule cible suffit, il n'y a pas de table par direction
+ * à tenir.
+ *
+ * La plage de netteté (12 u) couvre l'avant-plan et toute la prairie
+ * (rayon 16 u) ; ce qui part dans le flou, ce sont les montagnes et le
+ * ciel, là où l'oeil n'a rien à lire. Le bokeh de repos reste discret :
+ * c'est une signature, pas un effet.
  */
+const DOF_TARGET_Y = 1; // getOrbitCameraTarget().y : la ligne de regard
+// Stable entre les rendus : l'effet garde la reference et recalcule la
+// distance a chaque image depuis la camera.
+const DOF_TARGET: [number, number, number] = [0, DOF_TARGET_Y, 0];
+const DOF_FOCUS_RANGE = 12;
+const DOF_BASE_BOKEH = 1.4;
 const DOF_BURST_BOKEH = 3.0;
 
 export default function PostFX() {
@@ -119,10 +141,10 @@ export default function PostFX() {
       caRef.current.offset.y = offset;
     }
     if (dofRef.current) {
-      // Bokeh 0 au repos = shader DOF quasi-passthrough (perf).
-      // Pendant burst : monte en bell curve, peak 3.0 = arrière-plan
-      // franchement flou, cerf reste net → focus rack cinéma.
-      dofRef.current.bokehScale = bell * DOF_BURST_BOKEH;
+      // Au repos, le bokeh de base ; pendant un passage cardinal il monte
+      // en cloche. Le sujet reste net parce que la mise au point est sur
+      // lui : c'est ce qui fait un focus rack et non un flou plat.
+      dofRef.current.bokehScale = DOF_BASE_BOKEH + bell * DOF_BURST_BOKEH;
     }
   });
 
@@ -167,9 +189,9 @@ export default function PostFX() {
           bokehScale animé par useFrame ci-dessus. */}
       <DepthOfField
         ref={dofRef as never}
-        focusDistance={0.03}
-        focalLength={0.06}
-        bokehScale={0}
+        target={DOF_TARGET}
+        focusRange={DOF_FOCUS_RANGE}
+        bokehScale={DOF_BASE_BOKEH}
       />
       <Bloom
         ref={bloomRef as never}
