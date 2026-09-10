@@ -46,6 +46,7 @@ export const foyerStore: {
     position: getOrbitCameraPosition(0),
     target: getOrbitCameraTarget(),
     fovDeg: 45,
+    frameShift: 0,
   },
 };
 

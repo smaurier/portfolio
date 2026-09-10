@@ -45,21 +45,20 @@
 
 .title {
   margin: 0 2.4rem 0.6rem 0;
-  font-size: 1.25rem;
-  letter-spacing: 0.02em;
+  font-size: var(--t-chapeau);
 }
 
 .intro {
   margin: 0 0 0.8rem;
-  font-size: 0.95rem;
-  line-height: 1.55;
+  font-size: var(--t-corps);
+  line-height: var(--il-corps);
   opacity: 0.85;
 }
 
 .count {
   margin: 0 0 1.2rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.16em;
+  font-size: var(--t-petit);
+  letter-spacing: var(--interlettre-caps);
   text-transform: uppercase;
   color: var(--direction-color, var(--accent));
 }
@@ -86,18 +85,18 @@
 }
 
 .line {
-  font-size: 0.98rem;
-  line-height: 1.5;
+  font-size: var(--t-corps);
+  line-height: var(--il-corps);
 }
 
 .date {
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  font-size: var(--t-petit);
+  letter-spacing: var(--interlettre-caps);
   opacity: 0.6;
 }
 
 .hiddenText {
-  font-size: 0.9rem;
+  font-size: var(--t-corps);
   opacity: 0.45;
   font-style: italic;
 }

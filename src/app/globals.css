@@ -1,4 +1,24 @@
 :root {
+  /* L'ECHELLE TYPOGRAPHIQUE (10/09, arbitrage de Sylvain : 1,333, la
+     quarte). Releve du 10/09 sur le texte rendu : treize tailles, dont dix
+     entre 11,2 et 18,4 px, a des rapports de 1,02 a 1,11 que l'oeil ne
+     recoit pas comme des niveaux. Cinq tailles de corps portaient 616
+     elements. Desormais cinq paliers, et chaque font-size du site y
+     renvoie. Les titres restent ou ils etaient (28,4 et 37,9 px pour 28,8 et
+     38,4) : les cadrages de scene tiennent aux titres, ils ne bougent pas.
+     Le corps ne descend JAMAIS sous 16 px, mobile compris (RGAA).
+     Detail et comparatif : docs/da/echelle-typo.md. */
+  --t-petit: 0.75rem;
+  --t-corps: 1rem;
+  --t-chapeau: 1.333rem;
+  --t-section: 1.777rem;
+  --t-page: 2.369rem;
+  /* Trois interlignes, et non six dont « normal » sur 480 elements. */
+  --il-corps: 1.6;
+  --il-chapeau: 1.45;
+  --il-titre: 1.15;
+  /* Un seul interlettrage pour les capitales espacees, et non six. */
+  --interlettre-caps: 0.08em;
   /* Dark par defaut (01/09 fix isBot/no-canvas) : le site est en dark
      permanent (cf force color-scheme plus bas). Avant ce fix, la valeur
      par defaut etait #ffffff et seul le canvas 3D noir masquait le body
@@ -256,14 +276,13 @@ main:focus {
   display: flex;
   justify-content: flex-end;
   gap: 16px;
-  font-size: 0.85rem;
+  font-size: var(--t-petit);
   opacity: 0.8;
 }
 
 .langSwitcher {
   opacity: 1 !important;
   font-weight: 600;
-  letter-spacing: 0.03em;
 }
 
 .langSwitcher a {
@@ -303,15 +322,14 @@ main:focus {
 
 .logoText {
   font-weight: 700;
-  font-size: 1.1rem;
-  letter-spacing: 0.02em;
+  font-size: var(--t-chapeau);
 }
 
 .header_bottom nav ul {
   list-style: none;
   display: flex;
   gap: 24px;
-  font-size: 0.95rem;
+  font-size: var(--t-corps);
   font-weight: 600;
 }
 
@@ -404,14 +422,14 @@ body.nahual-lab-reveal .header {
 }
 
 .mobileNav a {
-  font-size: clamp(1.3rem, 5vw, 1.8rem);
+  font-size: var(--t-chapeau);
   font-weight: 600;
   color: #f2ece1;
 }
 
 .mobileExternal {
   gap: 14px;
-  font-size: 0.95rem;
+  font-size: var(--t-corps);
   opacity: 0.85;
 }
 
@@ -419,7 +437,6 @@ body.nahual-lab-reveal .header {
   flex-direction: row;
   gap: 20px;
   font-weight: 600;
-  letter-spacing: 0.04em;
 }
 
 .mobileLangSwitcher a {
@@ -607,11 +624,28 @@ body.nahual-lab-reveal .contentPage {
   text-align: left;
 }
 
+/* Tout h1 du site est au palier de page, meme hors colonne (le titre pour
+   lecteur d'ecran de l'accueil, par exemple) : aucune taille ne vient du
+   navigateur. */
+body.nahual-lab-reveal h1 {
+  font-size: var(--t-page);
+  line-height: var(--il-titre);
+}
+
+/* Les boutons et appels a l'action gardent un interligne de titre : avec
+   l'interligne de corps herite du body, chaque bouton grandissait de cinq
+   pixels, et sur un telephone de 320 px « Decouvrir mes services » passait
+   sous le bouton du mode recit (test controls-overlap, 233 px2). */
+body.nahual-lab-reveal button,
+body.nahual-lab-reveal .ctaButton {
+  line-height: var(--il-titre);
+}
+
 body.nahual-lab-reveal .contentPage h1,
 body.nahual-lab-reveal .contentPage h2 {
-  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+  font-size: var(--t-page);
   font-weight: 600;
-  line-height: 1.15;
+  line-height: var(--il-titre);
   text-wrap: balance;
   /* Halo cardinal derrière le title — text-shadow blur teinté, suggère
      la lumière du feu/luciole qui éclaire la page de codex nocturne
@@ -622,12 +656,12 @@ body.nahual-lab-reveal .contentPage h2 {
 }
 
 body.nahual-lab-reveal .contentPage h2 {
-  font-size: clamp(1.3rem, 2.8vw, 1.8rem);
+  font-size: var(--t-section);
 }
 
 body.nahual-lab-reveal .contentPage p {
-  font-size: 0.98rem;
-  line-height: 1.6;
+  font-size: var(--t-corps);
+  line-height: var(--il-corps);
   color: rgba(242, 236, 225, 0.86);
   /* Text-shadow subtile pour lisibilité contre la scène 3D — pas card,
      halo sombre derrière le texte. */
@@ -754,8 +788,8 @@ body.nahual-lab-reveal .serviceCard[data-index]::before {
 
 body.nahual-lab-reveal .creditNote {
   margin-top: 20px;
-  font-size: 0.78rem;
-  line-height: 1.55;
+  font-size: var(--t-petit);
+  line-height: var(--il-corps);
   font-style: italic;
   color: rgba(242, 236, 225, 0.55);
   text-align: center;
@@ -772,12 +806,12 @@ body.nahual-lab-reveal .cardIndex {
   right: 20px;
   /* 0.75rem / 65 % -> 1.15rem / plein (02/09, retour Sylvain "les numeros
      sur les cartes, a augmenter") */
-  font-size: 1.15rem;
+  font-size: var(--t-chapeau);
   font-style: italic;
   font-weight: 600;
   color: color-mix(in srgb, var(--direction-color, #f2ece1) 45%, rgba(242, 236, 225, 0.95));
   font-variant-numeric: oldstyle-nums;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--interlettre-caps);
   pointer-events: none;
 }
 
@@ -788,7 +822,7 @@ body.nahual-lab-reveal .cardIndex {
 }
 
 body.nahual-lab-reveal .note {
-  font-size: 0.85rem;
+  font-size: var(--t-corps);
   color: rgba(242, 236, 225, 0.55);
 }
 
@@ -853,7 +887,7 @@ body.nahual-lab-reveal .ctaButton {
   background: rgba(8, 6, 12, 0.92);
   backdrop-filter: blur(12px);
   color: #f4ead5;
-  font-size: 0.9rem;
+  font-size: var(--t-corps);
   border-top: 1px solid rgba(244, 234, 213, 0.08);
   z-index: 50;
 }
@@ -867,8 +901,8 @@ body.nahual-lab-reveal .ctaButton {
 }
 
 .footerCol h3 {
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
+  font-size: var(--t-petit);
+  letter-spacing: var(--interlettre-caps);
   text-transform: uppercase;
   color: #00c078;
   font-weight: 600;
@@ -885,7 +919,7 @@ body.nahual-lab-reveal .ctaButton {
 }
 
 .footerCol li {
-  font-size: 0.9rem;
+  font-size: var(--t-corps);
   opacity: 0.85;
 }
 
@@ -894,7 +928,7 @@ body.nahual-lab-reveal .ctaButton {
   margin: 0 auto;
   padding-top: 20px;
   border-top: 1px solid rgba(244, 234, 213, 0.06);
-  font-size: 0.8rem;
+  font-size: var(--t-petit);
   opacity: 0.55;
   text-align: center;
 }
@@ -905,7 +939,6 @@ body.nahual-lab-reveal .ctaButton {
 .footerAztec {
   font-style: italic;
   color: color-mix(in srgb, #00c078 65%, rgba(244, 234, 213, 0.55));
-  letter-spacing: 0.02em;
 }
 
 /* Xolotl easter egg (29/08). 3 layers activés uniquement quand
@@ -923,7 +956,7 @@ body.nahual-lab-reveal .ctaButton {
   max-width: 1200px;
   margin: 0 auto 20px;
   text-align: center;
-  font-size: 0.8rem;
+  font-size: var(--t-petit);
   font-style: italic;
   opacity: 0.85;
   color: color-mix(in srgb, #6b3fa8 55%, rgba(244, 234, 213, 0.7));
@@ -1202,13 +1235,13 @@ body.reading-mode .projectCase {
   -webkit-backdrop-filter: blur(12px);
 }
 .projectCase h2 {
-  font-size: 1.4rem;
+  font-size: var(--t-chapeau);
   margin: 0;
   color: #f4ead5;
 }
 .projectCaseText {
-  font-size: 1.05rem;
-  line-height: 1.55;
+  font-size: var(--t-corps);
+  line-height: var(--il-corps);
   opacity: 0.9;
   margin: 0;
 }
@@ -1219,16 +1252,16 @@ body.reading-mode .projectCase {
   margin: 0.5rem 0 1rem;
 }
 .projectCaseDetails dt {
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
+  font-size: var(--t-petit);
+  letter-spacing: var(--interlettre-caps);
   text-transform: uppercase;
   opacity: 0.55;
   padding-top: 0.2rem;
 }
 .projectCaseDetails dd {
   margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: var(--t-corps);
+  line-height: var(--il-corps);
   opacity: 0.85;
 }
 @media (max-width: 767px) {
@@ -1259,14 +1292,13 @@ body.reading-mode .projectCase {
   padding-top: 0;
 }
 .codexSection h2 {
-  font-size: 1.2rem;
+  font-size: var(--t-chapeau);
   margin: 0 0 1rem;
-  letter-spacing: 0.02em;
   color: #f4ead5;
 }
 .codexSection p {
-  font-size: 1rem;
-  line-height: 1.65;
+  font-size: var(--t-corps);
+  line-height: var(--il-corps);
   opacity: 0.88;
   margin: 0 0 0.8rem;
 }
@@ -1284,22 +1316,22 @@ body.reading-mode .projectCase {
   gap: 0.4rem;
 }
 .codexDirections strong {
-  font-size: 0.85rem;
-  letter-spacing: 0.14em;
+  font-size: var(--t-petit);
+  letter-spacing: var(--interlettre-caps);
   text-transform: uppercase;
   color: #00c078;
   font-weight: 600;
 }
 .codexDirections span {
-  font-size: 0.95rem;
-  line-height: 1.55;
+  font-size: var(--t-corps);
+  line-height: var(--il-corps);
   opacity: 0.85;
 }
 
 /* Sources du Codex (05/09) : ou lire, ou voir. */
 .codexSources .codexSourceWhere {
-  font-size: 0.85rem;
-  line-height: 1.5;
+  font-size: var(--t-petit);
+  line-height: var(--il-corps);
   opacity: 0.75;
 }
 .codexSources .codexSourceWhere a {
@@ -1324,6 +1356,9 @@ body.reading-mode .projectCase {
    claire, form control, autofill) qui detonent avec l'ambiance
    nocturne codex. */
 body.nahual-lab-reveal {
+  /* L'interligne de base (10/09, echelle typo) : « normal » depend de la
+     police et du navigateur, et il etait sur 480 elements. */
+  line-height: var(--il-corps);
   color-scheme: dark;
 }
 
@@ -1416,6 +1451,28 @@ body.nahual-lab-reveal main[data-direction] .contentPage {
   margin: 0 auto;
 }
 
+/* LA COLONNE SUR LE TIERS GAUCHE (10/09, arbitrage de Sylvain : « la 1,
+   colonne a gauche, sujet a droite »). Mesure du 09/09 : centree a 640 px,
+   la colonne tenait 50 % du cadre jusqu'a la fin, au Nord et au Sud, et ce
+   qu'elle couvrait etait le sujet. Au bureau elle prend le tiers gauche,
+   480 px, soit 55 caracteres par ligne ; la scene, elle, glisse son
+   origine aux deux tiers (lib/frame-offset, un decalage de projection qui
+   ne touche a aucune trajectoire). Le Centre n'a pas de colonne et reste
+   centre ; sur mobile la colonne est pleine largeur et rien ne change.
+
+   96 px a gauche et non 6vw : la colonne de boutons vit dans ce coin
+   (1rem + 44 px + respiration), et a 1440 px de large 6vw n'en fait que 86. */
+@media (min-width: 768px) {
+  body.nahual-lab-reveal main[data-direction] {
+    align-items: flex-start;
+    padding-left: max(6vw, 96px);
+  }
+  body.nahual-lab-reveal main[data-direction] .contentPage {
+    max-width: 480px;
+    margin: 0;
+  }
+}
+
 /* Ripple click cardinal (28/08 boite outil #5) — au click compass
    dot, onde concentrique traverse ecran. Fixed overlay pointer-
    events none, s'auto-detruit apres anim via JS setTimeout dans
@@ -1481,17 +1538,16 @@ body.nahual-lab-reveal .serviceCard {
 }
 .projetDetailBack {
   margin: 0 0 1.5rem;
-  font-size: 0.9rem;
+  font-size: var(--t-corps);
   opacity: 0.75;
 }
 .projetDetailHero {
-  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  font-size: var(--t-chapeau);
   font-weight: 300;
-  letter-spacing: 0.01em;
   color: #00c078;
   font-style: italic;
   margin: 0 0 2rem;
-  line-height: 1.4;
+  line-height: var(--il-chapeau);
 }
 .projetDetailSection {
   margin: 2.5rem 0;
@@ -1503,14 +1559,13 @@ body.nahual-lab-reveal .serviceCard {
   padding-top: 0;
 }
 .projetDetailSection h2 {
-  font-size: 1.15rem;
+  font-size: var(--t-chapeau);
   color: #f4ead5;
   margin: 0 0 1rem;
-  letter-spacing: 0.01em;
 }
 .projetDetailSection p {
-  font-size: 1rem;
-  line-height: 1.7;
+  font-size: var(--t-corps);
+  line-height: var(--il-corps);
   opacity: 0.9;
 }
 .projetDetailCta {
@@ -1541,9 +1596,9 @@ body.nahual-lab-reveal .cardReflection {
   margin-top: 0.9rem;
   /* Retour Sylvain 02/09 x3 : "on ne voit rien" -> "encore plus fort" ->
      "baisse de moitie maintenant" : 1.1rem/0.95 -> 0.8rem/0.6. */
-  font-size: 0.8rem;
+  font-size: var(--t-petit);
   font-style: italic;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--interlettre-caps);
   color: color-mix(in srgb, var(--direction-color, #f2ece1) 25%, rgba(242, 236, 225, 0.6));
   transform: scaleY(-1);
   transform-origin: center;
@@ -1638,6 +1693,28 @@ html:not([data-strike]) .contentPage {
    meme raison -- 32px et 28px entre des blocs, c'est une echelle d'ecran
    large. */
 @media (max-width: 767px) {
+  :root {
+    --t-page: 1.777rem;
+    --t-section: 1.333rem;
+  }
+  /* Le logo est une marque, pas du texte courant : au palier du chapeau il
+     ne tenait plus a cote du menu sur 320 px (test controls-overlap : le
+     bouton « Ouvrir le menu » recouvrait 432 px2 du titre). Au corps sur
+     telephone, au chapeau ailleurs. */
+  .logoText {
+    font-size: var(--t-corps);
+  }
+}
+
+/* Sous 380 px (Galaxy S9, 320 px : le cadre du critere RGAA 10.11), les
+   titres descendent d'un cran de plus. Mesure du 10/09 : a 28,4 px, le
+   titre du hero prenait trois lignes sur 194 px de large et remontait sous
+   le bouton du menu (432 px2 de chevauchement, test controls-overlap). */
+@media (max-width: 380px) {
+  :root {
+    --t-page: 1.333rem;
+    --t-section: 1.333rem;
+  }
   body.nahual-lab-reveal main {
     padding: calc(12px + var(--header-height)) 6vw calc(24px + var(--footer-height));
     gap: 20px;

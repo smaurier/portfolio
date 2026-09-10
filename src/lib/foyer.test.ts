@@ -322,3 +322,20 @@ describe("foyer : le tempo", () => {
     expect(end).toBeLessThanOrEqual(2);
   });
 });
+
+describe("projectToScreen avec le cadre decale (10/09)", () => {
+  it("glisse le foyer d'un sixieme de la largeur vers la droite, et de rien en hauteur", () => {
+    const centre = projectToScreen(HEARTH_WORLD, REST_CAMERA, VIEWPORT);
+    const decale = projectToScreen(HEARTH_WORLD, { ...REST_CAMERA, frameShift: 1 / 6 }, VIEWPORT);
+    expect(centre).not.toBeNull();
+    expect(decale).not.toBeNull();
+    expect(decale!.x - centre!.x).toBeCloseTo(VIEWPORT.width / 6, 6);
+    expect(decale!.y).toBeCloseTo(centre!.y, 6);
+  });
+
+  it("sans decalage declare, rien ne change", () => {
+    const a = projectToScreen(HEARTH_WORLD, REST_CAMERA, VIEWPORT);
+    const b = projectToScreen(HEARTH_WORLD, { ...REST_CAMERA, frameShift: 0 }, VIEWPORT);
+    expect(a).toEqual(b);
+  });
+});

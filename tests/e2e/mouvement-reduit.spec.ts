@@ -104,6 +104,11 @@ test.describe("mouvement reduit", () => {
   test("la contemplation demandee joue quand meme", async ({ page }) => {
     await arrive(page);
     expect(await sceneMontee(page), "la scene 3D doit etre montee").toBe(true);
+    // Le silence, mesure dans la meme course : c'est lui la reference.
+    await page.waitForTimeout(3000);
+    const s0 = await empreinte(page);
+    await page.waitForTimeout(2500);
+    const silence = Math.max(0, partChangee(s0, await empreinte(page)));
     await page.locator("button[aria-label*='Contemplation']").click();
     // Le temps que le frameloop reparte et que la scene se pose sur
     // l'heure vraie de Tenochtitlan avant de derouler le jour.
@@ -111,6 +116,19 @@ test.describe("mouvement reduit", () => {
     const a = await empreinte(page);
     await page.waitForTimeout(4500);
     const b = await empreinte(page);
-    expect(partChangee(a, b), "la demande explicite de l'utilisateur doit jouer").toBeGreaterThan(1);
+    // L'ORACLE (revu le 10/09). La ligne etait « plus de 1 % des pixels » sur
+    // un echantillon de 64 x 40 : elle avait ete posee comme une ligne de
+    // BRUIT, pas comme une ligne de mouvement. Le 10/09, le cadre decale a
+    // mis plus de ciel uniforme dans l'image et la profondeur de champ a
+    // adouci les lointains ; une orbite de 16 degres en 4,5 s ne change plus
+    // qu'environ 0,9 % de cet echantillon, et le test tombait pour un site
+    // qui bougeait. Ce que le test doit tenir, c'est la difference entre
+    // « joue » et « se tait » : le canvas fige du premier test donne 0,0 %.
+    // Donc un plancher bas mais net, ET un rapport au silence mesure dans
+    // la meme course, pour que la barre ne soit jamais une constante
+    // choisie a la main.
+    const joue = partChangee(a, b);
+    expect(joue, "la demande explicite de l'utilisateur doit jouer").toBeGreaterThan(0.4);
+    expect(joue, "elle doit jouer NETTEMENT plus qu'au silence").toBeGreaterThan(5 * silence);
   });
 });

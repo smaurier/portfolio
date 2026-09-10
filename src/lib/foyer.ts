@@ -186,6 +186,12 @@ export type CameraPose = {
   target: Vec3;
   /** Champ de vision VERTICAL en degres (convention three.js). */
   fovDeg: number;
+  /** Le cadre decale (10/09, lib/frame-offset) : fraction de la largeur
+   *  dont le centre du cadre est glisse, 0 au Centre et sur mobile. La
+   *  projection a la main ci-dessous doit le connaitre, sinon la flamme
+   *  du voile se pose a cote du foyer sur toute page ou le cadre est
+   *  decale. */
+  frameShift?: number;
 };
 
 /**
@@ -216,7 +222,9 @@ export function projectToScreen(
   const halfHeight = Math.tan((camera.fovDeg * Math.PI) / 360);
   const aspect = viewport.height === 0 ? 1 : viewport.width / viewport.height;
 
-  const ndcX = dot(v, right) / (depth * halfHeight * aspect);
+  // Le cadre decale : l'origine aux deux tiers, donc tout point glisse de
+  // deux fois la fraction en coordonnees normalisees (le cadre va de -1 a 1).
+  const ndcX = dot(v, right) / (depth * halfHeight * aspect) + 2 * (camera.frameShift ?? 0);
   const ndcY = dot(v, up) / (depth * halfHeight);
 
   return {

@@ -104,8 +104,8 @@
   border: 1px solid rgba(var(--ink-rgb), 0.2);
   padding: 8px 12px;
   border-radius: 6px;
-  font-size: 0.72rem;
-  line-height: 1.4;
+  font-size: var(--t-petit);
+  line-height: var(--il-chapeau);
   color: var(--ink);
   white-space: nowrap;
   opacity: 0;
@@ -186,7 +186,7 @@
   border: 1px solid rgba(var(--ink-rgb), 0.25);
   background: rgba(var(--panel-rgb), 0.85);
   color: var(--ink);
-  font-size: 0.72rem;
+  font-size: var(--t-petit);
   font-style: italic;
   font-weight: 600;
   cursor: pointer;

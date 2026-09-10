@@ -87,7 +87,7 @@
   border: 1px solid rgba(var(--ink-rgb), 0.25);
   background: rgba(var(--panel-rgb), 0.85);
   color: var(--ink);
-  font-size: 0.9rem;
+  font-size: var(--t-corps);
   backdrop-filter: blur(8px);
   animation: sceneToastIn 0.25s ease-out;
 }

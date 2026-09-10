@@ -6,6 +6,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import type { PerspectiveCamera } from "three";
 import { getOrbitCameraPosition, getOrbitCameraTarget } from "@/lib/camera-path";
 import { zenithTargetY } from "@/lib/zenith-arc";
+import { filmOffsetFor, FRAME_SHIFT } from "@/lib/frame-offset";
 import { swingAzimuth, swingSpeed } from "@/lib/nepantla";
 import { arrivalCamera } from "@/lib/foyer";
 import { foyerStore } from "./foyer-store";
@@ -374,9 +375,11 @@ export default function OrbitCamera({
 
       const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45) + arrival.fovOffset;
       const fovSortie = baseFov - sortie * EXIT_FOV_CLOSE;
+      const cadre = filmOffsetFor(isMobile ? 0 : FRAME_SHIFT * (1 - jb), camera as PerspectiveCamera);
       const perspCam = camera as PerspectiveCamera;
       if (perspCam.isPerspectiveCamera) {
         perspCam.fov = fovSortie + speed * SWING_FOV;
+        perspCam.filmOffset = cadre;
         perspCam.updateProjectionMatrix();
       }
     } else {
@@ -384,9 +387,20 @@ export default function OrbitCamera({
       // focale solaire du Sud, continue le long de l'arc).
       const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45) + arrival.fovOffset;
       const fovSortie = baseFov - sortie * EXIT_FOV_CLOSE;
+      const cadre = filmOffsetFor(isMobile ? 0 : FRAME_SHIFT * (1 - jb), camera as PerspectiveCamera);
       const perspCam = camera as PerspectiveCamera;
-      if (perspCam.isPerspectiveCamera && Math.abs(perspCam.fov - fovSortie) > 0.05) {
+      // LE CADRE DECALE (10/09, lib/frame-offset) : au bureau, hors du
+      // Centre, l'origine du monde tombe aux deux tiers de l'ecran et la
+      // colonne de texte prend le tiers gauche. Ni la trajectoire ni la
+      // visee ne changent : c'est la projection qui glisse. Fondu par jb,
+      // comme les autres rigs, pour qu'un passage cardinal vers ou depuis
+      // le Centre glisse le cadre au lieu de le faire sauter.
+      if (
+        perspCam.isPerspectiveCamera &&
+        (Math.abs(perspCam.fov - fovSortie) > 0.05 || Math.abs(perspCam.filmOffset - cadre) > 1e-3)
+      ) {
         perspCam.fov = fovSortie;
+        perspCam.filmOffset = cadre;
         perspCam.updateProjectionMatrix();
       }
     }
@@ -427,6 +441,7 @@ export default function OrbitCamera({
     pose.target.z = target.z;
     const publishedCam = camera as PerspectiveCamera;
     if (publishedCam.isPerspectiveCamera) pose.fovDeg = publishedCam.fov;
+    pose.frameShift = isMobile ? 0 : FRAME_SHIFT * (1 - jb);
   });
 
   return null;

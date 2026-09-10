@@ -92,9 +92,9 @@
 
 /* H2 avec split par mot — les .word sont rendus par PageClosure. */
 .title {
-  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  font-size: var(--t-section);
   font-weight: 600;
-  line-height: 1.15;
+  line-height: var(--il-titre);
   margin: 0 0 6px 0;
   padding: 0;
   display: flex;
@@ -143,8 +143,8 @@
 }
 
 .poetic {
-  font-size: 0.92rem;
-  line-height: 1.6;
+  font-size: var(--t-corps);
+  line-height: var(--il-corps);
   color: rgba(var(--ink-warm-rgb), 0.82);
   margin: 0 0 16px 0;
   opacity: 0;
@@ -169,7 +169,7 @@
   border-radius: 999px;
   color: var(--ink-warm);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--t-corps);
   text-decoration: none;
   background: color-mix(in srgb, var(--closure-color) 8%, transparent);
   opacity: 0;

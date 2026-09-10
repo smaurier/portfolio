@@ -53,7 +53,7 @@ export default function ShortcutsToggle({ locale }: { locale: Locale }) {
         />
         <strong>{enabled ? labels.on : labels.off}</strong>
       </label>
-      <p style={{ marginTop: "0.5em", fontSize: "0.95em", opacity: 0.85 }}>{labels.description}</p>
+      <p style={{ marginTop: "0.5em", opacity: 0.85 }}>{labels.description}</p>
     </section>
   );
 }
