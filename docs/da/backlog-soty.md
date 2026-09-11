@@ -65,7 +65,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 | # | quoi | pourquoi | oracle | effort | decision |
 | --- | --- | --- | --- | --- | --- |
 | V1 | **La lumiere cuite** : occlusion ambiante et ombres douces cuites dans une deuxieme UV du decor fixe (sol, Piedra, flore, hampes), une seule texture par modele, la lumiere temps reel gardee pour ce qui bouge | constante 7 des laureats ; le « poids » d'Oryzo ; c'est le dernier NON de la grille d'etat de l'art | avant/apres en capture, ton oeil ; appels de rendu inchanges ; 0 image en retard conservee | L | Sylvain (le rendu) |
-| V2 | Textures en KTX2/Basis | constante 7 ; 1 Mo au total, faible priorite | poids des textures, temps d'ouverture | S | moi |
+| V2 | Textures en KTX2/Basis (verifie le 11/09 : gltf-transform a les commandes `etc1s`/`uastc`, mais il lui faut `toktx` de KTX-Software, absent du poste ; un outil de plus a installer, pour 1 Mo) | constante 7 ; faible priorite | poids des textures, temps d'ouverture | S | moi |
 | V3 | Le telephone en USB : echelle typo, cadre, panneaux | rien n'a ete vu sur un vrai telephone | ton oeil | S | Sylvain |
 
 ## 2. Narratif (creativite 20, contenu 10)
@@ -74,7 +74,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 | --- | --- | --- | --- | --- | --- |
 | N1 | **Une ligne de seuil par direction** (brouillons ecrits, `docs/da/lignes-de-seuil.md`, en attente de relecture), a la deuxieme personne, dans le cadre nepantla, qui relie ce qu'on quitte a ce qu'on rejoint (tonalli recu au Centre, teyolia qui voyage vers Memoire) : cinq lignes, trois langues, vocabulaire du Codex | « une seule idee defendue » d'un bout a l'autre (Metabole, Utsubo) ; le fil est aujourd'hui implicite | les cinq lignes ecrites et relues par toi ; parite des dictionnaires | S | Sylvain (les textes) |
 | N2 | **Xolotl, le personnage qu'on suit** : ecrire son role par direction (ou il est, ce qu'il fait, ce qu'il montre), et le tenir | Messenger : un personnage qui porte l'experience | un document `xolotl-role.md`, puis les gestes qui manquent | M | Sylvain |
-| N3 | Le README du depot, pro, en anglais et en francais : le projet, la cosmologie, la pile, les mesures | le README est celui de Next.js par defaut ; un recruteur le lit | le README | S | Sylvain (le ton), moi (la redaction) |
+| N3 | Le README du depot (brouillon francais ecrit, `docs/da/readme-brouillon.md`, en attente de relecture ; anglais ensuite) | le README est celui de Next.js par defaut ; un recruteur le lit | le README | S | Sylvain (le ton), moi (la redaction) |
 
 ## 3. Cinematographique (design 40)
 
@@ -88,7 +88,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 
 | # | quoi | pourquoi | oracle | effort | decision |
 | --- | --- | --- | --- | --- | --- |
-| M1 | **`nord-sources.md`** : ecrit a partir du Codex de Florence numerique (Getty), livre 3 « origine des dieux », avec livre et chapitre pour chaque affirmation ; rien d'autre n'entre | notre regle : rien de non source ; c'est le seul fichier de sources qui manque, et le Mictlan est la page la plus exposee | le fichier, chaque ligne citee | M | Sylvain (la lecture), moi (la mise en forme) |
+| M1 | **`nord-sources.md`** : ecrit a partir du Codex de Florence numerique (Getty), livre 3 « origine des dieux », avec livre et chapitre pour chaque affirmation ; rien d'autre n'entre (verifie le 11/09 : le site du Getty est une application, le texte ne se lit qu'en interagissant ; c'est une lecture, pas une extraction) | notre regle : rien de non source ; c'est le seul fichier de sources qui manque, et le Mictlan est la page la plus exposee | le fichier, chaque ligne citee | M | Sylvain (la lecture), moi (la mise en forme) |
 | M2 | Le Codex du site cite livre et chapitre, et renvoie a l'edition numerique | honnetete ; un jure ou un lecteur mexicain verifiera | la page Codex | S | Sylvain |
 | M3 | Rester symbolique : pas de reconstitution documentaire, pas de dieu a l'ecran, les Cihuateteo jamais dramatisees une fois descendues | regles posees ; le viewer 3D de Tenochtitlan est l'autre voie | relecture | | Sylvain |
 | M4 | **Des cantares dans la version accessible, pour tous** (idee de Sylvain, 11/09 ; sa regle : l'accessibilite est un enrichissement pour tout le monde, donc jamais en `sr-only`, toujours visible : dans le mode lecture et dans un bloc « Ce que montre la scene » sous la scene, ou la description de scene, aujourd'hui en `sr-only` sur les pages de direction, devient visible elle aussi) : un poeme nahuatl traditionnel par direction, en nahuatl et en traduction, dans le mode lecture (le texte que lit un lecteur d'ecran, ou celui qui coupe la scene), avec la source exacte. Corpus attesté et libre : *Cantares mexicanos*, edition, paleographie, traduction et notes de Miguel Leon-Portilla, UNAM 2011, en PDF ouvert (historicas.unam.mx, reproduction non lucrative autorisee, source a citer). Choisir par theme (chants de fleurs pour l'Est, chants de deuil et Mictlan pour le Nord), ne jamais reecrire un vers, indiquer folio et numero du chant | cinq chants choisis par toi dans l'edition ; folio + numero cites ; parite des trois dictionnaires (le nahuatl commun, la traduction par langue) ; e2e : le mode lecture les affiche | M | Sylvain (le choix des chants), moi (la mise en forme et les tests) |
