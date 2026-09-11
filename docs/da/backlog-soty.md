@@ -72,7 +72,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 
 | # | quoi | pourquoi | oracle | effort | decision |
 | --- | --- | --- | --- | --- | --- |
-| N1 | **Une ligne de seuil par direction**, a la deuxieme personne, dans le cadre nepantla, qui relie ce qu'on quitte a ce qu'on rejoint (tonalli recu au Centre, teyolia qui voyage vers Memoire) : cinq lignes, trois langues, vocabulaire du Codex | « une seule idee defendue » d'un bout a l'autre (Metabole, Utsubo) ; le fil est aujourd'hui implicite | les cinq lignes ecrites et relues par toi ; parite des dictionnaires | S | Sylvain (les textes) |
+| N1 | **Une ligne de seuil par direction** (brouillons ecrits, `docs/da/lignes-de-seuil.md`, en attente de relecture), a la deuxieme personne, dans le cadre nepantla, qui relie ce qu'on quitte a ce qu'on rejoint (tonalli recu au Centre, teyolia qui voyage vers Memoire) : cinq lignes, trois langues, vocabulaire du Codex | « une seule idee defendue » d'un bout a l'autre (Metabole, Utsubo) ; le fil est aujourd'hui implicite | les cinq lignes ecrites et relues par toi ; parite des dictionnaires | S | Sylvain (les textes) |
 | N2 | **Xolotl, le personnage qu'on suit** : ecrire son role par direction (ou il est, ce qu'il fait, ce qu'il montre), et le tenir | Messenger : un personnage qui porte l'experience | un document `xolotl-role.md`, puis les gestes qui manquent | M | Sylvain |
 | N3 | Le README du depot, pro, en anglais et en francais : le projet, la cosmologie, la pile, les mesures | le README est celui de Next.js par defaut ; un recruteur le lit | le README | S | Sylvain (le ton), moi (la redaction) |
 
@@ -98,7 +98,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 | # | quoi | pourquoi | oracle | effort | decision |
 | --- | --- | --- | --- | --- | --- |
 | ~~P1~~ | ~~T1, l'arrivee chauffee~~ (fait) | le plus gros defaut mesure du site ce soir | voir 0. | M | moi |
-| P2 | **Contact, le contenu** : 2 relachements au lieu de 3 a 5 sur les porteuses loin de la camera ; 160 feuilles au lieu de 240 sur telephone ; densite d'herbe reduite a l'Ouest | le jure teste a CPU x4 et Fast 3G et veut 60 im/s ; Contact est a 34 % d'images en retard sur Pixel 7 | profil en temps propre : bandelettes 85 -> ~45 ms/s, feuilles 75 -> ~50, herbe 85 -> ? ; ton oeil sur les figures | S chacun | Sylvain (les trois) |
+| ~~P2~~ | ~~**Contact, le contenu**~~ (fait, `6e61d58` : relachements par distance, feuilles par profil, et pour l'herbe la CADENCE de la grille de vent a 30 Hz plutot que moins de brins, la simulation etant par cellule ; bandelettes 73 -> 52 ms/s, herbe 61 -> 30, feuilles 63 -> sous le seuil ; a voir a l'oeil par Sylvain) | le jure teste a CPU x4 et Fast 3G et veut 60 im/s ; Contact est a 34 % d'images en retard sur Pixel 7 | profil en temps propre : bandelettes 85 -> ~45 ms/s, feuilles 75 -> ~50, herbe 85 -> ? ; ton oeil sur les figures | S chacun | Sylvain (les trois) |
 | P3 | WebGPU + TSL, la branche garee | la voie 2026 (IVRESS) ; « enormement de choses cassees » le 06/09 | fps >= WebGL sur les cinq pages, parite visuelle | L | Sylvain, **pas avant le 23/10** |
 | P4 | Mesure reelle sur nahual.fr au premier build d'octobre, puis panel a froid | tout est mesure en local | Lighthouse mobile, `transition.mjs` sur nahual.fr | S | moi |
 

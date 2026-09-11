@@ -110,6 +110,10 @@ et dans le tableau d'avancement de `plan-execution.md`.
   trois causes exactes reglees (`b6ed417`), gains reels mais sous le bruit
   de la sonde des images en retard ; le reste est le contenu de la page,
   a arbitrer.
+- **11/09, septieme passe** : 8,75, inchange en note, mais Contact allege
+  (bandelettes, feuilles, grille de vent), la pause du mouvement (A1), deux
+  tests deterministes (Q1, Q2), et le voile rendu robuste sous CPU x4
+  (`6e61d58`). Les cantares entrent au backlog (M4), pour tous.
 - **11/09, sixieme passe** : 8,7 -> 8,75. Le ralentissement des transitions
   vu par Sylvain, mesure (1,8 a 2,6 s de gel par trajet) et regle (56 a
   211 ms) : six causes, de l'eclairage qui changeait par direction a la
