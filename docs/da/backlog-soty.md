@@ -81,7 +81,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 | # | quoi | pourquoi | oracle | effort | decision |
 | --- | --- | --- | --- | --- | --- |
 | C1 | **La liste de plans** : un document par direction, entree / tenue / sortie / coupe son, avec les durees ; ce qui existe deja y est ecrit tel quel | Shopify Editions : chaque section « son propre moment » ; le jure regarde les transitions | cinq documents dans `docs/da/plans/` | M | moi (l'ecriture), Sylvain (les arbitrages qu'elle revele) |
-| C2 | **Des coupes son sur le voyage cardinal** : un motif court au depart et a l'arrivee, generatif, par direction | Cartier : le son comme couche narrative ; nous avons le carillon du climax, pas les coupes | a entendre ; e2e : la coupe se declenche au voyage | S | Sylvain (a entendre) |
+| ~~C2~~ | ~~**Des coupes son sur le voyage cardinal**~~ (fait : le depart avait deja son accord au clic ; l'arrivee a son motif d'element par direction, joue a la chauffe de la direction, jamais au premier chargement, `lib/journey-cues` teste ; a entendre par Sylvain) | Cartier : le son comme couche narrative ; nous avons le carillon du climax, pas les coupes | a entendre ; e2e : la coupe se declenche au voyage | S | Sylvain (a entendre) |
 | C3 | La transition elle-meme, T1 : une image figee pendant le voyage, c'est le contraire d'un mouvement dirige | Hon Tran : « des transitions qui portent un sens » | T1 | | |
 
 ## 4. Mythologique (contenu 10, creativite 20)

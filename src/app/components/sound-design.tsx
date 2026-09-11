@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./sound-design.module.css";
 import { useCurrentDirection } from "./stag-scene/use-current-direction";
+import { arrivalCueFor, shouldPlayArrival } from "@/lib/journey-cues";
+import { SHADERS_WARM_EVENT } from "./stag-scene/shader-warmup";
+import type { DirectionKey } from "./stag-scene/direction-colors";
 import { frostStore } from "./stag-scene/frost-store";
 import { armChime, stepChime } from "@/lib/climax-chime";
 import { arcProgress, getNavEmphasis } from "@/lib/reveal-arc";
@@ -361,6 +364,127 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     },
     [muted],
   );
+
+  /**
+   * L'ARRIVEE (11/09, C2) : un motif de l'element de la direction, joue
+   * quand sa scene est prete (l'evenement de chauffe), jamais au premier
+   * chargement. Les choix sont dans lib/journey-cues ; ici les timbres,
+   * avec les memes ingredients que les nappes : bruit filtre, sinus courts.
+   */
+  const playArrival = useCallback(
+    (dir: DirectionKey) => {
+      if (muted) return;
+      const ctx = ctxRef.current;
+      const master = masterGainRef.current;
+      if (!ctx || !master) return;
+      const cue = arrivalCueFor(dir);
+      const now = ctx.currentTime;
+      const bruit = (seconds: number) => {
+        const buf = ctx.createBuffer(1, Math.max(1, Math.floor(ctx.sampleRate * seconds)), ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        return src;
+      };
+      const sinus = (fromHz: number, toHz: number, at: number, dur: number, peak: number) => {
+        const o = ctx.createOscillator();
+        o.type = "sine";
+        o.frequency.setValueAtTime(fromHz, at);
+        o.frequency.exponentialRampToValueAtTime(toHz, at + dur * 0.7);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(peak, at + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+        o.connect(g).connect(master);
+        o.start(at);
+        o.stop(at + dur + 0.02);
+      };
+      if (cue.kind === "crackle") {
+        for (let k = 0; k < cue.hits; k++) {
+          const at = now + (k * cue.spacingMs) / 1000;
+          const src = bruit(0.05);
+          const f = ctx.createBiquadFilter();
+          f.type = "bandpass";
+          f.frequency.value = 1800 + Math.random() * 2000;
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0.0001, at);
+          g.gain.exponentialRampToValueAtTime(0.08, at + 0.005);
+          g.gain.exponentialRampToValueAtTime(0.0001, at + 0.05);
+          src.connect(f).connect(g).connect(master);
+          src.start(at);
+        }
+      } else if (cue.kind === "breath") {
+        const src = bruit(cue.seconds);
+        const f = ctx.createBiquadFilter();
+        f.type = "lowpass";
+        f.frequency.setValueAtTime(cue.fromHz, now);
+        f.frequency.exponentialRampToValueAtTime(cue.toHz, now + cue.seconds);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.exponentialRampToValueAtTime(0.06, now + cue.seconds * 0.6);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + cue.seconds);
+        src.connect(f).connect(g).connect(master);
+        src.start(now);
+      } else if (cue.kind === "crack") {
+        const src = bruit(0.06);
+        const f = ctx.createBiquadFilter();
+        f.type = "highpass";
+        f.frequency.value = 2500;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.exponentialRampToValueAtTime(0.1, now + 0.004);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+        src.connect(f).connect(g).connect(master);
+        src.start(now);
+        sinus(cue.thumpFromHz, cue.thumpToHz, now + 0.02, 0.5, 0.12);
+      } else if (cue.kind === "gust") {
+        const src = bruit(cue.seconds);
+        const f = ctx.createBiquadFilter();
+        f.type = "bandpass";
+        f.frequency.value = cue.centerHz;
+        f.Q.value = 0.7;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.exponentialRampToValueAtTime(0.07, now + cue.seconds * 0.35);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + cue.seconds);
+        src.connect(f).connect(g).connect(master);
+        src.start(now);
+      } else {
+        for (let k = 0; k < cue.hits; k++) {
+          const at = now + (k * cue.spacingMs) / 1000;
+          sinus(820 + Math.random() * 240 - k * 200, 320, at, 0.13, 0.09);
+        }
+      }
+    },
+    [muted],
+  );
+
+  // L'arrivee se joue a l'evenement de chauffe de la direction, une fois.
+  const prevDirRef = useRef<DirectionKey | null>(null);
+  const lastPlayedRef = useRef<DirectionKey | null>(null);
+  useEffect(() => {
+    const previous = prevDirRef.current;
+    prevDirRef.current = direction;
+    if (!shouldPlayArrival(previous, direction, lastPlayedRef.current)) return;
+    let joue = false;
+    const jouer = () => {
+      if (joue) return;
+      joue = true;
+      lastPlayedRef.current = direction;
+      playArrival(direction);
+    };
+    const onWarm = (event: Event) => {
+      if ((event as CustomEvent<{ direction?: string }>).detail?.direction === direction) jouer();
+    };
+    window.addEventListener(SHADERS_WARM_EVENT, onWarm);
+    // Secours : si la chauffe ne vient pas, on joue quand le contenu entre.
+    const secours = window.setTimeout(jouer, 2500);
+    return () => {
+      window.removeEventListener(SHADERS_WARM_EVENT, onWarm);
+      window.clearTimeout(secours);
+    };
+  }, [direction, playArrival]);
 
   // Chime cardinal au click sur data-cardinal-direction
   useEffect(() => {

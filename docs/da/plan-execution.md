@@ -65,6 +65,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | N16 deux tests e2e deterministes : zero programme compile en cours d arc (cinq pages), plafond d appels de rendu par page | ✅ FAIT | `programmes-tardifs.spec.ts`, `appels-de-rendu.spec.ts` |
 | N17 la pause du mouvement (WCAG 2.2.2) : bouton et touche G, trois langues, test e2e | ✅ FAIT | `pause-du-mouvement.spec.ts` |
 | N18 Contact, le contenu : relachements par distance, feuilles par profil, grille de vent a 30 Hz ; et le voile rendu robuste sous CPU x4 | ✅ FAIT | `6e61d58` |
+| N19 les coupes son de l arrivee (C2) : cinq motifs generatifs, un par element, a la chauffe de la direction | ✅ FAIT | `lib/journey-cues.ts` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 les modeles nettoyes et compresses (go de Sylvain sur l outil, 11/09) | ✅ FAIT | `1b37b45` |
 | E1, E2 (l'arc vertical du Centre) | ✅ FAIT | `8394028` |
