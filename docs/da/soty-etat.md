@@ -39,11 +39,11 @@ C'est ce tableau-la qui donne la note du site, et donc ou investir.
 | axe | poids | note | ce qui la retient |
 | --- | --- | --- | --- |
 | Design | 40 | 8,6 | tout est pose ; ton oeil sur image : le cadre decale, l'echelle, les panneaux qui suivent la scene |
-| Utilisabilite | 30 | 8,6 | axe vert sur les cinq pages, zero avis ; plus un programme compile en cours d'arc (tout se paie derriere le voile) ; le voile de l'accueil reste borne par le JavaScript (three, Next) ; a Contact, le graphe de scene est le premier poste |
+| Utilisabilite | 30 | 8,65 | axe vert sur les cinq pages, zero avis ; plus un programme compile en cours d'arc (tout se paie derriere le voile) ; l'accueil charge 10 % de JavaScript en moins ; le voile de l'accueil reste borne par le JavaScript (three, Next) ; a Contact, le graphe de scene est le premier poste |
 | Creativite | 20 | 8,8 | le son est la, invite au voile, cinq elements ; a entendre par toi |
 | Contenu | 10 | 8,4 | quatre fiches, dont une NestJS ; ta relecture de la quatrieme |
 
-Moyenne ponderee : **8,68**.
+Moyenne ponderee : **8,7**.
 
 ---
 
@@ -56,7 +56,7 @@ rentabilite reel et non l'ordre des envies.
 | --- | --- | --- | --- | --- |
 | ~~1~~ | ~~L'echelle typographique~~ | design 40 | fait, 1,333 (ton choix) | 13 tailles -> 5, 6 interlignes -> 3, 11 interlettrages -> 1. Le corps ne descend jamais sous 16 px |
 | ~~2~~ | ~~Le rapport contenu / scene~~ | design 40 | fait, la 1 (ton choix) | colonne sur le tiers gauche a 480 px, sujet aux deux tiers par decalage de projection ; Centre et mobile intacts |
-| 3 | Le voile | utilisabilite 30 | a moi | modeles nettoyes (`1b37b45`, 4,6 Mo retires) : Contact ouvre a 23 s au lieu de 41 en local, Memoire a 23 au lieu de 36. Reste le JavaScript (600 Ko compresses), qui borne l'accueil |
+| 3 | Le voile | utilisabilite 30 | a moi | modeles nettoyes (`1b37b45`, 4,6 Mo retires) : Contact ouvre a 23 s au lieu de 41 en local, Memoire a 23 au lieu de 36 ; les trois dictionnaires ne partent plus au navigateur (`a777e0a`, accueil 634 -> 575 Ko compresses). Reste three + React + Next, environ 300 Ko compresses, le plancher ; puis notre code de scene (decoupage par direction, a arbitrer) |
 | ~~4~~ | ~~L'acte de sortie (F2)~~ | design + utilisabilite | fait, `e308564` | l'arbitrage etait deja rendu le 08/09, je l'avais mal classe |
 | ~~5~~ | ~~Le son~~ | creativite 20 | fait, `823eb67` | l'invite au voile, et les cinq elements, generatifs |
 | ~~6~~ | ~~Les images en retard de Contact~~ | utilisabilite 30 | fait, `4978f67` puis `43d82ae` | decor fige, 40 meches sur mobile ; et la cause de `getParameters` trouvee : sept rubans d'amate rendus en deux passes a opacite zero sur les cinq pages. Reste le graphe de scene (941 objets, 368 os) |
@@ -106,6 +106,10 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **11/09, cinquieme passe** : 8,68 -> 8,7. Les trois dictionnaires
+  partaient au navigateur sur toutes les pages (la page d'accueil etait un
+  composant client pour deballer params) : 64 Ko compresses de moins sur
+  l'accueil (`a777e0a`).
 - **11/09, quatrieme passe** : 8,65 -> 8,68. La chauffe des shaders,
   retiree la veille, retrouve son sens une fois la braise reglee : le voile
   attend la fin de la chauffe, le simulateur d'ondes fait un pas a blanc,

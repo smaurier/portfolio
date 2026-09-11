@@ -59,6 +59,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | N10 la densite au bureau : mesuree, reste a 2 (1,5 coute plus cher ici) | ✅ MESURE | `43d82ae` |
 | N11 getParameters sur Contact : les bandelettes d amate rendues en deux passes sur les cinq pages | ✅ FAIT | `43d82ae` |
 | N12 la chauffe des shaders : le voile l attend ; simulateur et miroir chauffent aussi. Contact 3 -> 0, Memoire 6 -> 0 compilations en cours d arc | ✅ FAIT | `86ae55c` |
+| N13 les trois dictionnaires ne partent plus au navigateur (page d accueil en composant serveur, boussole et cloture en props) : accueil 634 -> 575 Ko compresses | ✅ FAIT | `a777e0a` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 les modeles nettoyes et compresses (go de Sylvain sur l outil, 11/09) | ✅ FAIT | `1b37b45` |
 | E1, E2 (l'arc vertical du Centre) | ✅ FAIT | `8394028` |
