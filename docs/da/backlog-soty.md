@@ -55,7 +55,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 | # | quoi | oracle | effort | decision |
 | --- | --- | --- | --- | --- |
 | T4 | Le montage d'une direction a l'intention (survol, ou direction suivante trois secondes apres le voile) coute une image longue, ~400 ms en dev, pendant la lecture : etaler le montage (un composant par image) ou le declencher quand le visiteur ne defile pas | `transition.mjs` sur la page de depart : 0 image > 100 ms apres le survol | S | moi |
-| T5 | Un programme tardif a 15 % de l'arc a Memoire sur mobile (variante skinnee, double face, avec brouillard : le clone de Xolotl sur la couche du reflet) | `programmes-tardifs.mjs` : 0 | S | moi |
+| T5 | Un programme tardif a 15 % de l'arc a Memoire (mobile : variante skinnee, double face, avec brouillard, le clone de Xolotl sur la couche du reflet) et un a Projets au bureau (un MeshPhysicalMaterial partage par deux maillages) ; tolerance d'un programme dans le test e2e, a retirer | `programmes-tardifs.spec.ts` a tolerance zero | S | moi |
 | T6 | La chauffe se reveille a chaque chargement fini (un evenement par modele arrive) : correct, mais bavard ; grouper | un evenement par cycle utile | S | moi |
 
 ---
@@ -106,8 +106,8 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 
 | # | quoi | pourquoi | oracle | effort | decision |
 | --- | --- | --- | --- | --- | --- |
-| Q1 | **e2e : 0 programme compile en cours d'arc**, sur les cinq pages (la sonde `programmes-tardifs` promue en test) | c'est deterministe, et c'est ce qui casse a chaque materiau ajoute | la suite e2e | S | moi |
-| Q2 | e2e : plafond d'appels de rendu par page (68 a Contact, 211 au Sud...) avec une marge de 10 % | deterministe ; le 09/09 le Sud etait a 1 349 sans que rien ne le dise | la suite e2e | S | moi |
+| ~~Q1~~ | ~~**e2e : 0 programme compile en cours d'arc**~~ (fait, `tests/e2e/programmes-tardifs.spec.ts`, cinq pages, ligne de base huit secondes apres le voile pour laisser passer la pre-compilation de l'intention), sur les cinq pages (la sonde `programmes-tardifs` promue en test) | c'est deterministe, et c'est ce qui casse a chaque materiau ajoute | la suite e2e | S | moi |
+| ~~Q2~~ | ~~e2e : plafond d'appels de rendu par page~~ (fait, `tests/e2e/appels-de-rendu.spec.ts` : bureau, passes du post-traitement comprises, mesure du 11/09 : Accueil 167, Services 131, Projets 203, Contact 212, Memoire 157 ; plafonds a +15 %) | deterministe ; le 09/09 le Sud etait a 1 349 sans que rien ne le dise | la suite e2e | S | moi |
 | ~~Q3~~ | ~~T3, e2e de transition~~ (fait) | | | S | moi |
 | Q4 | Regression visuelle a seuil perceptuel (captures WebGL comparees avec tolerance), cinq pages, trois points d'arc | un site vivant se casse en silence | a calibrer : les captures WebGL varient d'une machine a l'autre | M | moi, apres Q1-Q3 |
 
