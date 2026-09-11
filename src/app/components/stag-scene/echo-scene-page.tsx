@@ -29,6 +29,7 @@ export default function EchoScenePage({
   closure,
   sceneDescription,
   children,
+  seuil,
 }: {
   directionKey: DirectionKey;
   locale: Locale;
@@ -38,6 +39,8 @@ export default function EchoScenePage({
    * l'utilisateur SR entende ou il est arrive avant le contenu
    * editorial de la page. */
   sceneDescription: string;
+  /** La ligne de seuil de cette direction, conservee en tete de page (N1). */
+  seuil?: string;
   children: ReactNode;
 }) {
   return (
@@ -55,6 +58,7 @@ export default function EchoScenePage({
     >
       <main id="main" data-direction={directionKey} tabIndex={-1}>
         <p className="sr-only">{renderWithNahuatl(sceneDescription)}</p>
+        {seuil ? <p className="seuilTete">{renderWithNahuatl(seuil)}</p> : null}
         {children}
       </main>
     </SceneStage>

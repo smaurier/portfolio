@@ -36,12 +36,15 @@ export default function StagScene({
   home,
   locale,
   closure,
+  seuil,
   servicesHref,
   sceneDescription,
 }: {
   home: HomeContent;
   locale: Locale;
   closure: Dictionary["closure"];
+  /** La ligne de seuil du Centre, en tete du bloc visible (N1). */
+  seuil?: string;
   servicesHref: string;
   /** Conserve pour compat call-site (page.js passe encore contactHref).
    * A retirer au prochain nettoyage de dictionnaire home (aboutText,
@@ -92,6 +95,7 @@ export default function StagScene({
                 cliquable pour tous (souris, clavier, SR focus mode). */}
             <div aria-hidden="true">
               <RevealText as="h1" text={home.heroTitle} delayPerWord={50} />
+              {seuil ? <p className="seuilTete">{seuil}</p> : null}
               <p>{home.heroText}</p>
             </div>
             <div className={overlayStyles.links}>

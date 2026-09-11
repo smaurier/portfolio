@@ -21,6 +21,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       home={dict.home}
       locale={locale}
       closure={dict.closure}
+      seuil={dict.common.seuils.jade}
       servicesHref={getPath(locale, "services")}
       sceneDescription={dict.common.sceneDescriptions.jade}
     />

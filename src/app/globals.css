@@ -1763,3 +1763,44 @@ body.nahual-lab-reveal main[data-direction] .contentPage > p {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
+
+/* LA LIGNE DE SEUIL (11/09, N1). Pendant le voyage : un message de statut,
+   centre, qui apparait et s'efface (deux secondes apres l'arrivee, sous les
+   cinq secondes du critere 13.8). En tete de page : la meme phrase, gardee. */
+.seuilVoyage {
+  position: fixed;
+  left: 50%;
+  bottom: calc(3rem + 52px + 64px);
+  transform: translateX(-50%);
+  z-index: 40;
+  max-width: min(60ch, 86vw);
+  margin: 0;
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  background: rgba(var(--panel-rgb), calc(0.35 + 0.3 * var(--scene-lum, 0)));
+  color: var(--ink);
+  font-size: var(--t-chapeau);
+  line-height: var(--il-chapeau);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.seuilVoyage[data-visible="true"] {
+  opacity: 1;
+}
+.seuilVoyage:empty {
+  padding: 0;
+  background: transparent;
+}
+.seuilTete {
+  font-size: var(--t-chapeau);
+  line-height: var(--il-chapeau);
+  margin: 0 0 1rem;
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+  .seuilVoyage {
+    transition: none;
+  }
+}

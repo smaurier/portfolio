@@ -51,6 +51,8 @@ for (const [de, vers] of TRAJETS) {
     });
     await page.locator(`a[href="/${vers}"]`).first().click({ force: true });
     await page.waitForFunction((v) => location.pathname === "/" + v, vers, { timeout: 30_000 });
+    // La ligne de seuil (N1) : une region de statut existe pour le voyage.
+    await expect(page.locator("p.seuilVoyage[role=status]")).toHaveCount(1);
     await page.waitForTimeout(6500);
     const gaps = await page.evaluate(() => (window as unknown as { __gaps: number[] }).__gaps);
     const pire = Math.max(...gaps);

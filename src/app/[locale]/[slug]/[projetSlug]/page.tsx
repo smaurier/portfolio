@@ -152,6 +152,7 @@ export default async function LocalizedProjetDetail({
       directionKey={direction}
       locale={locale}
       closure={fullDict.closure}
+      seuil={fullDict.common.seuils[direction]}
       sceneDescription={fullDict.common.sceneDescriptions[direction]}
     >
       {jsonLd.map((entry, i) => (

@@ -585,6 +585,7 @@ export default async function LocalizedPage({
       directionKey={directionKey}
       locale={locale}
       closure={fullDict.closure}
+      seuil={fullDict.common.seuils[directionKey]}
       sceneDescription={fullDict.common.sceneDescriptions[directionKey]}
     >
       <script
