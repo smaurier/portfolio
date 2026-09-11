@@ -66,6 +66,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | N17 la pause du mouvement (WCAG 2.2.2) : bouton et touche G, trois langues, test e2e | ✅ FAIT | `pause-du-mouvement.spec.ts` |
 | N18 Contact, le contenu : relachements par distance, feuilles par profil, grille de vent a 30 Hz ; et le voile rendu robuste sous CPU x4 | ✅ FAIT | `6e61d58` |
 | N19 les coupes son de l arrivee (C2) : cinq motifs generatifs, un par element, a la chauffe de la direction | ✅ FAIT | `lib/journey-cues.ts` |
+| N20 zero programme ne au rendu sur les cinq pages (T5) ; le flou de profondeur s eteint au zenith du Centre ; montage a l intention etale (T4) | ✅ FAIT | `programmes-tardifs.spec.ts` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 les modeles nettoyes et compresses (go de Sylvain sur l outil, 11/09) | ✅ FAIT | `1b37b45` |
 | E1, E2 (l'arc vertical du Centre) | ✅ FAIT | `8394028` |

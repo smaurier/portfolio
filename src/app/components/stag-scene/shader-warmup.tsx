@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/immutability -- pattern r3f : on accroche la capture au crochet onBeforeRender de la scene three, un objet mutable par nature (meme motif que les autres composants de scene). */
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useProgress } from "@react-three/drei";
 import { MATERIAL_SWEEP_EVERY } from "./shader-patch";
@@ -77,15 +78,6 @@ export function getWarmDirection(): DirectionKey | null {
 
 type WithMaterial = Object3D & { material?: Material | Material[] };
 
-/** La somme des versions des materiaux d'un objet : elle bouge quand un
- *  modificateur est pose ou qu'un `needsUpdate` est demande. */
-function versionDe(o: WithMaterial): number {
-  const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
-  let v = 0;
-  for (const m of mats) v += m.version;
-  return v;
-}
-
 /** La couche ou l'on range un objet le temps de le compiler : aucune camera
  *  du site ne la regarde (la principale voit la couche 0, le miroir de
  *  l'eau la couche 3). */
@@ -109,12 +101,13 @@ export default function ShaderWarmup() {
     cibleRef.current = null;
   }, []);
   const framesRef = useRef(0);
-  const scanRef = useRef(0);
   const readyRef = useRef(false);
   // Les objets deja vus (compiles ou en file), et la version de leurs
   // materiaux au moment de la compilation.
   const connusRef = useRef(new WeakSet<Object3D>());
-  const versionsRef = useRef(new WeakMap<Object3D, number>());
+  // Par materiau : ses objets porteurs, et sa version au dernier passage.
+  const porteursRef = useRef(new Map<Material, Set<WithMaterial>>());
+  const versionsMatRef = useRef(new Map<Material, number>());
   // La file : les objets froids, ranges sur la couche froide en attendant
   // leur programme, avec leur masque de couches d'origine.
   const fileRef = useRef(new Map<WithMaterial, number>());
@@ -140,28 +133,112 @@ export default function ShaderWarmup() {
     dueRef.current = true;
   }, [direction]);
 
-  useFrame(() => {
-    // CHAQUE IMAGE, sans attendre : les objets nouveaux (un modele arrive
-    // par Suspense se rend dans l'image meme de son montage, sinon), y
-    // compris pendant un chargement ; toutes les MATERIAL_SWEEP_EVERY
-    // images, ceux dont un materiau a change de version. Seule la
-    // COMPILATION attend la fin des chargements et les balayages.
+  // LA CAPTURE : les objets nouveaux (un modele arrive par Suspense se rend
+  // dans l'image meme de son montage, sinon), y compris pendant un
+  // chargement ; toutes les MATERIAL_SWEEP_EVERY images, ceux dont un
+  // materiau a change de version. Appelee a chaque image (useFrame) ET
+  // juste avant chaque rendu (scene.onBeforeRender) : un composant monte
+  // apres celui-ci a sa boucle d'image APRES la sienne, et pouvait ajouter
+  // un objet entre la capture et le rendu (mesure du 11/09 : le rig du
+  // serpent, un programme ne au rendu a 15 % de l'arc a Projets).
+  const capturer = useCallback(() => {
     const connus = connusRef.current;
-    const versions = versionsRef.current;
     const file = fileRef.current;
-    const scanVersions = scanRef.current++ % MATERIAL_SWEEP_EVERY === 0;
+    const porteurs = porteursRef.current;
+    const versionsMat = versionsMatRef.current;
+    const geler = (o: WithMaterial) => {
+      if (file.has(o)) return;
+      // Soustrait au rendu le temps de sa compilation : aucune camera ne
+      // regarde la couche froide, et `compile` ignore les couches.
+      file.set(o, o.layers.mask);
+      o.layers.set(COLD_LAYER);
+    };
     scene.traverse((o) => {
       const m = o as WithMaterial;
       if (!m.material) return;
-      if (connus.has(o)) {
-        if (!scanVersions || file.has(m) || versions.get(o) === versionDe(m)) return;
-      }
+      if (connus.has(o)) return;
       connus.add(o);
-      // Soustrait au rendu le temps de sa compilation : aucune camera ne
-      // regarde la couche froide, et `compile` ignore les couches.
-      file.set(m, o.layers.mask);
-      o.layers.set(COLD_LAYER);
+      const mats = Array.isArray(m.material) ? m.material : [m.material];
+      for (const mat of mats) {
+        let set = porteurs.get(mat);
+        if (!set) {
+          set = new Set();
+          porteurs.set(mat, set);
+          versionsMat.set(mat, mat.version);
+        }
+        set.add(m);
+      }
+      geler(m);
     });
+    // Les versions, A CHAQUE IMAGE et par materiau (une comparaison par
+    // materiau, pas un parcours) : les balayages (givre, fondu, revelation)
+    // posent leurs modificateurs dans leur propre boucle d'image, et un
+    // materiau modifie doit etre recompile AVANT le rendu qui suit, sinon
+    // c'est le rendu qui le compile, en synchrone (mesure du 11/09 : un
+    // programme ne au rendu a 15 % de l'arc a Projets, une fois sur deux).
+    for (const [mat, set] of porteurs) {
+      if (versionsMat.get(mat) === mat.version) continue;
+      versionsMat.set(mat, mat.version);
+      for (const o of set) if (o.parent) geler(o);
+    }
+  }, [scene]);
+  // En dev : les programmes nes AU RENDU, nommes par leurs materiaux, pour
+  // la suite e2e et les sondes (window.__nahualTardifs).
+  const idsConnusRef = useRef(new Set<number>());
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    const ids = idsConnusRef.current;
+    for (const pr of gl.info.programs ?? []) ids.add(pr.id);
+    const precedentApres = scene.onAfterRender;
+    scene.onAfterRender = (...args) => {
+      precedentApres.apply(scene, args);
+      const nouveaux = (gl.info.programs ?? []).filter((pr) => !ids.has(pr.id));
+      if (nouveaux.length === 0) return;
+      for (const pr of nouveaux) ids.add(pr.id);
+      const noms: string[] = [];
+      scene.traverse((o) => {
+        const m = o as WithMaterial;
+        const mats = Array.isArray(m.material) ? m.material : m.material ? [m.material] : [];
+        for (const mat of mats) {
+          const pr = (gl.properties.get(mat) as { currentProgram?: { id: number } }).currentProgram;
+          if (pr && nouveaux.some((n) => n.id === pr.id)) {
+            // Les variantes connues de ce materiau : la difference de cle
+            // entre l'ancienne et la nouvelle dit POURQUOI il a recompile.
+            const variantes = [...(((gl.properties.get(mat) as { programs?: Map<string, unknown> }).programs ?? new Map()).keys())];
+            let diff = "";
+            if (variantes.length >= 2) {
+              const ka = variantes[variantes.length - 2].split(",");
+              const kb = variantes[variantes.length - 1].split(",");
+              const d: string[] = [];
+              for (let i = 0; i < Math.max(ka.length, kb.length); i++) if (ka[i] !== kb[i]) d.push(`[${i}] ${ka[i]} -> ${kb[i]}`);
+              diff = " cle: " + d.slice(0, 4).join(" ; ");
+            }
+            noms.push(`${o.type} ${o.name || "(sans nom)"} [${mat.type}${mat.name ? " " + mat.name : ""}] v${mat.version} couche=${o.layers.mask} variantes=${variantes.length}${diff}`);
+          }
+        }
+      });
+      const w = window as unknown as { __nahualTardifs?: string[] };
+      (w.__nahualTardifs ??= []).push(...(noms.length ? noms : nouveaux.map((n) => `#${n.id} (hors scene)`)));
+    };
+    return () => {
+      scene.onAfterRender = precedentApres;
+    };
+  }, [gl, scene]);
+  useEffect(() => {
+    const precedent = scene.onBeforeRender;
+    scene.onBeforeRender = (...args) => {
+      capturer();
+      precedent.apply(scene, args);
+    };
+    return () => {
+      scene.onBeforeRender = precedent;
+    };
+  }, [scene, capturer]);
+
+  useFrame(() => {
+    // Seule la COMPILATION attend la fin des chargements et les balayages.
+    const file = fileRef.current;
+    capturer();
 
     if (!readyRef.current) return;
     framesRef.current += 1;
@@ -190,6 +267,7 @@ export default function ShaderWarmup() {
     const compte = () => {
       const apres = gl.info.programs?.length ?? 0;
       if (apres === avant) return false;
+      for (const pr of gl.info.programs ?? []) idsConnusRef.current.add(pr.id);
       if (process.env.NODE_ENV !== "production") {
         const w = window as unknown as { __nahualChauffe?: { crees: number } };
         w.__nahualChauffe = { crees: (w.__nahualChauffe?.crees ?? 0) + (apres - avant) };
@@ -201,7 +279,6 @@ export default function ShaderWarmup() {
       if (viaCible) gl.setRenderTarget(cibleRef.current);
       gl.compile(o, camera, scene);
       gl.setRenderTarget(prev);
-      versions.set(o, versionDe(o));
       o.layers.mask = masque;
       file.delete(o);
       if (compte()) return;

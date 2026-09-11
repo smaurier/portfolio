@@ -55,6 +55,11 @@ export function softenFog(mat: Material & { onBeforeCompile?: unknown; customPro
   // redefini et le shader ne compile plus.
   if (mat.userData.xiuhFogSoftened) return;
   mat.userData.xiuhFogSoftened = true;
+  // Transparent DES LE DEPART (11/09) : le serpent entre et sort en fondu,
+  // et basculer `transparent` a la premiere image du fondu changeait la cle
+  // du programme (le bit opaque) : le crane recompilait au rendu, a 15 % de
+  // l'arc, une fois sur deux (mesure).
+  mat.transparent = true;
   const previous = mat.onBeforeCompile as ((shader: { uniforms: Record<string, unknown>; fragmentShader: string; vertexShader: string }) => void) | undefined;
   mat.onBeforeCompile = (shader: { uniforms: Record<string, unknown>; fragmentShader: string; vertexShader: string }) => {
     if (previous) previous(shader);

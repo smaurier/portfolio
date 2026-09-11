@@ -17,15 +17,16 @@ import { test, expect } from "@playwright/test";
  * prend cette pre-compilation pour des retards (mesure du 11/09 : 24
  * programmes « tardifs » a 15 % sur Contact, tous de la direction suivante).
  *
- * Le seuil est zero. Une tolerance documentee d'un programme a Projets et a
- * Memoire, a 15 % de l'arc (T5 du backlog) ; a retirer quand T5 est fait.
+ * Le seuil est zero, sur les cinq pages (la tolerance d'un programme a
+ * Projets et Memoire, T5, est tombee avec le compte des programmes nes au
+ * rendu : ces programmes etaient des tranches de la chauffe).
  */
 const PAGES: [string, number][] = [
   ["fr", 0],
   ["fr/services", 0],
-  ["fr/projets", 1],
+  ["fr/projets", 0],
   ["fr/contact", 0],
-  ["fr/memoire", 1],
+  ["fr/memoire", 0],
 ];
 const ETAPES = [0.15, 0.35, 0.55, 0.8, 1];
 
@@ -71,6 +72,7 @@ for (const [chemin, tolerance] of PAGES) {
       precedent = Math.max(precedent, n);
     }
     const total = precedent - arrivee;
-    expect(total, `${total} programme(s) compile(s) en cours d'arc (${nouveaux.join(" ; ")})`).toBeLessThanOrEqual(tolerance);
+    const tardifs = await page.evaluate(() => (window as unknown as { __nahualTardifs?: string[] }).__nahualTardifs ?? []);
+    expect(total, `${total} programme(s) compile(s) en cours d'arc (${nouveaux.join(" ; ")}) : ${tardifs.slice(-4).join(" | ")}`).toBeLessThanOrEqual(tolerance);
   });
 }

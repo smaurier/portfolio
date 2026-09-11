@@ -32,7 +32,10 @@ test("le bouton fige la scene, puis la reprend", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/fr/services");
   await page.waitForFunction(() => document.documentElement.dataset.loaded === "true" && !!(window as unknown as Handle).__nahualR3f, null, { timeout: 90_000 });
-  await page.waitForTimeout(1500);
+  // Le temps que la direction suivante se monte a l'intention (trois
+  // secondes apres le voile, un composant toutes les deux images) : chaque
+  // montage rend une image a la demande, ce qui n'est pas du mouvement.
+  await page.waitForTimeout(7000);
   expect(await imagesEn(page, 1500), "la scene bouge avant la pause").toBeGreaterThan(20);
 
   const bouton = page.getByRole("button", { name: "Figer la scène" });
@@ -53,7 +56,7 @@ test("la touche G fige la scene", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/fr/services");
   await page.waitForFunction(() => document.documentElement.dataset.loaded === "true" && !!(window as unknown as Handle).__nahualR3f, null, { timeout: 90_000 });
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(7000);
   await page.keyboard.press("g");
   await expect(page.getByRole("button", { name: "Reprendre la scène" })).toHaveAttribute("aria-pressed", "true");
   await page.waitForTimeout(1200);

@@ -90,7 +90,10 @@ export default function YearStones() {
     m.transparent = false;
     m.opacity = 1;
     m.color.copy(STONE_GREY);
-    m.sheen = 0;
+    // 0,001 et non 0 (11/09) : three met USE_SHEEN dans la cle du programme des
+    // que le lustre depasse zero ; a 0 ici et 0,35 quand les pierres
+    // s'allument, elles recompilaient a 15 % de l'arc (un gel, mesure).
+    m.sheen = 0.001;
     m.envMapIntensity = 0;
     return m;
   }, [uniforms]);
@@ -154,7 +157,7 @@ export default function YearStones() {
     const lit = Math.max(igniteU * igniteU * (3 - 2 * igniteU), gate, Math.min(1, fire * 3));
     material.color.copy(STONE_GREY).lerp(TURQUOISE, lit);
     if (lit > 0.9) markTrace("glyph-lit"); // une trace : le glyphe de l'annee embrase
-    material.sheen = 0.35 * lit;
+    material.sheen = Math.max(0.001, 0.35 * lit);
     uniforms.uTime.value = state.clock.elapsedTime;
     uniforms.uEmber.value = lit * (0.33 + 0.67 * day) * (0.25 + 0.6 * gate) + 2.6 * fire;
     uniforms.uCrackle.value = 1 + 2 * fire;
