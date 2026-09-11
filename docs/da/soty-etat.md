@@ -110,6 +110,15 @@ et dans le tableau d'avancement de `plan-execution.md`.
   trois causes exactes reglees (`b6ed417`), gains reels mais sous le bruit
   de la sonde des images en retard ; le reste est le contenu de la page,
   a arbitrer.
+- **11/09, barre du metier en fin de soiree** (Pixel 7 emule, CPU x4, Fast
+  3G, production locale, `.scratch/barre-metier.mjs`) : Accueil 0 image en
+  retard sur 1 202, Services 11 sur 1 189, Projets 60 sur 1 143 (5e centile
+  30 im/s), Memoire 175 sur 1 022 (17 %), Contact 372 sur 818 (45 %, 5e
+  centile 30). Arrivee entre 20 et 25 s sous Fast 3G. Le Centre et l'Est
+  tiennent la barre ; le Sud la frole ; l'Ouest et le Nord ne la tiennent pas
+  sur ce profil, et le reste de leur cout est leur contenu (porteuses,
+  feuilles, simulateurs du bassin). A retenir tel quel : c'est la mesure
+  que fera un jure.
 - **11/09, septieme passe** : 8,75, inchange en note, mais Contact allege
   (bandelettes, feuilles, grille de vent), la pause du mouvement (A1), deux
   tests deterministes (Q1, Q2), et le voile rendu robuste sous CPU x4
