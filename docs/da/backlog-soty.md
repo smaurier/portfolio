@@ -56,7 +56,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 | --- | --- | --- | --- | --- |
 | ~~T4~~ | ~~Le montage d'une direction a l'intention coute une image longue~~ (fait : un creneau de montage toutes les deux images, `direction-intent.requestMountSlot` ; dev : trois pics de 114 a 170 ms -> un de 109 ms vers Contact, 214 -> 88 ms vers Services ; le reste est le montage des porteuses, un seul composant) | `transition.mjs` sur la page de depart : 0 image > 100 ms apres le survol | S | moi |
 | ~~T5~~ | ~~Un programme tardif a 15 % de l'arc~~ (fait : le lustre des pierres de l'annee et la transparence du serpent basculaient a l'allumage, deux bits de la cle ; planchers poses ; le chien de garde suit les versions par materiau a chaque image et se rejoue juste avant chaque rendu ; en dev, les programmes nes au rendu sont nommes dans `__nahualTardifs`) | `programmes-tardifs.spec.ts` a tolerance zero, cinq pages, trois passages | S | moi |
-| T6 | La chauffe se reveille a chaque chargement fini (un evenement par modele arrive) : correct, mais bavard ; grouper | un evenement par cycle utile | S | moi |
+| ~~T6~~ | ~~La chauffe bavarde~~ (fait : l'evenement ne part qu'aux arrivees et aux cycles qui ont compile quelque chose) | un evenement par cycle utile | S | moi |
 
 ---
 

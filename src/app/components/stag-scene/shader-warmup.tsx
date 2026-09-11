@@ -116,6 +116,11 @@ export default function ShaderWarmup() {
   // Une chauffe est due des qu'on arrive quelque part : au chargement, a
   // chaque changement de direction, a chaque cycle de chargement fini.
   const dueRef = useRef(true);
+  // L'evenement ne part qu'aux ARRIVEES (chargement, direction) et aux cycles
+  // qui ont compile quelque chose : un cycle par modele charge sans rien
+  // de nouveau restait muet a partir du 11/09 (T6, la chauffe bavarde).
+  const arriveeRef = useRef(true);
+  const creesCycleRef = useRef(0);
   const wasActiveRef = useRef(false);
 
   useEffect(() => {
@@ -131,6 +136,7 @@ export default function ShaderWarmup() {
   useEffect(() => {
     framesRef.current = 0;
     dueRef.current = true;
+    arriveeRef.current = true;
   }, [direction]);
 
   // LA CAPTURE : les objets nouveaux (un modele arrive par Suspense se rend
@@ -251,6 +257,7 @@ export default function ShaderWarmup() {
       dueRef.current = false;
       warmingRef.current = true;
       warmDirection = null;
+      creesCycleRef.current = 0;
       annexRef.current = [...warmers].flatMap((w) => w());
     }
 
@@ -267,6 +274,7 @@ export default function ShaderWarmup() {
     const compte = () => {
       const apres = gl.info.programs?.length ?? 0;
       if (apres === avant) return false;
+      creesCycleRef.current += apres - avant;
       for (const pr of gl.info.programs ?? []) idsConnusRef.current.add(pr.id);
       if (process.env.NODE_ENV !== "production") {
         const w = window as unknown as { __nahualChauffe?: { crees: number } };
@@ -290,7 +298,10 @@ export default function ShaderWarmup() {
     }
     warmingRef.current = false;
     warmDirection = direction;
-    window.dispatchEvent(new CustomEvent(SHADERS_WARM_EVENT, { detail: { direction } }));
+    if (arriveeRef.current || creesCycleRef.current > 0) {
+      arriveeRef.current = false;
+      window.dispatchEvent(new CustomEvent(SHADERS_WARM_EVENT, { detail: { direction } }));
+    }
   });
 
   return null;
