@@ -1,6 +1,6 @@
 # Etat d'avancement SOTY
 
-**Mis a jour le 10/09/2026 au soir.** Ce fichier est le tableau de bord :
+**Mis a jour le 11/09/2026 au soir.** Ce fichier est le tableau de bord :
 une seule note par scene, une seule note de site, et ce qui separe l'une de
 l'autre du but. Il remplace la lecture croisee de `plan-jury.md` (08/09) et
 `revue-soty-10-09.md`, qui restent au dossier comme archives datees.
@@ -147,3 +147,63 @@ et dans le tableau d'avancement de `plan-execution.md`.
 - **10/09 soir** : 7,0 -> 8,0. Cinq pages tiennent la mediane de 60 (Contact
   passait a 30), le Centre gagne son geste, la profondeur de champ devient
   permanente et juste, le vent de la prairie passe de 266 a 36 ms/s.
+
+---
+
+## Revue du 11/09 au soir : la note, et huit axes contre l'etat de l'art
+
+**Note du site : 8,7 sur notre echelle (8 = site du jour).** Si le site
+etait soumis ce soir, mon estimation de la note reelle du jury est
+7,4 a 7,6 : la fourchette des sites du jour de septembre, pas au-dessus.
+Ce qui la retient est connu : Contact a 34 % d'images en retard sur
+Pixel 7 emule a CPU x4, et rien n'a encore ete vu sur un vrai telephone.
+
+**Le bareme, pour de bon.** Awwwards publie ses criteres : design 40,
+utilisabilite 30, creativite 20, contenu 10 ; au moins 18 jures, les trois
+notes les plus eloignees de la moyenne eliminees ; mention honorable a
+partir de 6,5 ; site du jour au plus haut score. Un jure (Hon Tran) decrit
+sa methode : CPU x4 et Fast 3G dans les outils de dev, images fixes sans
+mouvement, et il regarde les TRANSITIONS entre etats, pas les pages. Trois
+obligations : une direction artistique (un point de vue), un mouvement
+dirige (des transitions qui portent un sens), et la performance (« la
+beaute a 60 images par seconde est toute la discipline »). Il manque une
+des trois : « plafonne dans les 7 ». Mouvement reduit ignore : « travail
+d'amateur ».
+
+Lauréats 2025 (site de l'annee) : Messenger (abeto), une planete WebGL
+miniature avec un personnage ; Lando Norris (OFF+BRAND), sequences de
+defilement cinematographiques ; Igloo Inc (abeto). Bruno Simon 2025 : site
+du mois en janvier 2026. Q1 2026 : 61 % des sites du jour sont des
+experiences 3D immersives (23 % en 2024). Le principe qui revient partout :
+« une seule idee dure, executee proprement », pas des effets empiles.
+
+### Les huit axes
+
+| axe | ou nous en sommes | ce que l'etat de l'art demande | l'ecart, et le geste |
+| --- | --- | --- | --- |
+| Visuel | tout en temps reel ; typo a 5 tailles ; cadre decale ; panneaux qui suivent la scene | lumiere PRECALCULEE sur le decor fixe (constante 7), un objet heros avec du « poids » (Oryzo), retenue typographique (By-Kin) | la lumiere cuite (ombres et occlusion ambiante dans les textures de la flore, du sol, de la Piedra) est le dernier poste visuel non fait ; KTX2 mineur |
+| Narratif | cinq directions, une idee par page, le Codex en epilogue | « une seule idee defendue » portee d'un bout a l'autre (Metabole, Utsubo) ; Messenger : un personnage qu'on suit | le fil qui relie les cinq est implicite (tonalli au Centre, teyolia a Memoire) ; le rendre explicite d'une ligne au seuil de chaque direction, a la deuxieme personne, et donner a Xolotl le role du personnage qu'on suit |
+| Cinematographique | l'arc en actes, l'acte de sortie, la frappe, le cadre decale, le voyage cardinal | chaque section « son propre moment » (Shopify Editions) ; projets eclaires comme des installations (Iventions) ; le jure regarde les transitions | pas de liste de plans ecrite : un document par direction (entree, tenue, sortie, coupe son) ; des coupes son sur le voyage cardinal, comme le carillon du climax |
+| Mythologique | quatre fichiers de sources sur cinq (pas de nord-sources.md) ; regles tenues (pas de dieu a l'ecran, vocabulaire du Codex) | le Codex de Florence NUMERIQUE (Getty) : Sahagun et les anciens nahuas, 12 livres, nahuatl-espagnol-anglais, gratuit, citable ; livre 3 « origine des dieux » | ecrire nord-sources.md a partir du livre 3 avant toute ligne nouvelle sur le Mictlan ; citer livre et chapitre dans le Codex du site ; rester symbolique, pas documentaire (le viewer 3D de Tenochtitlan de Thomas Kole est l'autre voie, pas la notre) |
+| Performance | 0 image en retard sur quatre pages ; Contact 34 % ; 0 programme compile en cours d'arc ; accueil 575 Ko compresses | 60 im/s sur mobile moyen sous CPU x4 + Fast 3G (le jure) ; WebGPU + TSL comme voie 2026 (IVRESS), un seul code de shader | Contact : bandelettes, feuilles, herbe, a arbitrer ; WebGPU : la branche garee est la bonne direction, pas avant le 23/10 |
+| Tests | 758 unitaires, 32 e2e, axe sur cinq pages, sondes de mesure dans .scratch | les jures testent sous contrainte ; un site vivant se casse a chaque commit | promouvoir deux sondes en tests e2e deterministes : 0 programme compile en cours d'arc, et un plafond d'appels de rendu par page ; pas de regression visuelle (les captures WebGL sont instables, un seuil perceptuel serait a calibrer) |
+| Accessibilite | skip-nav, annonceurs de route et de direction, clavier, manette, raccourcis, mouvement reduit, mode lecture, description de scene, contraste au pixel, axe vert | tout ce qui est dans la scene doit exister hors de la scene ; pause du mouvement ; focus visible ; AA | verifier une commande de PAUSE explicite du mouvement (WCAG 2.2.2) au-dela de la preference systeme ; l'audit RGAA du site par toi, lot 3, est le vrai test |
+| Novateur | manette sur un portfolio, son generatif a cinq elements sans echantillon, reflet planaire + simulateur d'ondes, chauffe des shaders derriere le voile, aztec-year publie | Cartier : partition Web Audio comme couche narrative ; gestes caches qui recompensent | le son en partition (coupes, motifs par direction) plutot qu'en nappes ; un geste cache par direction, pas seulement l'oeuf de Paques |
+
+Et un point de presentation : le README du depot est encore celui de
+Next.js par defaut. Un jure ne le lit pas ; un recruteur, oui.
+
+### Sources de la revue
+
+- Awwwards, systeme d'evaluation : <https://www.awwwards.com/about-evaluation/>
+- Awwwards, sites de l'annee : <https://www.awwwards.com/websites/sites_of_the_year/>
+- Hon Tran, jure, « 10 Best Award-Winning Websites of 2026 » : <https://www.hontran.dev/blog/best-award-winning-websites-2026>
+- Hon Tran, « Awwwards Judging Criteria » : <https://www.hontran.dev/blog/awwwards-judging-criteria>
+- Utsubo, « Best Three.js Websites 2026 » : <https://www.utsubo.com/blog/best-threejs-websites-2026>
+- Utsubo, « What's New in Three.js 2026 » : <https://www.utsubo.com/blog/threejs-2026-what-changed>
+- Metabole, « Immersive Website Examples 2026 » : <https://metabole.studio/en/blog/immersive-website-examples>
+- Digital Strategy Force, part des experiences immersives en 2026 : <https://digitalstrategyforce.com/journal/why-are-immersive-experiences-dominating-the-2026-awwwards/>
+- Getty, Digital Florentine Codex : <https://florentinecodex.getty.edu/>
+- Pope Tech, animation accessible (pause, mouvement reduit) : <https://blog.pope.tech/2025/12/08/design-accessible-animation-and-movement/>
+- EMIT Solution, WebGL et accessibilite (tout doit exister hors de la scene) : <https://emit-solution.com/blog/webgl-barrierefreiheit-bfsg>
+- Thomas Kole, Tenochtitlan en 3D : <https://googlemapsmania.blogspot.com/2025/11/explore-ancient-tenochtitlan-in-3d.html>
