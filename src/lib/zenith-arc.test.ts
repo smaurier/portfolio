@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COLUMN_START, columnRise, ZENITH_MAX_DEG, ZENITH_START, zenithElevation, zenithTargetY, zenithBlend } from "./zenith-arc";
+import { COLUMN_START, columnRise, ZENITH_LIFT, ZENITH_MAX_DEG, ZENITH_START, zenithElevation, zenithTargetY, zenithBlend } from "./zenith-arc";
 
 describe("zenithBlend (11/09)", () => {
   it("nul avant le depart, plein au bas de la page, monotone", () => {
@@ -37,8 +37,9 @@ describe("zenithElevation (le regard qui se leve)", () => {
     }
   });
 
-  it("atteint exactement le plafond en fin d'arc", () => {
-    expect(deg(zenithElevation(1, R, CY, REST))).toBeCloseTo(ZENITH_MAX_DEG, 9);
+  it("atteint en fin d'arc la part ZENITH_LIFT du chemin vers le plafond", () => {
+    const base = deg(Math.atan2(REST - CY, R));
+    expect(deg(zenithElevation(1, R, CY, REST))).toBeCloseTo(base + (ZENITH_MAX_DEG - base) * ZENITH_LIFT, 9);
   });
 
   it("monte sans jamais redescendre", () => {
@@ -65,9 +66,11 @@ describe("zenithTargetY (le point vise sur l'axe du monde)", () => {
 
   it("place la cible a la hauteur qui tient l'elevation demandee", () => {
     const y = zenithTargetY(1, R, CY, REST);
-    expect(deg(Math.atan2(y - CY, R))).toBeCloseTo(ZENITH_MAX_DEG, 6);
-    // Concretement : le point vise tient l'angle maximal, quel qu'il soit.
-    expect(y).toBeGreaterThan(CY + R * Math.tan((ZENITH_MAX_DEG * Math.PI) / 180) - 1e-9);
+    // L'elevation atteinte est la part ZENITH_LIFT du chemin entre le repos
+    // et l'angle maximal (a zero depuis le 11/09 : la camera reste au repos).
+    const base = deg(Math.atan2(REST - CY, R));
+    expect(deg(Math.atan2(y - CY, R))).toBeCloseTo(base + (ZENITH_MAX_DEG - base) * ZENITH_LIFT, 6);
+    if (ZENITH_LIFT === 0) expect(y).toBeCloseTo(REST, 9);
   });
 
   it("ne degenere pas si la camera passe sur l'axe du monde", () => {

@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, EffectGroup, HueSaturation, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { approachGrade, getGradeRig, type GradeRig } from "@/lib/direction-grade";
-import { zenithBlend } from "@/lib/zenith-arc";
+import { columnRise, zenithBlend } from "@/lib/zenith-arc";
 import { useCardinalTransition } from "./cardinal-transition-context";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { useSceneRefs } from "./scene-refs-context";
@@ -153,8 +153,11 @@ export default function PostFX() {
       // Au zenith du Centre, le flou s'eteint (11/09) : la Voie lactee est a
       // l'infini, hors du champ net centre sur le cerf ; avec le flou, ses
       // etoiles devenaient des taches (lib/zenith-arc.zenithBlend).
-      const zenith = direction === "jade" && refs ? zenithBlend(refs.progressRef.current) : 0;
-      dofRef.current.bokehScale = (DOF_BASE_BOKEH + bell * DOF_BURST_BOKEH) * (1 - zenith);
+      // Au Centre, le flou s'eteint a mesure que la colonne se leve (11/09,
+      // Sylvain : « une belle image et pas floue ») : cerf, colonne,
+      // montagnes et etoiles nets ensemble au climax.
+      const net = direction === "jade" && refs ? Math.max(zenithBlend(refs.progressRef.current), columnRise(refs.progressRef.current)) : 0;
+      dofRef.current.bokehScale = (DOF_BASE_BOKEH + bell * DOF_BURST_BOKEH) * (1 - net);
     }
   });
 

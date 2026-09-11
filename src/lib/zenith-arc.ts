@@ -29,6 +29,16 @@ export const ZENITH_START = 0.8;
  *  lookAt, pas un reglage esthetique. */
 export const ZENITH_MAX_DEG = 78;
 
+/** La PART de cette montee reellement appliquee, 0 a 1. A zero depuis le
+ *  11/09 (retour Sylvain, capture du bas de l'accueil : « un cadre noir avec
+ *  des points », et sa seule exigence, « une belle image et pas floue ») : la
+ *  camera reste sur le cerf, la colonne traverse le cadre au-dessus des
+ *  montagnes, la Voie lactee reste en fond. L'axe se montre par la colonne,
+ *  pas par un regard qui quitte le monde. Remonter cette part rendrait la
+ *  montee, mesuree : a 62 comme a 78 degres, aucune montagne dans le cadre ;
+ *  a 35, la colonne remplit l'image ; la terre n'entre qu'en dessous de 20. */
+export const ZENITH_LIFT = 0;
+
 /** Rayon en deca duquel l'elevation n'a plus de sens (la camera est sur
  *  l'axe qu'elle vise). */
 const RAYON_MIN = 0.05;
@@ -61,7 +71,7 @@ export function zenithElevation(progress: number, radius: number, cameraY: numbe
   const r = Math.max(RAYON_MIN, radius);
   const base = Math.atan2(restY - cameraY, r);
   const max = (ZENITH_MAX_DEG * Math.PI) / 180;
-  return base + (max - base) * zenithBlend(progress);
+  return base + (max - base) * zenithBlend(progress) * ZENITH_LIFT;
 }
 
 /**
