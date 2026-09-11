@@ -6,7 +6,7 @@ import { assetsForDirection } from "@/lib/direction-assets";
 import type { DirectionKey } from "./direction-colors";
 import { useCurrentDirection } from "./use-current-direction";
 import { SHADERS_WARM_EVENT, WARMUP_FALLBACK_MS, getWarmDirection } from "./shader-warmup";
-import { NEXT_DIRECTION, addIntent, hasIntent, useIntentVersion } from "./direction-intent";
+import { NEXT_DIRECTION, addIntent, hasIntent, requestMountSlot, useIntentVersion } from "./direction-intent";
 import { whenRevealed } from "@/lib/apres-le-voile";
 
 /**
@@ -60,6 +60,14 @@ export default function MountForDirection({
   // compiler avant qu'on y aille.
   useIntentVersion();
   const intended = Array.isArray(is) ? is.some((d) => hasIntent(d)) : hasIntent(is);
+  // Le montage a l'intention est ETALE : un creneau toutes les deux images
+  // (voir direction-intent.requestMountSlot). Une navigation reelle
+  // (wanted) monte tout de suite.
+  const [slot, setSlot] = useState(false);
+  useEffect(() => {
+    if (!intended || wanted || slot) return;
+    return requestMountSlot(() => setSlot(true));
+  }, [intended, wanted, slot]);
   // `lingering` ne sert qu'a SURVIVRE au depart : le rendu suit `wanted`
   // directement, et l'effet ne fait qu'eteindre, jamais allumer. Ajuster
   // l'etat pendant le rendu (et non dans un effet) est le motif documente
@@ -101,7 +109,7 @@ export default function MountForDirection({
     return () => window.clearTimeout(timer);
   }, [wanted, linger]);
 
-  return wanted || lingering || intended ? (
+  return wanted || lingering || (intended && slot) ? (
     <MountVisibleContext.Provider value={visible}>
       <group visible={visible}>{children}</group>
     </MountVisibleContext.Provider>

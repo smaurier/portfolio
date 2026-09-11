@@ -54,7 +54,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 
 | # | quoi | oracle | effort | decision |
 | --- | --- | --- | --- | --- |
-| T4 | Le montage d'une direction a l'intention (survol, ou direction suivante trois secondes apres le voile) coute une image longue, ~400 ms en dev, pendant la lecture : etaler le montage (un composant par image) ou le declencher quand le visiteur ne defile pas | `transition.mjs` sur la page de depart : 0 image > 100 ms apres le survol | S | moi |
+| ~~T4~~ | ~~Le montage d'une direction a l'intention coute une image longue~~ (fait : un creneau de montage toutes les deux images, `direction-intent.requestMountSlot` ; dev : trois pics de 114 a 170 ms -> un de 109 ms vers Contact, 214 -> 88 ms vers Services ; le reste est le montage des porteuses, un seul composant) | `transition.mjs` sur la page de depart : 0 image > 100 ms apres le survol | S | moi |
 | T5 | Un programme tardif a 15 % de l'arc a Memoire (mobile : variante skinnee, double face, avec brouillard, le clone de Xolotl sur la couche du reflet) et un a Projets au bureau (un MeshPhysicalMaterial partage par deux maillages) ; tolerance d'un programme dans le test e2e, a retirer | `programmes-tardifs.spec.ts` a tolerance zero | S | moi |
 | T6 | La chauffe se reveille a chaque chargement fini (un evenement par modele arrive) : correct, mais bavard ; grouper | un evenement par cycle utile | S | moi |
 
