@@ -42,3 +42,6 @@ next-env.d.ts
 # scripts de verification locaux (captures, sondes)
 .scratch/
 .next-dev.log
+
+# References visuelles : propres a la machine (carte graphique), jamais versionnees
+tests/e2e/regression-visuelle.spec.ts-snapshots/

@@ -109,7 +109,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 | ~~Q1~~ | ~~**e2e : 0 programme compile en cours d'arc**~~ (fait, `tests/e2e/programmes-tardifs.spec.ts`, cinq pages, ligne de base huit secondes apres le voile pour laisser passer la pre-compilation de l'intention), sur les cinq pages (la sonde `programmes-tardifs` promue en test) | c'est deterministe, et c'est ce qui casse a chaque materiau ajoute | la suite e2e | S | moi |
 | ~~Q2~~ | ~~e2e : plafond d'appels de rendu par page~~ (fait, `tests/e2e/appels-de-rendu.spec.ts` : bureau, passes du post-traitement comprises, mesure du 11/09 : Accueil 167, Services 131, Projets 203, Contact 212, Memoire 157 ; plafonds a +15 %) | deterministe ; le 09/09 le Sud etait a 1 349 sans que rien ne le dise | la suite e2e | S | moi |
 | ~~Q3~~ | ~~T3, e2e de transition~~ (fait) | | | S | moi |
-| Q4 | Regression visuelle a seuil perceptuel (captures WebGL comparees avec tolerance), cinq pages, trois points d'arc | un site vivant se casse en silence | a calibrer : les captures WebGL varient d'une machine a l'autre | M | moi, apres Q1-Q3 |
+| Q4 | Regression visuelle a seuil perceptuel (essaye le 11/09 : sous mouvement reduit, deux passages identiques different encore de 2 a 13 % des pixels ; la suite existe, `regression-visuelle.spec.ts`, sur demande VISUEL=1 seulement, a 20 % de tolerance, detecteur de desastres) | un site vivant se casse en silence | il faut un etat de scene reellement fige (la pause plus un temps de simulation gele) et une machine de reference | M | moi, apres le premier build d'octobre |
 
 ## 7. Accessibilite (utilisabilite 30)
 
