@@ -39,11 +39,11 @@ C'est ce tableau-la qui donne la note du site, et donc ou investir.
 | axe | poids | note | ce qui la retient |
 | --- | --- | --- | --- |
 | Design | 40 | 8,6 | tout est pose ; ton oeil sur image : le cadre decale, l'echelle, les panneaux qui suivent la scene |
-| Utilisabilite | 30 | 8,65 | axe vert sur les cinq pages, zero avis ; plus un programme compile en cours d'arc (tout se paie derriere le voile) ; l'accueil charge 10 % de JavaScript en moins ; le voile de l'accueil reste borne par le JavaScript (three, Next) ; a Contact, le graphe de scene est le premier poste |
+| Utilisabilite | 30 | 8,8 | axe vert sur les cinq pages, zero avis ; plus un programme compile en cours d'arc ; les voyages cardinaux ne figent plus (1,8 a 2,6 s -> 56 a 211 ms) ; l'accueil charge 10 % de JavaScript en moins ; le voile de l'accueil reste borne par le JavaScript (three, Next) ; a Contact, le graphe de scene est le premier poste |
 | Creativite | 20 | 8,8 | le son est la, invite au voile, cinq elements ; a entendre par toi |
 | Contenu | 10 | 8,4 | quatre fiches, dont une NestJS ; ta relecture de la quatrieme |
 
-Moyenne ponderee : **8,7**.
+Moyenne ponderee : **8,75**.
 
 ---
 
@@ -110,6 +110,11 @@ et dans le tableau d'avancement de `plan-execution.md`.
   trois causes exactes reglees (`b6ed417`), gains reels mais sous le bruit
   de la sonde des images en retard ; le reste est le contenu de la page,
   a arbitrer.
+- **11/09, sixieme passe** : 8,7 -> 8,75. Le ralentissement des transitions
+  vu par Sylvain, mesure (1,8 a 2,6 s de gel par trajet) et regle (56 a
+  211 ms) : six causes, de l'eclairage qui changeait par direction a la
+  variante compilee pour le mauvais espace couleur (`29468c3`). Un test e2e
+  garde le voyage.
 - **11/09, cinquieme passe** : 8,68 -> 8,7. Les trois dictionnaires
   partaient au navigateur sur toutes les pages (la page d'accueil etait un
   composant client pour deballer params) : 64 Ko compresses de moins sur

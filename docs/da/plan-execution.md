@@ -61,6 +61,7 @@ prevu, travaille toute la nuit s'il le faut ». Voici ou en est le plan.
 | N12 la chauffe des shaders : le voile l attend ; simulateur et miroir chauffent aussi. Contact 3 -> 0, Memoire 6 -> 0 compilations en cours d arc | ✅ FAIT | `86ae55c` |
 | N13 les trois dictionnaires ne partent plus au navigateur (page d accueil en composant serveur, boussole et cloture en props) : accueil 634 -> 575 Ko compresses | ✅ FAIT | `a777e0a` |
 | N14 Contact, le graphe : squelettes partages par famille (40 -> 16), fleurs des ocotillos figees (797 -> 629 matrices auto), balayages de materiaux cadences (traverse 19 ms/s -> 0) | ✅ FAIT | `b6ed417` |
+| N15 l arrivee chauffee : lumieres persistantes, chauffe en tranches (chien de garde), bonne variante sous post-traitement, Nord sous garde-fou, intention ; voyages 1,8 a 2,6 s de gel -> 56 a 211 ms ; test e2e de transition | ✅ FAIT | `29468c3` |
 | C1 mesure sur telephone | ⬜ **c'est a toi**, en USB | |
 | I2 les modeles nettoyes et compresses (go de Sylvain sur l outil, 11/09) | ✅ FAIT | `1b37b45` |
 | E1, E2 (l'arc vertical du Centre) | ✅ FAIT | `8394028` |

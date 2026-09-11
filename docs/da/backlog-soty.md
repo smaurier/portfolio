@@ -44,9 +44,19 @@ l'etaient pas).
 
 | # | quoi | oracle | effort | decision |
 | --- | --- | --- | --- | --- |
-| T1 | **L'arrivee chauffee** : quand la direction change, le sous-arbre de la nouvelle direction se monte invisible, `compileAsync` le compile en parallele pendant le voyage cardinal (le cadre nepantla dure deja une seconde), et il n'apparait qu'a l'evenement `nahual:shaders-warm`, avec un secours de quatre secondes, comme le voile | `transition.mjs` : 0 image > 100 ms sur les quatre trajets ; `programmes-navigation.mjs` : les programmes montent PENDANT le cadre, pas apres | M | moi |
-| T2 | Le voyage attend la chauffe : le cadre nepantla ne se leve qu'une fois l'evenement recu, pour ne jamais montrer une image figee | e2e : le cadre est encore la a l'instant du premier rendu de la direction | S (avec T1) | moi |
-| T3 | Test e2e de transition : quatre trajets, agent reel, 0 image > 100 ms | la suite e2e | S | moi |
+| ~~T1~~ | ~~**L'arrivee chauffee**~~ (fait, `29468c3`) : quand la direction change, le sous-arbre de la nouvelle direction se monte invisible, `compileAsync` le compile en parallele pendant le voyage cardinal (le cadre nepantla dure deja une seconde), et il n'apparait qu'a l'evenement `nahual:shaders-warm`, avec un secours de quatre secondes, comme le voile | `transition.mjs` : 0 image > 100 ms sur les quatre trajets ; `programmes-navigation.mjs` : les programmes montent PENDANT le cadre, pas apres | M | moi |
+| ~~T2~~ | ~~Le voyage attend la chauffe~~ (fait, `29468c3`) : le cadre nepantla ne se leve qu'une fois l'evenement recu, pour ne jamais montrer une image figee | e2e : le cadre est encore la a l'instant du premier rendu de la direction | S (avec T1) | moi |
+| ~~T3~~ | ~~Test e2e de transition~~ (fait, `29468c3`) : quatre trajets, agent reel, 0 image > 100 ms | la suite e2e | S | moi |
+
+**Mesure apres correction** (`29468c3`, production locale, bureau, pire image du
+clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
+-> Memoire 176 ms ; Memoire -> Accueil 56 ms ; Projets -> Services 93 ms.
+
+| # | quoi | oracle | effort | decision |
+| --- | --- | --- | --- | --- |
+| T4 | Le montage d'une direction a l'intention (survol, ou direction suivante trois secondes apres le voile) coute une image longue, ~400 ms en dev, pendant la lecture : etaler le montage (un composant par image) ou le declencher quand le visiteur ne defile pas | `transition.mjs` sur la page de depart : 0 image > 100 ms apres le survol | S | moi |
+| T5 | Un programme tardif a 15 % de l'arc a Memoire sur mobile (variante skinnee, double face, avec brouillard : le clone de Xolotl sur la couche du reflet) | `programmes-tardifs.mjs` : 0 | S | moi |
+| T6 | La chauffe se reveille a chaque chargement fini (un evenement par modele arrive) : correct, mais bavard ; grouper | un evenement par cycle utile | S | moi |
 
 ---
 
@@ -86,7 +96,7 @@ l'etaient pas).
 
 | # | quoi | pourquoi | oracle | effort | decision |
 | --- | --- | --- | --- | --- | --- |
-| P1 | T1, l'arrivee chauffee | le plus gros defaut mesure du site ce soir | voir 0. | M | moi |
+| ~~P1~~ | ~~T1, l'arrivee chauffee~~ (fait) | le plus gros defaut mesure du site ce soir | voir 0. | M | moi |
 | P2 | **Contact, le contenu** : 2 relachements au lieu de 3 a 5 sur les porteuses loin de la camera ; 160 feuilles au lieu de 240 sur telephone ; densite d'herbe reduite a l'Ouest | le jure teste a CPU x4 et Fast 3G et veut 60 im/s ; Contact est a 34 % d'images en retard sur Pixel 7 | profil en temps propre : bandelettes 85 -> ~45 ms/s, feuilles 75 -> ~50, herbe 85 -> ? ; ton oeil sur les figures | S chacun | Sylvain (les trois) |
 | P3 | WebGPU + TSL, la branche garee | la voie 2026 (IVRESS) ; « enormement de choses cassees » le 06/09 | fps >= WebGL sur les cinq pages, parite visuelle | L | Sylvain, **pas avant le 23/10** |
 | P4 | Mesure reelle sur nahual.fr au premier build d'octobre, puis panel a froid | tout est mesure en local | Lighthouse mobile, `transition.mjs` sur nahual.fr | S | moi |
@@ -97,7 +107,7 @@ l'etaient pas).
 | --- | --- | --- | --- | --- | --- |
 | Q1 | **e2e : 0 programme compile en cours d'arc**, sur les cinq pages (la sonde `programmes-tardifs` promue en test) | c'est deterministe, et c'est ce qui casse a chaque materiau ajoute | la suite e2e | S | moi |
 | Q2 | e2e : plafond d'appels de rendu par page (68 a Contact, 211 au Sud...) avec une marge de 10 % | deterministe ; le 09/09 le Sud etait a 1 349 sans que rien ne le dise | la suite e2e | S | moi |
-| Q3 | T3, e2e de transition | | | S | moi |
+| ~~Q3~~ | ~~T3, e2e de transition~~ (fait) | | | S | moi |
 | Q4 | Regression visuelle a seuil perceptuel (captures WebGL comparees avec tolerance), cinq pages, trois points d'arc | un site vivant se casse en silence | a calibrer : les captures WebGL varient d'une machine a l'autre | M | moi, apres Q1-Q3 |
 
 ## 7. Accessibilite (utilisabilite 30)
