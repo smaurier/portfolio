@@ -21,7 +21,7 @@
  * (scene-controls.tsx) ne fait que brancher le navigateur dessus.
  */
 
-export type SceneAction = "text" | "fullscreen" | "cinematic" | "photo" | "eco" | "link";
+export type SceneAction = "text" | "fullscreen" | "cinematic" | "photo" | "eco" | "link" | "pause";
 
 /** Raccourcis de scene : lettres LIBRES (la navigation cardinale prend
  * WASD / ZQSD / C, et Echap ramene a l'accueil). */
@@ -32,6 +32,10 @@ export const SCENE_SHORTCUTS: Record<string, SceneAction> = {
   p: "photo",
   e: "eco",
   l: "link",
+  // G comme geler : la pause du mouvement (11/09, WCAG 2.2.2 : tout
+  // mouvement automatique de plus de cinq secondes doit pouvoir etre mis en
+  // pause par le visiteur, quelle que soit sa preference systeme).
+  g: "pause",
 };
 
 export function shortcutAction(key: string): SceneAction | null {
@@ -72,4 +76,5 @@ export function resolveQuality(eco: boolean, isMobile: boolean): QualityProfile 
 export const STORAGE_KEYS = {
   sceneOnly: "nahual-scene-only",
   eco: "nahual-eco",
+  paused: "nahual-paused",
 } as const;

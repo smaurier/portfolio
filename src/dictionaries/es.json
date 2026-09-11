@@ -40,7 +40,10 @@
       "cinematicOff": "Detener la contemplación",
       "photo": "Foto de la escena",
       "ecoOn": "Modo eco: renderizado ligero",
+
       "ecoOff": "Salir del modo eco",
+      "pauseOn": "Congelar la escena",
+      "pauseOff": "Reanudar la escena",
       "link": "Copiar el enlace de este instante",
       "linkCopied": "Enlace copiado",
       "resume": "Retomar donde lo dejó",

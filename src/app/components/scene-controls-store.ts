@@ -19,6 +19,9 @@ export type SceneControlsState = {
   cinematicAtRealHour: boolean;
   /** Profil de rendu leger force. */
   eco: boolean;
+  /** La pause du mouvement (11/09) : le canvas ne rend plus, l'image
+   * reste, le texte vit. Une session, pas une preference. */
+  paused: boolean;
 };
 
 type Listener = (state: SceneControlsState) => void;
@@ -36,10 +39,15 @@ function readStored(): Partial<SceneControlsState> {
   } catch {
     /* idem */
   }
+  try {
+    out.paused = window.sessionStorage.getItem(STORAGE_KEYS.paused) === "1";
+  } catch {
+    /* idem */
+  }
   return out;
 }
 
-const state: SceneControlsState = { sceneOnly: false, cinematic: false, cinematicAfternoon: false, cinematicAtRealHour: false, eco: false };
+const state: SceneControlsState = { sceneOnly: false, cinematic: false, cinematicAfternoon: false, cinematicAtRealHour: false, eco: false, paused: false };
 const listeners = new Set<Listener>();
 let hydrated = false;
 
@@ -61,6 +69,7 @@ export function setSceneControls(patch: Partial<SceneControlsState>): void {
   try {
     if (patch.sceneOnly !== undefined) window.sessionStorage.setItem(STORAGE_KEYS.sceneOnly, patch.sceneOnly ? "1" : "0");
     if (patch.eco !== undefined) window.localStorage.setItem(STORAGE_KEYS.eco, patch.eco ? "1" : "0");
+    if (patch.paused !== undefined) window.sessionStorage.setItem(STORAGE_KEYS.paused, patch.paused ? "1" : "0");
   } catch {
     /* stockage indisponible : l'etat vit en memoire */
   }

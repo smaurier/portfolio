@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { shouldReduceMotion, shouldRenderContinuously } from "./reduced-motion";
 
+describe("la pause du visiteur (11/09)", () => {
+  it("gele le rendu quoi qu'il arrive, contemplation comprise", () => {
+    expect(shouldRenderContinuously({ prefersReduced: false, cinematicRequested: true, documentHidden: false, paused: true })).toBe(false);
+    expect(shouldRenderContinuously({ prefersReduced: false, cinematicRequested: false, documentHidden: false, paused: true })).toBe(false);
+  });
+  it("sans pause, rien ne change", () => {
+    expect(shouldRenderContinuously({ prefersReduced: false, cinematicRequested: false, documentHidden: false, paused: false })).toBe(true);
+  });
+});
+
 describe("mouvement reduit : qui decide", () => {
   it("la preference systeme gele la scene", () => {
     expect(shouldReduceMotion(true, false)).toBe(true);

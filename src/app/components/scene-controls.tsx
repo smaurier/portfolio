@@ -46,6 +46,8 @@ export type SceneControlsLabels = {
   photo: string;
   ecoOn: string;
   ecoOff: string;
+  pauseOn: string;
+  pauseOff: string;
   link: string;
   linkCopied: string;
   resume: string;
@@ -264,12 +266,13 @@ export default function SceneControls({ labels, traces, locale }: { labels: Scen
       else if (action === "cinematic") (s.cinematic ? stopCinematic : startCinematic)();
       else if (action === "photo") takePhoto();
       else if (action === "eco") setSceneControls({ eco: !s.eco });
+      else if (action === "pause") setSceneControls({ paused: !s.paused });
       else if (action === "link") copyLink();
     },
     [toggleFullscreen, stopCinematic, startCinematic, takePhoto, copyLink]
   );
 
-  // Raccourcis (H, F, T, P, E, L), soumis a l'interrupteur RGAA.
+  // Raccourcis (H, F, T, P, E, L, G), soumis a l'interrupteur RGAA.
   useEffect(() => {
     if (!shortcuts || readingMode.active) return;
     const onKey = (e: KeyboardEvent) => {
@@ -355,6 +358,19 @@ export default function SceneControls({ labels, traces, locale }: { labels: Scen
       icon: (
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M20 4c-6 0-11 3-13 9l-3 7 2 0 2-4c5 1 9-1 11-6l1-6zM8 15c3-4 6-6 9-8" />
+        </svg>
+      ),
+    },
+    {
+      // La pause du mouvement (11/09, WCAG 2.2.2) : le canvas cesse de
+      // rendre, l'image reste, le texte vit ; independante de la preference
+      // systeme, elle gagne sur la contemplation.
+      action: "pause",
+      pressed: state.paused,
+      label: state.paused ? labels.pauseOff : labels.pauseOn,
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 5v14M16 5v14" />
         </svg>
       ),
     },

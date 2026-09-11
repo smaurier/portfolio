@@ -42,7 +42,11 @@ export function shouldRenderContinuously(etat: {
   prefersReduced: boolean;
   cinematicRequested: boolean;
   documentHidden: boolean;
+  /** La pause demandee par le visiteur (bouton, touche G) : elle gagne sur
+   *  tout, contemplation comprise (11/09, WCAG 2.2.2). */
+  paused?: boolean;
 }): boolean {
   if (etat.documentHidden) return false;
+  if (etat.paused) return false;
   return !shouldReduceMotion(etat.prefersReduced, etat.cinematicRequested);
 }

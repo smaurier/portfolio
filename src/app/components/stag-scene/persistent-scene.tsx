@@ -109,6 +109,7 @@ export default function PersistentScene() {
         prefersReduced: reducedMotionMq.matches,
         cinematicRequested: getSceneControls().cinematic,
         documentHidden: typeof document !== "undefined" && document.hidden,
+        paused: getSceneControls().paused,
       })
         ? ("always" as const)
         : ("demand" as const);

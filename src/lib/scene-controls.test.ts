@@ -28,6 +28,7 @@ describe("les raccourcis de scene", () => {
     expect(shortcutAction("H")).toBe("text");
     expect(shortcutAction("f")).toBe("fullscreen");
     expect(shortcutAction("t")).toBe("cinematic");
+    expect(shortcutAction("g")).toBe("pause");
     expect(shortcutAction("p")).toBe("photo");
     expect(shortcutAction("e")).toBe("eco");
     expect(shortcutAction("l")).toBe("link");

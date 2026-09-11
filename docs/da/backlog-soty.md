@@ -115,7 +115,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 
 | # | quoi | pourquoi | oracle | effort | decision |
 | --- | --- | --- | --- | --- | --- |
-| A1 | **Une commande de pause du mouvement** dans les commandes de scene (trois langues), en plus de la preference systeme : la scene s'arrete, le texte reste | WCAG 2.2.2 : tout mouvement automatique de plus de cinq secondes doit pouvoir etre mis en pause par l'utilisateur ; la preference systeme ne suffit pas a un audit | axe ; e2e : le bouton fige la scene ; ton audit | S | Sylvain (le libelle), moi |
+| ~~A1~~ | ~~**Une commande de pause du mouvement**~~ (fait : bouton « Figer la scene » / « Reprendre la scene », touche G, trois langues, la boucle de rendu coupee, l'image reste, le texte vit ; gagne sur la contemplation ; libelles a corriger par Sylvain ; test e2e `pause-du-mouvement.spec.ts`) | WCAG 2.2.2 : tout mouvement automatique de plus de cinq secondes doit pouvoir etre mis en pause par l'utilisateur ; la preference systeme ne suffit pas a un audit | axe ; e2e : le bouton fige la scene ; ton audit | S | Sylvain (le libelle), moi |
 | A2 | **L'audit RGAA du site par toi**, lot 3 (documents 10.11 / 13.9 de l'examen) | c'est le vrai test, et un entrainement d'examen | la grille | M | Sylvain |
 | A3 | Focus visible sur les liens cardinaux dans les surcouches 3D, et ordre de tabulation verifie apres l'acte de sortie | tout ce qui est dans la scene doit exister hors de la scene | e2e clavier | S | moi |
 
