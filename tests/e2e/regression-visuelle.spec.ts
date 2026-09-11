@@ -25,7 +25,7 @@ import { test, expect } from "@playwright/test";
  *   VISUEL=1 pnpm exec playwright test tests/e2e/regression-visuelle.spec.ts --update-snapshots
  */
 test.skip(!process.env.VISUEL, "regression visuelle sur demande seulement (VISUEL=1) : bruit de 2 a 13 % mesure le 11/09");
-test.use({ reducedMotion: "reduce", viewport: { width: 1280, height: 720 } });
+test.use({ contextOptions: { reducedMotion: "reduce" }, viewport: { width: 1280, height: 720 } });
 
 const PAGES = ["fr", "fr/services", "fr/projets", "fr/contact", "fr/memoire"];
 const ETAPES = [0.35, 0.8];
