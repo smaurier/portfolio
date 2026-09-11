@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { COLUMN_START, columnRise, ZENITH_MAX_DEG, ZENITH_START, zenithElevation, zenithTargetY } from "./zenith-arc";
+import { COLUMN_START, columnRise, ZENITH_MAX_DEG, ZENITH_START, zenithElevation, zenithTargetY, zenithBlend } from "./zenith-arc";
+
+describe("zenithBlend (11/09)", () => {
+  it("nul avant le depart, plein au bas de la page, monotone", () => {
+    expect(zenithBlend(0.5)).toBe(0);
+    expect(zenithBlend(ZENITH_START)).toBe(0);
+    expect(zenithBlend(1)).toBe(1);
+    expect(zenithBlend(0.9)).toBeGreaterThan(0);
+    expect(zenithBlend(0.9)).toBeLessThan(1);
+  });
+});
 
 /**
  * L'arc vertical du Centre. L'ecueil est nomme dans le plan : camera.up

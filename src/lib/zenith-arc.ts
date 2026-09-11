@@ -48,12 +48,20 @@ function ease(t: number): number {
  * `radius` : distance horizontale de la camera a l'axe du monde.
  * `cameraY` : hauteur de la camera. `restY` : la cible de repos.
  */
+/** La part du zenith dans le regard, 0 avant ZENITH_START, 1 au bas de la
+ *  page, adoucie. Le post-traitement la lit aussi (11/09) : au zenith, le
+ *  flou de profondeur doit s'eteindre, sinon la Voie lactee, a l'infini et
+ *  hors du champ net, devient un semis de taches (retour Sylvain, capture
+ *  du bas de l'accueil). */
+export function zenithBlend(progress: number): number {
+  return ease((progress - ZENITH_START) / (1 - ZENITH_START));
+}
+
 export function zenithElevation(progress: number, radius: number, cameraY: number, restY: number): number {
   const r = Math.max(RAYON_MIN, radius);
   const base = Math.atan2(restY - cameraY, r);
   const max = (ZENITH_MAX_DEG * Math.PI) / 180;
-  const t = ease((progress - ZENITH_START) / (1 - ZENITH_START));
-  return base + (max - base) * t;
+  return base + (max - base) * zenithBlend(progress);
 }
 
 /**

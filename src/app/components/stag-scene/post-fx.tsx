@@ -5,9 +5,11 @@ import { useFrame } from "@react-three/fiber";
 import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, EffectGroup, HueSaturation, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { approachGrade, getGradeRig, type GradeRig } from "@/lib/direction-grade";
+import { zenithBlend } from "@/lib/zenith-arc";
 import { useCardinalTransition } from "./cardinal-transition-context";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { useSceneRefs } from "./scene-refs-context";
+import { useCurrentDirection } from "./use-current-direction";
 import OllinShockwave from "./ollin-shockwave";
 import NepantlaBlur from "./nepantla-blur";
 import XiuhcoatlHeat from "./xiuhcoatl-heat";
@@ -87,6 +89,7 @@ export default function PostFX() {
   const hueSatRef = useRef<{ saturation: number } | null>(null);
   const transition = useCardinalTransition();
   const refs = useSceneRefs();
+  const direction = useCurrentDirection();
   // Grade sur l'heure atmospherique (03/09 etage 3 Nepantla) : pendant
   // un passage cardinal, le grade traverse les heures intermediaires
   // du voyage du soleil, meme cadence de lissage que fog et rig.
@@ -119,9 +122,8 @@ export default function PostFX() {
       vignetteRef.current.darkness = 0.9 - p * 0.25 + grade.vignetteAdd + sortie * 0.3;
     }
 
-    if (!transition) return;
-    const p = transition.transitionProgressRef.current;
-    const active = transition.transitionDirection !== null && p > 0;
+    const p = transition ? transition.transitionProgressRef.current : 0;
+    const active = !!transition && transition.transitionDirection !== null && p > 0;
     const bell = active ? Math.sin(p * Math.PI) : 0;
 
     if (bloomRef.current) {
@@ -148,7 +150,11 @@ export default function PostFX() {
       // Au repos, le bokeh de base ; pendant un passage cardinal il monte
       // en cloche. Le sujet reste net parce que la mise au point est sur
       // lui : c'est ce qui fait un focus rack et non un flou plat.
-      dofRef.current.bokehScale = DOF_BASE_BOKEH + bell * DOF_BURST_BOKEH;
+      // Au zenith du Centre, le flou s'eteint (11/09) : la Voie lactee est a
+      // l'infini, hors du champ net centre sur le cerf ; avec le flou, ses
+      // etoiles devenaient des taches (lib/zenith-arc.zenithBlend).
+      const zenith = direction === "jade" && refs ? zenithBlend(refs.progressRef.current) : 0;
+      dofRef.current.bokehScale = (DOF_BASE_BOKEH + bell * DOF_BURST_BOKEH) * (1 - zenith);
     }
   });
 
