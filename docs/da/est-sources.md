@@ -135,3 +135,14 @@ Idee forte retenue dans les fiches de scene (05/09) : LES DARDS DE L'AUBE.
   trait ; le detail se perd et la lueur l'epaissit.
 - Le dard du soleil part du meme endroit que les rayons divins : l'axe du
   puits de lumiere (est-arc.beamAxis) a 6 u, pas du soleil a l'horizon.
+
+## Le chant de la direction (M4, 11/09/2026)
+
+Un chant des *Cantares mexicanos* (manuscrit du XVIe siecle, Biblioteca
+Nacional de Mexico) est cite sous la scene et en mode lecture, visible pour
+tout le monde : nahuatl, espagnol de l'edition Miguel Leon-Portilla (coord.),
+UNAM, 2011 (acces ouvert :
+https://historicas.unam.mx/publicaciones/publicadigital/libros/cantares/),
+et notre traduction d'apres cet espagnol, marquee comme telle. Le choix, le
+folio et les raisons sont dans `cantares-choix.md` ; le texte vit dans
+`src/lib/cantares.ts`.

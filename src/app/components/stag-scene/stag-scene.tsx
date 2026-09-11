@@ -3,6 +3,7 @@
 import { getChapterOpacity, getIntroOpacity } from "@/lib/reveal-arc";
 import { renderWithNahuatl } from "@/lib/nahuatl";
 import RevealText from "../reveal-text";
+import Cantar, { type CantarTexts } from "../cantar";
 import CardinalLink from "./cardinal-link";
 import FadingBlock from "./fading-block";
 import PageClosure from "./page-closure";
@@ -39,10 +40,13 @@ export default function StagScene({
   seuil,
   servicesHref,
   sceneDescription,
+  cantar,
 }: {
   home: HomeContent;
   locale: Locale;
   closure: Dictionary["closure"];
+  /** Le chant du Centre (M4) : textes communs et libelle « nouvelle fenetre ». */
+  cantar: { texts: CantarTexts; newWindow: string };
   /** La ligne de seuil du Centre, en tete du bloc visible (N1). */
   seuil?: string;
   servicesHref: string;
@@ -140,6 +144,14 @@ export default function StagScene({
           reducedMotionRef={reducedMotionRef}
         />
       )}
-    />
+    >
+      {/* LE CHANT DU CENTRE (M4, 11/09). Le texte de la home vit dans
+          l'overlay fixe ; le chant, lui, est dans le flux (le seul contenu
+          des 300vh), ancre en bas : il arrive sous la scene, dans la derniere
+          hauteur d'ecran, et reste visible en mode lecture. */}
+      <section className="cantarFlow" aria-label={cantar.texts.label}>
+        <Cantar direction="jade" locale={locale} texts={cantar.texts} newWindow={cantar.newWindow} />
+      </section>
+    </SceneStage>
   );
 }

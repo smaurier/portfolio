@@ -23,11 +23,17 @@
     "xolotlSeen": "¿Ese perro? ¿Lo ha visto pasar? Visite el Códice.",
     "skipNav": "Ir al contenido principal",
     "seuils": {
-      "jade": "",
-      "dore": "",
-      "turquoise": "",
-      "cendre": "",
-      "obsidienne": ""
+      "jade": "Vuelve al hogar. El calor que lleva es el del primer día.",
+      "dore": "Va hacia el día. Lo que el hielo guardaba va a romperse.",
+      "turquoise": "Entra en el mediodía. Aquí, lo que arde deja huella.",
+      "cendre": "Sigue al sol que baja. Lo que lleva baja con él.",
+      "obsidienne": "Llega adonde se guarda. Lo que viajó hasta aquí no se borra."
+    },
+    "cantar": {
+      "label": "Un canto de esta dirección",
+      "source": "Cantares mexicanos, canto {chant}, estrofa {strophe}, folio {folio}. Paleografía y traducción: edición de Miguel León-Portilla, UNAM, 2011.",
+      "ourTranslation": "Texto en español de la edición.",
+      "editionLink": "La edición abierta de la UNAM"
     },
     "sound": {
       "on": "Activar sonido",

@@ -1804,3 +1804,75 @@ body.nahual-lab-reveal main[data-direction] .contentPage > p {
     transition: none;
   }
 }
+
+/* LE CHANT DE LA DIRECTION (11/09, M4). Une strophe des Cantares mexicanos,
+   visible pour tout le monde : sous la scene (dans le flux, apres le
+   contenu de la page) et en mode lecture. Jamais en sr-only. Trois couches
+   (nahuatl, espagnol de l'edition, notre traduction), la source en cite. */
+.cantar {
+  margin: 3rem 0 0;
+  max-width: 38rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 12px;
+  background: rgba(var(--panel-rgb), calc(0.35 + 0.3 * var(--scene-lum, 0)));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: var(--ink);
+}
+.cantarLabel {
+  margin: 0 0 0.9rem;
+  font-size: var(--t-petit);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.cantar blockquote {
+  margin: 0 0 1rem;
+  padding: 0;
+}
+.cantar blockquote p {
+  margin: 0;
+  font-size: var(--t-corps);
+  line-height: var(--il-chapeau);
+}
+.cantarNahuatl p {
+  font-style: italic;
+}
+.cantarEs p {
+  opacity: 0.85;
+}
+.cantarSource {
+  margin: 0;
+  font-size: var(--t-petit);
+  line-height: var(--il-corps);
+  opacity: 0.8;
+}
+.cantarSource cite {
+  font-style: normal;
+}
+/* Sur la home, le chant vit dans le flux vide de 300vh, le seul contenu
+   qui defile par-dessus la scene. Il n'est PAS ancre en bas : l'image
+   finale du Centre (validee le 11/09, nette, le monde entier) doit rester
+   libre. Il part au bas de la premiere hauteur d'ecran, en colonne droite
+   (les chapitres vivent en bas a gauche), et il est sorti du cadre avant
+   80 % de l'arc. Mesure : bloc de 65vh, en vue de 0 a 0,82 de l'arc. */
+.cantarFlow {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-end;
+  min-height: 300vh;
+  padding: 100vh 6vw 0;
+  box-sizing: border-box;
+}
+@media (max-width: 720px) {
+  .cantarFlow {
+    align-items: center;
+    padding-top: 100vh;
+  }
+}
+body.reading-mode .cantar {
+  background: rgba(var(--panel-rgb), 0.6);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}

@@ -17,11 +17,28 @@ les chemins. Le tonalli, la chaleur recue a la naissance (`centre-sources.md`).
 **Tranche le 11/09 au soir** (Sylvain : « une belle image et pas floue ») :
 quatre captures comparees, a 78, 62, 35 degres et a 15 % de montee ; aucune
 ne montre la terre ET la colonne ET le cerf ; seule la position de repos
-donne une image complete et nette. Reste a revoir : la colonne de fumee
-(base a 2,6 unites) n'entre pas dans le cadre au repos ; si on veut qu'elle
-se lise, il faut l'abaisser vers le foyer ou la faire partir des braseros.
+donne une image complete et nette.
 
-**Ce qui manque** : une ligne de seuil a l'arrivee (N1, brouillon dans
-`lignes-de-seuil.md`) ; le motif d'arrivee du Centre (trois crepitements)
+**La colonne, mesuree le 11/09 plus tard dans la soiree** (Sylvain avait
+choisi d'abaisser la base ; A/B en captures, `.scratch/colonne-ab.mjs`,
+chant masque) : a 85 % de l'arc la colonne est a pleine intensite
+(uIntensity 1,0, mesh visible, y 14,6) et INVISIBLE a l'image, base a 2,6,
+1,4 ou 0,6, et meme a densite quadruplee (base 1,4). Un voile additif de
+0,5 ne se lit pas sur l'herbe claire ; il ne se lisait que contre le ciel
+noir, quand le regard montait (coupe par ZENITH_LIFT 0). Abaisser la base ne
+change donc rien. Le cimetiere du Codex (fr.json, « une colonne de feu de
+trois metres qui traversait le cerf ») rappelle qu'une colonne dense a deja
+aveugle le sujet. Decision a prendre par Sylvain : demonter la colonne (un
+programme et un appel de rendu de moins, aucun changement d'image), la
+redessiner en fumee opaque (sprites, comme les bouffees des braseros, mais
+en une plume qui monte au-dessus du cerf), ou la laisser telle quelle.
+
+| # | position | plan | tenue | son | fichier |
+| --- | --- | --- | --- | --- | --- |
+| 9 | 0 a 0,82 | le chant du Centre (Cantares, chant I, strophe 1, fol. 1r : « Je parle avec mon coeur, ou prendrai-je les belles fleurs parfumees ? ») defile en colonne droite par-dessus la scene, puis sort par le haut avant l'image finale ; visible aussi en mode recit | | | `cantar.tsx`, `lib/cantares.ts` |
+
+**Ce qui est fait le 11/09 au soir** : la ligne de seuil du Centre (N1,
+« Vous revenez au foyer. La chaleur que vous portez est celle du premier
+jour. ») ; le chant (M4). Le motif d'arrivee du Centre (trois crepitements)
 ne se joue qu'en revenant d'une autre direction, jamais au premier
 chargement, c'est voulu.

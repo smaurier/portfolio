@@ -1,4 +1,4 @@
-# Les lignes de seuil (N1), brouillons a relire
+# Les lignes de seuil (N1), validees et entrees le 11/09/2026
 
 **Ecrit le 11/09/2026, reecrit au vouvoiement le meme soir** (choix de
 Sylvain : coherence avec l'interface, qui vouvoie partout). Une ligne par
@@ -14,7 +14,10 @@ au Centre ; teyolia = ce qui voyage vers le Mictlan, a Memoire) ; rien qui
 explique ou pallie ce que la scene montre ; pas de tiret cadratin ; les
 Cihuateteo jamais dramatisees ; pas de dieu nomme comme present.
 
-Rien de ceci n'entre dans les dictionnaires avant relecture mot a mot.
+**Validees par Sylvain le 11/09 au soir** (« Validees, on les entre ») et
+entrees telles quelles dans `common.seuils` des trois dictionnaires ;
+l'exception du test de parite a ete retiree. Ce fichier reste la trace du
+choix et des variantes.
 
 | arrivee | francais | anglais | espagnol |
 | --- | --- | --- | --- |

@@ -106,6 +106,22 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **11/09, huitieme passe, les choix de Sylvain** : 8,75 -> 8,8. Quatre
+  decisions prises ensemble et executees le soir meme : les cinq lignes de
+  seuil validees et entrees (N1, parite verte) ; le README pose avec son
+  « Pourquoi » (N3, relecture attendue) ; un chant des *Cantares mexicanos*
+  par direction, choisi dans les scans de l'edition Leon-Portilla lus page
+  a page, folios cites, visible pour tout le monde sur les cinq pages et en
+  mode recit (M4, e2e `cantares.spec.ts`) ; et la colonne de fumee du
+  Centre mesuree a la place d'etre supposee : a 85 % de l'arc elle est a
+  pleine intensite (uIntensity 1,0) et INVISIBLE, base a 2,6, 1,4 ou 0,6,
+  parce qu'un voile additif a 0,5 ne se lit pas sur l'herbe claire ; elle ne
+  se lisait que contre le ciel noir, quand le regard montait (coupe le
+  11/09). Abaisser la base ne change rien ; la vraie question est sa
+  densite, et le cimetiere du Codex rappelle qu'une colonne dense a deja
+  traverse le cerf et aveugle le sujet. Decision laissee a Sylvain avec les
+  captures. Idee nouvelle au backlog : faire lire les cantares (M5, apres le
+  23/10).
 - **11/09, sixieme passe** : 8,7, inchange. Contact, le graphe de scene :
   trois causes exactes reglees (`b6ed417`), gains reels mais sous le bruit
   de la sonde des images en retard ; le reste est le contenu de la page,

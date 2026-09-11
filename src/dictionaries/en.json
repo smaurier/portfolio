@@ -23,11 +23,17 @@
     "xolotlSeen": "That dog? Did you see him pass? Visit the Codex.",
     "skipNav": "Skip to main content",
     "seuils": {
-      "jade": "",
-      "dore": "",
-      "turquoise": "",
-      "cendre": "",
-      "obsidienne": ""
+      "jade": "You return to the hearth. The warmth you carry is the warmth of the first day.",
+      "dore": "You walk toward the day. What the ice held is about to break.",
+      "turquoise": "You enter the noon. Here, what burns leaves a mark.",
+      "cendre": "You follow the setting sun. What you carry goes down with it.",
+      "obsidienne": "You arrive where things are kept. What travelled this far is not erased."
+    },
+    "cantar": {
+      "label": "A song for this direction",
+      "source": "Cantares mexicanos, song {chant}, stanza {strophe}, folio {folio}. Palaeography and Spanish translation: Miguel León-Portilla edition, UNAM, 2011.",
+      "ourTranslation": "English translation by the site, from the Spanish of the edition.",
+      "editionLink": "The UNAM open edition"
     },
     "sound": {
       "on": "Turn sound on",

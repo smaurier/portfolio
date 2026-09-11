@@ -24,6 +24,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       seuil={dict.common.seuils.jade}
       servicesHref={getPath(locale, "services")}
       sceneDescription={dict.common.sceneDescriptions.jade}
+      cantar={{ texts: dict.common.cantar, newWindow: dict.common.newWindow }}
     />
   );
 }

@@ -154,6 +154,7 @@ export default async function LocalizedProjetDetail({
       closure={fullDict.closure}
       seuil={fullDict.common.seuils[direction]}
       sceneDescription={fullDict.common.sceneDescriptions[direction]}
+      cantar={{ texts: fullDict.common.cantar, newWindow: fullDict.common.newWindow }}
     >
       {jsonLd.map((entry, i) => (
         <script

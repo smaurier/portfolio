@@ -1,7 +1,8 @@
-# README, brouillon a valider (N3)
+# README, brouillon (N3), entre dans README.md le 11/09/2026
 
-**Ecrit le 11/09/2026.** Le README du depot est encore celui de Next.js par
-defaut. Ce brouillon remplace tout ; le ton est a toi, la redaction est
+**Ecrit le 11/09/2026, pose dans `README.md` le soir meme** avec le
+« Pourquoi » a l'angle metier choisi par Sylvain (a reecrire a son ton) et
+une ligne sur les cantares. Ce brouillon est la trace ; le ton est a toi, la redaction est
 la mienne. Rien ne part sur GitHub avant ta relecture (le depot est
 public). Pas de tiret cadratin. Aucune affirmation mythologique qui ne
 soit dans les fichiers de sources (`docs/da/*-sources.md`).

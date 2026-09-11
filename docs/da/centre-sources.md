@@ -274,3 +274,14 @@ quatre jours on ne prend meme pas de feu au foyer, il brule. Si on garde la
 seconde, le forage n'est pas perdu : il devient le geste du Feu Nouveau, donc
 de la mue d'or de fin de parcours, ou il a davantage de poids parce qu'il se
 merite.
+
+## Le chant de la direction (M4, 11/09/2026)
+
+Un chant des *Cantares mexicanos* (manuscrit du XVIe siecle, Biblioteca
+Nacional de Mexico) est cite sous la scene et en mode lecture, visible pour
+tout le monde : nahuatl, espagnol de l'edition Miguel Leon-Portilla (coord.),
+UNAM, 2011 (acces ouvert :
+https://historicas.unam.mx/publicaciones/publicadigital/libros/cantares/),
+et notre traduction d'apres cet espagnol, marquee comme telle. Le choix, le
+folio et les raisons sont dans `cantares-choix.md` ; le texte vit dans
+`src/lib/cantares.ts`.

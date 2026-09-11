@@ -587,6 +587,7 @@ export default async function LocalizedPage({
       closure={fullDict.closure}
       seuil={fullDict.common.seuils[directionKey]}
       sceneDescription={fullDict.common.sceneDescriptions[directionKey]}
+      cantar={{ texts: fullDict.common.cantar, newWindow: fullDict.common.newWindow }}
     >
       <script
         type="application/ld+json"

@@ -113,3 +113,14 @@ travail de studio 2 000 EUR et au-dela.
 Piste sans achat, deja actee (voie B) : l'embrasement des deux xiuhcoatl
 graves dans l'anneau exterieur de la Piedra del Sol (evocation par le feu,
 aucun modele).
+
+## Le chant de la direction (M4, 11/09/2026)
+
+Un chant des *Cantares mexicanos* (manuscrit du XVIe siecle, Biblioteca
+Nacional de Mexico) est cite sous la scene et en mode lecture, visible pour
+tout le monde : nahuatl, espagnol de l'edition Miguel Leon-Portilla (coord.),
+UNAM, 2011 (acces ouvert :
+https://historicas.unam.mx/publicaciones/publicadigital/libros/cantares/),
+et notre traduction d'apres cet espagnol, marquee comme telle. Le choix, le
+folio et les raisons sont dans `cantares-choix.md` ; le texte vit dans
+`src/lib/cantares.ts`.

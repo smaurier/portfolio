@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import type { Dictionary, Locale } from "../../../dictionaries";
 import { renderWithNahuatl } from "@/lib/nahuatl";
+import Cantar, { type CantarTexts } from "../cantar";
 import type { DirectionKey } from "./direction-colors";
 import PageClosure from "./page-closure";
 import SceneStage from "./scene-stage";
@@ -30,10 +31,14 @@ export default function EchoScenePage({
   sceneDescription,
   children,
   seuil,
+  cantar,
 }: {
   directionKey: DirectionKey;
   locale: Locale;
   closure: Dictionary["closure"];
+  /** Le chant de la direction (M4) : textes communs du dictionnaire et le
+   * libelle « nouvelle fenetre » pour le lien vers l'edition. */
+  cantar: { texts: CantarTexts; newWindow: string };
   /** Description poetique-immersive de la scene 3D pour SR (29/08
    * chantier a11y "SR enrichi"). Injectee en tete du main pour que
    * l'utilisateur SR entende ou il est arrive avant le contenu
@@ -60,6 +65,9 @@ export default function EchoScenePage({
         <p className="sr-only">{renderWithNahuatl(sceneDescription)}</p>
         {seuil ? <p className="seuilTete">{renderWithNahuatl(seuil)}</p> : null}
         {children}
+        {/* Le chant ferme le contenu de la page, sous la scene, visible
+            pour tout le monde et en mode lecture (M4, 11/09). */}
+        <Cantar direction={directionKey} locale={locale} texts={cantar.texts} newWindow={cantar.newWindow} />
       </main>
     </SceneStage>
   );

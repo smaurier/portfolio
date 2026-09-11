@@ -66,10 +66,9 @@ describe("i18n : les trois dictionnaires ont les memes cles", () => {
 
   it("aucune valeur vide dans aucune langue", () => {
     for (const [loc, d] of Object.entries(dicos)) {
-      // Les lignes de seuil (common.seuils) sont vides jusqu'a la relecture
-      // de Sylvain (11/09, N1) : la mecanique est branchee, les textes
-      // attendent. A retirer de cette exception des qu'elles sont ecrites.
-      const vides = [...d.entries()].filter(([k, v]) => v.trim().length === 0 && !k.startsWith("common.seuils.")).map(([k]) => k);
+      // Les lignes de seuil (common.seuils) ont ete ecrites et validees par
+      // Sylvain le 11/09 (N1) : plus aucune exception ici.
+      const vides = [...d.entries()].filter(([, v]) => v.trim().length === 0).map(([k]) => k);
       expect(vides, `${loc} : ${vides.length} valeurs vides`).toEqual([]);
     }
   });

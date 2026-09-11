@@ -23,11 +23,17 @@
     "xolotlSeen": "Ce chien ? L'avez-vous vu passer ? Visitez le Codex.",
     "skipNav": "Aller au contenu principal",
     "seuils": {
-      "jade": "",
-      "dore": "",
-      "turquoise": "",
-      "cendre": "",
-      "obsidienne": ""
+      "jade": "Vous revenez au foyer. La chaleur que vous portez est celle du premier jour.",
+      "dore": "Vous allez vers le jour. Ce qui était pris dans la glace va se rompre.",
+      "turquoise": "Vous entrez dans le midi. Ici, ce qui brûle laisse une trace.",
+      "cendre": "Vous suivez le soleil qui descend. Ce que vous portez descend avec lui.",
+      "obsidienne": "Vous arrivez là où l'on garde. Ce qui a voyagé jusqu'ici ne s'efface pas."
+    },
+    "cantar": {
+      "label": "Un chant de cette direction",
+      "source": "Cantares mexicanos, chant {chant}, strophe {strophe}, folio {folio}. Paléographie et traduction espagnole : édition Miguel León-Portilla, UNAM, 2011.",
+      "ourTranslation": "Traduction française du site, d'après l'espagnol de l'édition.",
+      "editionLink": "L'édition ouverte de l'UNAM"
     },
     "sound": {
       "on": "Activer le son",
