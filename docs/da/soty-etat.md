@@ -59,7 +59,7 @@ rentabilite reel et non l'ordre des envies.
 | 3 | Le voile | utilisabilite 30 | a moi | modeles nettoyes (`1b37b45`, 4,6 Mo retires) : Contact ouvre a 23 s au lieu de 41 en local, Memoire a 23 au lieu de 36 ; les trois dictionnaires ne partent plus au navigateur (`a777e0a`, accueil 634 -> 575 Ko compresses). Reste three + React + Next, environ 300 Ko compresses, le plancher ; puis notre code de scene (decoupage par direction, a arbitrer) |
 | ~~4~~ | ~~L'acte de sortie (F2)~~ | design + utilisabilite | fait, `e308564` | l'arbitrage etait deja rendu le 08/09, je l'avais mal classe |
 | ~~5~~ | ~~Le son~~ | creativite 20 | fait, `823eb67` | l'invite au voile, et les cinq elements, generatifs |
-| ~~6~~ | ~~Les images en retard de Contact~~ | utilisabilite 30 | fait, `4978f67` puis `43d82ae` | decor fige, 40 meches sur mobile ; et la cause de `getParameters` trouvee : sept rubans d'amate rendus en deux passes a opacite zero sur les cinq pages. Reste le graphe de scene (941 objets, 368 os) |
+| ~~6~~ | ~~Les images en retard de Contact~~ | utilisabilite 30 | fait, `4978f67` puis `43d82ae` | decor fige, 40 meches sur mobile ; et la cause de `getParameters` trouvee : sept rubans d'amate rendus en deux passes a opacite zero sur les cinq pages. Puis le graphe (`b6ed417`) : squelettes partages, fleurs figees, balayages cadences. Ce qui reste est le contenu (bandelettes, feuilles, herbe, os des porteuses) : un arbitrage |
 | ~~7~~ | ~~Les six blocs de contraste~~ | utilisabilite 30 | fait, `823eb67` | un fond qui suit la scene ; l'intro et le Codex ont un panneau ; un des six etait une fausse alerte (sr-only) |
 | ~~8~~ | ~~NestJS dans les projets~~ | contenu 10 | fait, `823eb67`, **ta relecture attendue** | Radar signaux en quatrieme fiche ; pas de PostgreSQL, parce qu'il n'y en a pas |
 
@@ -106,6 +106,10 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **11/09, sixieme passe** : 8,7, inchange. Contact, le graphe de scene :
+  trois causes exactes reglees (`b6ed417`), gains reels mais sous le bruit
+  de la sonde des images en retard ; le reste est le contenu de la page,
+  a arbitrer.
 - **11/09, cinquieme passe** : 8,68 -> 8,7. Les trois dictionnaires
   partaient au navigateur sur toutes les pages (la page d'accueil etait un
   composant client pour deballer params) : 64 Ko compresses de moins sur
