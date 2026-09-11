@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import { MATERIAL_SWEEP_EVERY } from "./shader-patch";
 import { Vector3, type Group } from "three";
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { remapNorthArc } from "@/lib/direction-arc";
@@ -44,6 +45,7 @@ export default function CursorRevealScene({
   progressRef: MutableRefObject<number>;
 }) {
   const groupRef = useRef<Group>(null);
+  const sweepRef = useRef(0);
   const { gl, camera } = useThree();
   const direction = useCurrentDirection();
   // Second halo (02/09, element D) : blend crossfade vers 1 au Nord, et
@@ -100,7 +102,8 @@ export default function CursorRevealScene({
       uniforms.uMouse2.value.set(2 * cx - uniforms.uMouse.value.x, 2 * cy - uniforms.uMouse.value.y);
     }
 
-    if (groupRef.current) applyCursorReveal(groupRef.current, uniforms);
+    // Balayage cadence, pas a chaque image (voir MATERIAL_SWEEP_EVERY).
+    if (groupRef.current && sweepRef.current++ % MATERIAL_SWEEP_EVERY === 0) applyCursorReveal(groupRef.current, uniforms);
     // Au Nord, le plancher de revelation suit l'arc INVERSE (02/09, retour
     // Sylvain "plus de lumiere au depart") : sans ca, le haut de page
     // restait noir hors du halo du curseur, quelle que soit la lumiere.

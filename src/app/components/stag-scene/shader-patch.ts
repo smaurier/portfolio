@@ -15,6 +15,20 @@ import type { Material } from "three";
 type OnBeforeCompileShader = Parameters<NonNullable<Material["onBeforeCompile"]>>[0];
 export type ShaderModifier = (shader: OnBeforeCompileShader) => void;
 
+/**
+ * CADENCE DES BALAYAGES DE MATERIAUX (11/09).
+ *
+ * Le fondu de profondeur et la revelation au curseur parcourent leur
+ * sous-arbre pour poser leurs modificateurs sur les materiaux qu'ils n'ont
+ * pas encore vus (les arrivees par Suspense). Le faire a CHAQUE image, c'est
+ * deux parcours complets de la scene par image pour ne rien trouver :
+ * mesure sur Contact, CPU x4, `traverse` seul a 19 ms par seconde. Une
+ * arrivee attend donc au plus huit images (130 ms a 60 im/s) avant d'etre
+ * modifiee ; la chauffe des shaders (shader-warmup) attend plus longtemps
+ * que cette cadence pour compiler les variantes modifiees, pas les autres.
+ */
+export const MATERIAL_SWEEP_EVERY = 8;
+
 const modifiersByMaterial = new WeakMap<Material, ShaderModifier[]>();
 
 export function addShaderModifier(material: Material, modifier: ShaderModifier): void {

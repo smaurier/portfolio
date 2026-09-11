@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { freezeDecor } from "@/lib/freeze-decor";
 import { useGLTF } from "@react-three/drei";
 import { Box3, CatmullRomCurve3, TubeGeometry, Vector3 } from "three";
 import {
@@ -41,6 +42,11 @@ function OcotilloFlower({ x, y, z }: { x: number; y: number; z: number }) {
     clone.scale.setScalar(scale);
     clone.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
     normalizedRef.current = true;
+    // Posee, donc figee, depuis le parent (meme raison que la flore de fond,
+    // voir lib/freeze-decor). Mesure du 11/09 sur Contact : les 28 fleurs
+    // des quatre hampes, 280 objets, etaient les derniers a se recomposer
+    // a chaque image pour rien.
+    freezeDecor(clone.parent ?? clone);
   });
 
   return (

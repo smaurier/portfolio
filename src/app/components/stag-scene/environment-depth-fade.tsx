@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, type ReactNode } from "react";
 import { useFrame } from "@react-three/fiber";
+import { MATERIAL_SWEEP_EVERY } from "./shader-patch";
 import { Vector3, type Group } from "three";
 import { HEARTH_WORLD } from "@/lib/foyer";
 import { applyDepthFade, fireGradeUniforms } from "./depth-fade";
@@ -40,6 +41,7 @@ const FIRE_BLEND_SPEED = 0.06;
 
 export default function EnvironmentDepthFade({ children }: { children: ReactNode }) {
   const groupRef = useRef<Group>(null);
+  const sweepRef = useRef(0);
   const hour = useAtmosphereHour();
   const sceneRefs = useSceneRefs();
   const hearthWorld = useMemo(
@@ -48,7 +50,8 @@ export default function EnvironmentDepthFade({ children }: { children: ReactNode
   );
 
   useFrame(({ camera }) => {
-    if (groupRef.current) applyDepthFade(groupRef.current);
+    // Balayage cadence, pas a chaque image (voir MATERIAL_SWEEP_EVERY).
+    if (groupRef.current && sweepRef.current++ % MATERIAL_SWEEP_EVERY === 0) applyDepthFade(groupRef.current);
 
     const target = hour === "jade" ? 1 : 0;
     const blend = fireGradeUniforms.uFireBlend;

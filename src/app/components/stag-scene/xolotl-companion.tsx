@@ -9,6 +9,7 @@ import { rimCrossing, rimSurface } from "@/lib/xolotl-rim";
 import { bodyFromFeet, fitSupportPlane, type SupportPoint } from "@/lib/quadruped-stance";
 import { DOG_LEG_LIMITS, twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { shareSkeletons } from "@/lib/share-skeletons";
 import { isBot } from "@/lib/is-bot";
 import { terrainHeightWorld } from "./cardinal-orientation";
 import { useReadingMode } from "@/lib/reading-mode-context";
@@ -572,7 +573,11 @@ export default function XolotlCompanion() {
   // SkinnedMesh + Skeleton (deep clone du rig, pas juste des mesh).
   // useMemo avec dependance sur scene : recree une seule fois par
   // instance de scene (useGLTF cache scene entre navigations SPA).
-  const clonedScene = useMemo(() => cloneSkinnedScene(scene), [scene]);
+  const clonedScene = useMemo(() => {
+    const c = cloneSkinnedScene(scene);
+    shareSkeletons(c); // un squelette par figure, pas par maillage (lib/share-skeletons)
+    return c;
+  }, [scene]);
   const cloneGroupRef = useRef<Group>(null);
   const cloneMixer = useMemo(() => new AnimationMixer(clonedScene), [clonedScene]);
 

@@ -30,6 +30,7 @@ import {
   type Object3D,
 } from "three";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { shareSkeletons } from "@/lib/share-skeletons";
 import { CIHUATETEO, HAIR_STRANDS, LANDING, LANDING_LATCH, bearerHair, bearerOpacity, bearerPose, descentBlend, landingState, litterPose, type HairStrand, wispRate } from "@/lib/cihuateteo";
 import { createStrip, stepStrip, type Strip } from "@/lib/paper-strip";
 import { remapWestArc } from "@/lib/ouest-arc";
@@ -269,6 +270,9 @@ export default function Cihuateteo() {
   const bearers = useMemo<Bearer[]>(() => {
     return Array.from({ length: CIHUATETEO.count }, (_, i) => {
       const inner = cloneSkinnedScene(scene) as Group;
+      // Dix parties, un seul squelette (voir lib/share-skeletons) : sinon
+      // dix mises a jour de 62 os et dix textures par porteuse et par image.
+      shareSkeletons(inner);
       const uniforms = createCihuateotlUniforms(i * 1.9);
       dressBearer(inner, uniforms);
       const root = new Group();

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useProgress } from "@react-three/drei";
+import { MATERIAL_SWEEP_EVERY } from "./shader-patch";
 
 /**
  * LA CHAUFFE DES SHADERS, DEUXIEME TENTATIVE (11/09).
@@ -24,15 +25,20 @@ import { useProgress } from "@react-three/drei";
  *
  * `compileAsync` de three r185 parcourt la scene en `traverse`, pas en
  * `traverseVisible` (verifie a la source) : il compile aussi ce qui est
- * cache. On attend que tout soit charge (useProgress) puis douze images,
- * le temps que les traversees idempotentes posent leurs modificateurs,
- * sinon on compilerait des variantes d'avant modification.
+ * cache. On attend que tout soit charge (useProgress) puis quelques images
+ * de plus que la cadence des balayages de materiaux, le temps que les
+ * modificateurs soient poses, sinon on compilerait des variantes d'avant
+ * modification.
  *
  * Ce qu'il ne peut pas faire : les variantes d'un AUTRE etat de rendu, comme
  * le reflet du Nord, qui rend sans brouillard dans sa propre cible. Celles-la
  * restent tardives, et l'oracle (.scratch/programmes-tardifs.mjs) le dira.
  */
-const FRAMES_AFTER_LOAD = 3;
+// Plus que la cadence des balayages de materiaux : au chargement complet,
+// chaque materiau a ete vu par le fondu de profondeur et la revelation au
+// curseur avant qu'on compile, sinon on compilerait des variantes d'avant
+// modification (c'etait le sens des douze images de la premiere version).
+const FRAMES_AFTER_LOAD = MATERIAL_SWEEP_EVERY + 4;
 
 /** Le voile (reveal-trigger) attend cet evenement avant de se lever, avec un
  *  delai de secours : la chauffe doit se payer DERRIERE le voile, jamais
