@@ -117,7 +117,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 | --- | --- | --- | --- | --- | --- |
 | ~~A1~~ | ~~**Une commande de pause du mouvement**~~ (fait : bouton « Figer la scene » / « Reprendre la scene », touche G, trois langues, la boucle de rendu coupee, l'image reste, le texte vit ; gagne sur la contemplation ; libelles a corriger par Sylvain ; test e2e `pause-du-mouvement.spec.ts`) | WCAG 2.2.2 : tout mouvement automatique de plus de cinq secondes doit pouvoir etre mis en pause par l'utilisateur ; la preference systeme ne suffit pas a un audit | axe ; e2e : le bouton fige la scene ; ton audit | S | Sylvain (le libelle), moi |
 | A2 | **L'audit RGAA du site par toi**, lot 3 (documents 10.11 / 13.9 de l'examen) | c'est le vrai test, et un entrainement d'examen | la grille | M | Sylvain |
-| A3 | Focus visible sur les liens cardinaux dans les surcouches 3D, et ordre de tabulation verifie apres l'acte de sortie | tout ce qui est dans la scene doit exister hors de la scene | e2e clavier | S | moi |
+| ~~A3~~ | ~~Focus visible et ordre de tabulation~~ (fait : `tests/e2e/clavier.spec.ts`, en haut de page et apres l'acte de sortie, la suite atteinte par Tab est celle du document, chaque element porte un contour, le lien d'evitement arrive a l'ecran ; le lien de cloture en tabIndex -1 est un choix du 29/08, le header offre la meme destination) | tout ce qui est dans la scene doit exister hors de la scene | e2e clavier | S | moi |
 
 ## 8. Novateur (creativite 20)
 
