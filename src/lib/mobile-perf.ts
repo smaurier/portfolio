@@ -44,6 +44,9 @@ export type PerfProfile = {
   hairStrands: number;
   /** Feuilles du vent de l'Ouest (11/09). */
   leafCount: number;
+  skirtStrips: number;
+  clothFar: number;
+  simEveryOtherFrame: boolean;
 };
 
 /**
@@ -65,5 +68,8 @@ export function getPerfProfile(viewportWidth: number, eco = false): PerfProfile 
     bladeCount: q.bladeCount,
     hairStrands: q.hairStrands,
     leafCount: q.leafCount,
+    skirtStrips: q.skirtStrips,
+    clothFar: q.clothFar,
+    simEveryOtherFrame: q.simEveryOtherFrame,
   };
 }

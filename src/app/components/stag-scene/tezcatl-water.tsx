@@ -6,7 +6,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Color, DoubleSide, Matrix4, MeshPhysicalMaterial, PerspectiveCamera, Plane, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderTarget, type Camera, type Mesh, type Object3D, type WebGLRenderer } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { hoofDrop, pointerSplat, smokeGate, worldToSimUv, type SimUv } from "@/lib/tezcatl-fluid";
-import { TezcatlRippleSim, type RippleHull } from "./tezcatl-ripple-sim";
+import { TezcatlRippleSim, type RippleHull, type RippleDrop } from "./tezcatl-ripple-sim";
 import { TEZCATL_EXTENT, WATER_LEVEL, ZERO_TEXTURE, tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useMountVisible } from "./mount-for-direction";
@@ -174,6 +174,9 @@ export default function TezcatlWater() {
   const meshRef = useRef<Mesh>(null);
   const direction = useCurrentDirection();
   const mountVisible = useMountVisible();
+  const frameParityRef = useRef(false);
+  const pendingDropsRef = useRef<RippleDrop[]>([]);
+  const pendingHullsRef = useRef<RippleHull[]>([]);
   const sceneRefs = useSceneRefs();
   const { gl, size, scene: rootScene } = useThree();
   const opacityRef = useRef(0);
@@ -476,9 +479,19 @@ export default function TezcatlWater() {
     // Pas de temps fixe (schema calibre 60 fps) : on accumule le temps
     // reel et on joue autant de sous-pas que necessaire, plafonne.
     accRef.current += dt;
-    const substeps = Math.min(3, Math.floor(accRef.current * 60));
-    accRef.current -= substeps / 60;
-    sim.step(drops, substeps, hulls);
+    // Sur telephone, un pas une image sur deux (profil) : les sous-pas
+    // s'accumulent, le schema reste calibre a 60 Hz.
+    const unSurDeux = sceneRefs?.perfProfile.simEveryOtherFrame ?? false;
+    if (unSurDeux && (frameParityRef.current = !frameParityRef.current)) {
+      pendingDropsRef.current.push(...drops);
+      pendingHullsRef.current.push(...hulls);
+    } else {
+      const substeps = Math.min(3, Math.floor(accRef.current * 60));
+      accRef.current -= substeps / 60;
+      sim.step(pendingDropsRef.current.concat(drops), substeps, pendingHullsRef.current.concat(hulls));
+      pendingDropsRef.current.length = 0;
+      pendingHullsRef.current.length = 0;
+    }
 
     tezcatlStore.ripple = sim.heightTexture;
     tezcatlStore.rippleTexel = sim.texel;

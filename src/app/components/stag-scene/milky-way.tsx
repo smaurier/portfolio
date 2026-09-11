@@ -61,16 +61,20 @@ export default function MilkyWay() {
         transparent: true,
         depthWrite: false,
         blending: AdditiveBlending,
-        uniforms: { uColor: { value: STAR_COLOR.clone() }, uOpacity: { value: 0 } },
+        uniforms: { uColor: { value: STAR_COLOR.clone() }, uOpacity: { value: 0 }, uPixelRatio: { value: 1 } },
         vertexShader: /* glsl */ `
           attribute float aSize;
           attribute float aAlpha;
+          uniform float uPixelRatio;
           varying float vAlpha;
           void main() {
             vAlpha = aAlpha;
             vec4 mv = modelViewMatrix * vec4(position, 1.0);
             gl_Position = projectionMatrix * mv;
-            gl_PointSize = aSize / max(1.0, -mv.z);
+            // En pixels CSS, pas d'appareil (11/09) : sur un ecran a densite 2,
+            // les etoiles faisaient un demi-pixel, des points durs, « pixelises »
+            // (retour Sylvain). Le facteur remet la meme taille apparente partout.
+            gl_PointSize = aSize * uPixelRatio / max(1.0, -mv.z);
           }
         `,
         fragmentShader: /* glsl */ `
@@ -108,6 +112,7 @@ export default function MilkyWay() {
     pts.position.copy(state.camera.position);
     const p = sceneRefs?.progressRef.current ?? 0;
     material.uniforms.uOpacity.value = BASE_OPACITY + (1 - BASE_OPACITY) * columnRise(p);
+    material.uniforms.uPixelRatio.value = state.gl.getPixelRatio();
   });
 
   return <points ref={pointsRef} geometry={geometry} material={material} frustumCulled={false} visible={false} />;

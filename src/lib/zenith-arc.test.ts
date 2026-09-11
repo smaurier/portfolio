@@ -66,8 +66,8 @@ describe("zenithTargetY (le point vise sur l'axe du monde)", () => {
   it("place la cible a la hauteur qui tient l'elevation demandee", () => {
     const y = zenithTargetY(1, R, CY, REST);
     expect(deg(Math.atan2(y - CY, R))).toBeCloseTo(ZENITH_MAX_DEG, 6);
-    // Concretement : une colonne de fumee vue tres haut sur l'axe.
-    expect(y).toBeGreaterThan(20);
+    // Concretement : le point vise tient l'angle maximal, quel qu'il soit.
+    expect(y).toBeGreaterThan(CY + R * Math.tan((ZENITH_MAX_DEG * Math.PI) / 180) - 1e-9);
   });
 
   it("ne degenere pas si la camera passe sur l'axe du monde", () => {

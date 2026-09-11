@@ -31,7 +31,7 @@ import {
 } from "three";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { shareSkeletons } from "@/lib/share-skeletons";
-import { CIHUATETEO, HAIR_STRANDS, LANDING, LANDING_LATCH, bearerHair, bearerOpacity, bearerPose, descentBlend, landingState, litterPose, type HairStrand, wispRate, relaxations } from "@/lib/cihuateteo";
+import { CIHUATETEO, HAIR_STRANDS, LANDING, LANDING_LATCH, bearerHair, bearerOpacity, bearerPose, descentBlend, landingState, litterPose, type HairStrand, wispRate, relaxations, CLOTH_FAR_DISTANCE } from "@/lib/cihuateteo";
 import { createStrip, stepStrip, type Strip } from "@/lib/paper-strip";
 import { remapWestArc } from "@/lib/ouest-arc";
 import { armLatch, stepLatch, type LatchState } from "@/lib/threshold-latch";
@@ -266,6 +266,9 @@ export default function Cihuateteo() {
    * le 05/09, pas une nouvelle regle. Sur ordinateur, rien ne change.
    */
   const meches = sceneRefs?.perfProfile.hairStrands ?? HAIR_STRANDS;
+  // Meme palier pour la jupe et la distance de relachement (11/09).
+  const bandesJupe = sceneRefs?.perfProfile.skirtStrips ?? SKIRT_STRIPS;
+  const clothFar = sceneRefs?.perfProfile.clothFar ?? CLOTH_FAR_DISTANCE;
 
   const bearers = useMemo<Bearer[]>(() => {
     return Array.from({ length: CIHUATETEO.count }, (_, i) => {
@@ -285,7 +288,7 @@ export default function Cihuateteo() {
         action.play();
       }
       const hair = bearerHair(i, meches).map((strand) => ({ strand, strip: createStrip(HAIR_POINTS, strand.length, { x: 0, y: BEARER_HEIGHT, z: 0 }) }));
-      const skirt = Array.from({ length: SKIRT_STRIPS }, () => createStrip(SKIRT_POINTS, SKIRT_LENGTH, { x: 0, y: 1, z: 0 }));
+      const skirt = Array.from({ length: bandesJupe }, () => createStrip(SKIRT_POINTS, SKIRT_LENGTH, { x: 0, y: 1, z: 0 }));
       // Les papiers vivent dans UN SEUL faisceau partage par les quatre
       // porteuses (09/09) : ils sont simules en espace monde et ajoutes au
       // meme groupe, donc rien n'empeche de les reunir. Avant, chacun avait
@@ -312,12 +315,12 @@ export default function Cihuateteo() {
         // Devant elle, entre les papiers : un petit foyer.
         return { sprite, x: (hash(i * 11 + k, 5) - 0.5) * 0.5, z: 0.55 + hash(i * 11 + k, 6) * 0.35, phase: hash(i * 11 + k, 7) * 6.28 };
       });
-      return { root, mixer, uniforms, bones: collectBones(inner, animatedBones), hair, hairGeometry: createRibbonBundleGeometry(meches, HAIR_POINTS), skirt, skirtGeometry: createRibbonBundleGeometry(SKIRT_STRIPS, SKIRT_POINTS), hipsBone: inner.getObjectByName("Hips") ?? null, papers, smokes, embers, headBone: inner.getObjectByName("Head") ?? null };
+      return { root, mixer, uniforms, bones: collectBones(inner, animatedBones), hair, hairGeometry: createRibbonBundleGeometry(meches, HAIR_POINTS), skirt, skirtGeometry: createRibbonBundleGeometry(bandesJupe, SKIRT_POINTS), hipsBone: inner.getObjectByName("Hips") ?? null, papers, smokes, embers, headBone: inner.getObjectByName("Head") ?? null };
     });
     // `meches` est dans les dependances : sans lui, un passage du seuil
     // mobile laisserait des chaines de 90 meches ecrire dans un faisceau
     // dimensionne pour 40.
-  }, [scene, walkClip, animatedBones, smokeMaterial, emberMaterial, meches]);
+  }, [scene, walkClip, animatedBones, smokeMaterial, emberMaterial, meches, bandesJupe]);
 
   /** Le faisceau UNIQUE des papiers des quatre porteuses (09/09). */
   const paperGeometry = useMemo(
@@ -603,7 +606,7 @@ export default function Cihuateteo() {
               y: Math.sin(time * s.speed * 2.3 + s.phase * 2) * 0.12,
               z: hairWind.z + Math.cos(time * s.speed * 1.3 + s.phase) * 0.22,
             };
-        stepStrip(h.strip, dt, anchor, wind, { gravity: 9, damping: s.damping, windResponse: s.windResponse, iterations: relaxations(4, camDist) });
+        stepStrip(h.strip, dt, anchor, wind, { gravity: 9, damping: s.damping, windResponse: s.windResponse, iterations: relaxations(4, camDist, clothFar) });
         writeRibbonSlot(b.hairGeometry, k, h.strip, (u) => 0.04 * (1 - u * 0.45));
       });
       finishRibbonBundle(b.hairGeometry);
@@ -615,12 +618,12 @@ export default function Cihuateteo() {
       const waistX = scratch.x, waistY = scratch.y + 0.04, waistZ = scratch.z;
       const skirtWind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 0.5 + hips * 0.35, y: 0.2 * Math.abs(hips), z: WIND_BASE.z * gust * 0.5 };
       b.skirt.forEach((strip, k) => {
-        const t = (k / SKIRT_STRIPS) * Math.PI * 2;
+        const t = (k / b.skirt.length) * Math.PI * 2;
         const lx = Math.sin(t) * HIP_SIDE, lz = Math.cos(t) * HIP_FRONT;
         const anchor = { x: waistX + lx * Math.cos(yaw) + lz * Math.sin(yaw), y: waistY, z: waistZ - lx * Math.sin(yaw) + lz * Math.cos(yaw) };
         // Chaque bande a sa souplesse : le tissu ne bouge pas d'un bloc.
         const j = ((k * 7919) % 13) / 13;
-        stepStrip(strip, dt, anchor, skirtWind, { gravity: 7, damping: 0.976 + 0.012 * j, windResponse: 0.35 + 0.35 * j, iterations: relaxations(3, camDist) });
+        stepStrip(strip, dt, anchor, skirtWind, { gravity: 7, damping: 0.976 + 0.012 * j, windResponse: 0.35 + 0.35 * j, iterations: relaxations(3, camDist, clothFar) });
         writeRibbonSlot(b.skirtGeometry, k, strip, (u) => 0.065 * (1 + 0.35 * u));
       });
       finishRibbonBundle(b.skirtGeometry);
@@ -629,7 +632,7 @@ export default function Cihuateteo() {
         const px = pose.x + Math.sin(pose.yaw + Math.PI / 2) * p.peg.x + Math.sin(pose.yaw) * p.peg.z;
         const pz = pose.z + Math.cos(pose.yaw + Math.PI / 2) * p.peg.x + Math.cos(pose.yaw) * p.peg.z;
         const wind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 1.4 + Math.sin(time * 2.1 + p.phase) * 0.8, y: 1.6 + Math.sin(time * 3.3 + p.phase) * 0.8, z: WIND_BASE.z + Math.cos(time * 1.6 + p.phase) * 0.6 };
-        stepStrip(p.strip, dt, { x: px, y: 0.12, z: pz }, wind, { gravity: 2.5, damping: 0.975, windResponse: 1.6, iterations: relaxations(5, camDist) });
+        stepStrip(p.strip, dt, { x: px, y: 0.12, z: pz }, wind, { gravity: 2.5, damping: 0.975, windResponse: 1.6, iterations: relaxations(5, camDist, clothFar) });
         writeRibbonSlot(paperGeometry, p.slot, p.strip, 0.09);
       }
       // Les braises de l'offrande, a ses pieds : elles ne s'allument qu'au

@@ -64,11 +64,21 @@ export type QualityProfile = {
    * sinus). Mesure sur Contact, CPU x4 : 75 ms par seconde pour 240. Le
    * telephone en pose un tiers de moins, le bureau garde tout. */
   leafCount: number;
+  /** Bandes de la jupe des porteuses (11/09) : 52 au bureau, 32 sur
+   * telephone, ou le tissu est petit a l'ecran. */
+  skirtStrips: number;
+  /** Distance au-dela de laquelle les bandelettes se relachent moins ;
+   * 0 sur telephone : toujours (l'Ouest y etait a 45 % d'images en retard). */
+  clothFar: number;
+  /** Les simulateurs du bassin (ondes, fluide des nappes) font un pas une
+   * image sur deux sur telephone (11/09 : le Nord y etait a 17 % d'images
+   * en retard). */
+  simEveryOtherFrame: boolean;
 };
 
-const QUALITY_DESKTOP: QualityProfile = { dprCap: 2, postFx: true, shadows: true, bladeCount: 26000, hairStrands: 90, leafCount: 240 };
-const QUALITY_MOBILE: QualityProfile = { dprCap: 1.5, postFx: false, shadows: false, bladeCount: 9000, hairStrands: 40, leafCount: 160 };
-const QUALITY_ECO: QualityProfile = { dprCap: 1, postFx: false, shadows: false, bladeCount: 7000, hairStrands: 28, leafCount: 120 };
+const QUALITY_DESKTOP: QualityProfile = { dprCap: 2, postFx: true, shadows: true, bladeCount: 26000, hairStrands: 90, leafCount: 240, skirtStrips: 52, clothFar: 7, simEveryOtherFrame: false };
+const QUALITY_MOBILE: QualityProfile = { dprCap: 1.5, postFx: false, shadows: false, bladeCount: 9000, hairStrands: 40, leafCount: 160, skirtStrips: 32, clothFar: 0, simEveryOtherFrame: true };
+const QUALITY_ECO: QualityProfile = { dprCap: 1, postFx: false, shadows: false, bladeCount: 7000, hairStrands: 28, leafCount: 120, skirtStrips: 24, clothFar: 0, simEveryOtherFrame: true };
 
 /** Le profil effectif : eco force le repli, sinon le profil de l'ecran. */
 export function resolveQuality(eco: boolean, isMobile: boolean): QualityProfile {

@@ -127,6 +127,8 @@ export default function MictlanMist() {
   // Chauffe annexe, en tranches (voir shader-warmup et TezcatlFluidSim.warmSteps).
   useEffect(() => registerWarmer(() => sim.warmSteps()), [sim]);
   const mountVisible = useMountVisible();
+  const frameParityRef = useRef(false);
+  const accRef = useRef(0);
 
   useFrame((_state, delta) => {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
@@ -140,8 +142,14 @@ export default function MictlanMist() {
     for (const m of meshRefs.current) if (m) m.visible = visible;
     if (!visible) return;
     const frozen = reduced && simTimeRef.current > REDUCED_WARMUP_SECONDS;
-    if (!frozen) {
-      const dt = Math.min(delta, 1 / 30) * NORTH_TIME_SCALE;
+    // Sur telephone, un pas une image sur deux (profil), avec le temps
+    // accumule : l'advection semi-lagrangienne le supporte.
+    const unSurDeux = sceneRefs?.perfProfile.simEveryOtherFrame ?? false;
+    accRef.current += Math.min(delta, 1 / 30);
+    const cePas = !unSurDeux || (frameParityRef.current = !frameParityRef.current);
+    if (!frozen && cePas) {
+      const dt = Math.min(accRef.current, 1 / 15) * NORTH_TIME_SCALE;
+      accRef.current = 0;
       simTimeRef.current += dt;
       sim.step(dt, mistEmitters(simTimeRef.current, EMITTERS, RING_MIN, RING_MAX, EXTENT), null);
     }

@@ -99,6 +99,7 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 | --- | --- | --- | --- | --- | --- |
 | ~~P1~~ | ~~T1, l'arrivee chauffee~~ (fait) | le plus gros defaut mesure du site ce soir | voir 0. | M | moi |
 | ~~P2~~ | ~~**Contact, le contenu**~~ (fait, `6e61d58` : relachements par distance, feuilles par profil, et pour l'herbe la CADENCE de la grille de vent a 30 Hz plutot que moins de brins, la simulation etant par cellule ; bandelettes 73 -> 52 ms/s, herbe 61 -> 30, feuilles 63 -> sous le seuil ; a voir a l'oeil par Sylvain) | le jure teste a CPU x4 et Fast 3G et veut 60 im/s ; Contact est a 34 % d'images en retard sur Pixel 7 | profil en temps propre : bandelettes 85 -> ~45 ms/s, feuilles 75 -> ~50, herbe 85 -> ? ; ton oeil sur les figures | S chacun | Sylvain (les trois) |
+| ~~P2b~~ | ~~Le profil telephone allege pour l'Ouest et le Nord~~ (fait, choix de Sylvain : 32 bandes de jupe, relachements reduits partout, simulateurs du bassin un pas sur deux ; bureau inchange ; barre du metier : Contact 372 -> 301 images en retard, Memoire 175 -> 204, dans le bruit) | la barre du metier | S | Sylvain |
 | P3 | WebGPU + TSL, la branche garee | la voie 2026 (IVRESS) ; « enormement de choses cassees » le 06/09 | fps >= WebGL sur les cinq pages, parite visuelle | L | Sylvain, **pas avant le 23/10** |
 | P4 | Mesure reelle sur nahual.fr au premier build d'octobre, puis panel a froid | tout est mesure en local | Lighthouse mobile, `transition.mjs` sur nahual.fr | S | moi |
 
