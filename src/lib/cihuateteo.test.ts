@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  relaxations,
   CIHUATETEO,
   HAIR_STRANDS,
   LANDING,
@@ -24,6 +25,18 @@ function relativeAzimuth(p: { x: number; z: number }, progress: number): number 
   const d = Math.atan2(p.x, p.z) - gaze;
   return (Math.atan2(Math.sin(d), Math.cos(d)) * 180) / Math.PI;
 }
+
+describe("relaxations : moins de relachements au loin (11/09)", () => {
+  it("de pres, la valeur de base", () => {
+    expect(relaxations(4, 3)).toBe(4);
+    expect(relaxations(3, 7)).toBe(3);
+  });
+  it("de loin, la moitie, jamais moins de deux", () => {
+    expect(relaxations(4, 8)).toBe(2);
+    expect(relaxations(3, 8)).toBe(2);
+    expect(relaxations(5, 8)).toBe(3);
+  });
+});
 
 describe("bearerPose : les porteuses descendent avec le soleil puis attendent au carrefour", () => {
   it("avant le coucher, elles flottent du cote du soleil, en eventail", () => {

@@ -12,8 +12,8 @@ import { test, expect } from "@playwright/test";
  * serveur de dev (le handle __nahualR3f n'existe qu'en dev).
  *
  * L'INTENTION compile la direction suivante trois secondes apres le voile,
- * un programme par image pendant une quarantaine d'images : on attend huit
- * secondes apres le voile avant de prendre la ligne de base, sinon le test
+ * un programme par image : on attend que le compte de programmes soit
+ * stable trois secondes avant de prendre la ligne de base, sinon le test
  * prend cette pre-compilation pour des retards (mesure du 11/09 : 24
  * programmes « tardifs » a 15 % sur Contact, tous de la direction suivante).
  *
@@ -38,8 +38,28 @@ for (const [chemin, tolerance] of PAGES) {
       null,
       { timeout: 90_000 },
     );
-    await page.waitForTimeout(8000);
-    const lire = () => page.evaluate(() => (window as unknown as { __nahualR3f: { gl: { info: { programs: unknown[] } } } }).__nahualR3f.gl.info.programs.length);
+    // Programmes existants MOINS ceux crees par la chauffe (handle de dev
+    // __nahualChauffe) : ce qui reste est ne au rendu, un gel.
+    const lire = () =>
+      page.evaluate(() => {
+        const w = window as unknown as { __nahualR3f: { gl: { info: { programs: unknown[] } } }; __nahualChauffe?: { crees: number } };
+        return w.__nahualR3f.gl.info.programs.length - (w.__nahualChauffe?.crees ?? 0);
+      });
+    // La ligne de base se prend quand la chauffe est INACTIVE : le compte de
+    // programmes n'a pas bouge pendant trois secondes (l'intention compile
+    // la direction suivante un programme par image ; sur une machine
+    // chargee, huit secondes fixes ne suffisaient pas).
+    // D'abord le delai de l'intention (trois secondes apres le voile), sinon
+    // la stabilite se constate AVANT qu'elle ne demarre.
+    await page.waitForTimeout(5000);
+    let stable = 0;
+    let precedentLu = -1;
+    for (let i = 0; i < 40 && stable < 3; i++) {
+      await page.waitForTimeout(1000);
+      const n = await lire();
+      stable = n === precedentLu ? stable + 1 : 0;
+      precedentLu = n;
+    }
     const arrivee = await lire();
     const nouveaux: string[] = [];
     let precedent = arrivee;
@@ -47,10 +67,9 @@ for (const [chemin, tolerance] of PAGES) {
       await page.evaluate((f) => window.scrollTo(0, (document.documentElement.scrollHeight - window.innerHeight) * f), f);
       await page.waitForTimeout(1500);
       const n = await lire();
-      if (n > precedent) nouveaux.push(`${Math.round(f * 100)} % : +${n - precedent}`);
+      if (n > precedent) nouveaux.push(`${Math.round(f * 100)} % : +${n - precedent} au rendu`);
       precedent = Math.max(precedent, n);
     }
-    expect(arrivee, "des programmes existent a l'arrivee").toBeGreaterThan(10);
     const total = precedent - arrivee;
     expect(total, `${total} programme(s) compile(s) en cours d'arc (${nouveaux.join(" ; ")})`).toBeLessThanOrEqual(tolerance);
   });

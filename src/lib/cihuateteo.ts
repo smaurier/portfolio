@@ -117,6 +117,22 @@ export function litterPose(count: number, dusk: number, sun: Dir3, time: number,
   };
 }
 
+/** Au-dela de cette distance de la camera, une porteuse est « loin » :
+ *  ses bandelettes se relachent moins par image (11/09). */
+export const CLOTH_FAR_DISTANCE = 7;
+
+/**
+ * Le nombre de relachements d'une chaine de Verlet selon la distance a la
+ * camera (11/09). De pres, la valeur de base (4 pour les cheveux, 3 pour la
+ * jupe, 5 pour les papiers) ; de loin, la moitie, jamais moins de deux, ce
+ * qui garde la chaine coherente mais un peu plus lache, invisible a cette
+ * distance. Mesure sur Contact, CPU x4 : stepStrip etait le premier poste
+ * de la page, 85 ms par seconde.
+ */
+export function relaxations(base: number, distance: number, far = CLOTH_FAR_DISTANCE): number {
+  return distance > far ? Math.max(2, Math.ceil(base / 2)) : base;
+}
+
 export function bearerOpacity(dusk: number, c = CIHUATETEO): number {
   return lerp(c.opacityEscort, c.opacityCrossroads, descentBlend(dusk, c));
 }

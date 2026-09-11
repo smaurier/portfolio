@@ -93,7 +93,7 @@ const COLD_LAYER = 31;
 
 export default function ShaderWarmup() {
   const { gl, scene, camera } = useThree();
-  const { progress, active } = useProgress();
+  const { progress, active, item, loaded, total } = useProgress();
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   // LA BONNE VARIANTE (11/09). Avec le post-traitement, la scene est rendue
@@ -127,13 +127,13 @@ export default function ShaderWarmup() {
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
-      (window as unknown as { __nahualChargement?: unknown }).__nahualChargement = { progress, active };
+      (window as unknown as { __nahualChargement?: unknown }).__nahualChargement = { progress, active, item, loaded, total };
     }
     if (active && !wasActiveRef.current) dueRef.current = true;
     wasActiveRef.current = active;
     readyRef.current = progress >= 100 && !active;
     if (!readyRef.current) framesRef.current = 0;
-  }, [progress, active]);
+  }, [progress, active, item, loaded, total]);
 
   useEffect(() => {
     framesRef.current = 0;
@@ -185,6 +185,17 @@ export default function ShaderWarmup() {
     const avant = gl.info.programs?.length ?? 0;
     const viaCible = sceneRefs?.perfProfile.postFx ?? false;
     if (viaCible && !cibleRef.current) cibleRef.current = new WebGLRenderTarget(1, 1);
+    // En dev, le nombre de programmes crees PAR la chauffe : la suite e2e
+    // ne compte comme tardifs que ceux nes au rendu, hors chauffe.
+    const compte = () => {
+      const apres = gl.info.programs?.length ?? 0;
+      if (apres === avant) return false;
+      if (process.env.NODE_ENV !== "production") {
+        const w = window as unknown as { __nahualChauffe?: { crees: number } };
+        w.__nahualChauffe = { crees: (w.__nahualChauffe?.crees ?? 0) + (apres - avant) };
+      }
+      return true;
+    };
     for (const [o, masque] of file) {
       const prev = gl.getRenderTarget();
       if (viaCible) gl.setRenderTarget(cibleRef.current);
@@ -193,12 +204,12 @@ export default function ShaderWarmup() {
       versions.set(o, versionDe(o));
       o.layers.mask = masque;
       file.delete(o);
-      if ((gl.info.programs?.length ?? 0) !== avant) return;
+      if (compte()) return;
     }
     const annex = annexRef.current;
     while (annex.length > 0) {
       (annex.shift() as () => void)();
-      if ((gl.info.programs?.length ?? 0) !== avant) return;
+      if (compte()) return;
     }
     warmingRef.current = false;
     warmDirection = direction;

@@ -31,7 +31,7 @@ import {
 } from "three";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { shareSkeletons } from "@/lib/share-skeletons";
-import { CIHUATETEO, HAIR_STRANDS, LANDING, LANDING_LATCH, bearerHair, bearerOpacity, bearerPose, descentBlend, landingState, litterPose, type HairStrand, wispRate } from "@/lib/cihuateteo";
+import { CIHUATETEO, HAIR_STRANDS, LANDING, LANDING_LATCH, bearerHair, bearerOpacity, bearerPose, descentBlend, landingState, litterPose, type HairStrand, wispRate, relaxations } from "@/lib/cihuateteo";
 import { createStrip, stepStrip, type Strip } from "@/lib/paper-strip";
 import { remapWestArc } from "@/lib/ouest-arc";
 import { armLatch, stepLatch, type LatchState } from "@/lib/threshold-latch";
@@ -536,6 +536,8 @@ export default function Cihuateteo() {
 
     bearers.forEach((b, i) => {
       const pose = bearerPose(i, CIHUATETEO.count, dusk, sun, reduced ? 0 : time);
+      // De loin, les bandelettes se relachent moins (lib/cihuateteo.relaxations).
+      const camDist = Math.sqrt((pose.x - state.camera.position.x) ** 2 + (pose.z - state.camera.position.z) ** 2);
       // L'herbe a besoin de savoir OU elles ont touche : c'est elle qui
       // possede la grille de simulation.
       if (collectSpots) cihuateteoStore.spots.push({ x: pose.x, z: pose.z });
@@ -601,7 +603,7 @@ export default function Cihuateteo() {
               y: Math.sin(time * s.speed * 2.3 + s.phase * 2) * 0.12,
               z: hairWind.z + Math.cos(time * s.speed * 1.3 + s.phase) * 0.22,
             };
-        stepStrip(h.strip, dt, anchor, wind, { gravity: 9, damping: s.damping, windResponse: s.windResponse, iterations: 4 });
+        stepStrip(h.strip, dt, anchor, wind, { gravity: 9, damping: s.damping, windResponse: s.windResponse, iterations: relaxations(4, camDist) });
         writeRibbonSlot(b.hairGeometry, k, h.strip, (u) => 0.04 * (1 - u * 0.45));
       });
       finishRibbonBundle(b.hairGeometry);
@@ -618,7 +620,7 @@ export default function Cihuateteo() {
         const anchor = { x: waistX + lx * Math.cos(yaw) + lz * Math.sin(yaw), y: waistY, z: waistZ - lx * Math.sin(yaw) + lz * Math.cos(yaw) };
         // Chaque bande a sa souplesse : le tissu ne bouge pas d'un bloc.
         const j = ((k * 7919) % 13) / 13;
-        stepStrip(strip, dt, anchor, skirtWind, { gravity: 7, damping: 0.976 + 0.012 * j, windResponse: 0.35 + 0.35 * j, iterations: 3 });
+        stepStrip(strip, dt, anchor, skirtWind, { gravity: 7, damping: 0.976 + 0.012 * j, windResponse: 0.35 + 0.35 * j, iterations: relaxations(3, camDist) });
         writeRibbonSlot(b.skirtGeometry, k, strip, (u) => 0.065 * (1 + 0.35 * u));
       });
       finishRibbonBundle(b.skirtGeometry);
@@ -627,7 +629,7 @@ export default function Cihuateteo() {
         const px = pose.x + Math.sin(pose.yaw + Math.PI / 2) * p.peg.x + Math.sin(pose.yaw) * p.peg.z;
         const pz = pose.z + Math.cos(pose.yaw + Math.PI / 2) * p.peg.x + Math.cos(pose.yaw) * p.peg.z;
         const wind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 1.4 + Math.sin(time * 2.1 + p.phase) * 0.8, y: 1.6 + Math.sin(time * 3.3 + p.phase) * 0.8, z: WIND_BASE.z + Math.cos(time * 1.6 + p.phase) * 0.6 };
-        stepStrip(p.strip, dt, { x: px, y: 0.12, z: pz }, wind, { gravity: 2.5, damping: 0.975, windResponse: 1.6, iterations: 5 });
+        stepStrip(p.strip, dt, { x: px, y: 0.12, z: pz }, wind, { gravity: 2.5, damping: 0.975, windResponse: 1.6, iterations: relaxations(5, camDist) });
         writeRibbonSlot(paperGeometry, p.slot, p.strip, 0.09);
       }
       // Les braises de l'offrande, a ses pieds : elles ne s'allument qu'au

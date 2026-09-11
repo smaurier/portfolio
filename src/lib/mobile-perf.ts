@@ -42,6 +42,8 @@ export type PerfProfile = {
   bladeCount: number;
   /** Meches de cheveux par porteuse, a l'Ouest (10/09). */
   hairStrands: number;
+  /** Feuilles du vent de l'Ouest (11/09). */
+  leafCount: number;
 };
 
 /**
@@ -62,5 +64,6 @@ export function getPerfProfile(viewportWidth: number, eco = false): PerfProfile 
     shadows: q.shadows,
     bladeCount: q.bladeCount,
     hairStrands: q.hairStrands,
+    leafCount: q.leafCount,
   };
 }

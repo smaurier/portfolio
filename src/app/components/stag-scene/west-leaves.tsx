@@ -8,6 +8,7 @@ import { initLeaf, stepLeaf, WEST_LEAVES, type Leaf } from "@/lib/west-leaves";
 import { GRASS_WIND_BY_DIRECTION, windAt } from "@/lib/grass-sim";
 import { terrainHeightWorld } from "./cardinal-orientation";
 import { useCurrentDirection } from "./use-current-direction";
+import { useSceneRefs } from "./scene-refs-context";
 
 /**
  * WestLeaves (06/09, etape 5 de l'Ouest) : Ehecatl « balaie la route »
@@ -67,15 +68,19 @@ const FRAGMENT = /* glsl */ `
 export default function WestLeaves() {
   const direction = useCurrentDirection();
   const pointsRef = useRef<Points>(null);
+  const sceneRefs = useSceneRefs();
   const blendRef = useRef(direction === "cendre" ? 1 : 0);
   const reducedRef = useRef(false);
   useEffect(() => {
     reducedRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
 
-  const leaves = useMemo<Leaf[]>(() => Array.from({ length: WEST_LEAVES.count }, (_, i) => initLeaf(i)), []);
+  // L'effectif suit le profil de rendu (11/09) : 240 au bureau, 160 sur
+  // telephone, 120 en eco. Meme palier que l'herbe et les meches.
+  const leafCount = sceneRefs?.perfProfile.leafCount ?? WEST_LEAVES.count;
+  const leaves = useMemo<Leaf[]>(() => Array.from({ length: leafCount }, (_, i) => initLeaf(i)), [leafCount]);
   const { geometry, material } = useMemo(() => {
-    const n = WEST_LEAVES.count;
+    const n = leaves.length;
     const geo = new BufferGeometry();
     geo.setAttribute("position", new BufferAttribute(new Float32Array(n * 3), 3));
     geo.setAttribute("aSpin", new BufferAttribute(new Float32Array(n), 1));

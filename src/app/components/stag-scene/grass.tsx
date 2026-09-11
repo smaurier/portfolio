@@ -74,6 +74,12 @@ const MAX_TERRAIN_Y = 0.35;
 /** Repli si le profil de rendu n'est pas encore la (cf lib/scene-controls). */
 const BLADES_FALLBACK = 26000;
 const GRID_SIZE = 64;
+/** La grille de vent avance a 30 Hz (11/09) : 4 096 cellules, deux boucles
+ * par pas (le vent, puis la texture de flexion). Mesure sur Contact, CPU x4 :
+ * 84 ms par seconde a 60 Hz, le deuxieme poste de la page, pour une
+ * flexion que le shader lisse entre deux pas. Le nombre de brins ne compte
+ * pas ici : la simulation est par cellule, pas par brin. */
+const GRID_STEP_S = 1 / 30;
 const GRID_EXTENT = 17;
 const SEGMENTS = 3;
 /** Ou le xiuhcoatl frappe l'anneau (cf xiuhcoatl-companion STRIKE_HIT), monde. */
@@ -141,6 +147,8 @@ const GROUND_PLANE = new Plane(new Vector3(0, 1, 0), 0);
 
 export default function Grass() {
   const meshRef = useRef<InstancedMesh>(null);
+  // Demarre au-dessus du pas : la premiere image ecrit la texture.
+  const gridAccRef = useRef(1);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   const bladeCount = sceneRefs?.perfProfile.bladeCount ?? BLADES_FALLBACK;
@@ -268,6 +276,8 @@ export default function Grass() {
   const hitPoint = useMemo(() => new Vector3(), []);
 
   useFrame((state, delta) => {
+    gridAccRef.current += delta;
+    const stepGrid = gridAccRef.current >= GRID_STEP_S;
     const mesh = meshRef.current;
     if (!mesh) return;
     const north = direction === "obsidienne";
@@ -361,7 +371,7 @@ export default function Grass() {
         const l = rotateY({ x: frostStore.impact.x, z: frostStore.impact.z }, -angle);
         applyRadialImpulse(grid, l.x, l.z, 14, 14);
       }
-      stepGrassGrid(grid, Math.min(delta, 0.1), windLocal, GRASS_SIM);
+      if (stepGrid) stepGrassGrid(grid, Math.min(gridAccRef.current, 0.1), windLocal, GRASS_SIM);
     } else {
       // Pose de brise statique : la flexion de repos du vent a t = 0.
       const n = GRID_SIZE * GRID_SIZE;
@@ -372,12 +382,15 @@ export default function Grass() {
         grid.bend[2 * i + 1] = w.z * GRASS_SIM.windGain;
       }
     }
-    const n = GRID_SIZE * GRID_SIZE;
-    for (let i = 0; i < n; i++) {
-      bendData[4 * i] = Math.round((grid.bend[2 * i] * 0.5 + 0.5) * 255);
-      bendData[4 * i + 1] = Math.round((grid.bend[2 * i + 1] * 0.5 + 0.5) * 255);
+    if (stepGrid) {
+      const n = GRID_SIZE * GRID_SIZE;
+      for (let i = 0; i < n; i++) {
+        bendData[4 * i] = Math.round((grid.bend[2 * i] * 0.5 + 0.5) * 255);
+        bendData[4 * i + 1] = Math.round((grid.bend[2 * i + 1] * 0.5 + 0.5) * 255);
+      }
+      bendMap.needsUpdate = true;
+      gridAccRef.current = 0;
     }
-    bendMap.needsUpdate = true;
     uniforms.uTime.value = t;
     const tint = GRASS_TINT_BY_DIRECTION[direction];
     uniforms.uTint.value.lerp(new Color(tint.rgb[0], tint.rgb[1], tint.rgb[2]), 0.05);

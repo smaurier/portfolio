@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useProgress } from "@react-three/drei";
-import { SHADERS_WARM_EVENT } from "./shader-warmup";
+import { SHADERS_WARM_EVENT, getWarmDirection } from "./shader-warmup";
 
 /**
  * RevealTrigger / VeilOrchestrator (31/08 refonte event-driven).
@@ -61,6 +61,7 @@ export default function RevealTrigger() {
   }, [progress]);
   const sequenceDoneRef = useRef(false);
   const warmRef = useRef(false);
+  const warmFallbackRef = useRef<number | null>(null);
 
   useEffect(() => {
     const skeleton = document.querySelector<HTMLElement>(
@@ -80,6 +81,9 @@ export default function RevealTrigger() {
     const holdMs = hearthLit ? HOLD_WHEN_HEARTH_LIT_MS : HOLD_AFTER_SEQUENCE_MS;
 
     const tryPoseLoaded = () => {
+      if (process.env.NODE_ENV !== "production") {
+        (window as unknown as { __nahualVoile?: unknown }).__nahualVoile = { progress: progressRef.current, sequenceDone: sequenceDoneRef.current, warm: warmRef.current, done };
+      }
       if (done) return;
       if (progressRef.current >= 100 && sequenceDoneRef.current && warmRef.current) {
         done = true;
@@ -135,6 +139,13 @@ export default function RevealTrigger() {
       tryPoseLoaded();
     };
     window.addEventListener(SHADERS_WARM_EVENT, onWarm);
+    // La chauffe a pu finir AVANT que cet ecouteur n'existe (mesure du
+    // 11/09, Contact sous CPU x4 : deux courses sur trois, voile leve mais
+    // page jamais « chargee ») : on lit son etat de facon synchrone.
+    if (getWarmDirection() !== null) warmRef.current = true;
+    // Et une reverification periodique, idempotente : aucun drapeau ne
+    // peut plus rester vrai sans que la pose ne suive.
+    const veille = window.setInterval(tryPoseLoaded, 500);
 
     skeleton.addEventListener("animationend", onAnimEnd);
     // Fallback global : si la sequence texte ne signale jamais sa
@@ -156,19 +167,24 @@ export default function RevealTrigger() {
       window.removeEventListener(SHADERS_WARM_EVENT, onWarm);
       skeleton.removeEventListener("animationend", onAnimEnd);
       timers.forEach(clearTimeout);
+      window.clearInterval(veille);
+      if (warmFallbackRef.current) window.clearTimeout(warmFallbackRef.current);
     };
   }, []);
 
   // Le delai de secours de la chauffe part du chargement complet.
+  // Le secours de la chauffe : arme UNE fois quand la progression atteint
+  // 100, et jamais efface par un changement de progression ulterieur (un
+  // chargement tardif le remettait a zero a chaque fois ; efface au
+  // demontage seulement).
   useEffect(() => {
-    if (progress < 100 || warmRef.current) return;
-    const timer = setTimeout(() => {
+    if (progress < 100 || warmRef.current || warmFallbackRef.current !== null) return;
+    warmFallbackRef.current = window.setTimeout(() => {
       if (warmRef.current) return;
       warmRef.current = true;
       // Meme chemin que l'evenement : on retente la pose de data-loaded.
       window.dispatchEvent(new Event(SHADERS_WARM_EVENT));
     }, WARMUP_FALLBACK_MS);
-    return () => clearTimeout(timer);
   }, [progress]);
 
   // Reagit au changement de progress : quand les assets 3D finissent

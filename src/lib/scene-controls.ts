@@ -59,11 +59,16 @@ export type QualityProfile = {
    * ms par image. Meme palier que l'herbe : le telephone en pose moins.
    */
   hairStrands: number;
+  /** Feuilles portees par le vent de l'Ouest (11/09) : chaque feuille est
+   * un pas de simulation par image (deux lectures de hauteur de dune, cinq
+   * sinus). Mesure sur Contact, CPU x4 : 75 ms par seconde pour 240. Le
+   * telephone en pose un tiers de moins, le bureau garde tout. */
+  leafCount: number;
 };
 
-const QUALITY_DESKTOP: QualityProfile = { dprCap: 2, postFx: true, shadows: true, bladeCount: 26000, hairStrands: 90 };
-const QUALITY_MOBILE: QualityProfile = { dprCap: 1.5, postFx: false, shadows: false, bladeCount: 9000, hairStrands: 40 };
-const QUALITY_ECO: QualityProfile = { dprCap: 1, postFx: false, shadows: false, bladeCount: 7000, hairStrands: 28 };
+const QUALITY_DESKTOP: QualityProfile = { dprCap: 2, postFx: true, shadows: true, bladeCount: 26000, hairStrands: 90, leafCount: 240 };
+const QUALITY_MOBILE: QualityProfile = { dprCap: 1.5, postFx: false, shadows: false, bladeCount: 9000, hairStrands: 40, leafCount: 160 };
+const QUALITY_ECO: QualityProfile = { dprCap: 1, postFx: false, shadows: false, bladeCount: 7000, hairStrands: 28, leafCount: 120 };
 
 /** Le profil effectif : eco force le repli, sinon le profil de l'ecran. */
 export function resolveQuality(eco: boolean, isMobile: boolean): QualityProfile {

@@ -164,6 +164,17 @@
    = 390 px, il reste 22 px de marge. Verifie par
    tests/e2e/controls-overlap.spec.ts, cas « Pixel 7 paysage ». */
 @media (max-height: 500px) {
+  /* Huit commandes en colonne (11/09, la pause) : a 44 px elles debordaient
+     du cadre en paysage sur Pixel 7 (412 px de haut). A 36 px, toujours
+     au-dessus de la cible minimale de 24 px, la colonne tient. */
+  .button {
+    width: 36px;
+    height: 36px;
+  }
+  .button svg {
+    width: 16px;
+    height: 16px;
+  }
   .cluster {
     bottom: calc(8px + 50px);
     gap: 4px;
