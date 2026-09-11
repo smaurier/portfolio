@@ -145,6 +145,12 @@ export default function RevealTrigger() {
       markSequenceDone();
     }, REVEAL_FALLBACK_MS);
     timers.push(revealFallback);
+    // Idempotent, et necessaire au REMONTAGE de l'effet (rechargement a
+    // chaud en dev) : les trois drapeaux peuvent deja etre vrais alors que le
+    // minuteur de pose a ete efface par le nettoyage precedent ; sans cet
+    // appel, rien ne repose jamais data-loaded (mesure du 11/09 : voile
+    // leve, page jamais « chargee », sondes qui expirent).
+    tryPoseLoaded();
 
     return () => {
       window.removeEventListener(SHADERS_WARM_EVENT, onWarm);

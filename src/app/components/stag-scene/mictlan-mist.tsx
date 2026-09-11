@@ -9,6 +9,8 @@ import { smokeGate } from "@/lib/tezcatl-fluid";
 import { TezcatlFluidSim } from "./mictlan-fluid-sim";
 import { TEZCATL_EXTENT, WATER_LEVEL } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
+import { useMountVisible } from "./mount-for-direction";
+import { registerWarmer } from "./shader-warmup";
 import { useSceneRefs } from "./scene-refs-context";
 
 /**
@@ -122,6 +124,9 @@ export default function MictlanMist() {
     [sim]
   );
   useEffect(() => () => { for (const m of materials) m.dispose(); }, [materials]);
+  // Chauffe annexe, en tranches (voir shader-warmup et TezcatlFluidSim.warmSteps).
+  useEffect(() => registerWarmer(() => sim.warmSteps()), [sim]);
+  const mountVisible = useMountVisible();
 
   useFrame((_state, delta) => {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
@@ -130,7 +135,8 @@ export default function MictlanMist() {
     const depth = denom > 0 ? Math.min(1, window.scrollY / denom) : 1;
     const target = smokeGate({ direction, scrollDepth: depth, reducedMotion: reduced }) * MIST_OPACITY;
     opacityRef.current = reduced ? target : opacityRef.current + (target - opacityRef.current) * 0.05;
-    const visible = opacityRef.current > 0.003;
+    // Cache par le garde-fou de direction : pas un pas, pas de compilation.
+    const visible = mountVisible && opacityRef.current > 0.003;
     for (const m of meshRefs.current) if (m) m.visible = visible;
     if (!visible) return;
     const frozen = reduced && simTimeRef.current > REDUCED_WARMUP_SECONDS;

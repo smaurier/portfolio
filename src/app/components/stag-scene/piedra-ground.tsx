@@ -83,7 +83,11 @@ const DISPLACEMENT_BIAS = -0.015;
  * lib testee (contrairement a direction-fog/light/grade qui sont de la
  * logique partagee) : trois scalaires lerpes, pas de logique metier.
  */
-const PIEDRA_NEUTRAL = { roughness: 0.85, metalness: 0.05, opacity: 0.1, clearcoat: 0, envMapIntensity: 0 };
+// clearcoat 0,001 et non 0 (11/09) : three met USE_CLEARCOAT dans la cle du
+// programme des que le vernis depasse zero ; a 0 ici et 1 au Nord ou sous
+// la glace, la Piedra recompilait a chaque arrivee, 200 a 400 ms de gel.
+// A 0,001 le vernis est invisible et la variante ne change jamais.
+const PIEDRA_NEUTRAL = { roughness: 0.85, metalness: 0.05, opacity: 0.1, clearcoat: 0.001, envMapIntensity: 0 };
 // 02/09 (retour Sylvain "pas flagrant, utiliser des outils en plus") :
 // vrai outil PBR : une carte d'environnement violet-nuit reflechie par le
 // disque (envMap equirect procedurale) + vernis clearcoat. L'obsidienne

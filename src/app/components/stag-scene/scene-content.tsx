@@ -43,6 +43,7 @@ import Cihuateteo from "./cihuateteo";
 import WestLeaves from "./west-leaves";
 import FrostWorld from "./frost-world";
 import MountForDirection, { PreloadOnIntent } from "./mount-for-direction";
+import FrostPatch from "./frost-patch";
 import SunBeam from "./sun-beam";
 
 /**
@@ -158,28 +159,42 @@ export default function SceneContent({
       </Suspense>
       <OrbitCamera progressRef={progressRef} />
       <CardinalAmbience />
+      {/* Le givre pose sur toute la scene des le chargement (11/09). */}
+      <Suspense fallback={null}>
+        <FrostPatch />
+      </Suspense>
       {/* Reflet menteur du tezcatl (01/09 etage 4, Nord uniquement :
        * fade interne par direction). Hors CursorRevealScene : le miroir
        * de Tezcatlipoca ne repond pas au tonalli du visiteur, il ment
        * de lui-meme. */}
-      <Suspense fallback={null}>
-        <StagMirror />
-      </Suspense>
+          <MountForDirection is="obsidienne">{/* Nord uniquement : monte a l'intention, invisible jusqu'a la chauffe (11/09). */}
+        <Suspense fallback={null}>
+          <StagMirror />
+        </Suspense>
+          </MountForDirection>
       {/* La nappe d'eau (02/09) : ~20 cm d'eau calme sur toute la surface,
        * simulateur d'eau (equation des ondes), anneaux a la souris,
        * par-dessus le reflet. Nord uniquement (gate interne). */}
-      <TezcatlWater />
+      <MountForDirection is="obsidienne">
+        <TezcatlWater />
+      </MountForDirection>
       {/* Le vent d'Itzehecayan (02/09) : lames d'obsidienne en modeles,
        * un InstancedMesh, Nord uniquement (fondu interne). */}
-      <ObsidianBlades />
+      <MountForDirection is="obsidienne">
+        <ObsidianBlades />
+      </MountForDirection>
       {/* Temiminaloyan (02/09) : volees de fleches en profondeur de
        * scroll, impacts dans l'eau. Nord uniquement. */}
-      <ObsidianArrows />
+      <MountForDirection is="obsidienne">
+        <ObsidianArrows />
+      </MountForDirection>
       {/* Vaporisation des fleches plantees (04/09) : sprite charge par
        * useTexture, d'ou le Suspense. */}
-      <Suspense fallback={null}>
-        <ArrowVapor />
-      </Suspense>
+          <MountForDirection is="obsidienne">
+        <Suspense fallback={null}>
+          <ArrowVapor />
+        </Suspense>
+          </MountForDirection>
       {/* Le serpent de feu du Sud (04/09) : passage rare au-dessus du cerf,
        * modele Blender charge par useGLTF, d'ou le Suspense. */}
       <MountForDirection is="turquoise">
@@ -245,20 +260,28 @@ export default function SceneContent({
       {/* Bandelettes d'amate (02/09) : la protection de papier contre le
        * vent d'obsidienne, aux bois et sur le dos, simulateur Verlet.
        * Nord uniquement. */}
-      <AmateStrips />
+      <MountForDirection is="obsidienne">
+        <AmateStrips />
+      </MountForDirection>
       {/* Le poil du cerf noir (02/09) : coques extrudees sur le maillage
        * skinne, Nord uniquement, desktop seulement. */}
-      <FurShells />
+      <MountForDirection is="obsidienne">
+        <FurShells />
+      </MountForDirection>
       {/* Chemin de cempasuchil (02/09) : la fleur qui guide les ames, en
        * vrais modeles (Quaternius CC0), flottant sur la nappe depuis le
        * cerf vers le Nord, s'allonge en descendant. Nord uniquement. */}
-      <Suspense fallback={null}>
-        <CempasuchilPath />
-      </Suspense>
+          <MountForDirection is="obsidienne">
+        <Suspense fallback={null}>
+          <CempasuchilPath />
+        </Suspense>
+          </MountForDirection>
       {/* Nappes de brouillard (03/09) : simulateur de fluide aux bords du
        * bassin, trois nappes empilees qui voilent la margelle. Nord
        * uniquement. */}
-      <MictlanMist />
+      <MountForDirection is="obsidienne">
+        <MictlanMist />
+      </MountForDirection>
     </>
   );
 }

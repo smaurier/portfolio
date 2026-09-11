@@ -3,10 +3,11 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, CylinderGeometry, DoubleSide, Group, Mesh, Object3D, Points, PointsMaterial, ShaderMaterial, SpotLight, Sprite, SpriteMaterial, Vector3 } from "three";
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, CylinderGeometry, DoubleSide, Group, Mesh, Points, PointsMaterial, ShaderMaterial, Sprite, SpriteMaterial, Vector3 } from "three";
 import { useTexture } from "@react-three/drei";
 import { beamAxis, BEAM_HEIGHT } from "@/lib/est-arc";
 import { frostStore } from "./frost-store";
+import { persistentLights } from "./persistent-lights";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -77,8 +78,6 @@ export default function SunBeam() {
   const smokeTexture = useTexture(SMOKE_SPRITE);
   const rootRef = useRef<Group>(null);
   const beamRef = useRef<Mesh>(null);
-  const spotRef = useRef<SpotLight>(null);
-  const targetRef = useRef<Object3D>(null);
 
   const material = useMemo(
     () =>
@@ -145,8 +144,16 @@ export default function SunBeam() {
   const axis = useMemo(() => new Vector3(), []);
   const up = useMemo(() => new Vector3(0, 1, 0), []);
 
+  useEffect(
+    () => () => {
+      if (persistentLights.sun) persistentLights.sun.intensity = 0;
+    },
+    [],
+  );
+
   useFrame((state, delta) => {
-    const root = rootRef.current, beam = beamRef.current, spot = spotRef.current;
+    // Le projecteur est une lumiere PERSISTANTE (11/09, voir persistent-lights).
+    const root = rootRef.current, beam = beamRef.current, spot = persistentLights.sun;
     if (!root || !beam || !spot) return;
     const east = direction === "dore";
     const target = east ? frostStore.beam : 0;
@@ -167,9 +174,10 @@ export default function SunBeam() {
     // Le projecteur : au loin sur l'axe, vise le cerf.
     spot.position.copy(axis).multiplyScalar(14);
     spot.intensity = 260 * k;
-    if (targetRef.current) {
-      targetRef.current.position.set(0, 0.9, 0);
-      spot.target = targetRef.current;
+    const tgt = persistentLights.sunTarget;
+    if (tgt) {
+      tgt.position.set(0, 0.9, 0);
+      if (spot.target !== tgt) spot.target = tgt;
     }
     // Les poussieres : elles flottent dans le rayon, montent et descendent
     // lentement, chacune a sa hauteur.
@@ -195,8 +203,6 @@ export default function SunBeam() {
   return (
     <group ref={rootRef} visible={false}>
       <mesh ref={beamRef} geometry={geometry} material={material} frustumCulled={false} raycast={() => null} renderOrder={12} />
-      <spotLight ref={spotRef} color="#ffd9a0" intensity={0} distance={40} angle={0.26} penumbra={0.7} decay={1.2} />
-      <object3D ref={targetRef} position={[0, 0.9, 0]} />
     </group>
   );
 }

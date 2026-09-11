@@ -238,7 +238,17 @@ export class TezcatlRippleSim {
    *  scene). Un pas a amplitude nulle : les deux shaders ajoutent
    *  `g * uAmount`, donc rien ne s'inscrit dans la hauteur. */
   warm() {
-    this.step([{ u: 0.5, v: 0.5, amount: 0 }], 0, [{ u: 0.5, v: 0.5, du: 1, dv: 0, len: 0.03, width: 0.01, amount: 0 }]);
+    for (const pas of this.warmSteps()) pas();
+  }
+
+  /** Un pas par programme (coque, goutte, propagation), a amplitude nulle :
+   *  la chauffe des shaders les joue un par image (shader-warmup). */
+  warmSteps(): Array<() => void> {
+    return [
+      () => this.step([], 0, [{ u: 0.5, v: 0.5, du: 1, dv: 0, len: 0.03, width: 0.01, amount: 0 }]),
+      () => this.step([{ u: 0.5, v: 0.5, amount: 0 }], 0, []),
+      () => this.step([], 1, []),
+    ];
   }
 
   dispose() {

@@ -221,7 +221,10 @@ export default function HuitzilinBirds() {
       u.uTime.value = state.clock.elapsedTime;
       u.uFlap.value = reduced ? 0 : FLAP_AMPLITUDE;
       const mat = mesh.material as MeshStandardMaterial;
-      mat.transparent = blend < 1;
+      // Toujours transparent (11/09) : basculer `transparent` change la cle
+      // du programme (le bit opaque), et three recompilait les oiseaux a la
+      // fin de chaque fondu, 300 ms de gel en plein voyage cardinal.
+      if (!mat.transparent) mat.transparent = true;
       mat.opacity = blend;
     }
   });

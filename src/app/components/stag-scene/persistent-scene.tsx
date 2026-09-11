@@ -160,7 +160,12 @@ export default function PersistentScene() {
           // sauf deux messages de bibliotheques qu'on ne peut pas corriger
           // ici : la depreciation de THREE.Clock (instanciee par
           // react-three-fiber 9.7) et les notes X4122 du PMREM de three.
-          if (process.env.NODE_ENV === "production") state.gl.debug.checkShaderErrors = false;
+          // `?shaders-prod` (11/09) : la suite e2e de transitions mesure sur le
+          // serveur de dev, ou la verification synchrone des programmes
+          // multiplie le cout de chaque compilation par quatre ou cinq. Avec
+          // ce drapeau, three se comporte comme en production.
+          const shadersProd = process.env.NODE_ENV === "production" || new URLSearchParams(window.location.search).has("shaders-prod");
+          if (shadersProd) state.gl.debug.checkShaderErrors = false;
           if (process.env.NODE_ENV !== "production") {
             const w = window as unknown as { __nahualScene?: unknown; __nahualR3f?: unknown };
             w.__nahualScene = state.scene;

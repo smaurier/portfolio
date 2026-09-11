@@ -156,7 +156,6 @@ export default function FrostWorld() {
   const { scene: stagScene } = useGLTF(STAG_PATH);
   const smokeTexture = useTexture(SMOKE_SPRITE);
   const rootRef = useRef<Group>(null);
-  const frameRef = useRef(0);
 
   const iceMaterial = useMemo(() => {
     const m = makeIceMaterial(0.06);
@@ -175,7 +174,6 @@ export default function FrostWorld() {
   // une vitre bleu pale translucide a bords blancs (fresnel), le fond se
   // voit a travers. Pose une fois sur les materiaux du vrai cerf, apres
   // le givre generique pour passer par-dessus.
-  const glassAppliedRef = useRef(false);
   const discMaterial = useMemo(() => {
     const m = makeIceMaterial(0);
     m.opacity = 0.2; // les gravures de la Piedra se lisent sous la glace
@@ -332,7 +330,6 @@ export default function FrostWorld() {
   const dartDir = useMemo(() => new Vector3(), []);
   const explodedRef = useRef(false);
   const explodedAtRef = useRef(0);
-  const warmedRef = useRef(false);
   const tmpMatrix = useMemo(() => new Matrix4(), []);
   const tmpQuat = useMemo(() => new Quaternion(), []);
   const tmpEuler = useMemo(() => new Euler(), []);
@@ -433,68 +430,19 @@ export default function FrostWorld() {
       ? -FROST_SWEEP_RANGE + sweep * (2 * FROST_SWEEP_RANGE)
       : -999;
     frostUniforms.uSweepAxis.value.set(SWEEP_AXIS.x, SWEEP_AXIS.z);
-    // Le traverse de toute la scene (1900 objets) ne sert qu'a rattraper les
-    // materiaux montes apres coup : une image sur 20 suffit.
-    if ((frameRef.current = (frameRef.current + 1) % 20) === 0) applyFrost(state.scene);
-    if (!glassAppliedRef.current && frameRef.current >= 1) {
-      glassAppliedRef.current = true;
-      applyFrost(stagScene);
-      stagScene.traverse((o) => {
-        const m = (o as Mesh).material as MeshStandardMaterial | undefined;
-        if (!m || Array.isArray(m) || !(m as MeshStandardMaterial).isMeshStandardMaterial) return;
-        addShaderModifier(m, (shader) => {
-          shader.uniforms.uGlass = frostUniforms.uFrost;
-          shader.fragmentShader = shader.fragmentShader
-            .replace("#include <common>", `#include <common>
- uniform float uGlass;`)
-            .replace(
-              "#include <dithering_fragment>",
-              `if (uGlass > 0.001) {
-                 vec3 gN = normalize(vNormal);
-                 vec3 gV = normalize(vViewPosition);
-                 float gNV = abs(dot(gN, gV));
-                 float gFres = pow(1.0 - gNV, 2.2);
-                 // Verre : le fond passe au centre, les bords se blanchissent.
-                 vec3 glassCol = mix(vec3(0.62, 0.78, 0.96), vec3(0.97, 0.99, 1.0), gFres);
-                 gl_FragColor.rgb = mix(gl_FragColor.rgb, glassCol * (0.55 + 0.45 * gFres), uGlass);
-                 gl_FragColor.a = mix(gl_FragColor.a, 0.22 + 0.7 * gFres, uGlass);
-               }
-               #include <dithering_fragment>`,
-            );
-        });
-      });
-    }
-
+    // Le givre est pose sur TOUTE la scene par FrostPatch, sur toutes les
+    // pages (11/09) : la variante existe des le chargement, rien ne recompile
+    // a l'arrivee a l'Est.
     const root = rootRef.current;
     if (!root) return;
     const frost = frostUniforms.uFrost.value;
     const phase = frostStore.state.phase;
     const t = state.clock.elapsedTime;
 
-    // Prechauffage (07/09) : la lance, les eclats et la poudre compilent
-    // leurs shaders a la premiere image ou ils apparaissent, ce qui gelait
-    // l'image au milieu du vol de la lance. On les dessine une fois, hors
-    // champ, des l'arrivee sur la page.
-    if (east && !warmedRef.current) {
-      warmedRef.current = true;
-      tmpMatrix.compose(tmpPos.set(0, -200, 0), tmpQuat.identity(), tmpScale.set(1, 1, 1));
-      dartMesh.setMatrixAt(0, tmpMatrix);
-      dartMesh.count = 1;
-      dartMesh.instanceMatrix.needsUpdate = true;
-      dartMesh.visible = true;
-      shardMesh.setMatrixAt(0, tmpMatrix);
-      shardMesh.count = 1;
-      shardMesh.instanceMatrix.needsUpdate = true;
-      shardMesh.visible = true;
-      powder.pts.visible = true;
-      flash.position.set(0, -200, 0);
-      flash.material.opacity = 0.01;
-      flash.visible = true;
-      blade.position.set(0, -200, 0);
-      blade.visible = true;
-      root.visible = true;
-      return;
-    }
+    // Le prechauffage maison du 07/09 (dessiner lance, eclats et poudre une
+    // fois hors champ) a disparu le 11/09 : il compilait quatre programmes
+    // lourds en UNE image (1,4 s mesuree) ; la chauffe generale
+    // (shader-warmup) compile ces objets caches un par image.
     // L'explosion : armee quand les eclats commencent (apres le prelude des
     // dards), desarmee au regel.
     if (east && phase === "shatter" && frostStore.state.shatter > 0 && !explodedRef.current) {

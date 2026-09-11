@@ -1,9 +1,10 @@
 "use client";
 
 import type { MutableRefObject } from "react";
-import { useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
-import { Color, type AmbientLight, type DirectionalLight, type Fog } from "three";
+import { useEffect, useMemo, useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { Color, type AmbientLight, type DirectionalLight, type Fog, type Object3D, type PointLight, type SpotLight } from "three";
+import { EMBER_COLOR, EMBER_DISTANCE, freezeShadow, persistentLights, thawShadow } from "./persistent-lights";
 import {
   getAmbientIntensity,
   getDirectionalIntensity,
@@ -49,6 +50,31 @@ export default function RevealLighting({
   const ambientRef = useRef<AmbientLight>(null);
   const directionalRef = useRef<DirectionalLight>(null);
   const fogRef = useRef<Fog>(null);
+  // Les lumieres persistantes (11/09, voir persistent-lights) : montees ici
+  // sur toutes les pages, pilotees par leurs composants de direction.
+  const serpentRef = useRef<SpotLight>(null);
+  const serpentTargetRef = useRef<Object3D>(null);
+  const sunRef = useRef<SpotLight>(null);
+  const sunTargetRef = useRef<Object3D>(null);
+  const emberRef = useRef<PointLight>(null);
+  const gl = useThree((s) => s.gl);
+  const shadowPrimedRef = useRef(false);
+  const dirShadowActiveRef = useRef(false);
+  const serpentShadowActiveRef = useRef(false);
+  useEffect(() => {
+    persistentLights.serpent = serpentRef.current;
+    persistentLights.serpentTarget = serpentTargetRef.current;
+    persistentLights.sun = sunRef.current;
+    persistentLights.sunTarget = sunTargetRef.current;
+    persistentLights.ember = emberRef.current;
+    return () => {
+      persistentLights.serpent = null;
+      persistentLights.serpentTarget = null;
+      persistentLights.sun = null;
+      persistentLights.sunTarget = null;
+      persistentLights.ember = null;
+    };
+  }, []);
   const direction = useCurrentDirection();
   // Heure atmospherique (03/09 etage 3 Nepantla) : fog et rig lumiere
   // suivent l'heure traversee du voyage du soleil pendant un passage
@@ -157,8 +183,39 @@ export default function RevealLighting({
       if (arrivalGlow > 0) directionalColorScratch.lerp(cardinalColor, arrivalGlow * 0.6);
       directionalRef.current.color.copy(directionalColorScratch);
       directionalRef.current.position.set(rig.position[0], rig.position[1], rig.position[2]);
-      const wantShadow = hour === "turquoise" && !sceneRefs?.reducedMotionRef.current && (sceneRefs?.perfProfile.shadows ?? true);
-      if (directionalRef.current.castShadow !== wantShadow) directionalRef.current.castShadow = wantShadow;
+      // L'OMBRE INVARIANTE (11/09, voir persistent-lights) : castShadow ne
+      // bascule plus par direction, il est dans la cle des programmes ; c'est
+      // la passe de profondeur qu'on gele hors du Sud, carte videe. A la
+      // premiere image, un rendu de chaque carte pour qu'elle existe.
+      const shadows = !sceneRefs?.reducedMotionRef.current && (sceneRefs?.perfProfile.shadows ?? true);
+      const dl = directionalRef.current;
+      const sp = serpentRef.current;
+      if (dl.castShadow !== shadows) dl.castShadow = shadows;
+      if (sp && sp.castShadow !== shadows) sp.castShadow = shadows;
+      if (shadows) {
+        if (!shadowPrimedRef.current) {
+          shadowPrimedRef.current = true;
+          dl.shadow.needsUpdate = true;
+          dirShadowActiveRef.current = true;
+          if (sp) {
+            sp.shadow.needsUpdate = true;
+            serpentShadowActiveRef.current = true;
+          }
+        } else {
+          const wantDir = hour === "turquoise";
+          if (wantDir !== dirShadowActiveRef.current) {
+            dirShadowActiveRef.current = wantDir;
+            if (wantDir) thawShadow(dl);
+            else freezeShadow(gl, dl);
+          }
+          const wantSerpent = persistentLights.serpentShadowWanted;
+          if (sp && wantSerpent !== serpentShadowActiveRef.current) {
+            serpentShadowActiveRef.current = wantSerpent;
+            if (wantSerpent) thawShadow(sp);
+            else freezeShadow(gl, sp);
+          }
+        }
+      }
     }
     if (fogRef.current) {
       // A l'Ouest, la teinte suit le crepuscule (abricot -> mauve), pas la page.
@@ -199,6 +256,28 @@ export default function RevealLighting({
         shadow-bias={-0.0004}
         shadow-normalBias={0.03}
       />
+      {/* Les lumieres persistantes (11/09) : le projecteur du serpent (Sud,
+       * pilote par XiuhcoatlCompanion), le rayon de soleil (Est, SunBeam),
+       * la braise de Xolotl (Nord). Intensite zero hors de leur direction :
+       * le jeu de lumieres ne change jamais, les programmes non plus. */}
+      <spotLight
+        ref={serpentRef}
+        color="#ff7a1a"
+        intensity={0}
+        distance={16}
+        decay={2}
+        angle={1.05}
+        penumbra={0.7}
+        shadow-mapSize={[512, 512]}
+        shadow-bias={-0.0005}
+        shadow-normalBias={0.05}
+        shadow-camera-near={0.5}
+        shadow-camera-far={45}
+      />
+      <object3D ref={serpentTargetRef} />
+      <spotLight ref={sunRef} color="#ffd9a0" intensity={0} distance={40} angle={0.26} penumbra={0.7} decay={1.2} />
+      <object3D ref={sunTargetRef} position={[0, 0.9, 0]} />
+      <pointLight ref={emberRef} color={EMBER_COLOR} intensity={0} distance={EMBER_DISTANCE} decay={2} />
     </>
   );
 }

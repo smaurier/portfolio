@@ -1,4 +1,4 @@
-import { DataTexture, FloatType, RGBAFormat, type Object3D, type Texture } from "three";
+import { DataTexture, FloatType, RGBAFormat, type Texture } from "three";
 
 /**
  * Etat partage de la nappe d'eau du Nord (02/09). TezcatlWater fait
@@ -66,11 +66,6 @@ export const tezcatlStore: {
   vapors: { x: number; y: number; z: number; dx: number; dy: number; dz: number; length: number; heat?: number }[];
   /** La braise de Xolotl (monde) : reflet chaud sur l'eau (03/09). */
   ember: { x: number; y: number; z: number; intensity: number };
-  /** Pose par TezcatlWater : compile les programmes d'un objet dans les
-   * conditions de la passe miroir (cible de rendu, donc espace lineaire,
-   * camera de la couche 3), une variante que la passe a l'ecran ne produit
-   * jamais. Xolotl y passe son clone pendant son delai d'apparition (11/09). */
-  warmReflection: ((root: Object3D) => void) | null;
 } = {
   ripple: ZERO_TEXTURE,
   rippleTexel: 1,
@@ -81,5 +76,4 @@ export const tezcatlStore: {
   hull: null,
   vapors: [],
   ember: { x: 0, y: 0, z: 0, intensity: 0 },
-  warmReflection: null,
 };

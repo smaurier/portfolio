@@ -3,6 +3,7 @@
 import gsap from "gsap";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NEPANTLA_TIMING, enterOffset, exitOffset } from "@/lib/nepantla";
+import { SHADERS_WARM_EVENT, WARMUP_FALLBACK_MS, getWarmDirection } from "./shader-warmup";
 
 /**
  * Contexte de la transition cardinale, refondu 03/09 (chantier
@@ -141,9 +142,7 @@ export function CardinalTransitionProvider({ children }: { children: ReactNode }
     }
   }, []);
 
-  const completeArrival = useCallback(() => {
-    const direction = directionRef.current;
-    if (!direction) return; // nav directe (back/forward, URL) : rien a jouer.
+  const playArrival = useCallback((direction: CardinalDirection) => {
     const frame = frameRef.current;
 
     const reset = () => {
@@ -200,6 +199,32 @@ export function CardinalTransitionProvider({ children }: { children: ReactNode }
       onComplete: finish,
     });
   }, []);
+
+  const completeArrival = useCallback(() => {
+    const direction = directionRef.current;
+    if (!direction) return; // nav directe (back/forward, URL) : rien a jouer.
+    // L'ARRIVEE CHAUFFEE (11/09) : le contenu n'entre qu'une fois les
+    // programmes de la nouvelle direction compiles (shader-warmup), pour
+    // que le premier rendu visible ne fige pas le fil principal en plein
+    // mouvement. Secours partage, au cas ou la chauffe ne vient pas.
+    if (getWarmDirection() === direction) {
+      playArrival(direction);
+      return;
+    }
+    let lance = false;
+    const lancer = () => {
+      if (lance) return;
+      lance = true;
+      window.removeEventListener(SHADERS_WARM_EVENT, onWarm);
+      window.clearTimeout(secours);
+      playArrival(direction);
+    };
+    const onWarm = (event: Event) => {
+      if ((event as CustomEvent<{ direction?: string }>).detail?.direction === direction) lancer();
+    };
+    window.addEventListener(SHADERS_WARM_EVENT, onWarm);
+    const secours = window.setTimeout(lancer, WARMUP_FALLBACK_MS);
+  }, [playArrival]);
 
   const value = useMemo(
     () => ({ transitionDirection, transitionProgressRef, startTransition, registerFrame, completeArrival }),

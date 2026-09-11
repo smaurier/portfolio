@@ -317,6 +317,70 @@ export class TezcatlFluidSim {
    * le temps s'epaissit au Nord). Les splats des emetteurs injectent encre
    * ET vitesse, le splat souris seulement de la vitesse.
    */
+  /** Un pas neutre par programme (huit), pour la chauffe des shaders
+   *  (shader-warmup) : sans cela, les huit compilaient d'un bloc au premier
+   *  pas visible, 400 a 600 ms de gel a l'arrivee sur Memoire (11/09). */
+  warmSteps(): Array<() => void> {
+    const cadre = (fn: () => void) => () => {
+      const gl = this.gl;
+      const prevTarget = gl.getRenderTarget();
+      const prevAutoClear = gl.autoClear;
+      gl.autoClear = false;
+      fn();
+      gl.setRenderTarget(prevTarget);
+      gl.autoClear = prevAutoClear;
+    };
+    const p = this.params;
+    return [
+      cadre(() => this.splat(this.velocity, 0.5, 0.5, 0, 0, p.emitterRadius)),
+      cadre(() => {
+        this.mat.curl.uniforms.uVelocity.value = this.velocity.read.texture;
+        this.blit(this.curlRT, this.mat.curl);
+      }),
+      cadre(() => {
+        const vort = this.mat.vorticity;
+        vort.uniforms.uVelocity.value = this.velocity.read.texture;
+        vort.uniforms.uCurl.value = this.curlRT.texture;
+        vort.uniforms.uStrength.value = 0;
+        vort.uniforms.uDt.value = 0;
+        this.blit(this.velocity.write, vort);
+        this.velocity.swap();
+      }),
+      cadre(() => {
+        this.mat.divergence.uniforms.uVelocity.value = this.velocity.read.texture;
+        this.blit(this.divergenceRT, this.mat.divergence);
+      }),
+      cadre(() => {
+        this.mat.clear.uniforms.uTexture.value = this.pressure.read.texture;
+        this.blit(this.pressure.write, this.mat.clear);
+        this.pressure.swap();
+      }),
+      cadre(() => {
+        const pr = this.mat.pressure;
+        pr.uniforms.uDivergence.value = this.divergenceRT.texture;
+        pr.uniforms.uPressure.value = this.pressure.read.texture;
+        this.blit(this.pressure.write, pr);
+        this.pressure.swap();
+      }),
+      cadre(() => {
+        const grad = this.mat.gradient;
+        grad.uniforms.uPressure.value = this.pressure.read.texture;
+        grad.uniforms.uVelocity.value = this.velocity.read.texture;
+        this.blit(this.velocity.write, grad);
+        this.velocity.swap();
+      }),
+      cadre(() => {
+        const adv = this.mat.advect;
+        adv.uniforms.uDt.value = 0;
+        adv.uniforms.uVelocity.value = this.velocity.read.texture;
+        adv.uniforms.uSource.value = this.velocity.read.texture;
+        adv.uniforms.uDissipation.value = 1;
+        this.blit(this.velocity.write, adv);
+        this.velocity.swap();
+      }),
+    ];
+  }
+
   step(dt: number, emitters: FluidSplat[], pointer: FluidSplat | null) {
     const gl = this.gl;
     const prevTarget = gl.getRenderTarget();

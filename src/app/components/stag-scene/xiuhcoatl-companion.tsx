@@ -4,7 +4,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { Object3D, Quaternion, Vector3, type Group, type Material, type Mesh, type MeshStandardMaterial, type SpotLight } from "three";
+import { Quaternion, Vector3, type Group, type Material, type Mesh, type MeshStandardMaterial } from "three";
+import { persistentLights } from "./persistent-lights";
 import { initialWander, stepWander, wanderTangent, XIUHCOATL_WANDER, type WanderState } from "@/lib/xiuhcoatl-wander";
 import { aztecYear, YEAR_BEARERS } from "aztec-year";
 import { getMictlanSky } from "./mictlan-sky";
@@ -90,7 +91,10 @@ function setOpacity(root: Group, opacity: number, uniforms: XiuhcoatlUniforms) {
     for (const m of mats) {
       const mat = m as Material & { opacity: number; isShaderMaterial?: boolean };
       if (mat.isShaderMaterial) continue; // uOpacity
-      mat.transparent = opacity < 1;
+      // Toujours transparent (11/09) : basculer `transparent` change la cle
+      // du programme, et le serpent recompilait ses trois materiaux a la fin
+      // de son fondu d'entree.
+      if (!mat.transparent) mat.transparent = true;
       mat.opacity = opacity;
     }
   });
@@ -169,10 +173,8 @@ function decidePresence(): boolean {
 
 export default function XiuhcoatlCompanion() {
   const groupRef = useRef<Group>(null);
-  const lightRef = useRef<SpotLight>(null);
   // La cible du projecteur : le sol sous le serpent (objet de la scene,
   // mis a jour chaque frame).
-  const lightTarget = useMemo(() => new Object3D(), []);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   const readingMode = useReadingMode();
@@ -232,6 +234,14 @@ export default function XiuhcoatlCompanion() {
     };
   }, [present, actions]);
 
+  useEffect(
+    () => () => {
+      if (persistentLights.serpent) persistentLights.serpent.intensity = 0;
+      persistentLights.serpentShadowWanted = false;
+    },
+    [],
+  );
+
   useFrame((_state, delta) => {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
     // LE GESTE DU MYTHE A LIEU A CHAQUE VISITE : si le serpent n'etait pas
@@ -271,7 +281,8 @@ export default function XiuhcoatlCompanion() {
     if (!present || reduced) {
       g.visible = false;
       xiuhcoatlStore.presence = 0;
-      if (lightRef.current) lightRef.current.intensity = 0;
+      if (persistentLights.serpent) persistentLights.serpent.intensity = 0;
+      persistentLights.serpentShadowWanted = false;
       return;
     }
     // dt borne et jamais nul : a dt = 0 (premiere frame, onglet
@@ -365,18 +376,22 @@ export default function XiuhcoatlCompanion() {
     g.quaternion.copy(q);
     g.scale.setScalar(SCALE);
 
-    if (lightRef.current) {
-      const l = lightRef.current;
+    // Le projecteur est une lumiere PERSISTANTE (11/09, voir
+    // persistent-lights) : on le pilote, on ne le possede pas. Il suit le
+    // serpent et vise le sol sous lui ; son ombre (retour Sylvain « un
+    // travail leger sur les ombres ») ne coute qu'une passe de profondeur
+    // en 512, et seulement la nuit, quand elle se voit : RevealLighting lit
+    // ce souhait et gele ou degele la passe.
+    const l = persistentLights.serpent;
+    const lt = persistentLights.serpentTarget;
+    if (l && lt) {
       l.intensity = LIGHT_INTENSITY * fade * (1 + NIGHT_LIGHT_BOOST * night + STRIKE_LIGHT_BOOST * xiuhcoatlStore.strike.fire);
       l.distance = LIGHT_DISTANCE_DAY + (LIGHT_DISTANCE_NIGHT - LIGHT_DISTANCE_DAY) * night;
-      // Le projecteur vise le sol sous lui ; son ombre (retour Sylvain
-      // « un travail leger sur les ombres ») ne coute qu'une passe de
-      // profondeur en 512, et seulement la nuit, quand elle se voit.
-      lightTarget.position.set(s.x, 0, s.z);
-      lightTarget.updateMatrixWorld();
-      if (!l.target) l.target = lightTarget;
-      const wantShadow = night > 0.15 && (sceneRefs?.perfProfile.shadows ?? true);
-      if (l.castShadow !== wantShadow) l.castShadow = wantShadow;
+      l.position.set(s.x, s.y + 0.2 * SCALE, s.z);
+      lt.position.set(s.x, 0, s.z);
+      lt.updateMatrixWorld();
+      if (l.target !== lt) l.target = lt;
+      persistentLights.serpentShadowWanted = night > 0.15 && (sceneRefs?.perfProfile.shadows ?? true);
     }
 
     // Trainee chaude : un point de chaleur derriere lui a cadence fixe,
@@ -410,25 +425,6 @@ export default function XiuhcoatlCompanion() {
   return (
     <group ref={groupRef} visible={false}>
       <primitive object={scene} />
-      {/* Lueur portee : un projecteur vers le sol (05/09, ombres legeres) :
-          large cone, penombre douce, carte d'ombre 512, coupee le jour. */}
-      <spotLight
-        ref={lightRef}
-        color="#ff7a1a"
-        intensity={0}
-        distance={16}
-        decay={2}
-        angle={1.05}
-        penumbra={0.7}
-        position={[0, 0.2, 0]}
-        target={lightTarget}
-        castShadow={false}
-        shadow-mapSize={[512, 512]}
-        shadow-bias={-0.0005}
-        shadow-normalBias={0.05}
-        shadow-camera-near={0.5}
-        shadow-camera-far={45}
-      />
     </group>
   );
 }

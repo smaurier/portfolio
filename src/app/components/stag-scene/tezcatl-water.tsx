@@ -9,6 +9,8 @@ import { hoofDrop, pointerSplat, smokeGate, worldToSimUv, type SimUv } from "@/l
 import { TezcatlRippleSim, type RippleHull } from "./tezcatl-ripple-sim";
 import { TEZCATL_EXTENT, WATER_LEVEL, ZERO_TEXTURE, tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
+import { useMountVisible } from "./mount-for-direction";
+import { registerWarmer } from "./shader-warmup";
 import { useSceneRefs } from "./scene-refs-context";
 
 /**
@@ -171,6 +173,7 @@ function renderReflection(gl: WebGLRenderer, scene: Scene, mainCamera: Camera, r
 export default function TezcatlWater() {
   const meshRef = useRef<Mesh>(null);
   const direction = useCurrentDirection();
+  const mountVisible = useMountVisible();
   const sceneRefs = useSceneRefs();
   const { gl, size, scene: rootScene } = useThree();
   const opacityRef = useRef(0);
@@ -223,28 +226,35 @@ export default function TezcatlWater() {
   }, []);
   useEffect(() => () => rimMaterial.dispose(), [rimMaterial]);
   useEffect(() => {
-    // Derriere le voile, jamais au premier impact (voir TezcatlRippleSim.warm).
-    sim.warm();
+    // Chauffe annexe, en tranches, derriere le voile ou pendant l'intention
+    // (voir shader-warmup et TezcatlRippleSim.warmSteps).
+    const stop = registerWarmer(() => sim.warmSteps());
     return () => {
+      stop();
       sim.dispose();
       tezcatlStore.ripple = ZERO_TEXTURE;
       tezcatlStore.rippleTexel = 1;
     };
   }, [sim]);
   useEffect(() => {
-    // Le miroir compile ses propres variantes (mesure du 11/09 : un arret a
-    // 55 % de l'arc, le clone de braise compile au premier reflet). Ici la
-    // cible est posee, donc three derive la variante en espace lineaire ;
-    // `compile` lit ces conditions de facon synchrone.
-    tezcatlStore.warmReflection = (root) => {
-      const prev = gl.getRenderTarget();
-      gl.setRenderTarget(reflection.target);
-      void gl.compileAsync(root, reflection.camera, rootScene).catch(() => undefined);
-      gl.setRenderTarget(prev);
-    };
-    return () => {
-      tezcatlStore.warmReflection = null;
-    };
+    // Le miroir compile ses propres variantes (cible de rendu, donc espace
+    // lineaire) : un pas de chauffe par objet de la couche du reflet, joue
+    // en tranches par shader-warmup, jamais en bloc (11/09 : neuf programmes
+    // d'un coup, 1,9 s, a l'apparition de Xolotl).
+    return registerWarmer(() => {
+      const pas: Array<() => void> = [];
+      rootScene.traverse((o) => {
+        const m = o as Mesh;
+        if (!o.layers.isEnabled(REFLECTION_LAYER) || !(m.isMesh || (o as { isSprite?: boolean }).isSprite)) return;
+        pas.push(() => {
+          const prev = gl.getRenderTarget();
+          gl.setRenderTarget(reflection.target);
+          gl.compile(o, reflection.camera, rootScene);
+          gl.setRenderTarget(prev);
+        });
+      });
+      return pas;
+    });
   }, [gl, reflection, rootScene]);
 
   const material = useMemo(
@@ -385,7 +395,9 @@ export default function TezcatlWater() {
     const depth = denom > 0 ? Math.min(1, window.scrollY / denom) : 1;
     const target = smokeGate({ direction, scrollDepth: depth, reducedMotion: reduced }) * WATER_OPACITY;
     opacityRef.current = reduced ? target : opacityRef.current + (target - opacityRef.current) * 0.05;
-    const visible = opacityRef.current > 0.003;
+    // Cache par le garde-fou de direction : pas un pas de simulateur, donc
+    // pas une compilation en cachette (voir MountForDirection).
+    const visible = mountVisible && opacityRef.current > 0.003;
     if (meshRef.current) meshRef.current.visible = visible;
     if (rimRef.current) rimRef.current.visible = visible;
     if (rimTopRef.current) rimTopRef.current.visible = visible;

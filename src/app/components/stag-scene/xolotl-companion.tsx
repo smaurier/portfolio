@@ -3,13 +3,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type PointLight } from "three";
+import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { rimCrossing, rimSurface } from "@/lib/xolotl-rim";
 import { bodyFromFeet, fitSupportPlane, type SupportPoint } from "@/lib/quadruped-stance";
 import { DOG_LEG_LIMITS, twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { shareSkeletons } from "@/lib/share-skeletons";
+import { persistentLights } from "./persistent-lights";
+import { getWarmDirection } from "./shader-warmup";
 import { isBot } from "@/lib/is-bot";
 import { terrainHeightWorld } from "./cardinal-orientation";
 import { useReadingMode } from "@/lib/reading-mode-context";
@@ -91,9 +93,7 @@ const Z_DEPTH_NORTH = -1.5;
  *     lui, qui eclaire l'eau, la margelle et les fleurs a son passage,
  *     le Soleil escorte dans la nuit ;
  *  3. les ONDES a ses pattes : il traverse le fleuve, l'eau reagit. */
-const EMBER_COLOR = "#ff8a1a";
 const EMBER_INTENSITY = 9;
-const EMBER_DISTANCE = 7;
 // Sillage (03/09, trois iterations) : gouttes espacees = anneaux
 // concentriques ; source continue devant le museau = V de proue mais
 // "l'avant du sillage est tres mal fait" (Sylvain). Version retenue :
@@ -541,9 +541,7 @@ export default function XolotlCompanion() {
   const walkTimeScale = WALK_TIME_SCALE / northSlow;
   const readingMode = useReadingMode();
   const groupRef = useRef<Group>(null);
-  const gl = useThree((s) => s.gl);
   const camera = useThree((s) => s.camera);
-  const rootScene = useThree((s) => s.scene);
   const coreRef = useRef<Mesh>(null);
   const haloRef = useRef<Mesh>(null);
   // useMemo (pas useRef.current) pour eviter la regle react-hooks/refs
@@ -644,7 +642,6 @@ export default function XolotlCompanion() {
     }),
     []
   );
-  const emberRef = useRef<PointLight>(null);
   const lastRippleRef = useRef(0);
   const stepRef = useRef(0);
   const afterimageMaterial = useMemo(
@@ -728,26 +725,17 @@ export default function XolotlCompanion() {
   useEffect(() => {
     if (!spawn) return;
     const delay = alreadyWitnessed ? APPEAR_DELAY_REPEAT_MS : APPEAR_DELAY_FIRST_MS;
-    // Ses programmes se compilent PENDANT le delai, pas a la premiere image
-    // ou il apparait (mesure du 11/09 : un arret a 55 % de l'arc au Nord,
-    // la variante skinnee de l'obsidienne, restee tardive malgre la chauffe
-    // generale). La scene principale sert de contexte : lumieres, brouillard.
-    // Le clone passe aussi par le point de chauffe de l'eau, qui compile la
-    // variante du reflet (cible de rendu) ; un tour de boucle plus tard, le
-    // temps que l'eau ait pose ce point.
-    const warm = window.setTimeout(() => {
-      for (const g of [groupRef.current, cloneGroupRef.current]) {
-        if (g) void gl.compileAsync(g, camera, rootScene).catch(() => undefined);
-      }
-      if (cloneGroupRef.current) tezcatlStore.warmReflection?.(cloneGroupRef.current);
-    }, 0);
     // A l'Ouest (06/09), Venus du soir ne part qu'une fois le soleil entre
     // dans la terre : on attend le delai ET le bas de l'arc.
     const armedAt = performance.now();
     let timer = 0;
     const tick = () => {
       const sunSet = direction !== "cendre" || (sceneRefs?.progressRef.current ?? 0) >= OUEST_ARC.setAt;
-      if (performance.now() - armedAt < delay || !sunSet) {
+      // Et jamais avant la chauffe des shaders de la direction (11/09) : ses
+      // materiaux echanges au Nord se compilent en tranches pendant qu'il
+      // est cache, pas a sa premiere image.
+      const warm = getWarmDirection() === direction;
+      if (performance.now() - armedAt < delay || !sunSet || !warm) {
         timer = window.setTimeout(tick, 500);
         return;
       }
@@ -775,11 +763,8 @@ export default function XolotlCompanion() {
       window.dispatchEvent(new CustomEvent("nahual-xolotl-state"));
     };
     timer = window.setTimeout(tick, delay);
-    return () => {
-      window.clearTimeout(timer);
-      window.clearTimeout(warm);
-    };
-  }, [spawn, alreadyWitnessed, actions, walkTimeScale, direction, sceneRefs, gl, camera, rootScene]);
+    return () => window.clearTimeout(timer);
+  }, [spawn, alreadyWitnessed, actions, walkTimeScale, direction, sceneRefs]);
 
   useFrame((_state, delta) => {
     const g = groupRef.current;
@@ -787,6 +772,7 @@ export default function XolotlCompanion() {
     if (startedAt === null) {
       g.visible = false;
       tezcatlStore.xolotl = null;
+      if (persistentLights.ember) persistentLights.ember.intensity = 0;
       const cloneG = cloneGroupRef.current;
       if (cloneG) cloneG.visible = false;
       return;
@@ -1022,12 +1008,13 @@ export default function XolotlCompanion() {
     const north = direction === "obsidienne";
     // Totalement opaque hors des fondus d'entree/sortie (03/09).
     setMaterialOpacity(obsidianMaterial, north ? Math.min(1, opacity / PEAK_OPACITY) : 0);
-    if (emberRef.current) {
-      emberRef.current.intensity = north ? EMBER_INTENSITY * opacity : 0;
-      // La braise n'est plus enfant du groupe (voir le rendu) : on la pose
-      // a la main, dans le meme repere, exactement ou elle etait (offset
-      // local 0.7 sous une echelle XOLOTL_SCALE).
-      emberRef.current.position.set(x, y + 0.7 * XOLOTL_SCALE, zDepth);
+    // La braise est une lumiere PERSISTANTE (11/09, voir persistent-lights) :
+    // posee a la main dans le repere monde, exactement ou elle etait (offset
+    // local 0.7 sous une echelle XOLOTL_SCALE), eteinte hors du Nord.
+    const ember = persistentLights.ember;
+    if (ember) {
+      ember.intensity = north ? EMBER_INTENSITY * opacity : 0;
+      ember.position.set(x, y + 0.7 * XOLOTL_SCALE, zDepth);
     }
     // La braise publiee pour son reflet dans l'eau (tezcatl-water).
     tezcatlStore.ember.x = x;
@@ -1138,16 +1125,10 @@ export default function XolotlCompanion() {
   //
   // Les deux branches renvoient un fragment dont le premier enfant est la
   // braise : React la garde a l'identique quand le reste apparait.
-  const braise =
-    direction === "obsidienne" ? (
-      <pointLight ref={emberRef} color={EMBER_COLOR} intensity={0} distance={EMBER_DISTANCE} decay={2} />
-    ) : null;
-
-  if (!spawn) return <>{braise}</>;
+  if (!spawn) return null;
 
   return (
     <>
-      {braise}
       {/* Cap et assiette sont poses dans useFrame (quaternion : l'assiette
           doit composer par-dessus le cap). */}
       <group ref={groupRef} scale={XOLOTL_SCALE} visible={false}>
