@@ -4,7 +4,7 @@ import { useEffect, useRef, type CSSProperties, type MutableRefObject } from "re
 import CardinalLink from "./cardinal-link";
 import { getNavEmphasis } from "@/lib/reveal-arc";
 import { getPath, type PageKey } from "@/lib/routes";
-import { getDictionary, type Locale } from "../../../dictionaries";
+import type { Dictionary, Locale } from "../../../dictionaries";
 import {
   DIRECTION_ACCENT_COMPLEMENTARY,
   DIRECTION_COLOR_VIVID,
@@ -57,16 +57,18 @@ const NEXT_KEY: Record<DirectionKey, PageKey | null> = {
 export default function PageClosure({
   directionKey,
   locale,
+  closure,
   progressRef,
   reducedMotionRef,
 }: {
   directionKey: DirectionKey;
   locale: Locale;
+  /** Le texte de cloture de cette direction, passe depuis la page serveur. */
+  closure: Dictionary["closure"][DirectionKey];
   progressRef: MutableRefObject<number>;
   reducedMotionRef: MutableRefObject<boolean>;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const closure = getDictionary(locale).closure[directionKey];
   const nextKey = NEXT_KEY[directionKey];
   const nextHref = nextKey ? getPath(locale, nextKey) : `/${locale}`;
 

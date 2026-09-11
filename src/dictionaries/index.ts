@@ -1,20 +1,17 @@
 import fr from "./fr.json";
 import en from "./en.json";
 import es from "./es.json";
+import { defaultLocale, isLocale, type Locale } from "./locales";
 
-// Import statique (pas de dynamic import par locale) : les 3 fichiers sont
-// petits, et ça permet d'utiliser getDictionary aussi bien dans un Server
-// Component (layout, generateMetadata) que dans un composant client (la
-// page d'accueil est "use client" à cause de l'animation GSAP du SVG).
-const dictionaries = { fr, en, es };
+export { locales, defaultLocale, isLocale, type Locale } from "./locales";
 
-export const locales = Object.keys(dictionaries) as Array<keyof typeof dictionaries>;
-export const defaultLocale: (typeof locales)[number] = "fr";
-export type Locale = (typeof locales)[number];
-export type Dictionary = (typeof dictionaries)["fr"];
+// Les trois JSON sont importes ici, et seulement ici. Ce module est reserve
+// au serveur (layout, pages, generateMetadata, sitemap) : un composant client
+// recoit ses chaines en props, ou importe ./locales s'il ne lui faut que la
+// locale. Sinon les trois dictionnaires partent au navigateur (11/09).
+const dictionaries: Record<Locale, typeof fr> = { fr, en, es };
 
-export const isLocale = (value: string): value is Locale =>
-  (locales as string[]).includes(value);
+export type Dictionary = typeof fr;
 
 export const getDictionary = (locale: string): Dictionary => {
   const key = isLocale(locale) ? locale : defaultLocale;

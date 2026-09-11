@@ -501,7 +501,7 @@ export default async function LocaleLayout({
           {/* Cardinal compass (28/08 retour Sylvain) : indicateur bas
               droite croix 5 points, direction courante highlight
               couleur cardinale, cliquable nav rapide. */}
-          <CardinalCompass locale={locale} />
+          <CardinalCompass locale={locale} labels={dict.common.compass} cosmos={dict.codex.cosmos} />
           {/* Hover sync (28/08 retour Sylvain) : poste
               body[data-cardinal-hover=X] au pointerover sur nav ou
               compass, permet pulse cross-widget des points cardinaux. */}

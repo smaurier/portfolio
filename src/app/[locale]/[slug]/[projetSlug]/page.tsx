@@ -151,6 +151,7 @@ export default async function LocalizedProjetDetail({
     <EchoScenePage
       directionKey={direction}
       locale={locale}
+      closure={fullDict.closure}
       sceneDescription={fullDict.common.sceneDescriptions[direction]}
     >
       {jsonLd.map((entry, i) => (

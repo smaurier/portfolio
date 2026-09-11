@@ -584,6 +584,7 @@ export default async function LocalizedPage({
     <EchoScenePage
       directionKey={directionKey}
       locale={locale}
+      closure={fullDict.closure}
       sceneDescription={fullDict.common.sceneDescriptions[directionKey]}
     >
       <script

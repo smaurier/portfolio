@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { Locale } from "../../../dictionaries";
+import type { Dictionary, Locale } from "../../../dictionaries";
 import { renderWithNahuatl } from "@/lib/nahuatl";
 import type { DirectionKey } from "./direction-colors";
 import PageClosure from "./page-closure";
@@ -26,11 +26,13 @@ import SceneStage from "./scene-stage";
 export default function EchoScenePage({
   directionKey,
   locale,
+  closure,
   sceneDescription,
   children,
 }: {
   directionKey: DirectionKey;
   locale: Locale;
+  closure: Dictionary["closure"];
   /** Description poetique-immersive de la scene 3D pour SR (29/08
    * chantier a11y "SR enrichi"). Injectee en tete du main pour que
    * l'utilisateur SR entende ou il est arrive avant le contenu
@@ -45,6 +47,7 @@ export default function EchoScenePage({
         <PageClosure
           directionKey={directionKey}
           locale={locale}
+          closure={closure[directionKey]}
           progressRef={progressRef}
           reducedMotionRef={reducedMotionRef}
         />

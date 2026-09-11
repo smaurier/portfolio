@@ -8,7 +8,7 @@ import FadingBlock from "./fading-block";
 import PageClosure from "./page-closure";
 import SceneStage from "./scene-stage";
 import overlayStyles from "./scene-text-overlay.module.css";
-import type { Locale } from "../../../dictionaries";
+import type { Dictionary, Locale } from "../../../dictionaries";
 
 export type HomeContent = {
   heroTitle: string;
@@ -35,11 +35,13 @@ export type HomeContent = {
 export default function StagScene({
   home,
   locale,
+  closure,
   servicesHref,
   sceneDescription,
 }: {
   home: HomeContent;
   locale: Locale;
+  closure: Dictionary["closure"];
   servicesHref: string;
   /** Conserve pour compat call-site (page.js passe encore contactHref).
    * A retirer au prochain nettoyage de dictionnaire home (aboutText,
@@ -129,6 +131,7 @@ export default function StagScene({
         <PageClosure
           directionKey="jade"
           locale={locale}
+          closure={closure.jade}
           progressRef={progressRef}
           reducedMotionRef={reducedMotionRef}
         />

@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { whenRevealed } from "@/lib/apres-le-voile";
 import { getPath } from "@/lib/routes";
-import { isLocale } from "@/dictionaries";
+import { isLocale } from "@/dictionaries/locales";
 import { useCardinalTransition } from "./cardinal-transition-context";
 
 /**

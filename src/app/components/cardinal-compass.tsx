@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { pageKeys, slugs, getPath, type PageKey } from "@/lib/routes";
-import { getDictionary, type Locale } from "@/dictionaries";
+import type { Dictionary, Locale } from "@/dictionaries";
 import { renderWithNahuatl } from "@/lib/nahuatl";
 import CompassOverlay from "./compass-overlay";
 import { useCurrentDirection } from "./stag-scene/use-current-direction";
@@ -129,12 +129,21 @@ function CompassDot({
   );
 }
 
-export default function CardinalCompass({ locale }: { locale: string }) {
+export default function CardinalCompass({
+  locale,
+  labels,
+  cosmos,
+}: {
+  locale: string;
+  /** Les libelles viennent du serveur (layout) : ce composant client ne
+   *  doit pas importer les dictionnaires, voir src/dictionaries/locales.ts. */
+  labels: Dictionary["common"]["compass"];
+  cosmos: Dictionary["codex"]["cosmos"];
+}) {
   const router = useRouter();
   const current = useCurrentDirection();
   const transition = useCardinalTransition();
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const dict = getDictionary(locale);
 
   function localeSafe(): Locale {
     return isLocale(locale) ? locale : "fr";
@@ -205,16 +214,16 @@ export default function CardinalCompass({ locale }: { locale: string }) {
           type="button"
           className={styles.expand}
           onClick={() => setOverlayOpen(true)}
-          aria-label={dict.common.compass.expand}
-          title={dict.common.compass.expand}
+          aria-label={labels.expand}
+          title={labels.expand}
         >
           <span aria-hidden="true">i</span>
         </button>
       </nav>
       {overlayOpen && (
         <CompassOverlay
-          cosmos={dict.codex.cosmos}
-          closeLabel={dict.common.compass.close}
+          cosmos={cosmos}
+          closeLabel={labels.close}
           onClose={() => setOverlayOpen(false)}
         />
       )}
