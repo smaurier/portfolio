@@ -58,6 +58,26 @@ clic a +9 s) : Accueil -> Contact 211 ms (l'arrivee des porteuses) ; Contact
 | ~~T5~~ | ~~Un programme tardif a 15 % de l'arc~~ (fait : le lustre des pierres de l'annee et la transparence du serpent basculaient a l'allumage, deux bits de la cle ; planchers poses ; le chien de garde suit les versions par materiau a chaque image et se rejoue juste avant chaque rendu ; en dev, les programmes nes au rendu sont nommes dans `__nahualTardifs`) | `programmes-tardifs.spec.ts` a tolerance zero, cinq pages, trois passages | S | moi |
 | ~~T6~~ | ~~La chauffe bavarde~~ (fait : l'evenement ne part qu'aux arrivees et aux cycles qui ont compile quelque chose) | un evenement par cycle utile | S | moi |
 
+**Le voile d'entree, mesure le 12/09** (Sylvain : « on a perdu beaucoup de
+choses sur le voile d'entree et je le trouve saccade [...] parfois tout
+s'affiche, parfois non »). Sonde `.scratch/voile.mjs` : un navigateur NEUF
+par passage (cache de shaders froid, comme une vraie premiere visite), agent
+Chrome reel, dev, `?shaders-prod`.
+
+| etat | ceremonie | images > 50 ms pendant le voile | pire image |
+| --- | --- | --- | --- |
+| avant (contexte vierge) | SAUTEE a chaque fois (`data-hearth="lit"` a 0,6 s), voile ouvert par le secours de 6 s | 13 a 16, 3,9 s en tout | 867 ms |
+| decision unique du foyer | jouee (quatre points ranges dans la boussole, sequence finie a 3,5 s) | 15, 3,9 s | 700 ms |
+| + porte `isReady()` sur chaque programme | jouee | 7 a 9, 2,2 s | 683 ms (chargement) et 600 ms (carte d'environnement) |
+| + carte d'environnement cuite (PNG 27 Ko) | jouee | 6, 1,5 a 1,7 s, toutes avant 2,2 s (chargement des modeles) | 633 a 667 ms (chargement) |
+
+| # | quoi | oracle | effort | decision |
+| --- | --- | --- | --- | --- |
+| ~~T7~~ | ~~La ceremonie sautait a chaque chargement~~ (fait, 12/09) : FoyerArrival decidait ET notait la visite dans le meme effet ; StrictMode (App Router, dev) joue chaque effet deux fois et la seconde relisait la date que la premiere venait d'ecrire ; en production, RevealTrigger lisait l'attribut a un instant non garanti. Une seule decision par chargement (`foyer-decision.ts`), partagee par les deux composants | e2e `voile-ceremonie.spec.ts` : contexte vierge, jamais `data-hearth`, sequence finie par l'animation, quatre points dans le pont ; puis foyer allume au rechargement ; unitaire `foyer-decision.test.ts` | S | fait |
+| ~~T8~~ | ~~Une image longue apres chaque compilation~~ (fait, 12/09) : `compile()` ne coute que 0 a 2 ms (liaison asynchrone), c'est le rendu SUIVANT qui attendait la liaison. La chauffe garde l'objet sur la couche froide jusqu'a `isReady()` (COMPLETION_STATUS_KHR, non bloquant), un programme en vol a la fois, ses textures montees pendant l'attente | 7 a 8 images longues apres compilation -> 0 ou 1 | S | fait |
+| ~~T9~~ | ~~La carte d'environnement fabriquee en bloquant 636 ms~~ (fait, 12/09) : le ciel du Mictlan (equirect) en envMap des materiaux physiques, et three fabrique la carte PMREM (trois shaders lourds) a la premiere demande ; meme liee en asynchrone, la generation bloque 600 ms au premier trace (ANGLE/D3D11 compile au trace). Le ciel est un degrade fixe : sa carte est CUITE une fois (`scripts/bake-pmrem.mjs`, `public/env/mictlan-pmrem.png`, 336x128, sRGB) et servie par `mictlan-sky` ; fabrication en trois temps en secours si le fichier manque | zero image longue liee aux shaders pendant le voile | M | fait |
+| T10 | **Ce qui reste du voile : le chargement des modeles** (600 a 700 ms vers 0,8 s, deux de 300 ms entre 1,3 et 2 s : decodage meshopt et textures sur le fil principal, pendant la revelation des caracteres). Pistes : textures en KTX2 (V2, `toktx` absent), decodage dans un worker, ou un voile dont les animations ne dependent pas du fil principal (transform/opacity seulement, pas de `filter: blur` par caractere) | images > 50 ms pendant le voile a froid : 6 -> 2 | M | a decider |
+
 ---
 
 ## 1. Visuel (design, 40)

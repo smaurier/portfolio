@@ -106,6 +106,17 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **12/09, le voile d'entree** : 8,8 -> 8,85. Sylvain : « parfois tout
+  s'affiche, parfois non, et c'est saccade ». Mesure par le vrai chemin, a
+  froid : la ceremonie (phrase, points cardinaux qui rejoignent la
+  boussole) SAUTAIT a chaque chargement (decision du foyer prise deux fois,
+  la seconde relisait la visite que la premiere venait de noter), et le
+  voile s'ouvrait par le secours de 6 s. Regle : une decision par
+  chargement, e2e + unitaire. La saccade : 3,9 s d'images longues -> 1,5 s,
+  en deux temps : attendre la liaison de chaque programme sans bloquer
+  (isReady) avant de rendre l'objet, et cuire la carte d'environnement du
+  Mictlan (three la fabriquait en bloquant 600 ms). Reste le chargement des
+  modeles (T10). Chiffres dans le backlog, section 0.
 - **12/09, le tutoiement partout** : Sylvain revient sur le vouvoiement
   (« ce sera plus opportun ») ; 41 chaines francaises et 28 espagnoles
   passent au tu, l'espagnol devient enfin coherent (il melangeait deja tu

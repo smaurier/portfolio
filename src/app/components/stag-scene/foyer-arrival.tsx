@@ -5,13 +5,12 @@ import { useEffect } from "react";
 import {
   DOT_FLIGHT_ORDER,
   FOYER_TIMING,
-  HEARTH_STORAGE_KEY,
   HEARTH_WORLD,
   apertureRadius,
   dotFlightDelay,
   projectToScreen,
-  shouldPerformCeremony,
 } from "@/lib/foyer";
+import { decideCeremony } from "./foyer-decision";
 import { foyerStore } from "./foyer-store";
 
 /**
@@ -51,24 +50,6 @@ function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function readLastVisit(): number | null {
-  try {
-    const raw = window.localStorage.getItem(HEARTH_STORAGE_KEY);
-    return raw === null ? null : Number.parseInt(raw, 10);
-  } catch {
-    return null;
-  }
-}
-
-function markVisit(): void {
-  try {
-    window.localStorage.setItem(HEARTH_STORAGE_KEY, String(Date.now()));
-  } catch {
-    // Navigation privee, stockage refuse : la ceremonie rejouera. Tant pis,
-    // c'est le comportement le moins surprenant.
-  }
-}
-
 export default function FoyerArrival() {
   useEffect(() => {
     const root = document.documentElement;
@@ -77,13 +58,13 @@ export default function FoyerArrival() {
 
     // 1. Le feu du foyer brule-t-il encore ? Le script inline du layout a
     //    deja pose data-hearth AVANT le premier paint pour qu'aucune
-    //    amorce de ceremonie ne soit visible ; ici on refait le calcul
-    //    avec la lib (qui fait foi) et on reconcilie si besoin.
-    const ceremony = shouldPerformCeremony(readLastVisit(), Date.now());
+    //    amorce de ceremonie ne soit visible ; ici la decision est prise
+    //    UNE fois par chargement (foyer-decision : lecture, ecriture et
+    //    attribut au meme endroit ; le 12/09, l'effet joue deux fois par
+    //    StrictMode relisait la visite qu'il venait de noter et sautait la
+    //    ceremonie a chaque chargement en dev).
+    const ceremony = decideCeremony();
     foyerStore.ceremony = ceremony;
-    if (ceremony) root.removeAttribute("data-hearth");
-    else root.setAttribute("data-hearth", "lit");
-    markVisit();
 
     const reduced = prefersReducedMotion();
     let timeline: gsap.core.Timeline | null = null;

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useProgress } from "@react-three/drei";
+import { decideCeremony } from "./foyer-decision";
 import { SHADERS_WARM_EVENT, getWarmDirection } from "./shader-warmup";
 
 /**
@@ -77,7 +78,11 @@ export default function RevealTrigger() {
     // Piedra tourne, le reste est masque en CSS par html[data-hearth]),
     // donc aucun animationend ne remontera jamais : on ne peut pas
     // attendre la sequence, il faut la declarer finie tout de suite.
-    const hearthLit = document.documentElement.getAttribute("data-hearth") === "lit";
+    // La MEME decision que FoyerArrival, memorisee par chargement (12/09) :
+    // lire l'attribut ici dependait de l'ordre de montage, et un foyer
+    // declare allume APRES ce montage laissait attendre un animationend
+    // qui ne viendrait jamais (voile ouvert par le secours de 6 s).
+    const hearthLit = !decideCeremony();
     const holdMs = hearthLit ? HOLD_WHEN_HEARTH_LIT_MS : HOLD_AFTER_SEQUENCE_MS;
 
     const tryPoseLoaded = () => {
