@@ -5,7 +5,7 @@ import { useCardinalTransition, type CardinalDirection } from "./stag-scene/card
 
 /**
  * LA LIGNE DE SEUIL (11/09, N1 du backlog, choix de Sylvain : la deuxieme
- * personne, au vouvoiement).
+ * personne ; au tutoiement depuis le 12/09, comme tout le site).
  *
  * Pendant le voyage cardinal, une phrase adressee au visiteur relie ce
  * qu'il quitte a ce qu'il rejoint. Elle vit dans un message de statut

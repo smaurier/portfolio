@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Nahual . studio de création",
-    "description": "Transformez votre vision en réalité digitale"
+    "description": "Transforme ta vision en réalité digitale"
   },
   "common": {
     "nav": {
@@ -20,14 +20,14 @@
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
     "newWindow": "nouvelle fenêtre",
-    "xolotlSeen": "Ce chien ? L'avez-vous vu passer ? Visitez le Codex.",
+    "xolotlSeen": "Ce chien ? Tu l'as vu passer ? Visite le Codex.",
     "skipNav": "Aller au contenu principal",
     "seuils": {
-      "jade": "Vous revenez au foyer. La chaleur que vous portez est celle du premier jour.",
-      "dore": "Vous allez vers le jour. Ce qui était pris dans la glace va se rompre.",
-      "turquoise": "Vous entrez dans le midi. Ici, ce qui brûle laisse une trace.",
-      "cendre": "Vous suivez le soleil qui descend. Ce que vous portez descend avec lui.",
-      "obsidienne": "Vous arrivez là où l'on garde. Ce qui a voyagé jusqu'ici ne s'efface pas."
+      "jade": "Tu reviens au foyer. La chaleur que tu portes est celle du premier jour.",
+      "dore": "Tu vas vers le jour. Ce qui était pris dans la glace va se rompre.",
+      "turquoise": "Tu entres dans le midi. Ici, ce qui brûle laisse une trace.",
+      "cendre": "Tu suis le soleil qui descend. Ce que tu portes descend avec lui.",
+      "obsidienne": "Tu arrives là où l'on garde. Ce qui a voyagé jusqu'ici ne s'efface pas."
     },
     "cantar": {
       "label": "Un chant de cette direction",
@@ -59,26 +59,26 @@
       "pauseOff": "Reprendre la scène",
       "link": "Copier le lien de cet instant",
       "linkCopied": "Lien copié",
-      "resume": "Reprendre où vous étiez",
+      "resume": "Reprendre où tu étais",
       "resumeDismiss": "Non merci",
-      "traces": "Ce que la scène vous a montré",
+      "traces": "Ce que la scène t'a montré",
       "tenochtitlanClock": "Il est {time} à Tenochtitlan",
       "tenochtitlanNight": "Il est {time} à Tenochtitlan, c'est la nuit",
       "landmark": "Commandes de la scène"
     },
     "traces": {
-      "title": "Ce que la scène vous a montré",
-      "intro": "Certaines choses n'arrivent qu'à qui regarde. Voici celles qui vous sont arrivées.",
+      "title": "Ce que la scène t'a montré",
+      "intro": "Certaines choses n'arrivent qu'à qui regarde. Voici celles qui te sont arrivées.",
       "close": "Fermer",
       "count": "{n} traces sur {total}",
       "hidden": "Une trace encore à trouver",
       "lines": {
-        "centzon-thrown": "Les quatre cents étoiles ont été jetées dans le ciel devant vous.",
+        "centzon-thrown": "Les quatre cents étoiles ont été jetées dans le ciel devant toi.",
         "huitzilin-catch": "Un colibri a pris une étoile.",
-        "sunrise": "Vous avez vu le soleil se lever à l'est.",
+        "sunrise": "Tu as vu le soleil se lever à l'est.",
         "xiuhcoatl-strike": "Le xiuhcoatl a frappé la pierre.",
         "glyph-lit": "Le glyphe de l'année s'est embrasé.",
-        "xolotl": "Xolotl est passé, et vous l'avez vu."
+        "xolotl": "Xolotl est passé, et tu l'as vu."
       }
     },
     "readingMode": {
@@ -111,18 +111,18 @@
       "obsidienne": "Mémoire · direction Nord"
     },
     "sceneDescriptions": {
-      "jade": "Vous entrez dans le sanctuaire du cerf. Au centre d'un grand disque de pierre gravé, un cerf se tient immobile dans l'herbe sèche, le maïs autour de lui. C'est le foyer, le centre d'où partent les quatre directions : le doré de l'aube à l'est, le turquoise du midi au sud, le rouge du crépuscule à l'ouest, le violet de la nuit au nord. Le cerf est votre nahual : l'essence qui se révèle sous forme animale.",
-      "dore": "Vous êtes tourné vers l'Est, Tlahuizcalpan, la maison de l'aube. Le monde est pris dans le gel d'Itztlacoliuhqui, le cerf sous la glace, le temps arrêté. Quand le soleil paraît, les dards de l'aube volent et toute la glace éclate. La lumière est neuve, la journée s'ouvre.",
-      "turquoise": "Vous êtes tourné vers le Sud, Huitztlampa, terre des épines et des fleurs. Huitzilopochtli veille sur ce qui pousse. La scène prend des teintes turquoise de mosaïque Xiuhtecuhtli.",
-      "cendre": "Vous êtes tourné vers l'Ouest, Cihuatlampa, région du crépuscule mauve. Les Cihuateteo, femmes-mortes divinisées, portent le soleil couchant dans une litière de plumes, puis descendent au carrefour et dansent dans le vent. La scène rougeoie doucement, puis s'éteint.",
-      "obsidienne": "Vous êtes tourné vers le Nord, Mictlampa, le lieu du repos. Mictlantecuhtli, seigneur de l'obsidienne violette, garde ce qui a été vécu. La scène devient nocturne, profonde."
+      "jade": "Tu entres dans le sanctuaire du cerf. Au centre d'un grand disque de pierre gravé, un cerf se tient immobile dans l'herbe sèche, le maïs autour de lui. C'est le foyer, le centre d'où partent les quatre directions : le doré de l'aube à l'est, le turquoise du midi au sud, le rouge du crépuscule à l'ouest, le violet de la nuit au nord. Le cerf est ton nahual : l'essence qui se révèle sous forme animale.",
+      "dore": "Tu es tourné vers l'Est, Tlahuizcalpan, la maison de l'aube. Le monde est pris dans le gel d'Itztlacoliuhqui, le cerf sous la glace, le temps arrêté. Quand le soleil paraît, les dards de l'aube volent et toute la glace éclate. La lumière est neuve, la journée s'ouvre.",
+      "turquoise": "Tu es tourné vers le Sud, Huitztlampa, terre des épines et des fleurs. Huitzilopochtli veille sur ce qui pousse. La scène prend des teintes turquoise de mosaïque Xiuhtecuhtli.",
+      "cendre": "Tu es tourné vers l'Ouest, Cihuatlampa, région du crépuscule mauve. Les Cihuateteo, femmes-mortes divinisées, portent le soleil couchant dans une litière de plumes, puis descendent au carrefour et dansent dans le vent. La scène rougeoie doucement, puis s'éteint.",
+      "obsidienne": "Tu es tourné vers le Nord, Mictlampa, le lieu du repos. Mictlantecuhtli, seigneur de l'obsidienne violette, garde ce qui a été vécu. La scène devient nocturne, profonde."
     },
     "cardinalAnnouncement": {
-      "jade": "Vous revenez au Centre. Le sanctuaire du cerf vous accueille.",
-      "dore": "Vous vous dirigez vers l'Est. Tonatiuh, le soleil levant, éclaire la voie.",
-      "turquoise": "Vous vous dirigez vers le Sud. Huitzilopochtli veille sur ce qui pousse.",
-      "cendre": "Vous vous dirigez vers l'Ouest. Les Cihuateteo raccompagnent le soleil.",
-      "obsidienne": "Vous vous dirigez vers le Nord. Mictlantecuhtli garde ce qui a été vécu."
+      "jade": "Tu reviens au Centre. Le sanctuaire du cerf t'accueille.",
+      "dore": "Tu te diriges vers l'Est. Tonatiuh, le soleil levant, éclaire la voie.",
+      "turquoise": "Tu te diriges vers le Sud. Huitzilopochtli veille sur ce qui pousse.",
+      "cendre": "Tu te diriges vers l'Ouest. Les Cihuateteo raccompagnent le soleil.",
+      "obsidienne": "Tu te diriges vers le Nord. Mictlantecuhtli garde ce qui a été vécu."
     },
     "noScript": "La scène 3D a besoin de JavaScript. Tout le contenu du site reste lisible sans elle."
   },
@@ -169,7 +169,7 @@
       "text": "Audit de conformité RGAA/WCAG avec recommandations directement implémentables. Je livre le code de correction, pas seulement un rapport.",
       "note": "Spécialisation en cours de certification (examen access42, 23 octobre 2026), pas encore obtenue."
     },
-    "cta": "Discutons de votre projet →"
+    "cta": "Discutons de ton projet →"
   },
   "projets": {
     "title": "Projets",
@@ -413,7 +413,7 @@
         },
         {
           "name": "Est · Tonatiuh · doré",
-          "text": "L'aube, le soleil qui monte. Ici ce sont les services, ce que je propose de bâtir avec vous."
+          "text": "L'aube, le soleil qui monte. Ici ce sont les services, ce que je propose de bâtir avec toi."
         },
         {
           "name": "Sud · Huitzilopochtli · turquoise",
@@ -431,19 +431,19 @@
     },
     "huitztlampa": {
       "title": "Huitztlampa, la naissance du soleil à Coatepec",
-      "text": "Le Sud est Huitztlampa, le lieu des épines, la région du colibri. Le Codex de Florence (Sahagún, livre III) raconte qu'à Coatepec, la montagne du serpent, Coatlicue balayait le temple quand une boule de plumes la rendit enceinte. Ses enfants, Coyolxauhqui et les quatre cents Huitznahua, les étoiles du Sud, prirent l'affront pour une honte et montèrent la tuer. Huitzilopochtli naquit armé au sommet, frappa Coyolxauhqui avec le xiuhcoatl, le serpent de feu, et dispersa les quatre cents. C'est le lever du soleil : chaque aube, la lune est vaincue et les étoiles s'effacent. Sur ce site, la page Projets rejoue ce geste. Vous arrivez de nuit : les quatre cents étoiles sont jetées dans le ciel à votre arrivée, la lune veille encore, haute dans le ciel. En descendant, les colibris, dans lesquels reviennent les guerriers tombés au combat, chassent les étoiles une à une · le soleil se lève à l'est, rouge puis blanc, et la lune se couche. Le xiuhcoatl rôde dans le ciel, mosaïque de turquoise et braise aux jointures, et au sommet de l'arc il frappe la pierre, dont l'anneau s'embrase. Sa queue porte le signe de l'année en cours : en nahuatl, xihuitl dit à la fois la turquoise, l'herbe, la comète et l'année. Le serpent de feu est aussi le serpent du temps. Devant le cerf, dans l'herbe, des pierres écrivent l'année comme sur les monuments : autant de pierres levées que le chiffre, et une stèle au glyphe du porteur. Ce qui est attesté : le coup du xiuhcoatl, la lune vaincue, les quatre cents dispersés, le compte en points. Ce qui est notre lecture : le serpent qui se raidit en trait (Seler y voyait le rayon du soleil), la montagne qui tremble, l'anneau qui se soulève, l'éclair turquoise, les pierres qui s'embrasent."
+      "text": "Le Sud est Huitztlampa, le lieu des épines, la région du colibri. Le Codex de Florence (Sahagún, livre III) raconte qu'à Coatepec, la montagne du serpent, Coatlicue balayait le temple quand une boule de plumes la rendit enceinte. Ses enfants, Coyolxauhqui et les quatre cents Huitznahua, les étoiles du Sud, prirent l'affront pour une honte et montèrent la tuer. Huitzilopochtli naquit armé au sommet, frappa Coyolxauhqui avec le xiuhcoatl, le serpent de feu, et dispersa les quatre cents. C'est le lever du soleil : chaque aube, la lune est vaincue et les étoiles s'effacent. Sur ce site, la page Projets rejoue ce geste. Tu arrives de nuit : les quatre cents étoiles sont jetées dans le ciel à ton arrivée, la lune veille encore, haute dans le ciel. En descendant, les colibris, dans lesquels reviennent les guerriers tombés au combat, chassent les étoiles une à une · le soleil se lève à l'est, rouge puis blanc, et la lune se couche. Le xiuhcoatl rôde dans le ciel, mosaïque de turquoise et braise aux jointures, et au sommet de l'arc il frappe la pierre, dont l'anneau s'embrase. Sa queue porte le signe de l'année en cours : en nahuatl, xihuitl dit à la fois la turquoise, l'herbe, la comète et l'année. Le serpent de feu est aussi le serpent du temps. Devant le cerf, dans l'herbe, des pierres écrivent l'année comme sur les monuments : autant de pierres levées que le chiffre, et une stèle au glyphe du porteur. Ce qui est attesté : le coup du xiuhcoatl, la lune vaincue, les quatre cents dispersés, le compte en points. Ce qui est notre lecture : le serpent qui se raidit en trait (Seler y voyait le rayon du soleil), la montagne qui tremble, l'anneau qui se soulève, l'éclair turquoise, les pierres qui s'embrasent."
     },
     "mictlampa": {
       "title": "Mictlampa, la descente vers Mictlán",
-      "text": "Le Nord est Mictlampa, le lieu des morts, la région de l'obsidienne et de la nuit. Les morts ordinaires n'y arrivent pas d'un coup : selon Sahagún (livre III) et le Codex Vaticanus A, la teyolía voyage quatre années à travers neuf strates avant d'atteindre Mictlantecuhtli et Mictecacihuatl. Elle traverse le fleuve Chiconahuapan avec l'aide d'un chien, passe entre deux montagnes qui s'entrechoquent, affronte le vent d'obsidienne d'Itzehecayan qui coupe comme des lames, puis Temiminaloyan, où des mains invisibles tirent des flèches. Sur ce site, la page Mémoire est cette descente. Le cerf a les pattes dans l'eau noire du tezcatl, le miroir : à la manière de Tezcatlipoca, le miroir fumant, il ne reflète pas, il révèle ou il ment. Le brouillard rampe depuis la margelle, les lames d'obsidienne passent d'est en ouest en contournant le cerf, et plus vous descendez, plus les flèches tombent autour de lui avant de se dissoudre en fumée. Un chemin de cempasúchil, la fleur qui guide les morts au retour, s'allonge sur l'eau vers le Nord. Et Xolotl passe, toujours, ici : suivez-le des yeux, c'est lui qui fait traverser le fleuve."
+      "text": "Le Nord est Mictlampa, le lieu des morts, la région de l'obsidienne et de la nuit. Les morts ordinaires n'y arrivent pas d'un coup : selon Sahagún (livre III) et le Codex Vaticanus A, la teyolía voyage quatre années à travers neuf strates avant d'atteindre Mictlantecuhtli et Mictecacihuatl. Elle traverse le fleuve Chiconahuapan avec l'aide d'un chien, passe entre deux montagnes qui s'entrechoquent, affronte le vent d'obsidienne d'Itzehecayan qui coupe comme des lames, puis Temiminaloyan, où des mains invisibles tirent des flèches. Sur ce site, la page Mémoire est cette descente. Le cerf a les pattes dans l'eau noire du tezcatl, le miroir : à la manière de Tezcatlipoca, le miroir fumant, il ne reflète pas, il révèle ou il ment. Le brouillard rampe depuis la margelle, les lames d'obsidienne passent d'est en ouest en contournant le cerf, et plus tu descends, plus les flèches tombent autour de lui avant de se dissoudre en fumée. Un chemin de cempasúchil, la fleur qui guide les morts au retour, s'allonge sur l'eau vers le Nord. Et Xolotl passe, toujours, ici : suis-le des yeux, c'est lui qui fait traverser le fleuve."
     },
     "cihuatlampa": {
       "title": "Cihuatlampa, le soleil porté au couchant",
-      "text": "L'Ouest est Cihuatlampa, le lieu des femmes, la région du crépuscule. Sahagún (livre VI) raconte que le soleil, arrivé au zénith, est reçu par les Cihuateteo, les femmes mortes en couches, divinisées comme les guerriers tombés au combat, et qu'elles le portent dans une litière de plumes de quetzal jusqu'au couchant, où les gens de Mictlán le prennent pour la nuit. Le livre I nomme Ehecatl, le vent, le balayeur qui ouvre la route aux dieux de la pluie. Les Cihuateteo n'étaient pas des figures douces : à certains jours du calendrier, elles descendaient aux carrefours, où l'on redoutait leur passage et où on leur laissait des papiers et des offrandes. Leurs sculptures les montrent le visage peint à la chaux, les cheveux défaits, les mains en griffes, une jupe simple à ceinture nouée. Sur ce site, la page Contact est ce chemin du soir. Vous arrivez en plein jour, et plus vous descendez, plus le soleil tombe vers les collines, à droite du cadre, pendant que quatre silhouettes noires portent sa litière de plumes. Quand il entre dans la terre, elles se posent au carrefour, face au cerf, et dansent dans le vent qui balaie tout vers l'Ouest. Des papiers restent au sol, et des papillons s'échappent d'elles : Sahagún (livre III) dit que les femmes mortes en couches reviennent en papillons. Ce qui est attesté : la litière de plumes de quetzal, la descente aux carrefours, les papiers et les offrandes, le visage à la chaux, les papillons. Ce qui est notre lecture : la couleur cendre et corail (les sources donnent l'Ouest blanc, la région de Quetzalcoatl), la danse, le vent visible, et les silhouettes elles-mêmes : les corps sont noirs et les visages restent des taches de chaux éteinte, sans traits, sans rien emprunter aux visages des sculptures."
+      "text": "L'Ouest est Cihuatlampa, le lieu des femmes, la région du crépuscule. Sahagún (livre VI) raconte que le soleil, arrivé au zénith, est reçu par les Cihuateteo, les femmes mortes en couches, divinisées comme les guerriers tombés au combat, et qu'elles le portent dans une litière de plumes de quetzal jusqu'au couchant, où les gens de Mictlán le prennent pour la nuit. Le livre I nomme Ehecatl, le vent, le balayeur qui ouvre la route aux dieux de la pluie. Les Cihuateteo n'étaient pas des figures douces : à certains jours du calendrier, elles descendaient aux carrefours, où l'on redoutait leur passage et où on leur laissait des papiers et des offrandes. Leurs sculptures les montrent le visage peint à la chaux, les cheveux défaits, les mains en griffes, une jupe simple à ceinture nouée. Sur ce site, la page Contact est ce chemin du soir. Tu arrives en plein jour, et plus tu descends, plus le soleil tombe vers les collines, à droite du cadre, pendant que quatre silhouettes noires portent sa litière de plumes. Quand il entre dans la terre, elles se posent au carrefour, face au cerf, et dansent dans le vent qui balaie tout vers l'Ouest. Des papiers restent au sol, et des papillons s'échappent d'elles : Sahagún (livre III) dit que les femmes mortes en couches reviennent en papillons. Ce qui est attesté : la litière de plumes de quetzal, la descente aux carrefours, les papiers et les offrandes, le visage à la chaux, les papillons. Ce qui est notre lecture : la couleur cendre et corail (les sources donnent l'Ouest blanc, la région de Quetzalcoatl), la danse, le vent visible, et les silhouettes elles-mêmes : les corps sont noirs et les visages restent des taches de chaux éteinte, sans traits, sans rien emprunter aux visages des sculptures."
     },
     "tlahuizcalpan": {
       "title": "Tlahuizcalpan, les dards de l'aube",
-      "text": "L'Est est Tlahuizcalpan, la maison de l'aube, la région de Tonatiuh. Les sources la disent rouge : notre doré est une licence, l'or étant le métal du soleil. La Leyenda de los Soles raconte qu'à Teotihuacan, après que Nanahuatzin s'est jeté dans le brasier pour devenir le soleil, celui-ci reste immobile dans le ciel et brûle tout. Tlahuizcalpantecuhtli, le seigneur de la maison de l'aube, qui est Vénus étoile du matin, entre en colère et lui tire des dards au propulseur. Il le manque. Le soleil lui renvoie un dard et le change en Itztlacoliuhqui, la lame d'obsidienne courbe, le dieu du gel, celui par qui tout s'est courbé sous le froid. Puis les dieux se sacrifient, et Ehecatl, le vent, pousse enfin le soleil sur sa route. Les Anales de Cuauhtitlan ajoutent que Vénus, au jour où elle reparaît à l'aube, blesse de ses dards les vieillards, les enfants, les seigneurs ou la pluie selon le signe du jour. Sur ce site, la page Services est cette aube. Vous arrivez dans un monde pris dans le gel : le cerf de verre, la Piedra sous la glace, le temps arrêté, et lui qui respire encore. En bordure, la milpa est couchée, petite, tuée par le froid : Itztlacoliuhqui est justement le gel qui tue les plantes. Au moment où le soleil paraît face à vous, la volée de dards part de l'étoile du matin, le soleil répond d'un seul dard qui descend de son rayon, et toute la glace vole en éclats : le cerf se cabre, le vent se lève, un puits de lumière tombe sur lui, l'or emplit les gravures de la Piedra, le maïs se relève et pousse, et il ne reste du gel qu'une lame d'obsidienne courbe plantée devant lui. Si vous remontez, le gel reprend l'écran quelques instants, et le monde se fige à nouveau. Ce qui est attesté : le soleil immobile poussé par le vent, les dards de Vénus, le dard en retour et la métamorphose en gel, l'Est rouge de Tonatiuh, l'étoile du matin qui blesse. Ce qui est notre lecture : le monde entier pris dans la glace, l'explosion, la lame plantée, la couleur dorée. Et comme à l'Ouest, le site regarde le vrai ciel : quand Vénus est réellement étoile du matin, la volée est certaine, sinon une fois sur trois."
+      "text": "L'Est est Tlahuizcalpan, la maison de l'aube, la région de Tonatiuh. Les sources la disent rouge : notre doré est une licence, l'or étant le métal du soleil. La Leyenda de los Soles raconte qu'à Teotihuacan, après que Nanahuatzin s'est jeté dans le brasier pour devenir le soleil, celui-ci reste immobile dans le ciel et brûle tout. Tlahuizcalpantecuhtli, le seigneur de la maison de l'aube, qui est Vénus étoile du matin, entre en colère et lui tire des dards au propulseur. Il le manque. Le soleil lui renvoie un dard et le change en Itztlacoliuhqui, la lame d'obsidienne courbe, le dieu du gel, celui par qui tout s'est courbé sous le froid. Puis les dieux se sacrifient, et Ehecatl, le vent, pousse enfin le soleil sur sa route. Les Anales de Cuauhtitlan ajoutent que Vénus, au jour où elle reparaît à l'aube, blesse de ses dards les vieillards, les enfants, les seigneurs ou la pluie selon le signe du jour. Sur ce site, la page Services est cette aube. Tu arrives dans un monde pris dans le gel : le cerf de verre, la Piedra sous la glace, le temps arrêté, et lui qui respire encore. En bordure, la milpa est couchée, petite, tuée par le froid : Itztlacoliuhqui est justement le gel qui tue les plantes. Au moment où le soleil paraît face à toi, la volée de dards part de l'étoile du matin, le soleil répond d'un seul dard qui descend de son rayon, et toute la glace vole en éclats : le cerf se cabre, le vent se lève, un puits de lumière tombe sur lui, l'or emplit les gravures de la Piedra, le maïs se relève et pousse, et il ne reste du gel qu'une lame d'obsidienne courbe plantée devant lui. Si tu remontes, le gel reprend l'écran quelques instants, et le monde se fige à nouveau. Ce qui est attesté : le soleil immobile poussé par le vent, les dards de Vénus, le dard en retour et la métamorphose en gel, l'Est rouge de Tonatiuh, l'étoile du matin qui blesse. Ce qui est notre lecture : le monde entier pris dans la glace, l'explosion, la lame plantée, la couleur dorée. Et comme à l'Ouest, le site regarde le vrai ciel : quand Vénus est réellement étoile du matin, la volée est certaine, sinon une fois sur trois."
     },
     "suns": {
       "title": "Les quatre soleils précédents",
@@ -469,7 +469,7 @@
     },
     "ollin": {
       "title": "Ollin, le tremblement du 5ᵉ soleil",
-      "text": "Nous vivons sous Nahui Ollin, le soleil des quatre mouvements. La prophétie nahua dit que notre monde tient tant qu'il tremble : quand Ollin cesse, la terre s'immobilise une dernière fois, Tonatiuh meurt, les Tzitzimime descendent. Chaque respiration, chaque battement, chaque toucher est preuve vivante d'Ollin. Sur ce site, quand vous pressez la souris ou touchez l'écran, une onde radiale traverse la scène : c'est Ollin qui se manifeste. Le cerf Mazātl, messager entre mondes, sent la vibration avant vos yeux. Les quatre gardiens s'éveillent, le feu central redistribue. Vous accomplissez un rituel dont vous ignoriez le nom. Le glyphe historique d'Ollin est un cercle central bordé de quatre rayons cardinaux · la même croix à cinq points que la boussole en bas à droite. Le geste et la structure se répondent."
+      "text": "Nous vivons sous Nahui Ollin, le soleil des quatre mouvements. La prophétie nahua dit que notre monde tient tant qu'il tremble : quand Ollin cesse, la terre s'immobilise une dernière fois, Tonatiuh meurt, les Tzitzimime descendent. Chaque respiration, chaque battement, chaque toucher est preuve vivante d'Ollin. Sur ce site, quand tu presses la souris ou touches l'écran, une onde radiale traverse la scène : c'est Ollin qui se manifeste. Le cerf Mazātl, messager entre mondes, sent la vibration avant tes yeux. Les quatre gardiens s'éveillent, le feu central redistribue. Tu accomplis un rituel dont tu ignorais le nom. Le glyphe historique d'Ollin est un cercle central bordé de quatre rayons cardinaux · la même croix à cinq points que la boussole en bas à droite. Le geste et la structure se répondent."
     },
     "entities": {
       "title": "Les trois entités de l'être nahua",
@@ -477,7 +477,7 @@
       "list": [
         {
           "name": "Teyolía · cœur",
-          "text": "Le siège de la mémoire, de la personnalité, du savoir intime. Elle réside dans le cœur et, à la mort, voyage vers Mictlán après un périple de quatre années. C'est elle qui porte ce que vous avez été."
+          "text": "Le siège de la mémoire, de la personnalité, du savoir intime. Elle réside dans le cœur et, à la mort, voyage vers Mictlán après un périple de quatre années. C'est elle qui porte ce que tu as été."
         },
         {
           "name": "Tonalli · tête",
@@ -491,7 +491,7 @@
     },
     "xolotl": {
       "title": "Xolotl, le chien du crépuscule",
-      "text": "Frère jumeau de Quetzalcoatl, Xolotl est le chien qui guide les âmes vers Mictlán après la mort, et il est aussi Vénus du soir, qui suit le soleil sous la terre. Squelettique, silencieux, il traverse les mondes sans jamais s'arrêter · sauf pour ceux qui savent regarder. Sur ce site, il passe toujours au Nord (la page Mémoire, chemin naturel vers Mictlán). À l'Ouest, il obéit au vrai ciel : quand Vénus brille réellement après le coucher du soleil, il vient à coup sûr une fois le soleil entré dans la terre, et l'étoile du soir s'allume au-dessus du couchant ; le reste de l'année, une fois sur trois. Jamais sur l'accueil, ni à l'Est, ni au Sud. Si vous l'avez vu passer, c'est que la scène vous a jugé digne de son attention."
+      "text": "Frère jumeau de Quetzalcoatl, Xolotl est le chien qui guide les âmes vers Mictlán après la mort, et il est aussi Vénus du soir, qui suit le soleil sous la terre. Squelettique, silencieux, il traverse les mondes sans jamais s'arrêter · sauf pour ceux qui savent regarder. Sur ce site, il passe toujours au Nord (la page Mémoire, chemin naturel vers Mictlán). À l'Ouest, il obéit au vrai ciel : quand Vénus brille réellement après le coucher du soleil, il vient à coup sûr une fois le soleil entré dans la terre, et l'étoile du soir s'allume au-dessus du couchant ; le reste de l'année, une fois sur trois. Jamais sur l'accueil, ni à l'Est, ni au Sud. Si tu l'as vu passer, c'est que la scène t'a jugé digne de son attention."
     },
     "totem": {
       "title": "Le cerf, Mazātl",
@@ -746,7 +746,7 @@
       },
       {
         "title": "Retour et contact",
-        "text": "Pour signaler une difficulté d'accès ou obtenir une version alternative d'un contenu, contactez bonjour@nahual.fr. En cas de non-réponse dans les 60 jours, saisir le Défenseur des droits : https://www.defenseurdesdroits.fr."
+        "text": "Pour signaler une difficulté d'accès ou obtenir une version alternative d'un contenu, écris à bonjour@nahual.fr. En cas de non-réponse dans les 60 jours, saisir le Défenseur des droits : https://www.defenseurdesdroits.fr."
       },
       {
         "title": "Raccourcis clavier",
@@ -764,19 +764,19 @@
     "sections": [
       {
         "title": "Données collectées",
-        "text": "Aucune donnée n'est collectée sans action explicite de votre part. L'envoi d'un message via l'email affiché sur la page Contact constitue le seul point d'entrée : les informations transmises (email, contenu du message) sont utilisées uniquement pour vous répondre."
+        "text": "Aucune donnée n'est collectée sans action explicite de ta part. L'envoi d'un message via l'email affiché sur la page Contact constitue le seul point d'entrée : les informations transmises (email, contenu du message) sont utilisées uniquement pour te répondre."
       },
       {
         "title": "Cookies et traceurs",
-        "text": "Ce site n'utilise pas de cookies de traçage ni d'outils d'analyse tiers (pas de Google Analytics, pas de Meta Pixel). Seul un stockage local (localStorage) est utilisé pour mémoriser votre préférence de son (activé/coupé) et le fait que vous ayez déjà vu certaines animations. Ces données restent dans votre navigateur, ne sont jamais transmises."
+        "text": "Ce site n'utilise pas de cookies de traçage ni d'outils d'analyse tiers (pas de Google Analytics, pas de Meta Pixel). Seul un stockage local (localStorage) est utilisé pour mémoriser ta préférence de son (activé/coupé) et le fait que tu aies déjà vu certaines animations. Ces données restent dans ton navigateur, ne sont jamais transmises."
       },
       {
         "title": "Durée de conservation",
-        "text": "Les messages reçus par email sont conservés le temps nécessaire au traitement, puis archivés dans la messagerie personnelle du responsable pour référence future. Vous pouvez demander leur suppression à tout moment."
+        "text": "Les messages reçus par email sont conservés le temps nécessaire au traitement, puis archivés dans la messagerie personnelle du responsable pour référence future. Tu peux demander leur suppression à tout moment."
       },
       {
-        "title": "Vos droits",
-        "text": "Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement et de portabilité de vos données. Contact : bonjour@nahual.fr."
+        "title": "Tes droits",
+        "text": "Conformément au RGPD, tu disposes d'un droit d'accès, de rectification, d'effacement et de portabilité de tes données. Contact : bonjour@nahual.fr."
       }
     ]
   },

@@ -20,14 +20,14 @@
     "openMenu": "Abrir el menú",
     "closeMenu": "Cerrar el menú",
     "newWindow": "nueva ventana",
-    "xolotlSeen": "¿Ese perro? ¿Lo ha visto pasar? Visite el Códice.",
+    "xolotlSeen": "¿Ese perro? ¿Lo has visto pasar? Visita el Códice.",
     "skipNav": "Ir al contenido principal",
     "seuils": {
-      "jade": "Vuelve al hogar. El calor que lleva es el del primer día.",
-      "dore": "Va hacia el día. Lo que el hielo guardaba va a romperse.",
-      "turquoise": "Entra en el mediodía. Aquí, lo que arde deja huella.",
-      "cendre": "Sigue al sol que baja. Lo que lleva baja con él.",
-      "obsidienne": "Llega adonde se guarda. Lo que viajó hasta aquí no se borra."
+      "jade": "Vuelves al hogar. El calor que llevas es el del primer día.",
+      "dore": "Vas hacia el día. Lo que el hielo guardaba va a romperse.",
+      "turquoise": "Entras en el mediodía. Aquí, lo que arde deja huella.",
+      "cendre": "Sigues al sol que baja. Lo que llevas baja con él.",
+      "obsidienne": "Llegas adonde se guarda. Lo que viajó hasta aquí no se borra."
     },
     "cantar": {
       "label": "Un canto de esta dirección",
@@ -59,26 +59,26 @@
       "pauseOff": "Reanudar la escena",
       "link": "Copiar el enlace de este instante",
       "linkCopied": "Enlace copiado",
-      "resume": "Retomar donde lo dejó",
+      "resume": "Retomar donde lo dejaste",
       "resumeDismiss": "No, gracias",
-      "traces": "Lo que la escena le ha mostrado",
+      "traces": "Lo que la escena te ha mostrado",
       "tenochtitlanClock": "Son las {time} en Tenochtitlan",
       "tenochtitlanNight": "Son las {time} en Tenochtitlan, es de noche",
       "landmark": "Controles de la escena"
     },
     "traces": {
-      "title": "Lo que la escena le ha mostrado",
-      "intro": "Algunas cosas solo le ocurren a quien mira. Estas son las que le ocurrieron a usted.",
+      "title": "Lo que la escena te ha mostrado",
+      "intro": "Algunas cosas solo le ocurren a quien mira. Estas son las que te ocurrieron a ti.",
       "close": "Cerrar",
       "count": "{n} huellas de {total}",
       "hidden": "Una huella todavía por encontrar",
       "lines": {
-        "centzon-thrown": "Las cuatrocientas estrellas fueron lanzadas al cielo ante usted.",
+        "centzon-thrown": "Las cuatrocientas estrellas fueron lanzadas al cielo ante ti.",
         "huitzilin-catch": "Un colibrí tomó una estrella.",
-        "sunrise": "Vio salir el sol por el este.",
+        "sunrise": "Viste salir el sol por el este.",
         "xiuhcoatl-strike": "La xiuhcoatl golpeó la piedra.",
         "glyph-lit": "El glifo del año se encendió.",
-        "xolotl": "Xolotl pasó, y usted lo vio."
+        "xolotl": "Xolotl pasó, y tú lo viste."
       }
     },
     "readingMode": {
@@ -111,18 +111,18 @@
       "obsidienne": "Memoria · dirección Norte"
     },
     "sceneDescriptions": {
-      "jade": "Entra en el santuario del venado. En el centro de un gran disco de piedra grabado, un venado permanece inmóvil en la hierba seca, con el maíz a su alrededor. Es el hogar, el centro del que parten las cuatro direcciones: el dorado del alba al este, el turquesa del mediodía al sur, el rojo del crepúsculo al oeste, el violeta de la noche al norte. El venado es su nahual: la esencia que se revela bajo forma animal.",
-      "dore": "Está orientado hacia el Este, Tlahuizcalpan, la casa del alba. El mundo está preso en la helada de Itztlacoliuhqui, el venado bajo el hielo, el tiempo detenido. Cuando aparece el sol, vuelan los dardos del alba y todo el hielo estalla. La luz es nueva, el día se abre.",
-      "turquoise": "Está orientado hacia el Sur, Huitztlampa, tierra de espinas y flores. Huitzilopochtli vela por lo que crece. La escena toma tonos turquesa de mosaico Xiuhtecuhtli.",
-      "cendre": "Está orientado hacia el Oeste, Cihuatlampa, región del crepúsculo malva. Las Cihuateteo, mujeres muertas divinizadas, llevan el sol poniente en unas andas de plumas, luego bajan a la encrucijada y bailan en el viento. La escena arde suavemente en rojo, luego se apaga.",
-      "obsidienne": "Está orientado hacia el Norte, Mictlampa, el lugar del reposo. Mictlantecuhtli, señor de la obsidiana violeta, guarda lo que ha sido vivido. La escena se vuelve nocturna, profunda."
+      "jade": "Entras en el santuario del venado. En el centro de un gran disco de piedra grabado, un venado permanece inmóvil en la hierba seca, con el maíz a su alrededor. Es el hogar, el centro del que parten las cuatro direcciones: el dorado del alba al este, el turquesa del mediodía al sur, el rojo del crepúsculo al oeste, el violeta de la noche al norte. El venado es tu nahual: la esencia que se revela bajo forma animal.",
+      "dore": "Estás orientado hacia el Este, Tlahuizcalpan, la casa del alba. El mundo está preso en la helada de Itztlacoliuhqui, el venado bajo el hielo, el tiempo detenido. Cuando aparece el sol, vuelan los dardos del alba y todo el hielo estalla. La luz es nueva, el día se abre.",
+      "turquoise": "Estás orientado hacia el Sur, Huitztlampa, tierra de espinas y flores. Huitzilopochtli vela por lo que crece. La escena toma tonos turquesa de mosaico Xiuhtecuhtli.",
+      "cendre": "Estás orientado hacia el Oeste, Cihuatlampa, región del crepúsculo malva. Las Cihuateteo, mujeres muertas divinizadas, llevan el sol poniente en unas andas de plumas, luego bajan a la encrucijada y bailan en el viento. La escena arde suavemente en rojo, luego se apaga.",
+      "obsidienne": "Estás orientado hacia el Norte, Mictlampa, el lugar del reposo. Mictlantecuhtli, señor de la obsidiana violeta, guarda lo que ha sido vivido. La escena se vuelve nocturna, profunda."
     },
     "cardinalAnnouncement": {
-      "jade": "Regresa al Centro. El santuario del venado le acoge.",
-      "dore": "Se dirige hacia el Este. Tonatiuh, el sol naciente, ilumina el camino.",
-      "turquoise": "Se dirige hacia el Sur. Huitzilopochtli vela por lo que crece.",
-      "cendre": "Se dirige hacia el Oeste. Las Cihuateteo acompañan de vuelta al sol.",
-      "obsidienne": "Se dirige hacia el Norte. Mictlantecuhtli guarda lo que ha sido vivido."
+      "jade": "Regresas al Centro. El santuario del venado te acoge.",
+      "dore": "Te diriges hacia el Este. Tonatiuh, el sol naciente, ilumina el camino.",
+      "turquoise": "Te diriges hacia el Sur. Huitzilopochtli vela por lo que crece.",
+      "cendre": "Te diriges hacia el Oeste. Las Cihuateteo acompañan de vuelta al sol.",
+      "obsidienne": "Te diriges hacia el Norte. Mictlantecuhtli guarda lo que ha sido vivido."
     },
     "noScript": "La escena 3D necesita JavaScript. Todo el contenido del sitio sigue siendo legible sin ella."
   },
@@ -431,19 +431,19 @@
     },
     "huitztlampa": {
       "title": "Huitztlampa, el nacimiento del sol en Coatepec",
-      "text": "El Sur es Huitztlampa, el lugar de las espinas, la región del colibrí. El Códice Florentino (Sahagún, libro III) cuenta que en Coatepec, el cerro de la serpiente, Coatlicue barría el templo cuando una bola de plumas la dejó encinta. Sus hijos, Coyolxauhqui y los cuatrocientos Huitznahua, las estrellas del Sur, tomaron la afrenta por una deshonra y subieron a matarla. Huitzilopochtli nació armado en la cumbre, golpeó a Coyolxauhqui con la xiuhcoatl, la serpiente de fuego, y dispersó a los cuatrocientos. Es la salida del sol: cada amanecer, la luna es vencida y las estrellas se apagan. En este sitio, la página Proyectos repite ese gesto. Usted llega de noche: las cuatrocientas estrellas son lanzadas al cielo a su llegada, la luna vela todavía, alta en el cielo. Al bajar, los colibríes, en los que regresan los guerreros caídos en combate, cazan las estrellas una a una · el sol sale por el este, rojo y luego blanco, y la luna se pone. La xiuhcoatl ronda el cielo, mosaico de turquesa con brasas en las junturas, y en lo alto del arco golpea la piedra, cuyo anillo se enciende. Su cola lleva el signo del año en curso: en náhuatl, xihuitl dice a la vez turquesa, hierba, cometa y año. La serpiente de fuego es también la serpiente del tiempo. Frente al venado, en la hierba, unas piedras escriben el año como en los monumentos: tantas piedras erguidas como el número, y una estela con el glifo del portador. Lo atestiguado: el golpe de la xiuhcoatl, la luna vencida, los cuatrocientos dispersados, la cuenta en puntos. Nuestra lectura: la serpiente que se tensa en dardo (Seler veía en ella el rayo del sol), el cerro que tiembla, el anillo que se levanta, el destello turquesa, las piedras que se encienden."
+      "text": "El Sur es Huitztlampa, el lugar de las espinas, la región del colibrí. El Códice Florentino (Sahagún, libro III) cuenta que en Coatepec, el cerro de la serpiente, Coatlicue barría el templo cuando una bola de plumas la dejó encinta. Sus hijos, Coyolxauhqui y los cuatrocientos Huitznahua, las estrellas del Sur, tomaron la afrenta por una deshonra y subieron a matarla. Huitzilopochtli nació armado en la cumbre, golpeó a Coyolxauhqui con la xiuhcoatl, la serpiente de fuego, y dispersó a los cuatrocientos. Es la salida del sol: cada amanecer, la luna es vencida y las estrellas se apagan. En este sitio, la página Proyectos repite ese gesto. Llegas de noche: las cuatrocientas estrellas son lanzadas al cielo a tu llegada, la luna vela todavía, alta en el cielo. Al bajar, los colibríes, en los que regresan los guerreros caídos en combate, cazan las estrellas una a una · el sol sale por el este, rojo y luego blanco, y la luna se pone. La xiuhcoatl ronda el cielo, mosaico de turquesa con brasas en las junturas, y en lo alto del arco golpea la piedra, cuyo anillo se enciende. Su cola lleva el signo del año en curso: en náhuatl, xihuitl dice a la vez turquesa, hierba, cometa y año. La serpiente de fuego es también la serpiente del tiempo. Frente al venado, en la hierba, unas piedras escriben el año como en los monumentos: tantas piedras erguidas como el número, y una estela con el glifo del portador. Lo atestiguado: el golpe de la xiuhcoatl, la luna vencida, los cuatrocientos dispersados, la cuenta en puntos. Nuestra lectura: la serpiente que se tensa en dardo (Seler veía en ella el rayo del sol), el cerro que tiembla, el anillo que se levanta, el destello turquesa, las piedras que se encienden."
     },
     "mictlampa": {
       "title": "Mictlampa, el descenso al Mictlán",
-      "text": "El Norte es Mictlampa, el lugar de los muertos, la región de la obsidiana y de la noche. Los muertos comunes no llegan de golpe: según Sahagún (libro III) y el Códice Vaticano A, la teyolía viaja cuatro años a través de nueve estratos antes de alcanzar a Mictlantecuhtli y Mictecacihuatl. Cruza el río Chiconahuapan con la ayuda de un perro, pasa entre dos cerros que chocan entre sí, enfrenta el viento de obsidiana de Itzehecayan que corta como cuchillas, y luego Temiminaloyan, donde manos invisibles disparan flechas. En este sitio, la página Memoria es ese descenso. El venado tiene las patas en el agua negra del tezcatl, el espejo: como Tezcatlipoca, el espejo humeante, no refleja, revela o miente. La niebla repta desde el brocal, las cuchillas de obsidiana pasan de este a oeste rodeando al venado, y cuanto más baja usted, más flechas caen a su alrededor antes de disolverse en humo. Un camino de cempasúchil, la flor que guía a los muertos de regreso, se alarga sobre el agua hacia el Norte. Y Xolotl pasa, siempre, aquí: sígalo con la mirada, es él quien hace cruzar el río."
+      "text": "El Norte es Mictlampa, el lugar de los muertos, la región de la obsidiana y de la noche. Los muertos comunes no llegan de golpe: según Sahagún (libro III) y el Códice Vaticano A, la teyolía viaja cuatro años a través de nueve estratos antes de alcanzar a Mictlantecuhtli y Mictecacihuatl. Cruza el río Chiconahuapan con la ayuda de un perro, pasa entre dos cerros que chocan entre sí, enfrenta el viento de obsidiana de Itzehecayan que corta como cuchillas, y luego Temiminaloyan, donde manos invisibles disparan flechas. En este sitio, la página Memoria es ese descenso. El venado tiene las patas en el agua negra del tezcatl, el espejo: como Tezcatlipoca, el espejo humeante, no refleja, revela o miente. La niebla repta desde el brocal, las cuchillas de obsidiana pasan de este a oeste rodeando al venado, y cuanto más bajas, más flechas caen a su alrededor antes de disolverse en humo. Un camino de cempasúchil, la flor que guía a los muertos de regreso, se alarga sobre el agua hacia el Norte. Y Xolotl pasa, siempre, aquí: síguelo con la mirada, es él quien hace cruzar el río."
     },
     "cihuatlampa": {
       "title": "Cihuatlampa, el sol llevado al poniente",
-      "text": "El Oeste es Cihuatlampa, el lugar de las mujeres, la región del crepúsculo. Sahagún (libro VI) cuenta que el sol, llegado al cenit, es recibido por las Cihuateteo, las mujeres muertas de parto, divinizadas como los guerreros caídos en combate, y que ellas lo llevan en unas andas de plumas de quetzal hasta el poniente, donde la gente del Mictlán lo toma para la noche. El libro I nombra a Ehecatl, el viento, el barrendero que abre el camino a los dioses de la lluvia. Las Cihuateteo no eran figuras dulces: en ciertos días del calendario bajaban a las encrucijadas, donde se temía su paso y donde se les dejaban papeles y ofrendas. Sus esculturas las muestran con el rostro pintado de cal, el cabello suelto, las manos en garras, una falda sencilla con cinturón anudado. En este sitio, la página Contacto es ese camino de la tarde. Llega a plena luz del día, y cuanto más baja, más cae el sol hacia los cerros, a la derecha del encuadre, mientras cuatro siluetas negras llevan sus andas de plumas. Cuando entra en la tierra, se posan en la encrucijada, frente al venado, y bailan en el viento que lo barre todo hacia el Oeste. Quedan papeles en el suelo, y de ellas escapan mariposas: Sahagún (libro III) dice que las mujeres muertas de parto vuelven como mariposas. Lo atestiguado: las andas de plumas de quetzal, la bajada a las encrucijadas, los papeles y las ofrendas, el rostro de cal, las mariposas. Nuestra lectura: el color ceniza y coral (las fuentes dan el Oeste blanco, la región de Quetzalcoatl), el baile, el viento visible, y las siluetas mismas: los cuerpos son negros y los rostros quedan como manchas de cal apagada, sin rasgos, sin tomar nada de los rostros de las esculturas."
+      "text": "El Oeste es Cihuatlampa, el lugar de las mujeres, la región del crepúsculo. Sahagún (libro VI) cuenta que el sol, llegado al cenit, es recibido por las Cihuateteo, las mujeres muertas de parto, divinizadas como los guerreros caídos en combate, y que ellas lo llevan en unas andas de plumas de quetzal hasta el poniente, donde la gente del Mictlán lo toma para la noche. El libro I nombra a Ehecatl, el viento, el barrendero que abre el camino a los dioses de la lluvia. Las Cihuateteo no eran figuras dulces: en ciertos días del calendario bajaban a las encrucijadas, donde se temía su paso y donde se les dejaban papeles y ofrendas. Sus esculturas las muestran con el rostro pintado de cal, el cabello suelto, las manos en garras, una falda sencilla con cinturón anudado. En este sitio, la página Contacto es ese camino de la tarde. Llegas a plena luz del día, y cuanto más bajas, más cae el sol hacia los cerros, a la derecha del encuadre, mientras cuatro siluetas negras llevan sus andas de plumas. Cuando entra en la tierra, se posan en la encrucijada, frente al venado, y bailan en el viento que lo barre todo hacia el Oeste. Quedan papeles en el suelo, y de ellas escapan mariposas: Sahagún (libro III) dice que las mujeres muertas de parto vuelven como mariposas. Lo atestiguado: las andas de plumas de quetzal, la bajada a las encrucijadas, los papeles y las ofrendas, el rostro de cal, las mariposas. Nuestra lectura: el color ceniza y coral (las fuentes dan el Oeste blanco, la región de Quetzalcoatl), el baile, el viento visible, y las siluetas mismas: los cuerpos son negros y los rostros quedan como manchas de cal apagada, sin rasgos, sin tomar nada de los rostros de las esculturas."
     },
     "tlahuizcalpan": {
       "title": "Tlahuizcalpan, los dardos del alba",
-      "text": "El Este es Tlahuizcalpan, la casa del alba, la región de Tonatiuh. Las fuentes la dicen roja: nuestro dorado es una licencia, siendo el oro el metal del sol. La Leyenda de los Soles cuenta que en Teotihuacan, después de que Nanahuatzin se arrojó a la hoguera para volverse el sol, este se quedó inmóvil en el cielo y lo quemaba todo. Tlahuizcalpantecuhtli, el señor de la casa del alba, que es Venus estrella de la mañana, se enojó y le lanzó dardos con su lanzadardos. Falló. El sol le devolvió un dardo y lo convirtió en Itztlacoliuhqui, la navaja curva de obsidiana, el dios de la helada, aquel por quien todo se dobló bajo el frío. Luego los dioses se sacrificaron, y Ehecatl, el viento, empujó por fin al sol por su camino. Los Anales de Cuauhtitlan añaden que Venus, el día en que reaparece al alba, hiere con sus dardos a los viejos, a los niños, a los señores o a la lluvia según el signo del día. En este sitio, la página Servicios es esa alba. Llega a un mundo preso en la helada: el venado hecho de vidrio, la Piedra bajo el hielo, el tiempo detenido, y él que aún respira. En el borde la milpa está acostada y pequeña, muerta por el frío: Itztlacoliuhqui es precisamente la helada que mata las plantas. En el momento en que el sol aparece frente a usted, la andanada de dardos parte de la estrella de la mañana, el sol responde con un solo dardo que baja de su rayo, y todo el hielo vuela en pedazos: el venado se encabrita, el viento se levanta, un haz de luz cae sobre él, el oro llena los grabados de la Piedra, el maíz se endereza y crece, y de la helada solo queda una navaja curva de obsidiana clavada ante él. Si vuelve a subir, la helada toma la pantalla unos instantes, y el mundo se congela de nuevo. Lo atestiguado: el sol inmóvil empujado por el viento, los dardos de Venus, el dardo de vuelta y la metamorfosis en helada, el Este rojo de Tonatiuh, la estrella de la mañana que hiere. Nuestra lectura: el mundo entero preso en el hielo, la explosión, la navaja clavada, el color dorado. Y como en el Oeste, el sitio mira el cielo real: cuando Venus es de verdad estrella de la mañana, la andanada es segura; si no, una de cada tres veces."
+      "text": "El Este es Tlahuizcalpan, la casa del alba, la región de Tonatiuh. Las fuentes la dicen roja: nuestro dorado es una licencia, siendo el oro el metal del sol. La Leyenda de los Soles cuenta que en Teotihuacan, después de que Nanahuatzin se arrojó a la hoguera para volverse el sol, este se quedó inmóvil en el cielo y lo quemaba todo. Tlahuizcalpantecuhtli, el señor de la casa del alba, que es Venus estrella de la mañana, se enojó y le lanzó dardos con su lanzadardos. Falló. El sol le devolvió un dardo y lo convirtió en Itztlacoliuhqui, la navaja curva de obsidiana, el dios de la helada, aquel por quien todo se dobló bajo el frío. Luego los dioses se sacrificaron, y Ehecatl, el viento, empujó por fin al sol por su camino. Los Anales de Cuauhtitlan añaden que Venus, el día en que reaparece al alba, hiere con sus dardos a los viejos, a los niños, a los señores o a la lluvia según el signo del día. En este sitio, la página Servicios es esa alba. Llegas a un mundo preso en la helada: el venado hecho de vidrio, la Piedra bajo el hielo, el tiempo detenido, y él que aún respira. En el borde la milpa está acostada y pequeña, muerta por el frío: Itztlacoliuhqui es precisamente la helada que mata las plantas. En el momento en que el sol aparece frente a ti, la andanada de dardos parte de la estrella de la mañana, el sol responde con un solo dardo que baja de su rayo, y todo el hielo vuela en pedazos: el venado se encabrita, el viento se levanta, un haz de luz cae sobre él, el oro llena los grabados de la Piedra, el maíz se endereza y crece, y de la helada solo queda una navaja curva de obsidiana clavada ante él. Si vuelves a subir, la helada toma la pantalla unos instantes, y el mundo se congela de nuevo. Lo atestiguado: el sol inmóvil empujado por el viento, los dardos de Venus, el dardo de vuelta y la metamorfosis en helada, el Este rojo de Tonatiuh, la estrella de la mañana que hiere. Nuestra lectura: el mundo entero preso en el hielo, la explosión, la navaja clavada, el color dorado. Y como en el Oeste, el sitio mira el cielo real: cuando Venus es de verdad estrella de la mañana, la andanada es segura; si no, una de cada tres veces."
     },
     "suns": {
       "title": "Los cuatro soles anteriores",
@@ -469,7 +469,7 @@
     },
     "ollin": {
       "title": "Ollin, el temblor del 5º sol",
-      "text": "Vivimos bajo Nahui Ollin, el sol de los cuatro movimientos. La profecía nahua dice que nuestro mundo perdura mientras tiembla: cuando Ollin cesa, la tierra se detiene una última vez, Tonatiuh muere, los Tzitzimime descienden. Cada respiración, cada latido, cada toque es prueba viva de Ollin. En este sitio, cuando presiona el ratón o toca la pantalla, una onda radial atraviesa la escena: es Ollin manifestándose. El ciervo Mazātl, mensajero entre mundos, siente la vibración antes que sus ojos. Los cuatro guardianes despiertan, el fuego central redistribuye. Está realizando un ritual cuyo nombre desconocía. El glifo histórico de Ollin es un círculo central bordeado por cuatro rayos cardinales · la misma cruz de cinco puntos que la brújula en la esquina inferior derecha. El gesto y la estructura se responden."
+      "text": "Vivimos bajo Nahui Ollin, el sol de los cuatro movimientos. La profecía nahua dice que nuestro mundo perdura mientras tiembla: cuando Ollin cesa, la tierra se detiene una última vez, Tonatiuh muere, los Tzitzimime descienden. Cada respiración, cada latido, cada toque es prueba viva de Ollin. En este sitio, cuando presionas el ratón o tocas la pantalla, una onda radial atraviesa la escena: es Ollin manifestándose. El ciervo Mazātl, mensajero entre mundos, siente la vibración antes que tus ojos. Los cuatro guardianes despiertan, el fuego central redistribuye. Estás realizando un ritual cuyo nombre desconocías. El glifo histórico de Ollin es un círculo central bordeado por cuatro rayos cardinales · la misma cruz de cinco puntos que la brújula en la esquina inferior derecha. El gesto y la estructura se responden."
     },
     "entities": {
       "title": "Las tres entidades del ser nahua",
@@ -491,7 +491,7 @@
     },
     "xolotl": {
       "title": "Xolotl, el perro del crepúsculo",
-      "text": "Hermano gemelo de Quetzalcoatl, Xolotl es el perro que guía a las almas hacia el Mictlán después de la muerte, y es también el Venus vespertino, que sigue al sol bajo la tierra. Esquelético, silencioso, cruza los mundos sin detenerse nunca · salvo para quienes saben mirar. En este sitio, pasa siempre en el Norte (la página Memoria, camino natural hacia el Mictlán). En el Oeste obedece al cielo real: cuando Venus brilla de verdad después de la puesta del sol, viene sin falta una vez que el sol ha entrado en la tierra, y la estrella vespertina se enciende sobre el poniente; el resto del año, una de cada tres veces. Nunca en la portada, ni en el Este, ni en el Sur. Si lo vio pasar, es que la escena lo juzgó digno de su atención."
+      "text": "Hermano gemelo de Quetzalcoatl, Xolotl es el perro que guía a las almas hacia el Mictlán después de la muerte, y es también el Venus vespertino, que sigue al sol bajo la tierra. Esquelético, silencioso, cruza los mundos sin detenerse nunca · salvo para quienes saben mirar. En este sitio, pasa siempre en el Norte (la página Memoria, camino natural hacia el Mictlán). En el Oeste obedece al cielo real: cuando Venus brilla de verdad después de la puesta del sol, viene sin falta una vez que el sol ha entrado en la tierra, y la estrella vespertina se enciende sobre el poniente; el resto del año, una de cada tres veces. Nunca en la portada, ni en el Este, ni en el Sur. Si lo viste pasar, es que la escena te juzgó digno de su atención."
     },
     "totem": {
       "title": "El ciervo, Mazātl",

@@ -106,6 +106,10 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **12/09, le tutoiement partout** : Sylvain revient sur le vouvoiement
+  (« ce sera plus opportun ») ; 41 chaines francaises et 28 espagnoles
+  passent au tu, l'espagnol devient enfin coherent (il melangeait deja tu
+  et usted). Note inchangee.
 - **11/09, huitieme passe, les choix de Sylvain** : 8,75 -> 8,8. Quatre
   decisions prises ensemble et executees le soir meme : les cinq lignes de
   seuil validees et entrees (N1, parite verte) ; le README pose avec son
