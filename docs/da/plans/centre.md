@@ -9,7 +9,7 @@ les chemins. Le tonalli, la chaleur recue a la naissance (`centre-sources.md`).
 | 2 | 0 a 0,25 | penombre : le cerf sur la Piedra, les braseros de copal a l'intensite de l'offrande | | crepitements a la cadence de `copalIntensity` | `copal-braziers.tsx`, `lib/copal` |
 | 3 | 0,25 a 0,5 | la lumiere monte, l'orbite commence, le mais pousse (`getMilpaGrowth`) | | | `milpa.tsx` |
 | 4 | 0,5 a 0,75 | face a face avec le cerf, la tete se tourne vers le visiteur (`getHeadTurnAmount`) | | | `stag-model.tsx` |
-| 5 | 0,68 | la colonne de fumee du foyer se leve (`COLUMN_START`) | monte jusqu'au bas | | `foyer-column.tsx`, `lib/zenith-arc` |
+| 5 | 0,68 | (colonne de fumee DEMONTEE le 12/09, invisible a l'image de repos) ; il ne reste que le tempo : `columnRise` eteint le flou de profondeur | | | `lib/zenith-arc`, `post-fx.tsx` |
 | 6 | 0,75 | climax de la camera, carillon du Centre | | accord jade | `climax-chime` |
 | 7 | 0,68 a 1 | la montee du regard est COUPEE (`ZENITH_LIFT` 0, 11/09) : la camera reste sur le cerf, le flou de profondeur s'eteint a mesure que la colonne se leve, l'image finale est le monde entier, net ; la Voie lactee (12 000 points, un grand cercle vertical) n'est visible que si le regard monte | | | `milky-way.tsx`, `post-fx.tsx` |
 | 8 | sortie | la camera monte, le champ se resserre, la vignette se ferme ; la cloture « Centre · Tlalxicco » et le lien vers l'Est | | | `page-closure.tsx` |
@@ -28,10 +28,10 @@ chant masque) : a 85 % de l'arc la colonne est a pleine intensite
 noir, quand le regard montait (coupe par ZENITH_LIFT 0). Abaisser la base ne
 change donc rien. Le cimetiere du Codex (fr.json, « une colonne de feu de
 trois metres qui traversait le cerf ») rappelle qu'une colonne dense a deja
-aveugle le sujet. Decision a prendre par Sylvain : demonter la colonne (un
-programme et un appel de rendu de moins, aucun changement d'image), la
-redessiner en fumee opaque (sprites, comme les bouffees des braseros, mais
-en une plume qui monte au-dessus du cerf), ou la laisser telle quelle.
+aveugle le sujet. **Tranche par Sylvain le 12/09 : DEMONTEE.** `foyer-column.tsx` n'est plus
+monte dans `scene-content.tsx` (un programme et un appel de rendu de moins,
+aucun changement d'image) ; le fichier reste pour le jour ou le regard
+remontera. La profondeur de champ continue de s'eteindre sur `columnRise`.
 
 | # | position | plan | tenue | son | fichier |
 | --- | --- | --- | --- | --- | --- |

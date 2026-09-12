@@ -33,7 +33,6 @@ import AmateStrips from "./amate-strips";
 import FurShells from "./fur-shells";
 import CempasuchilPath from "./cempasuchil-path";
 import CopalBraziers from "./copal-braziers";
-import FoyerColumn from "./foyer-column";
 import MilkyWay from "./milky-way";
 import { COPAL_DIRECTIONS } from "@/lib/copal";
 import MictlanMist from "./mictlan-mist";
@@ -214,12 +213,16 @@ export default function SceneContent({
           <YearStones />
         </Suspense>
       </MountForDirection>
-      {/* La colonne du foyer (10/09, E2) : ce que les cinq offrandes du
-       * Centre deviennent ensemble, une colonne qui monte au ciel. Elle
-       * part avant le regard, qui la suit jusqu'au zenith. Centre seul.
-       * HORS de CardinalOrientation : elle monte sur l'axe du monde, qui
-       * ne tourne pas avec le decor. */}
-      <FoyerColumn />
+      {/* La colonne du foyer (10/09, E2 ; `foyer-column.tsx`) n'est PLUS
+       * montee depuis le 12/09. Elle etait dessinee pour le regard qui
+       * monte au zenith : un voile additif lisible contre le ciel noir.
+       * Le regard ne monte plus (ZENITH_LIFT 0, 11/09), et mesuree a
+       * l'image de repos elle est invisible a toute base (2,6, 1,4, 0,6)
+       * et meme quatre fois plus dense (`docs/da/plans/centre.md`) : un
+       * programme et un appel de rendu pour rien. Decision de Sylvain le
+       * 12/09 : demontee, le fichier reste pour le jour ou le regard
+       * remontera. La profondeur de champ continue de s'eteindre sur
+       * `columnRise` (post-fx), c'est le tempo de la fin du Centre. */}
       {/* L'arche de Mixcoatl (10/09, E2) : la Voie lactee passe par le
        * zenith, au bout de la colonne. Un etat, pas un evenement : elle
        * est la des l'arrivee et se renforce quand le regard monte.

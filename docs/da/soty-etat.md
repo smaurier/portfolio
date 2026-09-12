@@ -119,8 +119,8 @@ et dans le tableau d'avancement de `plan-execution.md`.
   se lisait que contre le ciel noir, quand le regard montait (coupe le
   11/09). Abaisser la base ne change rien ; la vraie question est sa
   densite, et le cimetiere du Codex rappelle qu'une colonne dense a deja
-  traverse le cerf et aveugle le sujet. Decision laissee a Sylvain avec les
-  captures. Idee nouvelle au backlog : faire lire les cantares (M5, apres le
+  traverse le cerf et aveugle le sujet. Tranche par Sylvain le 12/09 :
+  demontee (un programme et un appel de rendu de moins). Idee nouvelle au backlog : faire lire les cantares (M5, apres le
   23/10).
 - **11/09, sixieme passe** : 8,7, inchange. Contact, le graphe de scene :
   trois causes exactes reglees (`b6ed417`), gains reels mais sous le bruit
