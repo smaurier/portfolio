@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { bakeAmateGrainSeamless, fadeToPaper } from "@/lib/amate-texture";
+import { bakeAmateGrainSeamless, bakeObsidianPolishSeamless, fadeToPaper } from "@/lib/amate-texture";
 import { THEME_EVENT } from "@/lib/theme";
 import { getTheme } from "./theme-store";
 
@@ -29,6 +29,8 @@ const VARIABLE = "--grain-amate";
  * la page, donc plus claire et d'une fibre plus discrete. */
 const VARIABLE_DOUX = "--grain-amate-doux";
 const PART_DE_BLANC = 0.74;
+/** Le pendant de la nuit : l'obsidienne polie. */
+const VARIABLE_POLI = "--poli-obsidienne";
 
 export default function GrainAmate() {
   useEffect(() => {
@@ -54,6 +56,13 @@ export default function GrainAmate() {
         doux.data.set(fadeToPaper(grain, PART_DE_BLANC));
         ctx.putImageData(doux, 0, 0);
         root.style.setProperty(VARIABLE_DOUX, `url(${canvas.toDataURL("image/png")})`);
+        // L'obsidienne polie, pour la nuit : cuite en meme temps, parce
+        // qu'on passe d'une face a l'autre et qu'on ne veut pas d'attente
+        // au retour.
+        const poli = ctx.createImageData(TAILLE, TAILLE);
+        poli.data.set(bakeObsidianPolishSeamless(TAILLE, GRAINE + 4));
+        ctx.putImageData(poli, 0, 0);
+        root.style.setProperty(VARIABLE_POLI, `url(${canvas.toDataURL("image/png")})`);
       } catch {
         // Canvas refuse (contexte durci, memoire) : la face claire reste un
         // papier uni, ce qui est exactement ce qu'elle etait avant.
@@ -66,12 +75,17 @@ export default function GrainAmate() {
       else window.setTimeout(fn, 400);
     };
 
-    const regarder = () => {
-      if (getTheme() === "light") auRepos(cuire);
-    };
+    // Les deux matieres sont cuites des qu'une face est demandee : la nuit
+    // veut son poli, le jour son grain, et on passe de l'une a l'autre.
+    const regarder = () => auRepos(cuire);
     regarder();
     window.addEventListener(THEME_EVENT, regarder);
     return () => window.removeEventListener(THEME_EVENT, regarder);
   }, []);
-  return <div className="grainAmate" aria-hidden="true" />;
+  return (
+    <>
+      <div className="grainAmate" aria-hidden="true" />
+      <div className="poliObsidienne" aria-hidden="true" />
+    </>
+  );
 }

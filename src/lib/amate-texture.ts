@@ -175,7 +175,12 @@ export function bakeAmateGrain(size: number, seed: number): Uint8Array {
  * a l'opacite du grain, alors qu'une couture franche, elle, se voyait.
  */
 export function bakeAmateGrainSeamless(size: number, seed: number, band = Math.max(2, Math.round(size / 8))): Uint8Array {
-  const brut = bakeAmateGrain(size, seed);
+  return rendreSansCouture(bakeAmateGrain(size, seed), size, band);
+}
+
+/** La partie reutilisable de la methode ci-dessus : elle ne sait rien du
+ * papier, elle rend periodique n'importe quelle tuile opaque. */
+export function rendreSansCouture(brut: Uint8Array, size: number, band = Math.max(2, Math.round(size / 8))): Uint8Array {
   const demi = size >> 1;
   const decale = new Uint8Array(brut.length);
   for (let y = 0; y < size; y++) {
@@ -229,4 +234,46 @@ export function fadeToPaper(data: Uint8Array, k: number): Uint8Array {
     out[i + 3] = data[i + 3];
   }
   return out;
+}
+
+/**
+ * L'OBSIDIENNE POLIE (13/09, Sylvain : « est-ce que l'on peut travailler le
+ * cote obsidienne du darkmode : le brillant, les lames polies, l'obsidienne
+ * doit se refleter dans la 2d et la 3d »).
+ *
+ * L'exact pendant du grain d'amate, pour la nuit. Une obsidienne taillee ne
+ * fait pas de fibres : elle casse en ecailles, et la lumiere y glisse en
+ * longues courbes (la fracture conchoidale, celle des eclats de verre
+ * volcanique). La tuile est donc presque noire, traversee de nappes
+ * courbes tres douces, faites du meme bruit de valeur mais lu en
+ * coordonnees CINTREES : c'est ce cintrage qui donne l'ecaille plutot que
+ * la fibre. Posee en `screen` a faible opacite, elle n'eclaircit rien :
+ * elle fait glisser une lumiere.
+ */
+export function bakeObsidianPolish(size: number, seed: number): Uint8Array {
+  const data = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y++) {
+    const v = (y + 0.5) / size;
+    for (let x = 0; x < size; x++) {
+      const u = (x + 0.5) / size;
+      // Cintrage : la coordonnee le long de la nappe se courbe avec la
+      // hauteur, donc les nappes s'incurvent au lieu de filer droit.
+      const cintre = u + 0.35 * Math.sin((v + seed * 0.11) * Math.PI * 1.6);
+      const nappe = noise(cintre * 3.1, v * 1.7, seed);
+      const eclat = noise(cintre * 7.3 + 11.2, v * 4.1, seed + 3);
+      // Presque rien : 0,04 a 0,26 de gris. L'ecart fait tout le poli.
+      const n = clamp01(0.04 + 0.16 * nappe + 0.08 * eclat * eclat);
+      const o = (y * size + x) * 4;
+      // Legerement violette, comme l'obsidienne du site.
+      data[o] = Math.round(n * 232);
+      data[o + 1] = Math.round(n * 226);
+      data[o + 2] = Math.round(n * 255);
+      data[o + 3] = 255;
+    }
+  }
+  return data;
+}
+
+export function bakeObsidianPolishSeamless(size: number, seed: number): Uint8Array {
+  return rendreSansCouture(bakeObsidianPolish(size, seed), size);
 }

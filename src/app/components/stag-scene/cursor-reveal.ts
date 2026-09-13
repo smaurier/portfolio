@@ -80,6 +80,7 @@ export type CursorRevealUniforms = {
   uCodex: { value: number };
   uCodexFront: { value: number };
   uCodexSign: { value: number };
+  uCodexMatiere: { value: number };
   uCodexOrigin: { value: Vector2 };
   /** Force du trait d'encre qui borde la zone de couleur. Monte avec la
    * face claire (le papier) : sur la nuit, l'encre n'aurait rien a border. */
@@ -126,6 +127,7 @@ export function createCursorRevealUniforms(): CursorRevealUniforms {
     uCodex: { value: 0 },
     uCodexFront: { value: 0 },
     uCodexSign: { value: 1 },
+    uCodexMatiere: { value: 1 },
     uCodexOrigin: { value: new Vector2(0, 0) },
     uRevealInk: { value: 0 },
   };
@@ -174,6 +176,7 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
         shader.uniforms.uCodex = uniforms.uCodex;
         shader.uniforms.uCodexFront = uniforms.uCodexFront;
         shader.uniforms.uCodexSign = uniforms.uCodexSign;
+        shader.uniforms.uCodexMatiere = uniforms.uCodexMatiere;
         shader.uniforms.uCodexOrigin = uniforms.uCodexOrigin;
 
         shader.fragmentShader = shader.fragmentShader
@@ -193,6 +196,7 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             uniform float uCodex;
             uniform float uCodexFront;
             uniform float uCodexSign;
+            uniform float uCodexMatiere;
             uniform vec2 uCodexOrigin;
             // Bruit de valeur en espace ecran : la frange du bord. Deux
             // octaves suffisent pour que l'oeil lise « fibre », pas « cercle ».
@@ -277,6 +281,16 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             // lumiere sur un miroir noir. Le fond, lui, se polit : il se
             // creuse d'un cran. Trait fin, jamais un halo : c'est un burin,
             // pas un projecteur.
+            // LE POLI DE TOUTE LA SCENE (13/09, Sylvain : « les lames polies,
+            // l'obsidienne doit se refleter dans la 2d et la 3d »). Hors du
+            // halo aussi : sur la nuit, chaque arete renvoie un filet de
+            // lumiere froide, comme une pierre taillee. Tres peu : c'est ce
+            // qui distingue une pierre polie d'une pierre eclairee.
+            if (uRevealObsidienne > 0.001) {
+              vec3 nahualVueG = normalize(vViewPosition);
+              float nahualArete = 1.0 - abs(dot(normalize(normal), nahualVueG));
+              gl_FragColor.rgb += vec3(0.30, 0.29, 0.42) * pow(nahualArete, 4.0) * uRevealObsidienne * 0.16;
+            }
             float nahualPoli = reveal * uRevealObsidienne;
             if (nahualPoli > 0.001) {
               vec3 nahualVueP = normalize(vViewPosition);
@@ -293,7 +307,12 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             // trembler la ligne comme une main. Le front part du disque :
             // le dessin se pose vers les bords, la couleur revient de meme.
             if (uCodex > 0.001) {
-              float dCodex = distance(gl_FragCoord.xy, uCodexOrigin) / max(1.0, length(uResolution)) * 2.0;
+              // Distance au disque, rapportee a la DIAGONALE de l'ecran, donc
+              // dans [0, 1] (13/09 : le facteur 2 d'une premiere version la
+              // portait a 2, et le front, plafonne a 1,3, n'atteignait jamais
+              // la moitie eloignee de l'ecran : la moitie du monde n'etait
+              // jamais dessinee, ce qui rendait la matiere illisible).
+              float dCodex = distance(gl_FragCoord.xy, uCodexOrigin) / max(1.0, length(uResolution));
               // Le front n'est pas un compas : il avance comme une main, par
               // avancees et retards, d'ou le meme grain que la frange.
               float nahualBord = smoothstep(uCodexFront - 0.2, uCodexFront, dCodex + (nahualGrain - 0.5) * 0.11);
@@ -301,12 +320,21 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
               if (dessine > 0.001) {
                 vec3 nahualVue = normalize(vViewPosition);
                 float rasant = 1.0 - abs(dot(normalize(normal), nahualVue));
-                // Seuils larges (13/09, apres capture) : a 0,32-0,86 le
-                // monde virait au papier blanc sans trait lisible. Le
-                // tlacuilo appuie : la ligne prend des l'angle moyen, et
-                // le grain la fait trembler comme une main.
-                float trait = smoothstep(0.16, 0.58, rasant + (nahualGrain - 0.5) * 0.22);
-                vec3 nahualDessin = mix(vec3(0.95, 0.92, 0.86), vec3(0.07, 0.06, 0.10), trait);
+                // Largeur du trait (13/09, troisieme reglage). A 0,16-0,58,
+                // presque tout devenait LIGNE : sur une prairie d'herbes
+                // fines, chaque brin est un angle rasant, donc le fond ne se
+                // voyait jamais et les deux matieres rendaient la meme image
+                // pale. Un trait se pose sur les silhouettes, pas sur toute
+                // la surface : la bande est etroite, et le grain la fait
+                // trembler comme une main.
+                float trait = smoothstep(0.58, 0.93, rasant + (nahualGrain - 0.5) * 0.16);
+                // DEUX MATIERES POUR LE TRACE (13/09) : vers le papier, une
+                // encre sombre sur un fond clair ; vers la pierre, une
+                // INCISION claire sur un fond d'obsidienne. Le meme geste,
+                // le meme grain, la matiere du monde ou l'on va.
+                vec3 nahualFond = mix(vec3(0.045, 0.04, 0.065), vec3(0.95, 0.92, 0.86), uCodexMatiere);
+                vec3 nahualEncre = mix(vec3(0.74, 0.72, 0.88), vec3(0.07, 0.06, 0.10), uCodexMatiere);
+                vec3 nahualDessin = mix(nahualFond, nahualEncre, trait);
                 gl_FragColor.rgb = mix(gl_FragColor.rgb, nahualDessin, dessine);
                 gl_FragColor.a = mix(gl_FragColor.a, max(gl_FragColor.a, 0.96), dessine);
               }

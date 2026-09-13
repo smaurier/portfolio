@@ -100,6 +100,7 @@ export default function MiroirFumant() {
         codexStore.amount = cd.amount;
         codexStore.front = cd.front;
         codexStore.sign = cd.sign;
+        codexStore.matiere = d.to === "light" ? 1 : 0;
         codexStore.x = d.x;
         codexStore.y = d.y;
         if (!bascule && t >= peak) { bascule = true; applyTheme(d.to); }

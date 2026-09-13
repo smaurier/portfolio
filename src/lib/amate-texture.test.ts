@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AMATE_GRAIN_OPTIONS, amatePattern, bakeAmate, bakeAmateGrain, bakeAmateGrainSeamless, fadeToPaper } from "./amate-texture";
+import { AMATE_GRAIN_OPTIONS, amatePattern, bakeAmate, bakeAmateGrain, bakeAmateGrainSeamless, bakeObsidianPolish, bakeObsidianPolishSeamless, fadeToPaper } from "./amate-texture";
 
 const NO_SPATTER = { spatters: 0, fray: 0.12 };
 
@@ -201,5 +201,49 @@ describe("la feuille posee sur la feuille", () => {
   it("l'opacite ne bouge pas : c'est du papier, pas un voile", () => {
     const doux = fadeToPaper(brut, 0.5);
     for (let i = 3; i < doux.length; i += 4) expect(doux[i]).toBe(255);
+  });
+});
+
+describe("l'obsidienne polie : le pendant du papier, pour la nuit", () => {
+  const size = 48;
+
+  function moyenne(d: Uint8Array): number {
+    let somme = 0;
+    let n = 0;
+    for (let i = 0; i < d.length; i += 4) { somme += d[i]; n++; }
+    return somme / n;
+  }
+
+  it("est presque noire : elle fait glisser une lumiere, elle n'eclaire pas", () => {
+    const d = bakeObsidianPolish(size, 2);
+    expect(moyenne(d)).toBeLessThan(46);
+    let max = 0;
+    for (let i = 0; i < d.length; i += 4) max = Math.max(max, d[i]);
+    expect(max).toBeLessThan(90);
+  });
+
+  it("est violette comme l'obsidienne du site : le bleu domine le rouge", () => {
+    const d = bakeObsidianPolish(size, 2);
+    let r = 0;
+    let b = 0;
+    for (let i = 0; i < d.length; i += 4) { r += d[i]; b += d[i + 2]; }
+    expect(b).toBeGreaterThan(r);
+  });
+
+  it("porte de vraies nappes : l'ecart vertical est net", () => {
+    const d = bakeObsidianPolish(size, 2);
+    let ecart = 0;
+    for (let y = 0; y < size; y++) ecart += Math.abs(d[(y * size + 10) * 4] - d[(y * size + 11) * 4]);
+    expect(ecart / size).toBeGreaterThan(0.2);
+  });
+
+  it("opaque, deterministe, et sans couture une fois passee par le rendu", () => {
+    const d = bakeObsidianPolishSeamless(size, 5);
+    for (let i = 3; i < d.length; i += 4) expect(d[i]).toBe(255);
+    expect(bakeObsidianPolishSeamless(size, 5)).toEqual(d);
+    const colonne = (x: number) => { let s2 = 0; for (let y = 0; y < size; y++) s2 += d[(y * size + x) * 4]; return s2 / size; };
+    const marche = Math.abs(colonne(0) - colonne(size - 1));
+    const pas = Math.abs(colonne(12) - colonne(13));
+    expect(marche).toBeLessThanOrEqual(pas * 1.5 + 1);
   });
 });

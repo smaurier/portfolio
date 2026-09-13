@@ -9,6 +9,7 @@ import { remapNorthArc } from "@/lib/direction-arc";
 import { lightPAtArc } from "@/lib/arc-day";
 import { useCurrentDirection } from "./use-current-direction";
 import { applyCursorReveal, createCursorRevealUniforms, setCursorRevealFloor, REVEAL_RADIUS_CSS } from "./cursor-reveal";
+import { SONDE } from "@/lib/sonde";
 import { refletStore } from "./reflet-store";
 import { codexStore } from "./codex-store";
 
@@ -129,6 +130,17 @@ export default function CursorRevealScene({
     if (codexStore.amount > 0.001) {
       uniforms.uCodexFront.value = codexStore.front;
       uniforms.uCodexSign.value = codexStore.sign;
+      uniforms.uCodexMatiere.value = codexStore.matiere;
+      // Sonde de dev (13/09) : l'etat du trace, indebogable depuis l'image
+      // seule (c'est elle qui a montre que la normalisation de la distance
+      // etait fausse). Meme motif que __nahualXolotl.
+      if (SONDE) {
+        (window as unknown as { __nahualCodexU?: unknown }).__nahualCodexU = {
+          matiere: uniforms.uCodexMatiere.value,
+          codex: uniforms.uCodex.value,
+          front: uniforms.uCodexFront.value,
+        };
+      }
       uniforms.uCodexOrigin.value.set(codexStore.x * dpr, canvas.height - codexStore.y * dpr);
     }
   });
