@@ -32,6 +32,7 @@ import FooterSentinel from "../components/footer-sentinel";
 import DockSentinel from "../components/dock-sentinel";
 import MiroirFumant from "../components/miroir-fumant";
 import Veille from "../components/veille";
+import GrainAmate from "../components/grain-amate";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
 import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
@@ -388,6 +389,8 @@ export default async function LocaleLayout({
           <MiroirFumant />
           {/* La veille (13/09) : vingt secondes sans geste, le monde continue sans nous. */}
           <Veille />
+          {/* Le grain du papier, sur la face claire seulement (13/09). */}
+          <GrainAmate />
           {/* Footer exhaustif (28/08 retour Sylvain) : 4 colonnes :
               Navigation, Ressources, Légal, Contact. Bottom row : ©
               + baseline localisée. */}

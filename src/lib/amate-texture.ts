@@ -126,3 +126,107 @@ export function bakeAmate(width: number, height: number, seed: number, options: 
   }
   return data;
 }
+
+/**
+ * LE GRAIN DE LA FACE CLAIRE (13/09, idee de Sylvain : « si le papier
+ * etait important, on pourrait mettre un grain a l'image claire et donner
+ * la meme texture que celle du codex »).
+ *
+ * C'est le MEME papier que les bandes d'amate de la scene, moins ses
+ * bords : `amatePattern` effiloche la bande sur `v` et sur la pointe `u`,
+ * ce qui laisserait deux coutures transparentes dans une tuile repetee.
+ * Ici l'alpha est plein partout, et la couleur seule fait le grain. Sans
+ * eclaboussures de caoutchouc non plus : une goutte noire repetee tous les
+ * 192 pixels se verrait comme un motif, alors qu'elle est une offrande.
+ */
+export const AMATE_GRAIN_OPTIONS: AmateOptions = { spatters: 0, fray: 0 };
+
+export function bakeAmateGrain(size: number, seed: number): Uint8Array {
+  const data = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y++) {
+    const v = (y + 0.5) / size;
+    for (let x = 0; x < size; x++) {
+      const u = (x + 0.5) / size;
+      const px = amatePattern(u, v, seed, AMATE_GRAIN_OPTIONS);
+      const o = (y * size + x) * 4;
+      data[o] = Math.round(px.r * 255);
+      data[o + 1] = Math.round(px.g * 255);
+      data[o + 2] = Math.round(px.b * 255);
+      data[o + 3] = 255;
+    }
+  }
+  return data;
+}
+
+/**
+ * LE PAPIER SANS COUTURE (13/09). Le motif d'amate n'est pas periodique :
+ * repete en tuile, il laisse une couture nette tous les 192 pixels, visible
+ * a la capture. Methode classique, en deux temps :
+ *
+ *  1. on DECALE la tuile d'une demi-tuile : les bords deviennent continus,
+ *     parce que la colonne 0 et la derniere colonne viennent desormais du
+ *     milieu du motif, ou elles etaient voisines ;
+ *  2. la discontinuite s'est deplacee au centre, en croix : on l'efface en
+ *     fondant, dans une bande etroite autour de cette croix, l'image avec
+ *     elle-meme redecalee. Le fondu ne touche jamais les bords (la bande
+ *     est bien plus courte que la demi-tuile), donc l'etape 1 tient.
+ *
+ * Le resultat est un peu adouci le long de la croix, ce qui ne se voit pas
+ * a l'opacite du grain, alors qu'une couture franche, elle, se voyait.
+ */
+export function bakeAmateGrainSeamless(size: number, seed: number, band = Math.max(2, Math.round(size / 8))): Uint8Array {
+  const brut = bakeAmateGrain(size, seed);
+  const demi = size >> 1;
+  const decale = new Uint8Array(brut.length);
+  for (let y = 0; y < size; y++) {
+    const sy = (y + demi) % size;
+    for (let x = 0; x < size; x++) {
+      const sx = (x + demi) % size;
+      const src = (sy * size + sx) * 4;
+      const dst = (y * size + x) * 4;
+      decale[dst] = brut[src];
+      decale[dst + 1] = brut[src + 1];
+      decale[dst + 2] = brut[src + 2];
+      decale[dst + 3] = 255;
+    }
+  }
+  const out = new Uint8Array(brut.length);
+  const rampe = (d: number) => 1 - clamp01(d / band);
+  for (let y = 0; y < size; y++) {
+    const wy = rampe(Math.abs(y - demi));
+    const sy = (y + demi) % size;
+    for (let x = 0; x < size; x++) {
+      const wx = rampe(Math.abs(x - demi));
+      const w = 0.5 * Math.max(wx, wy);
+      const sx = (x + demi) % size;
+      const a = (y * size + x) * 4;
+      const b = (sy * size + sx) * 4;
+      for (let c = 0; c < 3; c++) out[a + c] = Math.round(decale[a + c] * (1 - w) + decale[b + c] * w);
+      out[a + 3] = 255;
+    }
+  }
+  return out;
+}
+
+/**
+ * LA FEUILLE POSEE SUR LA FEUILLE (13/09, Sylvain : « la texture doit aussi
+ * etre presente sur les elements de menu [...] quelque chose qui montrerait
+ * que l'on a une feuille de papier posee sur une autre »).
+ *
+ * Un panneau est une seconde feuille : meme papier, mais plus clair, parce
+ * qu'il est pose PAR-DESSUS et recoit la lumiere en premier. `k` est la
+ * part de blanc : 0 rend le papier tel quel, 1 une feuille blanche. La
+ * variation du grain diminue avec la meme part, jamais son signe : c'est
+ * la meme fibre, vue de plus loin.
+ */
+export function fadeToPaper(data: Uint8Array, k: number): Uint8Array {
+  const t = clamp01(k);
+  const out = new Uint8Array(data.length);
+  for (let i = 0; i < data.length; i += 4) {
+    out[i] = Math.round(data[i] + (255 - data[i]) * t);
+    out[i + 1] = Math.round(data[i + 1] + (255 - data[i + 1]) * t);
+    out[i + 2] = Math.round(data[i + 2] + (255 - data[i + 2]) * t);
+    out[i + 3] = data[i + 3];
+  }
+  return out;
+}

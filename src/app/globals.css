@@ -2279,3 +2279,72 @@ html:not([data-veille]) body.nahual-lab-reveal main[data-direction] {
     transition-duration: 0.4s;
   }
 }
+
+/* ===================================================================
+   LE GRAIN DU PAPIER (13/09, idee de Sylvain). La face claire est de
+   l'amatl, pas un aplat creme : une couche de papier, cuite par
+   `grain-amate` avec le MEME generateur que les bandes d'amate de la
+   scene, se pose au-dessus du canvas et SOUS les panneaux de texte
+   (z-index 1 contre 5), pour que le contraste des textes ne bouge pas.
+   `multiply` la fait mordre sur le fond sans l'assombrir vraiment.
+   Rien sur la nuit : l'obsidienne n'a pas de fibres.
+   =================================================================== */
+.grainAmate {
+  display: none;
+}
+html[data-theme="light"] .grainAmate {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: var(--grain-amate, none);
+  background-repeat: repeat;
+  background-size: 192px 192px;
+  mix-blend-mode: multiply;
+  /* Dose (13/09) : a 0,5 la page entiere virait au sepia et le cerf s'y
+     perdait. Le grain doit se SENTIR, pas se voir : on garde sa matiere et
+     on lui retire l'essentiel de son ocre, qui appartient a la bande
+     d'amate posee dans la scene, pas au fond de la page. */
+  opacity: 0.22;
+  filter: saturate(0.45) brightness(1.08);
+}
+
+/* ===================================================================
+   UNE FEUILLE POSEE SUR UNE FEUILLE (13/09, Sylvain). Le bandeau, les
+   panneaux de texte, les cartes et le chant sont de SECONDES feuilles
+   d'amate posees sur la page : meme papier, plus clair (il recoit la
+   lumiere en premier), une fibre qui ne s'aligne jamais sur celle du
+   dessous (taille et decalage differents : deux feuilles ne tombent
+   jamais d'accord), et l'ombre courte d'une feuille qui ne colle pas.
+   Le grain passe par `background-blend-mode` : il se melange a la
+   couleur du panneau DANS son fond, jamais par-dessus son texte, donc
+   le contraste ne bouge pas.
+   =================================================================== */
+html[data-theme="light"] .header,
+html[data-theme="light"] [data-scene-overlay] [class*="block"],
+html[data-theme="light"] [data-scene-overlay] [class*="chapter"]:not(p),
+html[data-theme="light"] .cantar,
+html[data-theme="light"] .seuilTete[data-seuil-tete="fixe"],
+html[data-theme="light"] body.nahual-lab-reveal .serviceCard,
+html[data-theme="light"] body.nahual-lab-reveal main[data-direction] > :where(section, article, div):not(.sr-only) {
+  background-image: var(--grain-amate-doux, none);
+  background-size: 168px 168px;
+  background-position: 37px 91px;
+  background-repeat: repeat;
+  background-blend-mode: multiply;
+}
+/* L'ombre de la feuille : courte, basse, sans flou de projecteur. */
+html[data-theme="light"] [data-scene-overlay] [class*="block"],
+html[data-theme="light"] [data-scene-overlay] [class*="chapter"]:not(p),
+html[data-theme="light"] .cantar,
+html[data-theme="light"] body.nahual-lab-reveal .serviceCard,
+html[data-theme="light"] body.nahual-lab-reveal main[data-direction] > :where(section, article, div):not(.sr-only) {
+  box-shadow:
+    0 1px 0 rgba(var(--ink-rgb), 0.05),
+    0 8px 18px -10px rgba(var(--ink-rgb), 0.28);
+}
+/* Le bandeau tient toute la largeur : il ne porte que son bord bas. */
+html[data-theme="light"] .header {
+  box-shadow: 0 6px 16px -12px rgba(var(--ink-rgb), 0.35);
+}

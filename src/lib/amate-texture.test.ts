@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { amatePattern, bakeAmate } from "./amate-texture";
+import { AMATE_GRAIN_OPTIONS, amatePattern, bakeAmate, bakeAmateGrain, bakeAmateGrainSeamless, fadeToPaper } from "./amate-texture";
 
 const NO_SPATTER = { spatters: 0, fray: 0.12 };
 
@@ -70,5 +70,136 @@ describe("amatePattern (le papier d'ecorce, pas une feuille blanche)", () => {
     const o = ((h >> 1) * w + (w >> 2)) * 4;
     expect(data[o + 3]).toBe(255);
     expect(data[o]).toBeGreaterThan(data[o + 2]);
+  });
+});
+
+describe("le grain de la face claire : le papier sans ses bords", () => {
+  it("est opaque partout : une tuile repetee n'a pas de couture", () => {
+    const size = 24;
+    const data = bakeAmateGrain(size, 3);
+    expect(data).toHaveLength(size * size * 4);
+    for (let i = 3; i < data.length; i += 4) expect(data[i]).toBe(255);
+  });
+
+  it("garde le ton creme-ocre du papier, sans goutte de caoutchouc", () => {
+    expect(AMATE_GRAIN_OPTIONS.spatters).toBe(0);
+    expect(AMATE_GRAIN_OPTIONS.fray).toBe(0);
+    const size = 32;
+    const data = bakeAmateGrain(size, 5);
+    let min = 255;
+    let somme = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      min = Math.min(min, data[i]);
+      somme += data[i];
+    }
+    const moyenne = somme / (size * size);
+    // Creme : la moyenne du rouge est haute, et rien ne tombe dans le noir
+    // (une goutte de hule descendrait sous 40).
+    expect(moyenne).toBeGreaterThan(170);
+    expect(min).toBeGreaterThan(60);
+  });
+
+  it("varie : ce n'est pas un aplat", () => {
+    const size = 32;
+    const data = bakeAmateGrain(size, 7);
+    const rouges = [];
+    for (let i = 0; i < data.length; i += 4) rouges.push(data[i]);
+    const moyenne = rouges.reduce((a, b) => a + b, 0) / rouges.length;
+    const ecart = Math.sqrt(rouges.reduce((a, b) => a + (b - moyenne) ** 2, 0) / rouges.length);
+    expect(ecart).toBeGreaterThan(3);
+  });
+
+  it("deterministe : la meme graine rend le meme papier", () => {
+    expect(bakeAmateGrain(16, 2)).toEqual(bakeAmateGrain(16, 2));
+    expect(bakeAmateGrain(16, 2)).not.toEqual(bakeAmateGrain(16, 9));
+  });
+});
+
+describe("le papier sans couture : la tuile se repete sans se trahir", () => {
+  const size = 64;
+
+  function moyenneColonne(data: Uint8Array, x: number): number {
+    let somme = 0;
+    for (let y = 0; y < size; y++) somme += data[(y * size + x) * 4];
+    return somme / size;
+  }
+  function moyenneLigne(data: Uint8Array, y: number): number {
+    let somme = 0;
+    for (let x = 0; x < size; x++) somme += data[(y * size + x) * 4];
+    return somme / size;
+  }
+
+  /** Ce qui fait voir une couture : la difference de NIVEAU entre les deux
+   * bords qui se touchent, pas le grain fin qui, lui, est partout. */
+  function marcheVerticale(data: Uint8Array): number {
+    return Math.abs(moyenneColonne(data, 0) - moyenneColonne(data, size - 1));
+  }
+  function marcheHorizontale(data: Uint8Array): number {
+    return Math.abs(moyenneLigne(data, 0) - moyenneLigne(data, size - 1));
+  }
+  /** Le pas de niveau ordinaire entre deux colonnes voisines, au milieu. */
+  function pasOrdinaire(data: Uint8Array): number {
+    return Math.abs(moyenneColonne(data, 20) - moyenneColonne(data, 21));
+  }
+
+  it("la jointure ne fait plus de marche", () => {
+    const brut = bakeAmateGrain(size, 4);
+    const lisse = bakeAmateGrainSeamless(size, 4);
+    // Le motif n'est pas periodique : brut, les deux bords ne sont pas au
+    // meme niveau, et c'est ce que l'oeil voit comme une grille.
+    expect(marcheVerticale(brut)).toBeGreaterThan(pasOrdinaire(brut) * 2);
+    // Apres, les bords viennent de deux colonnes voisines du motif.
+    expect(marcheVerticale(lisse)).toBeLessThanOrEqual(pasOrdinaire(lisse) * 1.5 + 0.5);
+    expect(marcheHorizontale(lisse)).toBeLessThanOrEqual(pasOrdinaire(lisse) * 3 + 1);
+  });
+
+  it("reste du papier : opaque, creme, et varie", () => {
+    const data = bakeAmateGrainSeamless(size, 4);
+    for (let i = 3; i < data.length; i += 4) expect(data[i]).toBe(255);
+    let somme = 0;
+    for (let i = 0; i < data.length; i += 4) somme += data[i];
+    expect(somme / (size * size)).toBeGreaterThan(170);
+    let ecart = 0;
+    for (let y = 0; y < size; y++) ecart += Math.abs(data[(y * size + 20) * 4] - data[(y * size + 21) * 4]);
+    expect(ecart / size).toBeGreaterThan(0.3);
+  });
+
+  it("deterministe", () => {
+    expect(bakeAmateGrainSeamless(32, 6)).toEqual(bakeAmateGrainSeamless(32, 6));
+  });
+});
+
+describe("la feuille posee sur la feuille", () => {
+  const brut = bakeAmateGrainSeamless(32, 8);
+
+  function ecart(d: Uint8Array): number {
+    let somme = 0;
+    let n = 0;
+    for (let i = 0; i < d.length; i += 4) { somme += d[i]; n++; }
+    const moy = somme / n;
+    let v = 0;
+    for (let i = 0; i < d.length; i += 4) v += (d[i] - moy) ** 2;
+    return Math.sqrt(v / n);
+  }
+
+  it("k = 0 ne change rien, k = 1 rend une feuille blanche", () => {
+    expect(fadeToPaper(brut, 0)).toEqual(brut);
+    const blanc = fadeToPaper(brut, 1);
+    for (let i = 0; i < blanc.length; i += 4) expect(blanc[i]).toBe(255);
+  });
+
+  it("la seconde feuille est plus claire, et sa fibre plus discrete", () => {
+    const doux = fadeToPaper(brut, 0.72);
+    let sombre = 0;
+    let clair = 0;
+    for (let i = 0; i < brut.length; i += 4) { sombre += brut[i]; clair += doux[i]; }
+    expect(clair).toBeGreaterThan(sombre);
+    expect(ecart(doux)).toBeLessThan(ecart(brut));
+    expect(ecart(doux)).toBeGreaterThan(0);
+  });
+
+  it("l'opacite ne bouge pas : c'est du papier, pas un voile", () => {
+    const doux = fadeToPaper(brut, 0.5);
+    for (let i = 3; i < doux.length; i += 4) expect(doux[i]).toBe(255);
   });
 });
