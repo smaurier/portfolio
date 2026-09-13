@@ -1545,7 +1545,11 @@ body.nahual-lab-reveal main[data-direction] .contentPage {
 @media (min-width: 768px) {
   body.nahual-lab-reveal main[data-direction] {
     align-items: flex-start;
-    padding-left: max(6vw, 96px);
+    /* 96 -> 140 px (13/09) : le bouton du mode recit est une SECONDE colonne
+       (2rem + 52 px, large de 44 px, bord droit a 128 px) ; a 1280 px de
+       large, les cartes de Memoire commencaient a 124 px, sous lui
+       (controls-overlap, ordinateur, mi-parcours : 176 px2). */
+    padding-left: max(6vw, 140px);
   }
   body.nahual-lab-reveal main[data-direction] .contentPage {
     max-width: 480px;
