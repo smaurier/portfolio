@@ -375,6 +375,46 @@ objets jamais rendus, et la borner en temps (500 ms), pas en images.
 Priorite P1 : un jure sur MacBook qui saisit l'ascenseur voit un monde
 vide.
 
+**Suite du 13/09, apres les corrections.** L'hypothese de la porte de
+liaison est ECARTEE : sur le serveur de dev, meme recette, aucun objet sur
+la couche froide, aucune attente. Un build de production avec les poignees
+de sonde (`NEXT_PUBLIC_NAHUAL_SONDE=1`, nouveau `src/lib/sonde.ts`) a ete
+mesure trois fois (saut, progressif, densite 1) : etat de scene identique
+et sain (brouillard 8 a 26, sol, herbe et cerf visibles, 0 objet froid), et
+le monde etait la (`dpr-prod-saut.png`). Le defaut est donc INTERMITTENT
+et n'a plus reproduit sur le build corrige ; le gel n'est pas en cause
+(`FrostWorld` n'est monte qu'a l'Est, `uFrost` reste a 0 ailleurs). Ce
+qu'on sait : les objets qui disparaissaient sont ceux des materiaux
+standard (sol, herbe, montagnes, cerf), pas les sprites ni les porteuses.
+A surveiller a la prochaine reproduction avec la sonde `dpr-prod.mjs`,
+qui lit maintenant tout l'etat utile.
+
+
+## 12. Ce qui a ete corrige le jour meme
+
+Sylvain, apres lecture : « Corrige tout, sans discontinuer. Ne t'arrete que
+lorsque tu auras corrige tout le possible. » Etat en fin de journee, dans
+l'ordre de la section 10 ; les lignes X du backlog (section 0 bis) portent
+le detail et les oracles.
+
+| # | fait | reste |
+| --- | --- | --- |
+| X1 | Le calque de texte est fixe ; statique en mode recit ; e2e `calque-fixe` (chapitres allumes dans la fenetre) | |
+| X2 | La ligne de seuil vit dans le calque, en haut a gauche, le premier quart de l'arc ; le contenu des pages echo commence sous le pli | |
+| X3 | Couloir de 72 px pour tout le contenu et le chant ; la colonne de boutons se retire quand on descend sur telephone (droit et couche) et n'apparait qu'apres l'arrivee ; `controls-overlap` vert sur quatre cadrages, mi-parcours compris | |
+| X4 | Le pied de page efface les calques fixes (`footer-sentinel`) ; la cloture des pages echo est le dernier bloc du contenu, dans le flux ; celle du Centre reste fixe | |
+| X5 | Profil telephone allege (5 000 brins, 120 feuilles, 32 meches) ; les simulateurs du Nord se chauffent une etape par image | mesure mobile a refaire seule ; etoiles et colibris du Sud |
+| X6 | La lumiere du foyer eclaire le sol et le cerf des 0 % | la ligne de premiere arrivee (texte a toi) |
+| X7 | Limiteur, pont entre directions, espace par direction, pas du chien panoramiques, respiration de la nappe, une seule cloche | ton oreille |
+| X8 | Danseuses posees au sol, braises x2,2, papiers x2 | la descente de camera (mise en scene, a toi) |
+| X9 | Le chien ralentit sur la margelle, deux eclaboussures | |
+| X10 | La profondeur de champ au repos existe deja (1,4) | son dosage, a ton oeil |
+| X11 | | le ciel du Sud, a ton oeil |
+| X12 | Papillons et Xolotl reformules en trois langues, comme « notre lecture » | ta relecture ; les sources du Nord |
+| X13 | | KTX2 (toktx), worker meshopt (drei), SVG du voile |
+| X14 | 404 dans le monde, en-tetes de securite dans `netlify.toml` | CSP (nonce, chantier a part) |
+| X15 | Les fleurs de cempasuchil reviennent en 4 a 14 s | |
+| 11 | Poignees de sonde activables en production (`NEXT_PUBLIC_NAHUAL_SONDE=1`) pour reproduire le monde disparu a densite 2 | le diagnostic (voir ci-dessous) |
 
 ## Sources
 

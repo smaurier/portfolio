@@ -30,6 +30,7 @@ export type SceneStageOverlayCtx = Pick<SceneRefs, "progressRef" | "reducedMotio
 export default function SceneStage({
   overlay,
   closure,
+  closureInFlow,
   children,
   directionKey = "jade",
 }: {
@@ -44,6 +45,9 @@ export default function SceneStage({
    * une sortie de scene n'est pas du texte de scene.
    */
   closure?: (ctx: SceneStageOverlayCtx) => ReactNode;
+  /** La cloture DANS LE FLUX, apres le contenu (13/09) : pour les pages
+   *  echo, dont la colonne de contenu occupe la place du calque fixe. */
+  closureInFlow?: (ctx: SceneStageOverlayCtx) => ReactNode;
   children?: ReactNode;
   directionKey?: DirectionKey;
 }) {
@@ -91,7 +95,10 @@ export default function SceneStage({
     <>
       {overlay && <SceneTextOverlay>{overlay(overlayCtx)}</SceneTextOverlay>}
       {closure && <div className={styles.closureSlot}>{closure(overlayCtx)}</div>}
-      <div className={styles.flow}>{children}</div>
+      <div className={styles.flow}>
+        {children}
+        {closureInFlow && <div className={styles.closureFlow}>{closureInFlow(overlayCtx)}</div>}
+      </div>
     </>
   );
 }

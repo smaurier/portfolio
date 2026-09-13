@@ -170,6 +170,9 @@ for (const c of CASES) {
       await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, {
         timeout: 60_000,
       });
+      // L'arrivee jouee (13/09) : pendant la ceremonie, le voile est encore
+      // la et ses textes ne comptent pas.
+      await page.waitForFunction(() => document.documentElement.getAttribute("data-foyer") === "done", null, { timeout: 30_000 });
       // Le voile se retire, la scene se pose, puis les blocs de texte se
       // RELAIENT EN FONDU. Une attente fixe tombe une fois sur deux entre
       // deux blocs, quand aucun n'est lisible, et le test passait a vide.
@@ -217,6 +220,33 @@ for (const c of CASES) {
         }
       }
       expect(offenders, offenders.join(" ; ")).toEqual([]);
+    });
+
+    test("aucun controle ne recouvre du texte lisible a mi-parcours de Memoire", async ({ page }) => {
+      // 13/09 (X3 de l'audit) : le test ne regardait que le haut de
+      // l'accueil ; sur telephone, le chant et les cartes de Memoire
+      // passaient sous la colonne de boutons a mi-page, sans que rien ne
+      // le dise.
+      await page.goto("/fr/memoire");
+      await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 60_000 });
+      await page.waitForTimeout(2000);
+      for (const f of [0.5, 0.8]) {
+        await page.evaluate((f) => window.scrollTo(0, (document.documentElement.scrollHeight - window.innerHeight) * f), f);
+        await page.waitForTimeout(2000);
+        const { texts, controls } = await measure(page);
+        // Les boutons du bandeau ne comptent pas ici : le contenu passe
+        // sous un bandeau fixe, c'est la regle de toute page qui defile.
+        const bandeau = await page.evaluate(() => [...document.querySelectorAll("header button, header a[href]")].map((el) => el.getAttribute("aria-label") || el.textContent?.trim().slice(0, 28) || el.tagName));
+        const offenders: string[] = [];
+        for (const ctrl of controls) {
+          if (bandeau.includes(ctrl.label)) continue;
+          for (const t of texts) {
+            const area = overlap(ctrl, t);
+            if (area > 0) offenders.push(`${Math.round(f * 100)} % : « ${ctrl.label} » recouvre ${Math.round(area)} px2 de « ${t.label} »`);
+          }
+        }
+        expect(offenders, offenders.join(" ; ")).toEqual([]);
+      }
     });
 
     test("aucun controle ne deborde du cadre", async ({ page }) => {

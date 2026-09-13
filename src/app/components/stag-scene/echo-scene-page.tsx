@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { Dictionary, Locale } from "../../../dictionaries";
 import { renderWithNahuatl } from "@/lib/nahuatl";
 import Cantar, { type CantarTexts } from "../cantar";
+import SeuilTete from "../seuil-tete";
 import type { DirectionKey } from "./direction-colors";
 import PageClosure from "./page-closure";
 import SceneStage from "./scene-stage";
@@ -51,7 +52,14 @@ export default function EchoScenePage({
   return (
     <SceneStage
       directionKey={directionKey}
-      overlay={({ progressRef, reducedMotionRef }) => (
+      /* LA CLOTURE DANS LE FLUX (13/09, X1 et X4 de l'audit). Passee en
+         calque fixe, la cloture des pages echo se posait sur les cartes
+         de contenu, qui vivent dans la meme colonne (capture Pixel 7,
+         Memoire a 50 %). Sur ces pages, l'acte de sortie est le DERNIER
+         bloc du contenu, apres le chant : il ne recouvre rien, il se lit
+         en dernier, et le pied de page le suit. Le Centre, sans colonne de
+         contenu, garde son panneau fixe (stag-scene.tsx). */
+      closureInFlow={({ progressRef, reducedMotionRef }) => (
         <PageClosure
           directionKey={directionKey}
           locale={locale}
@@ -63,7 +71,8 @@ export default function EchoScenePage({
     >
       <main id="main" data-direction={directionKey} tabIndex={-1}>
         <p className="sr-only">{renderWithNahuatl(sceneDescription)}</p>
-        {seuil ? <p className="seuilTete">{renderWithNahuatl(seuil)}</p> : null}
+        {/* La ligne de seuil, dans le calque fixe, en haut a gauche (13/09, X2). */}
+        {seuil ? <SeuilTete texte={seuil} /> : null}
         {children}
         {/* Le chant ferme le contenu de la page, sous la scene, visible
             pour tout le monde et en mode lecture (M4, 11/09). */}

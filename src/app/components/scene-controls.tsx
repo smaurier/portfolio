@@ -388,7 +388,7 @@ export default function SceneControls({ labels, traces, locale }: { labels: Scen
 
   return (
     <>
-      <div className={styles.cluster} role="region" aria-label={labels.landmark}>
+      <div className={styles.cluster} role="region" aria-label={labels.landmark} data-scene-controls="">
         {buttons.map((b) => (
           <button
             key={b.action}

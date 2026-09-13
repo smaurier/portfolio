@@ -22,7 +22,7 @@ export default function ReadingModeToggle({
       aria-pressed={active}
       aria-label={active ? label.off : label.on}
       title={active ? label.off : label.on}
-    >
+     data-scene-controls="">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         {/* Book open icon */}
         <path

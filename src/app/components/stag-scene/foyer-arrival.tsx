@@ -54,7 +54,12 @@ export default function FoyerArrival() {
   useEffect(() => {
     const root = document.documentElement;
     const skeleton = document.querySelector<HTMLElement>('[data-testid="piedra-skeleton"]');
-    if (!skeleton) return;
+    if (!skeleton) {
+      // Pas de voile : rien a ranger, mais l'arrivee est faite (les
+      // controles de scene attendent ce signal, 13/09).
+      root.setAttribute("data-foyer", "done");
+      return;
+    }
 
     // 1. Le feu du foyer brule-t-il encore ? Le script inline du layout a
     //    deja pose data-hearth AVANT le premier paint pour qu'aucune

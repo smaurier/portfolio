@@ -1141,6 +1141,69 @@ body.reading-mode [class*="block"] {
   transform: none !important;
 }
 
+/* Le calque de texte est fixe depuis le 13/09 (X1) : en mode recit, sans
+   scene derriere, il redevient un bloc du flux, sinon les cinq chapitres
+   s'empileraient en fixe par-dessus le contenu. */
+body.reading-mode [data-scene-overlay] {
+  position: relative !important;
+  inset: auto !important;
+  min-height: 0 !important;
+  padding-top: calc(20px + var(--header-height)) !important;
+  opacity: 1 !important;
+}
+
+/* Le pied de page est la vraie fin (13/09, X4) : quand il entre dans le
+   cadre, le calque de texte fixe s'efface (la cloture fait de meme dans
+   scene-stage.module.css), et sur telephone la colonne de boutons aussi,
+   parce qu'elle recouvrait les liens du pied. */
+html[data-footer-in-view="true"] [data-scene-overlay] {
+  opacity: 0;
+  pointer-events: none;
+}
+/* Le pied de page est la vraie fin, a toute largeur (13/09, X4) : la
+   colonne de boutons recouvrait ses liens (« NAVIGATION » sous le mode
+   recit, capture a 92 %). */
+[data-scene-controls] {
+  transition: opacity 0.25s ease, visibility 0s linear 0s;
+}
+html[data-footer-in-view="true"] [data-scene-controls]:not(:focus-within) {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+}
+/* Telephone, droit ou couche (900 px : un Pixel 7 couche fait 839 px). */
+@media (max-width: 900px) {
+  /* La colonne se retire quand on descend (dock-sentinel, 13/09, X3) et
+     revient quand on remonte ou qu'on y entre au clavier ; elle s'efface
+     aussi quand le pied de page est la. `visibility` et non un simple
+     deplacement : un bouton invisible ne doit ni recouvrir, ni deborder,
+     ni recevoir le focus. */
+  [data-scene-controls] {
+    transition: opacity 0.25s ease, visibility 0s linear 0s;
+  }
+  html[data-dock-hidden="true"] [data-scene-controls]:not(:focus-within) {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+  }
+}
+body.reading-mode [data-scene-overlay],
+body.reading-mode [data-scene-controls] {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Les controles de scene n'apparaissent qu'une fois l'arrivee jouee
+   (13/09) : pendant la ceremonie du voile, la colonne de boutons se posait
+   sur la traduction de la phrase du voile (mesure controls-overlap, Pixel
+   7 : « Photo de la scene » sur « Vingt fleurs »). */
+html:not([data-foyer="done"]) [data-scene-controls] {
+  opacity: 0;
+  pointer-events: none;
+}
+
 body.reading-mode [class*="reveal-text-module"] [class*="inner"] {
   opacity: 1 !important;
   transform: none !important;
@@ -1448,7 +1511,7 @@ body[data-cardinal-hover="obsidienne"] button[data-compass-direction="obsidienne
    respire avant que le contenu apparaisse. */
 body.nahual-lab-reveal main[data-direction] {
   justify-content: flex-start;
-  padding-top: 90vh;
+  padding-top: 100vh; /* 90vh -> 100vh (13/09, X2) : le titre qui depassait tombait sous la derniere rangee de boutons ; la ligne de seuil, en haut, invite a descendre */
   /* padding-bottom 100vh (28/08 retour Sylvain "sur projet on ne voit
      jamais le cerf phase finale cache par le dernier projet") — apres
      le dernier contenu, laisse un viewport plein vide pour que la
@@ -1799,6 +1862,63 @@ body.nahual-lab-reveal main[data-direction] .contentPage > p {
   margin: 0 0 1rem;
   opacity: 0.85;
 }
+/* Sur les pages echo, la ligne vit dans le calque fixe, en haut a gauche
+   sous le bandeau, le premier quart de l'arc (13/09, X2 : au bas du
+   premier ecran elle passait sous le bouton du mode recit). */
+.seuilTete[data-seuil-tete="fixe"] {
+  position: fixed;
+  top: calc(var(--header-height) + 20px);
+  left: 6vw;
+  z-index: 5;
+  max-width: min(46ch, 60vw);
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  background: rgba(var(--panel-rgb), calc(0.25 + 0.35 * var(--scene-lum, 0)));
+  color: var(--ink);
+  text-shadow: 0 0 6px rgba(var(--shadow-rgb), 0.55);
+  opacity: 1;
+  pointer-events: none;
+}
+@media (max-width: 767px) {
+  .seuilTete[data-seuil-tete="fixe"] {
+    left: 5vw;
+    right: 5vw;
+    max-width: none;
+  }
+}
+body.reading-mode .seuilTete[data-seuil-tete="fixe"] {
+  position: static;
+  max-width: none;
+  background: transparent;
+  opacity: 1 !important;
+  visibility: visible !important;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+html[data-footer-in-view="true"] .seuilTete[data-seuil-tete="fixe"] {
+  opacity: 0 !important;
+}
+/* Telephone etroit (13/09) : le hero de l'accueil ne tient plus en hauteur
+   avec la ligne de seuil, et son titre montait sous le bouton du menu
+   (mesure : 553 px2 sur un Galaxy S9+). La ligne du voyage l'annonce deja. */
+@media (max-width: 400px) {
+  .seuilTete:not([data-seuil-tete]) {
+    display: none;
+  }
+}
+
+/* LE COULOIR DES CONTROLES POUR LE CONTENU DES PAGES ECHO (13/09, X3).
+   La colonne de boutons vit a gauche, de 16 a 60 px sur telephone ; le
+   contenu de <main> commencait a 6vw = 25 px, donc sous les boutons
+   (mesure : le chant et les legendes des cartes de Memoire recouverts).
+   Meme couloir de 72 px que le calque de texte. */
+@media (max-width: 767px) {
+  body.nahual-lab-reveal main[data-direction] {
+    padding-left: 72px;
+    padding-right: 5vw;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .seuilVoyage {
     transition: none;
@@ -1865,14 +1985,37 @@ body.nahual-lab-reveal main[data-direction] .contentPage > p {
   padding: 100vh 6vw 0;
   box-sizing: border-box;
 }
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   .cantarFlow {
-    align-items: center;
-    padding-top: 100vh;
+    /* Le couloir des controles (13/09, X3) : le bloc ne passe plus sous la
+       colonne de boutons. */
+    align-items: flex-start;
+    padding: 100vh 5vw 0 72px;
   }
 }
 body.reading-mode .cantar {
   background: rgba(var(--panel-rgb), 0.6);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+
+/* LA 404 DANS LE MONDE (13/09, X14) : trois langues, un seul retour. */
+.notFoundCode {
+  font-size: var(--t-page);
+  letter-spacing: 0.3em;
+  opacity: 0.5;
+  margin: 0 0 0.5rem;
+}
+.notFoundLang {
+  max-width: 52ch;
+  margin: 0 0 1.5rem;
+}
+.notFoundLang h1 {
+  font-size: var(--t-section);
+  line-height: var(--il-titre);
+  margin: 0 0 0.5rem;
+}
+.notFoundLink {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }

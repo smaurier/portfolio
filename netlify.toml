@@ -22,3 +22,17 @@
   # 31/08 : Netlify auto-detecte pnpm via pnpm-lock.yaml + version
   # pinnee via le champ packageManager de package.json (Corepack).
   # Aucun env var supplementaire necessaire.
+
+# LES EN-TETES (13/09, X14 de l'audit). Aucun n'etait pose ; Netlify n'en
+# met pas par defaut. Pas de Content-Security-Policy ici : Next injecte des
+# scripts en ligne et la scene charge des modeles et des polices du meme
+# domaine ; une CSP se pose avec un nonce, chantier a part. Ceux-ci ne
+# cassent rien et ferment les portes evidentes.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    Cross-Origin-Opener-Policy = "same-origin"

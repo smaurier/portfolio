@@ -77,8 +77,11 @@ export type QualityProfile = {
 };
 
 const QUALITY_DESKTOP: QualityProfile = { dprCap: 2, postFx: true, shadows: true, bladeCount: 26000, hairStrands: 90, leafCount: 240, skirtStrips: 52, clothFar: 7, simEveryOtherFrame: false };
-const QUALITY_MOBILE: QualityProfile = { dprCap: 1.5, postFx: false, shadows: false, bladeCount: 9000, hairStrands: 40, leafCount: 160, skirtStrips: 32, clothFar: 0, simEveryOtherFrame: true };
-const QUALITY_ECO: QualityProfile = { dprCap: 1, postFx: false, shadows: false, bladeCount: 7000, hairStrands: 28, leafCount: 120, skirtStrips: 24, clothFar: 0, simEveryOtherFrame: true };
+// 13/09 (X5 de l'audit, barre du metier) : 9000 -> 5000 brins, 160 -> 120
+// feuilles, 40 -> 32 meches. Mesure avant : Contact a 30 im/s en mediane
+// sous CPU x4, Projets et Memoire a 30 au 5e centile.
+const QUALITY_MOBILE: QualityProfile = { dprCap: 1.5, postFx: false, shadows: false, bladeCount: 5000, hairStrands: 32, leafCount: 120, skirtStrips: 32, clothFar: 0, simEveryOtherFrame: true };
+const QUALITY_ECO: QualityProfile = { dprCap: 1, postFx: false, shadows: false, bladeCount: 4000, hairStrands: 28, leafCount: 100, skirtStrips: 24, clothFar: 0, simEveryOtherFrame: true };
 
 /** Le profil effectif : eco force le repli, sinon le profil de l'ecran. */
 export function resolveQuality(eco: boolean, isMobile: boolean): QualityProfile {

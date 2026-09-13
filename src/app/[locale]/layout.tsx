@@ -28,6 +28,8 @@ import PiedraSkeleton from "../components/stag-scene/piedra-skeleton";
 import { CardinalTransitionProvider } from "../components/stag-scene/cardinal-transition-context";
 import NepantlaFrame from "../components/stag-scene/nepantla-frame";
 import SeuilLine from "../components/seuil-line";
+import FooterSentinel from "../components/footer-sentinel";
+import DockSentinel from "../components/dock-sentinel";
 import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
@@ -369,6 +371,9 @@ export default async function LocaleLayout({
           <NepantlaFrame>{children}</NepantlaFrame>
           {/* La ligne de seuil du voyage cardinal (11/09, N1) : message de statut. */}
           <SeuilLine seuils={dict.common.seuils} />
+          {/* Le pied de page est la vraie fin (13/09) : les calques fixes s'effacent quand il entre. */}
+          <FooterSentinel />
+          <DockSentinel />
           {/* Footer exhaustif (28/08 retour Sylvain) : 4 colonnes :
               Navigation, Ressources, Légal, Contact. Bottom row : ©
               + baseline localisée. */}

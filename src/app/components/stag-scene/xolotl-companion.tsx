@@ -5,7 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D } from "three";
 import { getMictlanSky } from "./mictlan-sky";
-import { rimCrossing, rimSurface } from "@/lib/xolotl-rim";
+import { makeRimWarp, rimCrossing, rimSlowdown, rimSurface } from "@/lib/xolotl-rim";
 import { bodyFromFeet, fitSupportPlane, type SupportPoint } from "@/lib/quadruped-stance";
 import { DOG_LEG_LIMITS, twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
@@ -623,6 +623,10 @@ export default function XolotlCompanion() {
   const prevRadiusRef = useRef<number | null>(null);
   const legsRef = useRef<Leg[] | null>(null);
   const stanceRef = useRef<{ y: number; pitch: number; roll: number } | null>(null);
+  const rimWarp = useMemo(() => makeRimWarp(START_X, END_X, Z_DEPTH_NORTH, RIM_SPEC), []);
+  /** L'action de marche, tenue en ref pour que la boucle d'image regle sa
+   *  cadence (le ralenti sur la margelle) sans toucher a `actions`. */
+  const walkActionRef = useRef<{ timeScale: number } | null>(null);
   /** Les appuis viennent-ils des vraies pattes, ou du repli a l'aveugle ?
    * Au changement de source la valeur saute : il faut se recaler d'un coup
    * plutot que de filtrer, sinon l'assiette arrive avec un tour de retard
@@ -745,6 +749,7 @@ export default function XolotlCompanion() {
         walk.timeScale = walkTimeScale;
         walk.reset().play();
       }
+      walkActionRef.current = walk ?? null;
       // Reset flag "codex deja lu pour ce cycle" (retour Sylvain 30/08 :
       // "le footer ne se rafraichit plus lorsque xolotl apparait" :
       // apres visite Codex, codex-read=1 stay en localStorage indefini,
@@ -806,7 +811,9 @@ export default function XolotlCompanion() {
     // droit et disparaitre naturellement").
     const t = elapsed / totalMs;
     const zDepth = direction === "obsidienne" ? Z_DEPTH_NORTH : Z_DEPTH;
-    const x = START_X + (END_X - START_X) * t;
+    // Au Nord, la traverse ralentit sur la margelle (13/09, X9) : meme
+    // duree totale, le temps est redistribue le long du chemin.
+    const x = direction === "obsidienne" ? rimWarp(t) : START_X + (END_X - START_X) * t;
     const inNorth = direction === "obsidienne";
     const radius = Math.hypot(x, zDepth);
     const groundY = terrainHeightWorld(x, zDepth) + Y_FOOT_OFFSET;
@@ -977,8 +984,13 @@ export default function XolotlCompanion() {
       const prevRadius = prevRadiusRef.current;
       if (prevRadius !== null) {
         const crossing = rimCrossing(prevRadius, radius, RIM_SPEC);
-        if (crossing === "enter") { tezcatlStore.impactSerial += 1; tezcatlStore.impacts.push({ x: x + 0.2, z: zDepth, amount: SPLASH_AMOUNT }); }
-        if (crossing === "exit") { tezcatlStore.impactSerial += 1; tezcatlStore.impacts.push({ x: x - 0.35, z: zDepth, amount: SPLASH_AMOUNT }); }
+        // La foulee ralentit sur la pierre avec le corps (13/09, X9).
+        const walkAction = walkActionRef.current;
+        if (walkAction) walkAction.timeScale = walkTimeScale * rimSlowdown(radius, RIM_SPEC);
+        // Deux eclaboussures et non une (13/09, X9) : une par patte avant,
+        // de part et d'autre de l'axe de marche.
+        if (crossing === "enter") { tezcatlStore.impactSerial += 2; tezcatlStore.impacts.push({ x: x + 0.2, z: zDepth - 0.18, amount: SPLASH_AMOUNT }, { x: x + 0.2, z: zDepth + 0.18, amount: SPLASH_AMOUNT * 0.8 }); }
+        if (crossing === "exit") { tezcatlStore.impactSerial += 2; tezcatlStore.impacts.push({ x: x - 0.35, z: zDepth - 0.18, amount: SPLASH_AMOUNT }, { x: x - 0.35, z: zDepth + 0.18, amount: SPLASH_AMOUNT * 0.8 }); }
       }
       prevRadiusRef.current = radius;
     }

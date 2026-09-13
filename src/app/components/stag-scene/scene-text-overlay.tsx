@@ -15,7 +15,7 @@ import styles from "./scene-text-overlay.module.css";
  */
 export default function SceneTextOverlay({ children }: { children: ReactNode }) {
   return (
-    <div className={styles.overlay}>
+    <div className={styles.overlay} data-scene-overlay="">
       <div className={styles.stack}>{children}</div>
     </div>
   );

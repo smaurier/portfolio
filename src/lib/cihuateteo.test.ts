@@ -58,8 +58,9 @@ describe("bearerPose : les porteuses descendent avec le soleil puis attendent au
     for (let i = 0; i < c.count; i++) {
       const p = bearerPose(i, c.count, 1, sunN, 0);
       expect(Math.hypot(p.x, p.z)).toBeCloseTo(c.crossroadsRadius, 6);
-      expect(p.y).toBeGreaterThan(c.hoverHeight - c.bobAmplitude - 1e-9);
-      expect(p.y).toBeLessThan(c.hoverHeight + c.bobAmplitude + 1e-9);
+      // Posees (13/09) : au sol, un bob discret.
+      expect(p.y).toBeGreaterThan(c.landHeight - c.bobAmplitude * 0.34 - 1e-9);
+      expect(p.y).toBeLessThan(c.landHeight + c.bobAmplitude * 0.34 + 1e-9);
       const toCentre = Math.atan2(-p.x, -p.z);
       const d = Math.atan2(Math.sin(p.yaw - toCentre), Math.cos(p.yaw - toCentre));
       expect(Math.abs(d)).toBeLessThan(1e-6);

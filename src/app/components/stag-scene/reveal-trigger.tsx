@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useProgress } from "@react-three/drei";
 import { decideCeremony } from "./foyer-decision";
+import { SONDE } from "@/lib/sonde";
 import { SHADERS_WARM_EVENT, getWarmDirection } from "./shader-warmup";
 
 /**
@@ -86,7 +87,7 @@ export default function RevealTrigger() {
     const holdMs = hearthLit ? HOLD_WHEN_HEARTH_LIT_MS : HOLD_AFTER_SEQUENCE_MS;
 
     const tryPoseLoaded = () => {
-      if (process.env.NODE_ENV !== "production") {
+      if (SONDE) {
         (window as unknown as { __nahualVoile?: unknown }).__nahualVoile = { progress: progressRef.current, sequenceDone: sequenceDoneRef.current, warm: warmRef.current, done };
       }
       if (done) return;

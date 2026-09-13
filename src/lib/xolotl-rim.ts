@@ -51,3 +51,48 @@ export function rimCrossing(prevRadius: number, radius: number, rim: RimSpec): "
   if (wasIn && !isIn) return "exit";
   return null;
 }
+
+/** Largeur (u) de part et d'autre de la pierre ou le chien ralentit. */
+export const RIM_SLOW_BAND = 0.45;
+/** Vitesse au coeur de la bande, en fraction de la vitesse de traverse. */
+export const RIM_SLOW_FACTOR = 0.68;
+
+/** Le ralenti au bord (13/09, X9 de l'audit) : a la vitesse de traverse,
+ * l'enjambement de la margelle se lisait comme un glissement. Facteur de
+ * vitesse selon la distance au centre : 1 loin de la pierre, RIM_SLOW_FACTOR
+ * dessus, et une pente douce (smoothstep) sur RIM_SLOW_BAND de chaque cote. */
+export function rimSlowdown(radius: number, rim: RimSpec): number {
+  const d = radius < rim.inner ? rim.inner - radius : radius > rim.outer ? radius - rim.outer : 0;
+  const t = smoothstep(0, RIM_SLOW_BAND, d);
+  return RIM_SLOW_FACTOR + (1 - RIM_SLOW_FACTOR) * t;
+}
+
+/**
+ * La traverse ralentie (13/09, X9). Le chien avance d'un bout a l'autre
+ * d'une droite (x de `startX` a `endX`, a la profondeur `z`) en un temps
+ * fixe ; sa vitesse suit `rimSlowdown` le long du chemin. On integre une
+ * fois la duree de chaque tranche (plus lent = plus long) et on renvoie la
+ * fonction temps normalise -> x, par interpolation inverse. Le temps
+ * total ne change pas : les fondus d'entree et de sortie restent caleds.
+ */
+export function makeRimWarp(startX: number, endX: number, z: number, rim: RimSpec, samples = 256): (t: number) => number {
+  const cum = new Float64Array(samples + 1);
+  for (let i = 1; i <= samples; i++) {
+    const x = startX + ((endX - startX) * (i - 0.5)) / samples;
+    cum[i] = cum[i - 1] + 1 / rimSlowdown(Math.hypot(x, z), rim);
+  }
+  const total = cum[samples];
+  return (t: number) => {
+    const target = Math.min(1, Math.max(0, t)) * total;
+    let lo = 0;
+    let hi = samples;
+    while (hi - lo > 1) {
+      const mid = (lo + hi) >> 1;
+      if (cum[mid] < target) lo = mid;
+      else hi = mid;
+    }
+    const span = cum[hi] - cum[lo] || 1;
+    const k = (lo + (target - cum[lo]) / span) / samples;
+    return startX + (endX - startX) * k;
+  };
+}

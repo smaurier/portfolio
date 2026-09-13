@@ -33,6 +33,10 @@ export const CIHUATETEO = {
   crossroadsSpreadDeg: 22,
   /** Hauteur de flottement au carrefour (u, pieds au-dessus du sol). */
   hoverHeight: 0.35,
+  /** Posees au carrefour (13/09, X8 de l'audit) : les pieds au sol, plus
+   * le bob divise par trois. Avant, elles restaient a `hoverHeight` au
+   * repos, a 30 cm au-dessus de l'herbe. */
+  landHeight: 0.02,
   bobAmplitude: 0.12,
   bobHz: 0.18,
   /** Fenetre du crepuscule (0..1, cf ouest-arc dusk) sur laquelle elles descendent. */
@@ -85,7 +89,7 @@ function crossroadsPose(index: number, count: number, bob: number, c = CIHUATETE
   const angle = ((c.crossroadsAzimuthDeg + (index - (count - 1) / 2) * c.crossroadsSpreadDeg) * Math.PI) / 180;
   const x = Math.sin(angle) * c.crossroadsRadius;
   const z = Math.cos(angle) * c.crossroadsRadius;
-  return { x, y: c.hoverHeight + bob, z, yaw: Math.atan2(-x, -z) };
+  return { x, y: c.landHeight + bob * 0.34, z, yaw: Math.atan2(-x, -z) };
 }
 
 export function bearerPose(index: number, count: number, dusk: number, sun: Dir3, time: number, c = CIHUATETEO): BearerPose {

@@ -7,6 +7,7 @@ import { AdditiveBlending, Color, CylinderGeometry, Group, Mesh, MeshStandardMat
 import { brazierPositions, COPAL, copalIntensity, copalShows, puffPose } from "@/lib/copal";
 import { brazierGlow } from "@/lib/foyer";
 import { foyerStore } from "./foyer-store";
+import { persistentLights } from "./persistent-lights";
 import { DIRECTION_COLOR_VIVID } from "./direction-colors";
 import { frostStore } from "./frost-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -37,6 +38,14 @@ import { useSceneRefs } from "./scene-refs-context";
  */
 
 const SMOKE_SPRITE = "/img/particles/smoke_07.png";
+/** LA LUMIERE DU FOYER (13/09, X6 de l'audit). A 0 % de l'arc, l'image
+ * fixe du Centre etait noire : le cerf un fantome, les braseros des
+ * points. Le foyer eclaire desormais le sol et le cerf par le bas, avec la
+ * lumiere ponctuelle persistante que Xolotl porte au Nord (il n'est jamais
+ * au Centre, la lampe est libre). L'intensite suit l'offrande, comme la
+ * fumee : une seule verite sur le feu. */
+const HEARTH_LIGHT = 40;
+const HEARTH_LIGHT_Y = 0.9;
 const BOWL_HEIGHT = 0.14;
 /** La fumee du copal est blanche-grise ; la direction ne fait que la teinter. */
 const SMOKE_BASE = new Color("#cfc7bd");
@@ -104,6 +113,12 @@ export default function CopalBraziers() {
     const frost = frostStore.active ? frostStore.state.frost : 0;
     const intensity = copalShows(direction) ? copalIntensity(p, frost) : 0;
     root.visible = intensity > 0.01;
+    const hearth = persistentLights.ember;
+    if (hearth && direction === "jade") {
+      hearth.position.set(0, HEARTH_LIGHT_Y, 0);
+      const pulse = sceneRefs?.reducedMotionRef.current ? 1 : 0.92 + 0.08 * Math.sin(state.clock.elapsedTime * 5.3);
+      hearth.intensity = HEARTH_LIGHT * intensity * pulse;
+    }
     if (!root.visible) return;
     // La fumee prend un peu la teinte de la direction, sans la trahir.
     tint.copy(SMOKE_BASE).lerp(cardinalScratch.set(DIRECTION_COLOR_VIVID[direction]), 0.3);

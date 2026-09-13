@@ -9,6 +9,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import type { DirectionKey } from "./direction-colors";
 import { Texture, WebGLRenderTarget, type Material, type Object3D } from "three";
 import { useSceneRefs } from "./scene-refs-context";
+import { SONDE } from "@/lib/sonde";
 import { initialEnvironmentWarm, installEnvironmentBake, warmEnvironmentStep } from "./environment-warm";
 
 /**
@@ -141,7 +142,7 @@ export default function ShaderWarmup() {
   const wasActiveRef = useRef(false);
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production") {
+    if (SONDE) {
       (window as unknown as { __nahualChargement?: unknown }).__nahualChargement = { progress, active, item, loaded, total };
     }
     if (active && !wasActiveRef.current) dueRef.current = true;
@@ -219,7 +220,7 @@ export default function ShaderWarmup() {
   // la suite e2e et les sondes (window.__nahualTardifs).
   const idsConnusRef = useRef(new Set<number>());
   useEffect(() => {
-    if (process.env.NODE_ENV === "production") return;
+    if (!SONDE) return;
     installEnvironmentBake(gl);
     const ids = idsConnusRef.current;
     for (const pr of gl.info.programs ?? []) ids.add(pr.id);
@@ -273,7 +274,7 @@ export default function ShaderWarmup() {
     // Seule la COMPILATION attend la fin des chargements et les balayages.
     const file = fileRef.current;
     capturer();
-    if (process.env.NODE_ENV !== "production") {
+    if (SONDE) {
       const d = derniereRef.current;
       const now = performance.now();
       if (d.t > 0 && now - d.t > 50) {
@@ -306,7 +307,7 @@ export default function ShaderWarmup() {
     // En dev : le journal de la chauffe, une ligne par image qui compile
     // (objet, programmes crees, millisecondes), pour les sondes.
     const journal = (nom: string, t0: number) => {
-      if (process.env.NODE_ENV === "production") return;
+      if (!SONDE) return;
       const w = window as unknown as { __nahualChauffe?: { crees: number; journal?: Array<[string, number, number, number]> } };
       const apres = gl.info.programs?.length ?? 0;
       (w.__nahualChauffe ??= { crees: 0 }).journal ??= [];
@@ -322,6 +323,10 @@ export default function ShaderWarmup() {
     // Un programme EN VOL a la fois : tant que sa liaison n'est pas finie,
     // rien d'autre ne se compile et l'objet reste sur la couche froide.
     const attente = attenteRef.current;
+    if (SONDE) {
+      const w = window as unknown as { __nahualChauffe?: { crees: number; attente?: string[] } };
+      (w.__nahualChauffe ??= { crees: 0 }).attente = [...attente.keys()].map((o) => `${o.type} ${o.name || "?"}`);
+    }
     if (attente.size > 0) {
       for (const [o, a] of attente) {
         const pret = a.programmes.every((p) => !p.isReady || p.isReady());
@@ -363,7 +368,7 @@ export default function ShaderWarmup() {
       if (apres === avant) return false;
       creesCycleRef.current += apres - avant;
       for (const pr of gl.info.programs ?? []) idsConnusRef.current.add(pr.id);
-      if (process.env.NODE_ENV !== "production") {
+      if (SONDE) {
         const w = window as unknown as { __nahualChauffe?: { crees: number } };
         w.__nahualChauffe = { ...w.__nahualChauffe, crees: (w.__nahualChauffe?.crees ?? 0) + (apres - avant) };
       }
@@ -389,14 +394,16 @@ export default function ShaderWarmup() {
       if (cree) return;
     }
     const annex = annexRef.current;
-    while (annex.length > 0) {
+    // UNE etape annexe par image (13/09, X5 de l'audit) : les etapes des
+    // simulateurs du Nord (ondes, fluide) ne creent pas de programme apres
+    // la premiere, et la boucle les jouait toutes dans la meme image ; c'est
+    // la tache de 1,5 s mesuree a l'arrivee sur Memoire sous CPU x4.
+    if (annex.length > 0) {
       const t0 = performance.now();
       (annex.shift() as () => void)();
-      const cree = compte();
-      // Tracee meme sans programme cree : une etape annexe peut couter
-      // cher au GPU (passes de simulation) sans rien compiler.
+      compte();
       journal(`annexe ${annex.length} restantes`, t0);
-      if (cree) return;
+      return;
     }
     warmingRef.current = false;
     warmDirection = direction;

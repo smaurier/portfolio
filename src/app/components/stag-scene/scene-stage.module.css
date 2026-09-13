@@ -42,3 +42,33 @@
 .closureSlot > * {
   pointer-events: auto;
 }
+
+/* LA CLOTURE DANS LE FLUX (13/09) : le dernier bloc des pages echo, apres le
+   contenu, aligne sur la colonne de texte. */
+.closureFlow {
+  display: flex;
+  justify-content: flex-start;
+  padding: 3rem 6vw calc(var(--footer-height, 0px) + 48px);
+}
+@media (max-width: 767px) {
+  .closureFlow {
+    padding-left: 72px;
+    padding-right: 5vw;
+  }
+}
+
+/* LE PIED DE PAGE EST LA VRAIE FIN (13/09, X4). Les calques fixes (texte,
+   cloture) cedaient la place en passant SOUS le pied de page qui defile
+   par-dessus : on lisait un panneau coupe. Quand le pied entre dans le
+   cadre (html[data-footer-in-view], pose par footer-sentinel), ils
+   s'effacent. */
+.closureSlot {
+  transition: opacity 0.4s ease;
+}
+:global(html[data-footer-in-view="true"]) .closureSlot {
+  opacity: 0;
+  pointer-events: none;
+}
+:global(html[data-footer-in-view="true"]) .closureSlot > * {
+  pointer-events: none;
+}

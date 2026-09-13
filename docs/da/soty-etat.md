@@ -106,6 +106,17 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **13/09, les corrections de l'audit** (Sylvain : « Corrige tout, sans
+  discontinuer ») : X1 a X4 (calque fixe, cloture dans le flux des pages
+  echo et fixe au Centre, ligne de seuil en haut a gauche, couloir et
+  colonne de boutons qui se retire sur telephone, pied de page qui efface
+  les calques), X6 (lumiere du foyer), X7 (limiteur, pont, espace,
+  panoramique, respiration ; a ecouter), X8 (danseuses posees, offrandes
+  x2), X9 (chien ralenti sur la margelle, deux eclaboussures), X12 (deux
+  affirmations reformulees, a relire), X14 (404, en-tetes), X15 (fleurs
+  recyclees) ; X5 partiel (profil telephone allege, simulateurs du Nord en
+  tranches). Tests : `calque-fixe`, `controls-overlap` etendu, unitaires.
+  Note a remesurer une fois les mesures mobiles refaites seules.
 - **13/09, l'audit complet** (`audit-13-09.md`, production du jour, captures,
   video, signes vitaux, accessibilite, son, cosmogonie) : **8,85 -> 8,1**.
   La note baisse parce que l'audit a trouve ce que les passes precedentes

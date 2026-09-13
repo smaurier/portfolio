@@ -297,7 +297,8 @@ export default function Cihuateteo() {
       // Le meme fichier utilisait deja l'API de faisceau pour les cheveux et
       // la jupe, deux blocs plus haut.
       const papers = Array.from({ length: PAPERS_PER_BEARER }, (_, k) => ({
-        strip: createStrip(PAPER_POINTS, 0.35 + 0.2 * hash(i * 7 + k, 1), { x: 0, y: 0.1, z: 0 }),
+        // x2 (13/09, X8) : les papiers d'amate doivent se lire du cadre de fin de page.
+        strip: createStrip(PAPER_POINTS, 0.7 + 0.4 * hash(i * 7 + k, 1), { x: 0, y: 0.1, z: 0 }),
         slot: i * PAPERS_PER_BEARER + k,
         peg: { x: (hash(i * 7 + k, 2) - 0.5) * 1.6, z: 0.4 + hash(i * 7 + k, 3) * 0.6 },
         phase: hash(i * 7 + k, 4) * 6.28,
@@ -645,7 +646,9 @@ export default function Cihuateteo() {
         // Au contact, les offrandes PRENNENT : les braises grossissent le
         // temps de l'embrasement, sinon le geste ne se lit pas (verifie a la
         // capture : a taille constante, on croyait voir le brancard bruler).
-        e.sprite.scale.setScalar((0.22 + 0.08 * k) * (1 + 1.4 * landing.flare));
+        // x2,2 (13/09, X8) : a 18 unites de la camera les braises faisaient
+        // 3 px ; un point lumineux se lit a toute distance s'il a une taille.
+        e.sprite.scale.setScalar((0.48 + 0.18 * k) * (1 + 1.4 * landing.flare));
         // L'embrasement de l'atterrissage se pose PAR-DESSUS la braise
         // ordinaire : c'est le contact qui les allume, puis elles retombent.
         e.sprite.material.opacity = Math.min(1, settle * blend * flicker * (1 + 2.2 * landing.flare));

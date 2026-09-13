@@ -4,13 +4,25 @@
    l'animation assez largement derrière") — la scène (le cerf, centré dans
    le cadre caméra) reste visible sur le reste de l'écran. */
 .overlay {
-  position: absolute;
+  /* FIXE, et non absolute (13/09, X1 de l'audit). Ce calque n'a aucun
+     ancetre positionne : en `absolute; inset: 0` il etait ancre au PREMIER
+     ecran et defilait hors champ. Mesure : les chapitres 2 a 4 de l'accueil
+     et la cloture des quatre pages echo n'ont jamais ete visibles sur
+     ordinateur depuis le canvas fixe du 25/08 (chapitre « Quatre
+     directions » a opacite 1 et y = -941 px). Le calque suit desormais la
+     fenetre, comme le canvas qu'il commente. */
+  position: fixed;
   inset: 0;
   z-index: 5;
+  transition: opacity 0.4s ease;
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
-  padding: 0 6vw calc(var(--footer-height, 65px) + 48px);
+  /* 84 px et non 48 (13/09, X4) : la derniere rangee de boutons (son, mode
+     recit) monte jusqu'a 66 px du bas ; la cloture, enfin visible, s'y
+     posait (mesure : « mode recit » recouvrait 510 px2 de « Retour au
+     Centre »). */
+  padding: 0 6vw calc(var(--footer-height, 65px) + 84px);
   pointer-events: none;
 }
 

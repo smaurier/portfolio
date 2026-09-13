@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./sound-design.module.css";
 import { useCurrentDirection } from "./stag-scene/use-current-direction";
+import { useCardinalTransition } from "./stag-scene/cardinal-transition-context";
 import { arrivalCueFor, shouldPlayArrival } from "@/lib/journey-cues";
 import { SHADERS_WARM_EVENT } from "./stag-scene/shader-warmup";
 import type { DirectionKey } from "./stag-scene/direction-colors";
@@ -52,8 +53,18 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
   const volumeRef = useRef(0.5);
   const ambientNodesRef = useRef<{ osc: OscillatorNode; gain: GainNode }[]>([]);
   const masterGainRef = useRef<GainNode | null>(null);
+  const limiterRef = useRef<DynamicsCompressorNode | null>(null);
+  /** L'espace par direction (13/09) : une convolution generee et son
+   *  niveau, crees a la demande, en fondu croise au changement. */
+  const spacesRef = useRef(new Map<string, { conv: ConvolverNode; wet: GainNode }>());
   const windRef = useRef<{ source: AudioBufferSourceNode; gain: GainNode; lfos: OscillatorNode[] } | null>(null);
   const direction = useCurrentDirection();
+  // LE PONT ENTRE DEUX DIRECTIONS (13/09, X7). Les couches changeaient a
+  // l'arrivee de la route, apres le voyage ; elles suivent maintenant la
+  // direction VISEE des le clic, le temps du cadre nepantla : la nappe qui
+  // part descend pendant que celle qui vient monte.
+  const transition = useCardinalTransition();
+  const soundDirection: DirectionKey = (transition?.transitionDirection as DirectionKey | null | undefined) ?? direction;
 
   // Lecture initiale de l'état muté depuis localStorage. Pattern
   // SSR-safe : initial state true, correction post-hydratation cote
@@ -104,6 +115,16 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     const ctx = new Ctor();
     const master = ctx.createGain();
     master.gain.value = volumeRef.current;
+    // LE LIMITEUR (13/09, X7 de l'audit). Cinq couches et une cloche
+    // pouvaient depasser 0 dB : ca s'entend sur telephone. Un compresseur
+    // en fin de chaine, seuil -18 dB, ratio 8, attaque 3 ms, relache 250 ms.
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -18;
+    limiter.knee.value = 6;
+    limiter.ratio.value = 8;
+    limiter.attack.value = 0.003;
+    limiter.release.value = 0.25;
+    limiterRef.current = limiter;
     // Analyser insert entre master et destination (28/08 boite outil
     // #3 sound-reactive visuals). getByteFrequencyData chaque frame
     // via une rAF dediee → poste level normalise 0..1 dans un ref
@@ -111,7 +132,8 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     // bloom + par autres viewers eventuels.
     const analyser = ctx.createAnalyser();
     analyser.fftSize = 256;
-    master.connect(analyser);
+    master.connect(limiter);
+    limiter.connect(analyser);
     analyser.connect(ctx.destination);
     const levelRef = { current: 0 };
     WindowAny.__nahualAudioLevel = levelRef;
@@ -128,6 +150,55 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     masterGainRef.current = master;
     return ctx;
   }, []);
+
+  // L'ESPACE (13/09, X7). Aucune reverberation jusqu'ici : le Nord (une
+  // grotte, un bassin) et l'Est (le verre) sonnaient dans la meme piece.
+  // Une convolution par direction, generee (bruit qui decroit), en envoi
+  // depuis la sortie des couches, et un niveau qui se croise au voyage.
+  const SPACES: Record<DirectionKey, { seconds: number; wet: number }> = useMemo(
+    () => ({
+      jade: { seconds: 0.5, wet: 0.06 },
+      dore: { seconds: 0.35, wet: 0.16 },
+      turquoise: { seconds: 0.4, wet: 0.05 },
+      cendre: { seconds: 0.7, wet: 0.09 },
+      obsidienne: { seconds: 1.1, wet: 0.32 },
+    }),
+    [],
+  );
+  useEffect(() => {
+    const ctx = ctxRef.current;
+    const master = masterGainRef.current;
+    const limiter = limiterRef.current;
+    if (!ctx || !master || !limiter || muted) return;
+    const spaces = spacesRef.current;
+    let current = spaces.get(soundDirection);
+    if (!current) {
+      const spec = SPACES[soundDirection];
+      const length = Math.max(1, Math.floor(ctx.sampleRate * spec.seconds));
+      const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = impulse.getChannelData(ch);
+        for (let i = 0; i < length; i++) {
+          // Decroissance exponentielle, un peu plus longue a gauche qu'a
+          // droite pour que l'espace ait une largeur.
+          const t = i / length;
+          d[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 2.4 + ch * 0.3);
+        }
+      }
+      const conv = ctx.createConvolver();
+      conv.buffer = impulse;
+      const wet = ctx.createGain();
+      wet.gain.value = 0;
+      master.connect(conv).connect(wet).connect(limiter);
+      current = { conv, wet };
+      spaces.set(soundDirection, current);
+    }
+    const now = ctx.currentTime;
+    for (const [dir, space] of spaces) {
+      const cible = dir === soundDirection ? SPACES[dir as DirectionKey].wet : 0;
+      space.wet.gain.setTargetAtTime(cible, now, 0.6);
+    }
+  }, [muted, soundDirection, SPACES]);
 
   // Démarrage/arrêt ambient drone
   useEffect(() => {
@@ -154,6 +225,15 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     // Ambient : 3 sinus low avec léger detuning pour donner épaisseur
     const freqs = [87.31, 110, 130.81]; // F2, A2, C3 : accord mineur cosmique
     const nodes: { osc: OscillatorNode; gain: GainNode }[] = [];
+    // LA RESPIRATION (13/09, X7) : la nappe monte et descend sur 40 s, un
+    // tiers de sa force, pour que le silence existe. Un LFO sur le gain.
+    const lfo = ctx.createOscillator();
+    const lfoDepth = ctx.createGain();
+    lfo.type = "sine";
+    lfo.frequency.value = 1 / 40;
+    lfoDepth.gain.value = 0.013;
+    lfo.connect(lfoDepth);
+    lfo.start();
     for (const f of freqs) {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -162,10 +242,12 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
       gain.gain.value = 0;
       // Fade in doux 2s
       gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 2);
+      lfoDepth.connect(gain.gain);
       osc.connect(gain).connect(master);
       osc.start();
       nodes.push({ osc, gain });
     }
+    nodes.push({ osc: lfo, gain: lfoDepth });
     ambientNodesRef.current = nodes;
 
     return () => {
@@ -179,7 +261,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     const ctx = ctxRef.current;
     const master = masterGainRef.current;
     if (!ctx || !master) return;
-    const wantWind = !muted && direction === "cendre";
+    const wantWind = !muted && soundDirection === "cendre";
     const current = windRef.current;
     if (!wantWind) {
       if (!current) return;
@@ -231,12 +313,12 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     source.start();
     gain.gain.linearRampToValueAtTime(0.11, ctx.currentTime + 2.5);
     windRef.current = { source, gain, lfos };
-  }, [muted, direction]);
+  }, [muted, soundDirection]);
 
   // Le gel de l'Est (06/09) : tant que le monde est gele, la glace craque
   // de loin en loin (tic aigu tres court, parfois un gemissement grave).
   useEffect(() => {
-    if (muted || direction !== "dore") return;
+    if (muted || soundDirection !== "dore") return;
     let timer = 0;
     const tick = () => {
       const ctx = ctxRef.current;
@@ -277,7 +359,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     };
     timer = window.setTimeout(tick, 800);
     return () => window.clearTimeout(timer);
-  }, [muted, direction]);
+  }, [muted, soundDirection]);
 
   // L'explosion du gel de l'Est (06/09) : un craquement de glace (bruit
   // blanc passe-haut, tres court) puis le coup sourd (bruit passe-bas et
@@ -486,20 +568,8 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     };
   }, [direction, playArrival]);
 
-  // Chime cardinal au click sur data-cardinal-direction
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-
-    function onClick(e: MouseEvent) {
-      const target = e.target as HTMLElement | null;
-      const cardinal = target?.closest?.("[data-cardinal-direction]") as HTMLElement | null;
-      const dir = cardinal?.getAttribute("data-cardinal-direction");
-      if (dir) playChime(dir);
-    }
-
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
-  }, [playChime]);
+  // Plus de cloche au clic (13/09, X7) : elle doublait celle du climax, et
+  // le voyage a maintenant son pont (les couches qui se croisent).
 
   // LE SUD, LA CHALEUR (11/09). Un bourdon de midi : deux sinus graves un
   // peu desaccordes sous un passe-bas, dont le volume MONTE AVEC LE JOUR de
@@ -510,7 +580,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
   useEffect(() => {
     const ctx = ctxRef.current;
     const master = masterGainRef.current;
-    const wantHeat = !muted && direction === "turquoise";
+    const wantHeat = !muted && soundDirection === "turquoise";
     const current = heatRef.current;
     if (!wantHeat || !ctx || !master) {
       if (current && ctx) {
@@ -551,13 +621,13 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     };
     raf = window.requestAnimationFrame(suivre);
     return () => window.cancelAnimationFrame(raf);
-  }, [muted, direction]);
+  }, [muted, soundDirection]);
 
   // LE TONNERRE SEC DE LA FRAPPE (11/09). Le compteur strikeHit du store
   // avance quand le serpent touche l'anneau : un coup court, bruit
   // passe-bas et sinus qui tombe, plus sec que le coup du gel de l'Est.
   useEffect(() => {
-    if (muted || direction !== "turquoise") return;
+    if (muted || soundDirection !== "turquoise") return;
     let vu = xiuhcoatlStore.strikeHit;
     const timer = window.setInterval(() => {
       const ctx = ctxRef.current;
@@ -595,7 +665,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
       sub.stop(now + 0.5);
     }, 90);
     return () => window.clearInterval(timer);
-  }, [muted, direction]);
+  }, [muted, soundDirection]);
 
   // LE NORD, L'EAU (11/09). Une nappe tres basse tant qu'on est au bassin,
   // et un « plip » a chaque pas de Xolotl dans l'eau : le simulateur
@@ -606,7 +676,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
   useEffect(() => {
     const ctx = ctxRef.current;
     const master = masterGainRef.current;
-    const wantWater = !muted && direction === "obsidienne";
+    const wantWater = !muted && soundDirection === "obsidienne";
     const current = waterRef.current;
     if (!wantWater || !ctx || !master) {
       if (current && ctx) {
@@ -670,12 +740,17 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
       g.gain.setValueAtTime(0.0001, now);
       g.gain.exponentialRampToValueAtTime(0.09, now + 0.008);
       g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
-      o.connect(g).connect(m);
+      // Le pas vient d'ou est le chien (13/09, X7) : panoramique sur sa
+      // position dans le bassin, gauche et droite de l'axe du cerf.
+      const pan = c.createStereoPanner();
+      const xo = tezcatlStore.xolotl;
+      pan.pan.value = xo ? Math.max(-1, Math.min(1, xo.x / 6)) : 0;
+      o.connect(g).connect(pan).connect(m);
       o.start(now);
       o.stop(now + 0.13);
     }, 60);
     return () => window.clearInterval(timer);
-  }, [muted, direction]);
+  }, [muted, soundDirection]);
 
   // LE CENTRE, LE FEU (11/09). Le foyer qui ne s'eteint jamais : un lit
   // chaud (bruit brun passe-bas) et des crepitements courts dont la cadence
@@ -686,7 +761,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
   useEffect(() => {
     const ctx = ctxRef.current;
     const master = masterGainRef.current;
-    const wantFire = !muted && direction === "jade";
+    const wantFire = !muted && soundDirection === "jade";
     const current = fireRef.current;
     if (!wantFire || !ctx || !master) {
       if (current && ctx) {
@@ -752,7 +827,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     };
     timer = window.setTimeout(crepite, 400);
     return () => window.clearTimeout(timer);
-  }, [muted, direction]);
+  }, [muted, soundDirection]);
 
   /**
    * LA CLOCHE DU CLIMAX (08/09). Jusqu'ici l'accord cardinal ne sonnait
@@ -834,7 +909,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     />
     <button
       type="button"
-      className={styles.toggle}
+      className={styles.toggle} data-scene-controls=""
       onClick={handleToggle}
       aria-label={muted ? label.on : label.off}
       title={muted ? label.on : label.off}

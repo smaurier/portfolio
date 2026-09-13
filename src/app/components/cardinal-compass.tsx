@@ -198,7 +198,7 @@ export default function CardinalCompass({
       <nav
         className={styles.compass}
         aria-label={l === "fr" ? "Boussole cardinale" : l === "en" ? "Cardinal compass" : "Brújula cardinal"}
-      >
+       data-scene-controls="">
         <span className={styles.slotEmpty} aria-hidden="true" />
         {dot(SLOTS.N)}
         <span className={styles.slotEmpty} aria-hidden="true" />

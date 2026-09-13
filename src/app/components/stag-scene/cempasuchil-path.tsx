@@ -44,9 +44,9 @@ const FOLLOW_RATE = 0.3; // /s vers la cible quand elles convergent
 // Xolotl) et sa propre lenteur ; sa traction descend en ease-in-out
 // (cosinus) sur sa propre duree, pas d'exponentielle commune. Le
 // surnaturel converge d'un bloc, le retour est une dispersion.
-const RETURN_STAGGER_S = 14;
-const RETURN_MIN_S = 10;
-const RETURN_MAX_S = 26;
+const RETURN_STAGGER_S = 4; // 14 -> 4 (13/09, X15) : au repos, le chemin se vidait 40 s
+const RETURN_MIN_S = 4;
+const RETURN_MAX_S = 10;
 const RETURN_RATE = 0.35; // /s : suivi de la cible (qui, elle, bouge lentement)
 const CLOUD_MIN = 0.5;
 const CLOUD_MAX = 1.6;

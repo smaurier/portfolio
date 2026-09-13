@@ -1,6 +1,8 @@
 /* eslint-disable react-hooks/set-state-in-effect -- fichier 3D r3f : useFrame mutations 60 fps, refs pour valeurs frame-based, Math.random init particules. Patterns gamedev legitimes. */
 "use client";
 
+import { SONDE } from "@/lib/sonde";
+
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
@@ -167,7 +169,7 @@ export default function PersistentScene() {
           // ce drapeau, three se comporte comme en production.
           const shadersProd = process.env.NODE_ENV === "production" || new URLSearchParams(window.location.search).has("shaders-prod");
           if (shadersProd) state.gl.debug.checkShaderErrors = false;
-          if (process.env.NODE_ENV !== "production") {
+          if (SONDE) {
             const w = window as unknown as { __nahualScene?: unknown; __nahualR3f?: unknown };
             w.__nahualScene = state.scene;
             w.__nahualR3f = state;
