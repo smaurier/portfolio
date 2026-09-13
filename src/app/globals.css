@@ -2101,6 +2101,7 @@ html[data-theme="light"] .logoLink img {
   --tezcatl-lo: #07050b;
   --tezcatl-bord: rgba(var(--ink-rgb), 0.45);
   --tezcatl-reflet: rgba(244, 234, 213, 0.55);
+  --tezcatl-eclat: rgba(255, 249, 236, 0.95);
 }
 :root[data-theme="light"] {
   --tezcatl-hi: #6e6683;
@@ -2134,6 +2135,39 @@ html[data-theme="light"] .logoLink img {
 }
 .themeToggle[aria-pressed="true"] .themeToggleReflet {
   stroke-width: 1.8;
+}
+/* L'ECLAT DU DISQUE (13/09) : une fois, quand le monde s'est pose, la
+   lumiere court sur le bord poli du tezcatl. C'est la seule chose qui
+   designe le miroir : la sonde de visite type a montre qu'aucun visiteur
+   ne le trouvait tout seul (docs/da/profondeur-des-mecaniques). Deux
+   tours, puis plus rien de la session. */
+.themeToggleEclat {
+  opacity: 0;
+  transform-origin: 50% 50%;
+}
+.themeToggle[data-eclat] .themeToggleEclat {
+  animation: tezcatlEclat 1.5s ease-in-out 2;
+}
+@keyframes tezcatlEclat {
+  0% {
+    opacity: 0;
+    transform: rotate(-90deg);
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(270deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .themeToggle[data-eclat] .themeToggleEclat {
+    animation: none;
+  }
 }
 .themeToggleMobile {
   width: 44px;

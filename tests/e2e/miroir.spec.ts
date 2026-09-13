@@ -127,3 +127,28 @@ test("la 404 sort du voile et prend la face memorisee", async ({ page }) => {
   const fond = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   expect(luminance(fond), "la 404 est sur le papier").toBeGreaterThan(0.7);
 });
+
+test("l'eclat designe le disque a la premiere visite, et seulement a elle", async ({ page }) => {
+  // La sonde de visite type (13/09) a montre qu'aucun visiteur ne trouvait le
+  // miroir : rien ne designait le disque. Une fois, quand le monde s'est
+  // pose, la lumiere court sur son bord.
+  test.setTimeout(150_000);
+  await page.goto("/fr?shaders-prod");
+  await attendre(page);
+  const disque = page.locator("[data-theme-toggle]").first();
+  await expect(disque).toHaveAttribute("data-eclat", "", { timeout: 10_000 });
+  // Il ne dure pas : la session n'en garde qu'un.
+  await expect(disque).not.toHaveAttribute("data-eclat", "", { timeout: 10_000 });
+
+  // Qui a deja retourne le miroir connait le bouton : pas d'eclat.
+  await page.evaluate(() => {
+    try {
+      sessionStorage.clear();
+      localStorage.setItem("nahual-theme", "dark");
+    } catch {}
+  });
+  await page.reload();
+  await attendre(page);
+  await page.waitForTimeout(3000);
+  await expect(page.locator("[data-theme-toggle]").first()).not.toHaveAttribute("data-eclat", "");
+});

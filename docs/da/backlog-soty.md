@@ -103,6 +103,24 @@ propose). Les entrees ci-dessous en sont la liste de travail.
 | ~~X14~~ | ~~404 et en-tetes~~ (fait, 13/09) : `[locale]/not-found.tsx` dans le monde, trois langues, retour au Centre ; `netlify.toml` : X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, COOP (pas de CSP : chantier a part, nonce) | 404 stylée ; en-tetes en production Netlify | S | fait |
 | ~~X15~~ | ~~Le chemin de cempasuchil se vide au repos~~ (fait, 13/09) : retour des fleurs en 4 a 14 s au lieu de 10 a 40 | 60 s au repos : les fleurs sont la | S | fait |
 
+## 0 quater. La profondeur avant la variete (13/09, doctrine)
+
+Sylvain : « on va devoir plutot s'interroger sur la profondeur de chaque
+mecanisme utilise et leur interet sur le site ». Dossier complet, avec la
+mesure d'une visite type de 78 secondes : `docs/da/profondeur-des-mecaniques.md`.
+
+La regle : une mecanique doit etre **vue** sans qu'on la cherche, avoir une
+**seconde lecture**, et **servir le site**. On n'ajoute plus tant que les
+mecaniques qui echouent a la premiere question n'ont pas ete reprises.
+
+| # | quoi | etat |
+| --- | --- | --- |
+| ~~D1~~ | ~~Le miroir n'etait jamais declenche~~ : l'eclat court sur le bord du disque, une fois par session, seulement pour qui n'a jamais choisi sa face (e2e `miroir.spec.ts`) | fait 13/09 |
+| D2 | La veille n'est jamais declenchee par un jure qui fait defiler : lui donner une recompense qu'une visite active ne donne pas (decision de recit, avec Sylvain) | a decider |
+| D3 | La boussole se cache pendant toute la descente (`dock-sentinel`) : la rendre quand le defilement s'arrete, pas seulement vers le haut | a faire |
+| D4 | Xolotl est un tirage : un jure a peu de chances de le voir | a decider |
+| D5 | Mises en attente par la regle : le jour du visiteur (tonalpohualli), la lumiere du lieu, l'image de partage par page | apres D2-D4 |
+
 ## 0 ter. Le miroir fumant : les deux faces du monde (13/09, dernier chantier)
 
 Sylvain : « fais-moi un bouton pour switcher au light theme [...] fidele au
