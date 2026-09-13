@@ -6,9 +6,11 @@ import { jouerMiroir } from "./miroir-fumant";
 import { useTheme } from "./theme-store";
 
 /**
- * LE DISQUE D'OBSIDIENNE (13/09) : le bouton qui retourne le miroir. Un
- * disque sombre poli, un reflet qui tourne quand le monde est clair ; rien
- * d'autre (aucun glyphe, aucune figure : un miroir n'a pas d'iconographie).
+ * LE DISQUE D'OBSIDIENNE (13/09) : le bouton qui retourne le miroir. Deux
+ * moities, l'obsidienne et le papier, qui pivotent d'un demi-tour selon la
+ * face du monde ; rien d'autre (aucun glyphe, aucune figure : un miroir n'a
+ * pas d'iconographie). L'ancien reflet en arc a ete retire le 13/09 : une
+ * fois le disque retourne, il se lisait comme un sourire.
  * `aria-pressed` dit la face courante ; le libelle dit ce que le geste va
  * faire. La ceremonie part du centre du disque.
  *
@@ -99,10 +101,24 @@ export default function ThemeToggle({ labels, className }: { labels: ThemeLabels
             <stop offset="1" stopColor="var(--tezcatl-lo)" />
           </radialGradient>
         </defs>
-        <circle cx="12" cy="12" r="10" fill="url(#tezcatl-obsidienne)" stroke="var(--tezcatl-bord)" strokeWidth="1" />
+        {/* LES DEUX FACES DANS LE DISQUE (13/09, deuxieme retour de Sylvain :
+            « l'icone n'est toujours pas explicite »). Un disque uni ne disait
+            rien. Il est maintenant coupe en deux : une moitie d'obsidienne,
+            une moitie de papier. C'est le motif universellement lu comme un
+            changement d'apparence, et c'est exactement ce que le site
+            raconte : les deux faces du monde, le noir et le blanc qui sont
+            freres. Le disque pivote d'un demi-tour selon la face active :
+            la moitie de papier se tourne vers la face que le clic donnera. */}
+        <g className="themeToggleDisque">
+          <circle cx="12" cy="12" r="10" fill="url(#tezcatl-obsidienne)" />
+          {/* La moitie claire : le monde vu dans le miroir. */}
+          <path d="M12 2a10 10 0 0 1 0 20Z" fill="var(--tezcatl-clair)" />
+          {/* Le trait de partage, la ou les deux mondes se touchent. */}
+          <path d="M12 2v20" stroke="var(--tezcatl-bord)" strokeWidth="0.9" strokeLinecap="round" />
+        </g>
+        <circle cx="12" cy="12" r="10" fill="none" stroke="var(--tezcatl-bord)" strokeWidth="1" />
         {/* L'eclat : une courte lumiere qui court sur le bord poli. */}
         <circle className="themeToggleEclat" cx="12" cy="12" r="10" fill="none" stroke="var(--tezcatl-eclat)" strokeWidth="1.6" strokeLinecap="round" strokeDasharray="7 56" />
-        <path className="themeToggleReflet" d="M7.5 9.2c1.8-2.6 5.4-3.4 8.1-1.9" fill="none" stroke="var(--tezcatl-reflet)" strokeWidth="1.2" strokeLinecap="round" />
       </svg>
     </button>
   );

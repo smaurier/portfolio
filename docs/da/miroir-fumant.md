@@ -43,8 +43,31 @@ sens, la meme ceremonie.
   monde vu dans le tezcatl est clair. C'est une licence, dite ici.
 - La fumee comme passage : le miroir « fume » dans son nom ; en faire la
   transition est notre geste.
-- Aucun glyphe, aucune figure : le bouton est un disque d'obsidienne poli,
-  la fumee est de la fumee. Rien de sacre n'est copie (regle du site).
+- Aucun glyphe, aucune figure : le bouton est un disque d'obsidienne, la
+  fumee est de la fumee. Rien de sacre n'est copie (regle du site). Depuis
+  le 13/09 le disque est coupe en deux, obsidienne et papier : c'est le
+  motif que tout le monde lit comme un changement d'apparence, et c'est
+  aussi ce que le site raconte (le noir et le blanc sont freres). Un
+  premier disque uni, puis un disque au reflet en arc, n'etaient pas
+  explicites : deux retours de Sylvain, le second sans appel.
+
+## Le papier, est-ce une matiere mexica ? (question de Sylvain, 13/09)
+
+Oui, et largement plus qu'un support d'ecriture. L'**amatl** (amate en
+espagnol) est un papier d'ecorce battue de figuier sauvage. Il porte les
+codex, mais il est d'abord une matiere de rite : papiers decoupes pour les
+ceremonies, bandes et ornements poses sur les images des dieux, offrandes.
+Il est aussi une richesse d'Etat : le Codex Mendoza nomme une quarantaine
+de villes productrices, et compte des centaines de milliers de feuilles
+par an en tribut, redistribuees a la maison royale, aux pretres et aux
+scribes. Le papier n'est donc pas un decor neutre emprunte a notre
+imprimerie : c'est une matiere mexica, ce qui rend la face claire du site
+legitime. Le nom nahuatl du figuier a papier, amaquahuitl, a d'ailleurs
+donne des toponymes entiers (Amatlan, Amacoztitlan).
+
+Sources : Codex Mendoza (listes de tribut) ; article *Amate* et *Matricula
+de Tributos* pour le detail des quantites ; Sahagun, livre II, pour les
+papiers des ceremonies.
 
 ## Ce que le jury et l'etat de l'art demandent d'un theme (2026)
 
