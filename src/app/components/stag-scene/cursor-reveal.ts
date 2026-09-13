@@ -42,6 +42,10 @@ import { addShaderModifier } from "./shader-patch";
 // Valeurs de plancher en tout début de pénombre (progress=0, cf
 // setCursorRevealFloor) : mêmes valeurs qu'avant le 20/08, juste plus
 // figées : le point de départ de la remontée, pas la seule valeur possible.
+/** Rayon du halo, en points CSS : la taille qu'il a a l'oeil, quelle que
+ * soit la densite de l'ecran. */
+export const REVEAL_RADIUS_CSS = 400;
+
 const MIN_OPACITY_START = 0.4;
 const MIN_SATURATION_START = 0.15;
 
@@ -104,7 +108,12 @@ export function createCursorRevealUniforms(): CursorRevealUniforms {
     uMouse2: { value: new Vector2(-9999, -9999) },
     uMirror: { value: 0 },
     uResolution: { value: new Vector2(1, 1) },
-    uRevealRadius: { value: 260 },
+    // Rayon en pixels du framebuffer, donc dependant de la densite
+    // d'ecran : fixe a 260, le halo faisait moitie moins large sur un
+    // ecran a deux pixels par point. Il est desormais pose par image
+    // depuis REVEAL_RADIUS_CSS (cursor-reveal-scene). 260 -> 400 points
+    // le 13/09 (Sylvain : « tu peux agrandir la circonference »).
+    uRevealRadius: { value: 400 },
     uMinOpacity: { value: MIN_OPACITY_START },
     uMinSaturation: { value: MIN_SATURATION_START },
     uRevealWobble: { value: 0.22 },
@@ -214,11 +223,25 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             vec3 flooredColor = mix(vec3(cursorGrey), gl_FragColor.rgb, uMinSaturation);
             // LE PIGMENT SUR LE PAPIER (13/09). Sur la face claire, reveler
             // les couleurs VRAIES d'une scene nocturne faisait une tache
-            // sombre autour du curseur (capture). Un pigment pose sur de
-            // l'amate ne noircit pas le papier : il le teinte. La couleur
-            // revelee est donc lavee vers le papier, sa teinte gardee, sa
-            // valeur remontee. Nul sur la nuit : uRevealInk vaut zero.
-            vec3 nahualRevele = mix(gl_FragColor.rgb, mix(vec3(0.95, 0.93, 0.88), gl_FragColor.rgb, 0.5), uRevealInk);
+            // sombre sur l'amate. Premiere correction : laver vers le
+            // papier. Ratee, et Sylvain l'a dit tout de suite : « l'effet
+            // de couleur ne met pas de couleur, j'ai une sorte d'effet
+            // fibreux mais sans couleur vive ». Un lavage vers le blanc
+            // DESATURE, c'est le contraire d'un pigment.
+            // Ce qu'on fait maintenant, et qui est ce que fait un peintre :
+            // on monte la VALEUR (le pigment sur papier clair ne noircit
+            // pas) ET la saturation (il est vif, justement). La teinte ne
+            // bouge pas. Nul sur la nuit : uRevealInk vaut zero.
+            float nahualLum = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+            // Doses (13/09, deux passes de capture). La scene claire arrive
+            // DEJA lavee ici (la brume de papier du reflet, le grade
+            // desature) : saturer 2,6 fois puis remonter la valeur de 0,34
+            // rendait un pigment... pale. Le pigment mord donc plus fort, et
+            // on remonte beaucoup moins la valeur, sinon tout se retasse
+            // vers le blanc.
+            vec3 nahualVif = clamp(vec3(nahualLum) + (gl_FragColor.rgb - vec3(nahualLum)) * 4.5, 0.0, 1.0);
+            vec3 nahualPigment = clamp(nahualVif * 0.9 + 0.12, 0.0, 1.0);
+            vec3 nahualRevele = mix(gl_FragColor.rgb, nahualPigment, uRevealInk);
             gl_FragColor.rgb = mix(flooredColor, nahualRevele, reveal);
             // LE TRAIT (13/09) : sur le papier, la couleur ne s'arrete pas
             // toute seule, un trait d'encre la borde, comme au Codex. Bande

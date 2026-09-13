@@ -8,7 +8,7 @@ import { getRevealFloor } from "@/lib/reveal-arc";
 import { remapNorthArc } from "@/lib/direction-arc";
 import { lightPAtArc } from "@/lib/arc-day";
 import { useCurrentDirection } from "./use-current-direction";
-import { applyCursorReveal, createCursorRevealUniforms, setCursorRevealFloor } from "./cursor-reveal";
+import { applyCursorReveal, createCursorRevealUniforms, setCursorRevealFloor, REVEAL_RADIUS_CSS } from "./cursor-reveal";
 import { refletStore } from "./reflet-store";
 import { codexStore } from "./codex-store";
 
@@ -79,6 +79,10 @@ export default function CursorRevealScene({
     const dpr = gl.getPixelRatio();
     const uniforms = uniformsRef.current;
     uniforms.uResolution.value.set(canvas.width, canvas.height);
+    // Le halo garde sa taille a l'oeil quelle que soit la densite d'ecran
+    // (13/09) : le rayon vit en points CSS et se convertit ici, comme la
+    // position de la souris juste en dessous.
+    uniforms.uRevealRadius.value = REVEAL_RADIUS_CSS * dpr;
 
     if (pointerRef.current) {
       // gl_FragCoord a son origine en bas à gauche (convention WebGL),
