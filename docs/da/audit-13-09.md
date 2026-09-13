@@ -403,7 +403,7 @@ le detail et les oracles.
 | X2 | La ligne de seuil vit dans le calque, en haut a gauche, le premier quart de l'arc ; le contenu des pages echo commence sous le pli | |
 | X3 | Couloir de 72 px pour tout le contenu et le chant ; la colonne de boutons se retire quand on descend sur telephone (droit et couche) et n'apparait qu'apres l'arrivee ; `controls-overlap` vert sur quatre cadrages, mi-parcours compris | |
 | X4 | Le pied de page efface les calques fixes (`footer-sentinel`) ; la cloture des pages echo est le dernier bloc du contenu, dans le flux ; celle du Centre reste fixe | |
-| X5 | Profil telephone allege (5 000 brins, 120 feuilles, 32 meches) ; les simulateurs du Nord se chauffent une etape par image | mesure mobile a refaire seule ; etoiles et colibris du Sud |
+| X5 | Profil telephone allege (5 000 brins, 120 feuilles, 32 meches) ; les simulateurs du Nord se chauffent une etape par image. Mesure seule, build corrige, Pixel 7 x4 + Fast 3G : Contact passe de 30 a 60 im/s en mediane (5e centile 30), Memoire de 1 471 a 1 178 ms de pire tache et de 3,5 a 2,8 s de blocage ; Projets reste a 30 au 5e centile ; Accueil et Services a 60 / 60. Le bruit entre deux passes est de l'ordre de 30 % sur le blocage | le 5e centile de Projets et Contact ; etoiles et colibris du Sud ; le blocage au chargement (1,3 a 2,8 s) qui est le decodage des modeles (X13) |
 | X6 | La lumiere du foyer eclaire le sol et le cerf des 0 % | la ligne de premiere arrivee (texte a toi) |
 | X7 | Limiteur, pont entre directions, espace par direction, pas du chien panoramiques, respiration de la nappe, une seule cloche | ton oreille |
 | X8 | Danseuses posees au sol, braises x2,2, papiers x2 | la descente de camera (mise en scene, a toi) |

@@ -116,7 +116,12 @@ et dans le tableau d'avancement de `plan-execution.md`.
   affirmations reformulees, a relire), X14 (404, en-tetes), X15 (fleurs
   recyclees) ; X5 partiel (profil telephone allege, simulateurs du Nord en
   tranches). Tests : `calque-fixe`, `controls-overlap` etendu, unitaires.
-  Note a remesurer une fois les mesures mobiles refaites seules.
+  Mesure mobile seule sur le build corrige : Contact 30 -> 60 im/s en
+  mediane, Memoire 1,5 -> 1,2 s de pire tache ; Projets et Contact
+  restent a 30 au 5e centile. **Note : 8,1 -> 8,4** (utilisabilite 7,0 ->
+  7,8 : les trois P0 de mise en page sont regles et testes, le mobile
+  progresse sans tenir la barre ; design inchange tant que le Centre et
+  les danseuses n'ont pas ete regardes par Sylvain).
 - **13/09, l'audit complet** (`audit-13-09.md`, production du jour, captures,
   video, signes vitaux, accessibilite, son, cosmogonie) : **8,85 -> 8,1**.
   La note baisse parce que l'audit a trouve ce que les passes precedentes
