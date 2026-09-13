@@ -7,6 +7,7 @@ import { BlendFunction } from "postprocessing";
 import { approachGrade, getGradeRig, type GradeRig } from "@/lib/direction-grade";
 import { refletGrade } from "@/lib/reflet";
 import { refletStore } from "./reflet-store";
+import { veilleStore } from "./veille-store";
 import { columnRise, zenithBlend } from "@/lib/zenith-arc";
 import { useCardinalTransition } from "./cardinal-transition-context";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
@@ -161,7 +162,8 @@ export default function PostFX() {
       // Sylvain : « une belle image et pas floue ») : cerf, colonne,
       // montagnes et etoiles nets ensemble au climax.
       const net = direction === "jade" && refs ? Math.max(zenithBlend(refs.progressRef.current), columnRise(refs.progressRef.current)) : 0;
-      dofRef.current.bokehScale = (DOF_BASE_BOKEH + bell * DOF_BURST_BOKEH) * (1 - net);
+      // La veille (13/09) : la contemplation adoucit le flou hors du sujet.
+      dofRef.current.bokehScale = (DOF_BASE_BOKEH + bell * DOF_BURST_BOKEH) * (1 - net) * (1 + 0.5 * veilleStore.k);
     }
   });
 

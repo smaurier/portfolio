@@ -2175,3 +2175,45 @@ html[data-theme] .siteFooter {
 html[data-theme="light"] body.nahual-lab-reveal {
   color-scheme: light;
 }
+
+/* ===================================================================
+   LA VEILLE (13/09, lib/veille) : vingt secondes sans geste, les textes,
+   le bandeau, les controles et le chant s'effacent en 2,5 s ; le monde
+   continue sans nous (camera, flou, musique : cote scene). Tout geste
+   rend tout en 0,6 s. Les elements restent dans le DOM et accessibles :
+   seule leur opacite bouge, et le premier geste (y compris une touche)
+   les rend avant qu'on ait pu les chercher.
+   =================================================================== */
+html[data-veille="en-cours"] .header,
+html[data-veille="en-cours"] [data-scene-overlay],
+html[data-veille="en-cours"] .cantarFlow,
+html[data-veille="en-cours"] .seuilTete,
+html[data-veille="en-cours"] [data-scene-controls],
+html[data-veille="en-cours"] [data-curseur],
+html[data-veille="en-cours"] .siteFooter,
+html[data-veille="en-cours"] body.nahual-lab-reveal main[data-direction] {
+  opacity: 0;
+  transition: opacity 2.5s ease-in;
+}
+html:not([data-veille]) .header,
+html:not([data-veille]) [data-scene-overlay],
+html:not([data-veille]) .cantarFlow,
+html:not([data-veille]) .seuilTete,
+html:not([data-veille]) [data-scene-controls],
+html:not([data-veille]) [data-curseur],
+html:not([data-veille]) .siteFooter,
+html:not([data-veille]) body.nahual-lab-reveal main[data-direction] {
+  transition: opacity 0.6s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-veille="en-cours"] .header,
+  html[data-veille="en-cours"] [data-scene-overlay],
+  html[data-veille="en-cours"] .cantarFlow,
+  html[data-veille="en-cours"] .seuilTete,
+  html[data-veille="en-cours"] [data-scene-controls],
+  html[data-veille="en-cours"] [data-curseur],
+  html[data-veille="en-cours"] .siteFooter,
+  html[data-veille="en-cours"] body.nahual-lab-reveal main[data-direction] {
+    transition-duration: 0.4s;
+  }
+}

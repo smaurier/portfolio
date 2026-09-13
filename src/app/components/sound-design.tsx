@@ -7,6 +7,7 @@ import { useCardinalTransition } from "./stag-scene/cardinal-transition-context"
 import { arrivalCueFor, shouldPlayArrival } from "@/lib/journey-cues";
 import { SHADERS_WARM_EVENT } from "./stag-scene/shader-warmup";
 import { MIROIR_EVENT } from "@/lib/theme";
+import { VEILLE_EVENT, noteVeille } from "@/lib/veille";
 import type { DirectionKey } from "./stag-scene/direction-colors";
 import { frostStore } from "./stag-scene/frost-store";
 import { armChime, stepChime } from "@/lib/climax-chime";
@@ -571,6 +572,99 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
 
   // Plus de cloche au clic (13/09, X7) : elle doublait celle du climax, et
   // le voyage a maintenant son pont (les couches qui se croisent).
+
+  // LA MUSIQUE DE LA VEILLE (13/09, lib/veille : Sylvain, « une contemplation
+  // facon Miyazaki avec une musique de fond »). Ecrite ici en Web Audio,
+  // comme tout le son du site : une melodie pentatonique lente et
+  // deterministe (noteVeille), un timbre doux (sinus + triangle detune
+  // sous un passe-bas), une enveloppe lente, dans la reverberation de la
+  // direction. Elle entre en 4 s sous les couches ambiantes (qui baissent
+  // de moitie) et sort en 1,5 s au premier geste. Une seule voix.
+  const veilleRef = useRef<{ gain: GainNode; minuterie: number; index: number; precedent: number } | null>(null);
+  useEffect(() => {
+    const arreter = () => {
+      const v = veilleRef.current;
+      const ctx = ctxRef.current;
+      if (!v) return;
+      veilleRef.current = null;
+      window.clearTimeout(v.minuterie);
+      if (ctx) {
+        const now = ctx.currentTime;
+        v.gain.gain.cancelScheduledValues(now);
+        v.gain.gain.setValueAtTime(v.gain.gain.value, now);
+        v.gain.gain.linearRampToValueAtTime(0.0001, now + 1.5);
+        window.setTimeout(() => v.gain.disconnect(), 1700);
+        for (const n of ambientNodesRef.current) {
+          n.gain.gain.cancelScheduledValues(now);
+          n.gain.gain.setValueAtTime(n.gain.gain.value, now);
+          n.gain.gain.linearRampToValueAtTime(n.gain.gain.value * 2, now + 1.5);
+        }
+      }
+    };
+    const onVeille = (e: Event) => {
+      const etat = (e as CustomEvent<{ etat?: string }>).detail?.etat;
+      if (etat !== "en-cours") {
+        arreter();
+        return;
+      }
+      const ctx = ctxRef.current;
+      const master = masterGainRef.current;
+      if (!ctx || !master || muted || veilleRef.current) return;
+      const now = ctx.currentTime;
+      const bus = ctx.createGain();
+      bus.gain.setValueAtTime(0.0001, now);
+      bus.gain.linearRampToValueAtTime(0.22, now + 4);
+      const espace = spacesRef.current.get(direction);
+      bus.connect(master);
+      if (espace) bus.connect(espace.conv);
+      for (const n of ambientNodesRef.current) {
+        n.gain.gain.cancelScheduledValues(now);
+        n.gain.gain.setValueAtTime(n.gain.gain.value, now);
+        n.gain.gain.linearRampToValueAtTime(n.gain.gain.value * 0.5, now + 4);
+      }
+      const v = { gain: bus, minuterie: 0, index: 0, precedent: -1 };
+      veilleRef.current = v;
+      const jouer = () => {
+        if (veilleRef.current !== v) return;
+        const note = noteVeille(v.index++, v.precedent);
+        if (note.degre !== null) {
+          v.precedent = note.degre;
+          const t = ctx.currentTime;
+          const env = ctx.createGain();
+          env.gain.setValueAtTime(0.0001, t);
+          env.gain.exponentialRampToValueAtTime(1, t + 0.35);
+          env.gain.setValueAtTime(1, t + note.duree * 0.45);
+          env.gain.exponentialRampToValueAtTime(0.0001, t + note.duree + 1.2);
+          const bas = ctx.createBiquadFilter();
+          bas.type = "lowpass";
+          bas.frequency.value = 1400;
+          const o1 = ctx.createOscillator();
+          o1.type = "sine";
+          o1.frequency.value = note.frequence;
+          const o2 = ctx.createOscillator();
+          o2.type = "triangle";
+          o2.frequency.value = note.frequence;
+          o2.detune.value = 6;
+          const g2 = ctx.createGain();
+          g2.gain.value = 0.35;
+          o1.connect(bas);
+          o2.connect(g2).connect(bas);
+          bas.connect(env).connect(bus);
+          o1.start(t);
+          o2.start(t);
+          o1.stop(t + note.duree + 1.3);
+          o2.stop(t + note.duree + 1.3);
+        }
+        v.minuterie = window.setTimeout(jouer, note.duree * 1000);
+      };
+      jouer();
+    };
+    window.addEventListener(VEILLE_EVENT, onVeille);
+    return () => {
+      window.removeEventListener(VEILLE_EVENT, onVeille);
+      arreter();
+    };
+  }, [muted, direction]);
 
   // LE SOUFFLE DU MIROIR (13/09) : quand le disque d'obsidienne se
   // retourne, un souffle de fumee (bruit en bande qui monte puis s'eteint)

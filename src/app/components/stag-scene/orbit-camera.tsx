@@ -17,6 +17,8 @@ import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { solarCamera } from "@/lib/solar-camera";
 import { dayAtArc } from "@/lib/arc-day";
 import { tiltToParallax } from "@/lib/tilt";
+import { approachVeille, deriveVeille } from "@/lib/veille";
+import { veilleStore } from "./veille-store";
 import { getSceneControls } from "../scene-controls-store";
 
 /**
@@ -213,7 +215,7 @@ export default function OrbitCamera({
     };
   }, []);
 
-  useFrame(() => {
+  useFrame((_state, delta) => {
     // Lissage exponentiel de la souris (pas de deriv brusque au tick suivant).
     mouseSmoothRef.current.x += (mouseTargetRef.current.x - mouseSmoothRef.current.x) * MOUSE_LERP;
     mouseSmoothRef.current.y += (mouseTargetRef.current.y - mouseSmoothRef.current.y) * MOUSE_LERP;
@@ -414,6 +416,23 @@ export default function OrbitCamera({
     // La frappe du xiuhcoatl (05/09) : secousse amortie de la camera,
     // trois sinus incommensurables, amplitude lue dans le store (0 hors
     // frappe, 0 en reduced-motion par construction de la lib).
+    // LA VEILLE (13/09, lib/veille) : la part de veille est lissee ici, une
+    // fois par image (lente a entrer, vive a sortir) ; sous mouvement
+    // reduit elle reste a zero pour la camera. Pendant la veille, la
+    // camera quitte le chemin du defilement pour une derive tres lente
+    // autour du cerf, qui reste l'axe du regard.
+    veilleStore.k = approachVeille(veilleStore.k, veilleStore.active && !reducedMotionRef.current ? 1 : 0, Math.min(delta, 0.1));
+    if (veilleStore.k > 0) {
+      const d = deriveVeille((performance.now() - veilleStore.depuis) / 1000);
+      const az = d.azimuth * veilleStore.k;
+      const cosAz = Math.cos(az);
+      const sinAz = Math.sin(az);
+      const px = position.x;
+      const pz = position.z;
+      position.x = px * cosAz + pz * sinAz;
+      position.z = -px * sinAz + pz * cosAz;
+      position.y += d.height * veilleStore.k;
+    }
     const shake = xiuhcoatlStore.strike.shake;
     const st = performance.now() / 1000;
     const shakeX = shake * 0.11 * (Math.sin(st * 47.0) * 0.6 + Math.sin(st * 71.3) * 0.4);

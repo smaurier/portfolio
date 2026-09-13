@@ -187,7 +187,8 @@ export default function CustomCursor() {
   if (!enabled) return null;
 
   return (
-    <div ref={cursorRef} className={styles.cursor} aria-hidden="true">
+    // `data-curseur` : la veille l'efface avec le reste (13/09, lib/veille).
+    <div ref={cursorRef} className={styles.cursor} aria-hidden="true" data-curseur="">
       <div ref={dotRef} className={styles.dot} />
       <div ref={ringRef} className={styles.ring} />
     </div>
