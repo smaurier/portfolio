@@ -80,6 +80,11 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
             <ObfuscatedEmail placeholder={dict.showEmail} />
           </li>
         </ul>
+        {/* Langues et disque d'obsidienne ensemble a droite (13/09, retour
+            Sylvain « le selecteur de langage est tres mal place ») : le
+            bandeau est en space-between, un troisieme enfant poussait les
+            langues au centre. */}
+        <div className="header_right">
         <ul className="langSwitcher" aria-label={dict.langSwitcherLabel}>
           {locales.map((l) => (
             <li key={l}>
@@ -98,6 +103,7 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
         </ul>
         {/* Le disque d'obsidienne : le miroir se retourne ici (13/09). */}
         <ThemeToggle labels={dict.theme} />
+        </div>
       </div>
       <div className="header_bottom">
         <CardinalLink

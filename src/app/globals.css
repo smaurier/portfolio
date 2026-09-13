@@ -276,6 +276,13 @@ html[data-theme="light"] {
   gap: 16px;
 }
 
+/* Langues + disque d'obsidienne, groupes a droite du bandeau (13/09). */
+.header_right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
 .header_up ul {
   list-style: none;
   display: flex;
