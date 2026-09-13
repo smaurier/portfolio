@@ -9,6 +9,7 @@ import { remapNorthArc } from "@/lib/direction-arc";
 import { lightPAtArc } from "@/lib/arc-day";
 import { useCurrentDirection } from "./use-current-direction";
 import { applyCursorReveal, createCursorRevealUniforms, setCursorRevealFloor } from "./cursor-reveal";
+import { refletStore } from "./reflet-store";
 
 /**
  * Enveloppe toute la scène 3D dans la révélation par curseur (cf
@@ -110,6 +111,10 @@ export default function CursorRevealScene({
     const rawP = progressRef.current;
     const p = lightPAtArc(direction, rawP);
     setCursorRevealFloor(uniforms, getRevealFloor(p));
+    // Le trait d'encre qui borde la couleur n'existe que sur le papier
+    // (13/09) : il suit la part de reflet, donc il arrive avec la face
+    // claire et s'en va avec elle, sans branche a maintenir.
+    uniforms.uRevealInk.value = refletStore.k;
   });
 
   return <group ref={groupRef}>{children}</group>;

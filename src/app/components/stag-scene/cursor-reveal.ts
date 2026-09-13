@@ -56,6 +56,16 @@ export type CursorRevealUniforms = {
   uRevealRadius: { value: number };
   uMinOpacity: { value: number };
   uMinSaturation: { value: number };
+  /** LE BORD DESSINE (13/09, Sylvain : « on a un effet qui fait que l'on a
+   * de la couleur lorsqu'on survole, j'aimerais que la couleur se dessine
+   * aussi [...] on pourrait alors avoir une forme un peu plus
+   * irreguliere »). Amplitude du desordre du bord, en fraction du rayon :
+   * la couleur ne s'arrete plus sur un cercle parfait mais sur une frange
+   * de fibres, comme une encre qui a bu dans le papier. */
+  uRevealWobble: { value: number };
+  /** Force du trait d'encre qui borde la zone de couleur. Monte avec la
+   * face claire (le papier) : sur la nuit, l'encre n'aurait rien a border. */
+  uRevealInk: { value: number };
 };
 
 /** Un seul jeu d'uniforms partagé par tous les matériaux patchés : la
@@ -88,6 +98,8 @@ export function createCursorRevealUniforms(): CursorRevealUniforms {
     uRevealRadius: { value: 260 },
     uMinOpacity: { value: MIN_OPACITY_START },
     uMinSaturation: { value: MIN_SATURATION_START },
+    uRevealWobble: { value: 0.22 },
+    uRevealInk: { value: 0 },
   };
   return sharedUniforms;
 }
@@ -128,6 +140,8 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
         shader.uniforms.uRevealRadius = uniforms.uRevealRadius;
         shader.uniforms.uMinOpacity = uniforms.uMinOpacity;
         shader.uniforms.uMinSaturation = uniforms.uMinSaturation;
+        shader.uniforms.uRevealWobble = uniforms.uRevealWobble;
+        shader.uniforms.uRevealInk = uniforms.uRevealInk;
 
         shader.fragmentShader = shader.fragmentShader
           .replace(
@@ -139,20 +153,59 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             uniform vec2 uResolution;
             uniform float uRevealRadius;
             uniform float uMinOpacity;
-            uniform float uMinSaturation;`,
+            uniform float uMinSaturation;
+            uniform float uRevealWobble;
+            uniform float uRevealInk;
+            // Bruit de valeur en espace ecran : la frange du bord. Deux
+            // octaves suffisent pour que l'oeil lise « fibre », pas « cercle ».
+            float nahualHash(vec2 p) {
+              return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+            }
+            float nahualNoise(vec2 p) {
+              vec2 i = floor(p);
+              vec2 f = fract(p);
+              f = f * f * (3.0 - 2.0 * f);
+              float a = nahualHash(i);
+              float b = nahualHash(i + vec2(1.0, 0.0));
+              float c = nahualHash(i + vec2(0.0, 1.0));
+              float d = nahualHash(i + vec2(1.0, 1.0));
+              return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+            }`,
           )
           .replace(
             "#include <dithering_fragment>",
-            `float distToCursor = distance(gl_FragCoord.xy, uMouse);
+            `// LE BORD QUI A BU (13/09) : la distance au curseur est
+            // perturbee par une frange de bruit, donc la couleur ne
+            // s'arrete plus sur un cercle. L'amplitude est une fraction du
+            // rayon : la frange grandit avec le halo, elle ne se detache
+            // jamais de lui.
+            vec2 nahualFibre = gl_FragCoord.xy / 46.0;
+            float nahualGrain = nahualNoise(nahualFibre) * 0.65 + nahualNoise(nahualFibre * 2.7) * 0.35;
+            float nahualFrange = (nahualGrain - 0.5) * uRevealRadius * uRevealWobble;
+            float distToCursor = distance(gl_FragCoord.xy, uMouse) + nahualFrange;
             float reveal = 1.0 - smoothstep(0.0, uRevealRadius, distToCursor);
             // Second halo : le reflet menteur du tonalli (Nord), au point
             // symetrique de la souris par rapport au cerf.
-            float distToMirror = distance(gl_FragCoord.xy, uMouse2);
+            float distToMirror = distance(gl_FragCoord.xy, uMouse2) + nahualFrange;
             float reveal2 = (1.0 - smoothstep(0.0, uRevealRadius, distToMirror)) * uMirror;
             reveal = max(reveal, reveal2);
             float cursorGrey = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
             vec3 flooredColor = mix(vec3(cursorGrey), gl_FragColor.rgb, uMinSaturation);
-            gl_FragColor.rgb = mix(flooredColor, gl_FragColor.rgb, reveal);
+            // LE PIGMENT SUR LE PAPIER (13/09). Sur la face claire, reveler
+            // les couleurs VRAIES d'une scene nocturne faisait une tache
+            // sombre autour du curseur (capture). Un pigment pose sur de
+            // l'amate ne noircit pas le papier : il le teinte. La couleur
+            // revelee est donc lavee vers le papier, sa teinte gardee, sa
+            // valeur remontee. Nul sur la nuit : uRevealInk vaut zero.
+            vec3 nahualRevele = mix(gl_FragColor.rgb, mix(vec3(0.95, 0.93, 0.88), gl_FragColor.rgb, 0.5), uRevealInk);
+            gl_FragColor.rgb = mix(flooredColor, nahualRevele, reveal);
+            // LE TRAIT (13/09) : sur le papier, la couleur ne s'arrete pas
+            // toute seule, un trait d'encre la borde, comme au Codex. Bande
+            // etroite autour de la frontiere, jamais sur la nuit.
+            // Bande ETROITE : a 0,34 ce n'etait plus un trait mais une tache
+            // qui noircissait tout le halo (capture du 13/09).
+            float nahualTrait = (1.0 - smoothstep(0.0, 0.07, abs(reveal - 0.5))) * uRevealInk;
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.09, 0.075, 0.12), nahualTrait * 0.16);
             gl_FragColor.a *= mix(uMinOpacity, 1.0, reveal);
             #include <dithering_fragment>`,
           );
