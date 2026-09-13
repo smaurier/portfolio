@@ -6,11 +6,14 @@ import { test, expect, devices } from "@playwright/test";
  * La regle de Sylvain : l'accessibilite est un enrichissement pour tout le
  * monde. Le chant des Cantares n'est donc jamais en `sr-only` : il est dans
  * le flux de chaque page, sous la scene, et il reste la en mode recit
- * accessible (la scene coupee). Trois couches, chacune dans sa langue
- * (RGAA 8.7) : nahuatl, espagnol de l'edition, notre traduction.
+ * accessible (la scene coupee). DEUX couches depuis le 13/09, chacune dans
+ * sa langue (RGAA 8.7) : le nahuatl, puis la traduction dans la langue du
+ * visiteur. L'espagnol de l'edition n'apparait que pour un visiteur
+ * hispanophone, pour qui il EST cette langue (retour Sylvain).
  *
- * Oracles : sur les cinq pages, la figure existe, porte ses trois
- * citations avec leur `lang`, et une fois la page defilee jusqu'en bas
+ * Oracles : sur les cinq pages, la figure existe, porte le nahuatl et la
+ * traduction du visiteur, JAMAIS l'espagnol en francais, et une fois la
+ * page defilee jusqu'en bas
  * elle est dans la fenetre (pas seulement dans le DOM) ; puis, le mode
  * recit active, elle y est toujours.
  */
@@ -27,8 +30,9 @@ for (const chemin of PAGES) {
     const figure = page.locator("figure.cantar");
     await expect(figure).toHaveCount(1);
     await expect(figure.locator("blockquote[lang='nah']")).toHaveCount(1);
-    await expect(figure.locator("blockquote[lang='es']")).toHaveCount(1);
-    // En francais, la troisieme couche est notre traduction.
+    // En francais, la seconde couche est notre traduction, et l'espagnol de
+    // l'edition n'est plus affiche (il reste cite dans la source).
+    await expect(figure.locator("blockquote[lang='es']")).toHaveCount(0);
     await expect(figure.locator("blockquote.cantarOurs")).toHaveCount(1);
     await expect(figure.locator("figcaption cite")).toContainText("Cantares mexicanos");
 
@@ -57,3 +61,14 @@ for (const chemin of PAGES) {
     expect(boxRecit!.width).toBeGreaterThan(200);
   });
 }
+
+test("/es : l'espagnol de l'edition EST la langue du visiteur, il s'affiche", async ({ page }) => {
+  test.setTimeout(150_000);
+  await page.goto("/es?shaders-prod");
+  await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 90_000 });
+  const figure = page.locator("figure.cantar");
+  await expect(figure.locator("blockquote[lang='nah']")).toHaveCount(1);
+  await expect(figure.locator("blockquote[lang='es']")).toHaveCount(1);
+  // Et pas de troisieme couche : l'espagnol ne se traduit pas en espagnol.
+  await expect(figure.locator("blockquote.cantarOurs")).toHaveCount(0);
+});

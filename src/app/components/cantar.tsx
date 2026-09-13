@@ -59,6 +59,14 @@ export default function Cantar({
     .replace("{strophe}", String(c.strophe))
     .replace("{folio}", c.folio);
   const ours = locale === "fr" ? c.fr : locale === "en" ? c.en : null;
+  // DEUX COUCHES, PLUS TROIS (13/09, retour Sylvain : « enleve la traduction
+  // espagnole sur tous les points, on ne va garder que la langue du visiteur
+  // en plus du texte traditionnel [...] bien sur, s'il a choisi ES, la
+  // traduction espagnole s'affichera »). L'espagnol de l'edition n'est donc
+  // affiche qu'aux visiteurs hispanophones, pour qui il EST la langue du
+  // site ; la source, elle, continue de dire que nos traductions sont faites
+  // d'apres cet espagnol : l'attribution ne bouge pas.
+  const montrerEspagnol = locale === "es";
   return (
     <figure className="cantar" data-cantar={direction}>
       <p className="cantarLabel">{texts.label}</p>
@@ -67,11 +75,13 @@ export default function Cantar({
           <NahuatlLines lines={c.nahuatl} />
         </p>
       </blockquote>
-      <blockquote lang="es" className="cantarEs" cite={CANTARES_EDITION_URL}>
-        <p>
-          <Lines lines={c.es} />
-        </p>
-      </blockquote>
+      {montrerEspagnol ? (
+        <blockquote lang="es" className="cantarEs" cite={CANTARES_EDITION_URL}>
+          <p>
+            <Lines lines={c.es} />
+          </p>
+        </blockquote>
+      ) : null}
       {ours ? (
         <blockquote className="cantarOurs" cite={CANTARES_EDITION_URL}>
           <p>
