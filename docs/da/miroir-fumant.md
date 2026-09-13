@@ -78,11 +78,38 @@ sens, la meme ceremonie.
    `prefers-color-scheme` passes par attribut (la nuit ne dependait plus de
    la preference systeme pour le fond, mais SI pour les fonds des
    directions : corrige), le souffle sonore sur `nahual:miroir`.
-2. **La scene refletee** (a faire) : `useTheme()` cote scene ; un rig
-   « reflet » commun : ciel clair (le zenith du site, la brume en
-   papier), exposition et lumiere ambiante montees, brouillard clair,
-   grade desature ; les panneaux de texte reprennent leur transparence
-   suivant `--scene-lum`.
-3. **Direction par direction** (a faire) : ce que chaque monde devient dans
+2. **La scene refletee** (fait le 13/09) : `lib/reflet` (pur, teste : a
+   k = 0 l'identite, la nuit ne bouge pas d'un poil) et `refletStore`, la
+   part de reflet lissee une fois par image par le rig de lumiere
+   (`reveal-lighting`, qui lit `useTheme()`), composee PAR-DESSUS les rigs
+   de direction : brume de papier qui garde un souvenir de la direction
+   (far x 0,85, le near ne bouge pas : le brouillard ne touche jamais la
+   scene proche), ambiante x 2,2 teintee papier, directionnelle x 1,15,
+   grade (saturation -0,2, cadre ouvert -0,3, bloom x 0,45, `post-fx`),
+   Voie lactee effacee, et la couleur de clear du renderer qui suit la
+   face. Ce dernier point est une decouverte : la chaine d'effets sort un
+   noir OPAQUE la ou rien n'est dessine (alpha 255 mesure au readPixels,
+   quel que soit l'alpha de clear), le sol CSS ne s'est donc jamais vu a
+   travers le canvas ; la nuit le cachait. Mesure e2e `reflet.spec.ts` :
+   luminance moyenne d'une zone du canvas, claire dans le miroir (> 0,45),
+   sombre la nuit (< 0,25), et claire apres la ceremonie sans
+   rechargement. Les panneaux de scene restent a 0,82 de papier sur la
+   face claire : a revoir avec l'oeil de Sylvain maintenant que la scene
+   est claire derriere (peut-etre suivre `--scene-lum` comme la nuit).
+3. **Direction par direction** (a faire, avec l'oeil de Sylvain) : ce que chaque monde devient dans
    le miroir, sans trahir son arc (l'Est commence gele et de nuit, l'Ouest
    finit dans le noir : le reflet inverse la lumiere, pas le recit).
+
+## Ce que la premiere capture du reflet a montre (13/09)
+
+- Centre en tete de page : le cerf dans une brume de papier, les
+  montagnes en gris, le foyer chaud a mi-arc : le « dessin sur amate ».
+- Est : l'aube rose sur le monde gele tient telle quelle (le dome de ciel
+  garde ses couleurs : lot 3 si Sylvain veut un reflet plus franc).
+- Sud : brume blanche, Piedra turquoise, serpent orange : franc.
+- Ouest : au tiers de l'arc, le monde est presque tout papier ; le cerf se
+  lit, pale. A regarder avec Sylvain (l'arc de l'Ouest va du clair au
+  sombre : dans le miroir, il finit dans la nuit ?).
+- Nord : le cerf d'obsidienne sur le papier, les lames noires : la plus
+  belle face du miroir. Le ciel du Mictlan (texture cuite) reste a
+  refleter (lot 3).

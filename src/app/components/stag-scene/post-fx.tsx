@@ -5,6 +5,8 @@ import { useFrame } from "@react-three/fiber";
 import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, EffectGroup, HueSaturation, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { approachGrade, getGradeRig, type GradeRig } from "@/lib/direction-grade";
+import { refletGrade } from "@/lib/reflet";
+import { refletStore } from "./reflet-store";
 import { columnRise, zenithBlend } from "@/lib/zenith-arc";
 import { useCardinalTransition } from "./cardinal-transition-context";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
@@ -103,7 +105,9 @@ export default function PostFX() {
     gradeRef.current = refs?.reducedMotionRef.current
       ? { ...gradeTarget }
       : approachGrade(gradeRef.current, gradeTarget, 0.06);
-    const grade = gradeRef.current;
+    // Le reflet (13/09, miroir lot 2) se compose par-dessus le grade de la
+    // direction : couleurs rabattues, cadre ouvert, rien ne brille.
+    const grade = refletGrade(gradeRef.current, refletStore.k);
     if (hueSatRef.current) {
       hueSatRef.current.saturation = grade.saturation;
     }

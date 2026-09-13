@@ -3,7 +3,7 @@
 import type { MutableRefObject } from "react";
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Color, type AmbientLight, type DirectionalLight, type Fog, type Object3D, type PointLight, type SpotLight } from "three";
+import { Color, SRGBColorSpace, type AmbientLight, type DirectionalLight, type Fog, type Object3D, type PointLight, type SpotLight } from "three";
 import { EMBER_COLOR, EMBER_DISTANCE, freezeShadow, persistentLights, thawShadow } from "./persistent-lights";
 import {
   getAmbientIntensity,
@@ -22,6 +22,9 @@ import { approachRig, getLightRig, rigAtArc, type LightRig } from "@/lib/directi
 import { useCurrentDirection } from "./use-current-direction";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { useSceneRefs } from "./scene-refs-context";
+import { useTheme } from "../theme-store";
+import { approachReflet, refletFogColor, refletFogRange, refletK, refletLight, REFLET_PAPER } from "@/lib/reflet";
+import { refletStore } from "./reflet-store";
 import { getSceneControls } from "../scene-controls-store";
 
 /**
@@ -81,6 +84,9 @@ export default function RevealLighting({
   // cardinal (l'arc Nord, lui, reste sur la route : c'est une
   // mecanique de scroll d'identite, pas d'atmosphere).
   const hour = useAtmosphereHour();
+  // LE REFLET (13/09, miroir fumant lot 2) : la face du monde, lue ici et
+  // lissee une fois par image dans refletStore pour les autres machineries.
+  const theme = useTheme();
   const sceneRefs = useSceneRefs();
   // Fog par direction (01/09, etage 1 sprint identites) : near/far
   // crossfadent vers la cible de la direction courante, meme cadence
@@ -104,6 +110,9 @@ export default function RevealLighting({
   // Scratchs alloués une seule fois : mutés dans useFrame plutôt que
   // recréés à chaque tick (même pattern que rim-light climaxColorScratch).
   const ambientColorScratch = useMemo(() => new Color(), []);
+  const paperColor = useMemo(() => new Color().setRGB(REFLET_PAPER.r / 255, REFLET_PAPER.g / 255, REFLET_PAPER.b / 255, SRGBColorSpace), []);
+  const clearScratch = useMemo(() => new Color(), []);
+  const clearKRef = useRef(-1);
   const directionalColorScratch = useMemo(() => new Color(), []);
 
   // LA LUMINOSITE DE LA SCENE, PUBLIEE AU CSS (11/09). Les panneaux de texte
@@ -152,9 +161,25 @@ export default function RevealLighting({
       ? { ...rigTarget }
       : approachRig(lightRigRef.current, rigTarget, 0.06);
     const rig = lightRigRef.current;
+    // La part de reflet : snap sous mouvement reduit (la fumee ne joue pas),
+    // sinon la meme cadence que le rig, sous la fumee qui couvre l'ecran.
+    refletStore.k = sceneRefs?.reducedMotionRef.current
+      ? refletK(theme)
+      : approachReflet(refletStore.k, refletK(theme), 0.06);
+    const reflet = refletLight(refletStore.k);
+    // LE CIEL VIDE (13/09) : la ou rien n'est dessine, la chaine d'effets
+    // sort un noir OPAQUE (mesure : alpha 255 dans le ciel, quel que soit
+    // l'alpha de clear), le sol CSS ne se voit donc jamais a travers le
+    // canvas. Invisible la nuit (noir sur noir), faux dans le miroir : la
+    // couleur de clear suit la face, du noir au papier, opaque.
+    if (refletStore.k !== clearKRef.current) {
+      clearKRef.current = refletStore.k;
+      clearScratch.setRGB(0, 0, 0).lerp(paperColor, refletStore.k);
+      gl.setClearColor(clearScratch, 1);
+    }
     rigColorScratch.set(rig.color);
     if (ambientRef.current) {
-      ambientRef.current.intensity = getAmbientIntensity(p) * rig.ambientScale;
+      ambientRef.current.intensity = getAmbientIntensity(p) * rig.ambientScale * reflet.ambientScale;
       // Tint ambient 65% (28/08 recalibré après boost raté à 100% :
       // trop d'ambient teinté coloriait le cerf ENTIER uniformément
       // via l'éclairage global, contradictoire avec l'objectif "cerf
@@ -162,13 +187,15 @@ export default function RevealLighting({
       // résiduelle pour que les matériaux gardent leurs couleurs
       // natives, cardinal se lit dans les tons moyens.
       ambientColorScratch.copy(whiteColor).lerp(cardinalColor, blend * 0.15);
+      // Dans le miroir, l'ambiante prend la teinte du papier.
+      if (reflet.paperMix > 0) ambientColorScratch.lerp(paperColor, reflet.paperMix);
       ambientRef.current.color.copy(ambientColorScratch);
     }
     if (directionalRef.current) {
       // arrivalGlow : la lueur du puits s'intensifie a l'arrivee au
       // Chicunamictlan (moment violet de fin, distinct de l'eveil home).
       directionalRef.current.intensity =
-        getDirectionalIntensity(p) * rig.directionalScale + arrivalGlow * 0.85;
+        getDirectionalIntensity(p) * rig.directionalScale * reflet.directionalScale + arrivalGlow * 0.85;
       // Directional 45% (recalibré 28/08 depuis 75%) : la
       // directionnelle porte les hautes lumières : trop teintée elle
       // colore les crêtes cerf+décor uniformément, 45% laisse un
@@ -220,7 +247,14 @@ export default function RevealLighting({
     if (fogRef.current) {
       // A l'Ouest, la teinte suit le crepuscule (abricot -> mauve), pas la page.
       // A l'Est (06/09), la brume passe du bleu gele au rouge de l'aube puis a l'or.
-      fogRef.current.color.set(getFogColor(p, west ? westFogTint(west.dusk) : direction === "dore" ? eastFogTint(rawP) : fogTint));
+      const fogHex = getFogColor(p, west ? westFogTint(west.dusk) : direction === "dore" ? eastFogTint(rawP) : fogTint);
+      if (refletStore.k > 0) {
+        // Dans le miroir, la brume est du papier qui garde un souvenir de la direction.
+        const m = refletFogColor(hexToRgb255(fogHex), refletStore.k);
+        fogRef.current.color.setRGB(m.r / 255, m.g / 255, m.b / 255, SRGBColorSpace);
+      } else {
+        fogRef.current.color.set(fogHex);
+      }
       // Densite par direction : snap direct si prefers-reduced-motion
       // (RGAA 13.6, meme convention que le crossfade des ambiances),
       // sinon easing exponentiel vers la cible.
@@ -228,8 +262,10 @@ export default function RevealLighting({
       fogRangeRef.current = sceneRefs?.reducedMotionRef.current
         ? { ...target }
         : approachFog(fogRangeRef.current, target, 0.06);
-      fogRef.current.near = fogRangeRef.current.near;
-      fogRef.current.far = fogRangeRef.current.far;
+      // Dans le miroir, le monde se dissout plus pres (un dessin sur amate).
+      const range = refletFogRange(fogRangeRef.current, refletStore.k);
+      fogRef.current.near = range.near;
+      fogRef.current.far = range.far;
     }
   });
 
@@ -280,4 +316,9 @@ export default function RevealLighting({
       <pointLight ref={emberRef} color={EMBER_COLOR} intensity={0} distance={EMBER_DISTANCE} decay={2} />
     </>
   );
+}
+
+function hexToRgb255(hex: string): { r: number; g: number; b: number } {
+  const h = hex.replace("#", "");
+  return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
 }

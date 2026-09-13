@@ -56,7 +56,7 @@
   --veil-soft-rgb: 6, 5, 10;     /* voile du panneau des traces */
   --veil-core: #0a0710;          /* coeur du degrade d'intro */
   --veil-solid: #000;            /* ecran d'intro, fond du canvas */
-  --stage-ground: #000;          /* le sol du canvas : la nuit sur les deux faces tant que la scene n'est pas refletee (lot 2 du miroir) */
+  --stage-ground: #000;          /* le sol du canvas : la nuit ; le papier dans le miroir (lot 2 du reflet, lib/reflet) */
   --shadow-rgb: 0, 0, 0;         /* ombres portees du texte de scene */
   --accent: #00c078;             /* vert d'etat actif */
   --accent-rgb: 0, 192, 120;
@@ -2059,6 +2059,9 @@ body.reading-mode .cantar {
   --turquoise-bg: #d6e6f5;
   --cendre-bg: #f2d9d3;
   --obsidienne-bg: #e6dcf3;
+  /* Le sol du canvas dans le miroir : le papier, comme la brume du rig
+     (lib/reflet, REFLET_PAPER) : l'horizon se dissout sans bord. */
+  --stage-ground: #f3ece0;
 }
 /* Tant que la scene garde sa nuit (lot 2 : la scene refletee), le texte
    d'encre ne peut pas flotter nu sur elle : les blocs de scene prennent un

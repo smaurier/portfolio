@@ -7,6 +7,8 @@ import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, Points, Shade
 import { makeMilkyWay } from "@/lib/milky-way";
 import { columnRise } from "@/lib/zenith-arc";
 import { useCurrentDirection } from "./use-current-direction";
+import { refletStarOpacity } from "@/lib/reflet";
+import { refletStore } from "./reflet-store";
 import { useSceneRefs } from "./scene-refs-context";
 
 /**
@@ -111,7 +113,8 @@ export default function MilkyWay() {
     // A l'infini : le dome suit la camera.
     pts.position.copy(state.camera.position);
     const p = sceneRefs?.progressRef.current ?? 0;
-    material.uniforms.uOpacity.value = BASE_OPACITY + (1 - BASE_OPACITY) * columnRise(p);
+    // Dans le miroir, les etoiles s'effacent (13/09, lot 2 du reflet).
+    material.uniforms.uOpacity.value = (BASE_OPACITY + (1 - BASE_OPACITY) * columnRise(p)) * refletStarOpacity(refletStore.k);
     material.uniforms.uPixelRatio.value = state.gl.getPixelRatio();
   });
 
