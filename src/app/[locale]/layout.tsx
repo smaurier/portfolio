@@ -205,7 +205,15 @@ export default async function LocaleLayout({
   ];
 
   return (
-    <html lang={locale}>
+    // suppressHydrationWarning sur <html> (13/09) : deux scripts en ligne
+    // posent des attributs sur la racine AVANT que React hydrate, par
+    // construction (la face du monde et le foyer allume doivent etre
+    // decides avant le premier paint, sinon on voit la mauvaise face une
+    // image). React comparait donc un <html> serveur sans ces attributs a
+    // un <html> client qui les porte, et signalait un decalage a chaque
+    // page. C'est le remede documente pour ce cas precis, et il ne porte
+    // que sur cet element : le reste de l'arbre continue d'etre verifie.
+    <html lang={locale} suppressHydrationWarning>
       <head>
         {/* Icones : plus de <link rel="icon"> manuel ici. Next les injecte
             depuis src/app/icon.svg + src/app/apple-icon.tsx (file conventions

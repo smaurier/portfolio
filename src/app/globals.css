@@ -61,6 +61,11 @@
   --accent: #00c078;             /* vert d'etat actif */
   --accent-rgb: 0, 192, 120;
   --accent-soft: #2fbf8f;        /* vert du cycle de chargement */
+  /* Le jade quand il porte du TEXTE. Sur la nuit, le jade vif passe
+     largement ; sur le papier il tombe a 3,4:1 (mesure axe du 13/09), d'ou
+     la variante sombre dans le bloc de la face claire. Le jade vif reste
+     partout ailleurs : traits, lueurs, etats actifs. */
+  --accent-text: #00c078;
   --accent-gold: #f0b25c;        /* or du cycle de chargement */
   --gold-rgb: 212, 167, 71;      /* halo dore de l'intro */
   --control-thumb: #fff;         /* curseur de reglage, masques */
@@ -901,7 +906,7 @@ body.nahual-lab-reveal .ctaButton {
   backdrop-filter: blur(12px);
   color: var(--ink);
   font-size: var(--t-corps);
-  border-top: 1px solid rgba(244, 234, 213, 0.08);
+  border-top: 1px solid rgba(var(--ink-rgb), 0.12);
   z-index: 50;
 }
 
@@ -919,7 +924,9 @@ body.nahual-lab-reveal .ctaButton {
   font-size: var(--t-petit);
   letter-spacing: var(--interlettre-caps);
   text-transform: uppercase;
-  color: #00c078;
+  /* Jeton et non litteral (13/09, audit axe) : #00c078 en dur tombait a
+     1,9:1 sur le pied de page clair, sur les dix pages du site. */
+  color: var(--accent-text);
   font-weight: 600;
   margin: 0 0 14px;
 }
@@ -942,9 +949,14 @@ body.nahual-lab-reveal .ctaButton {
   max-width: 1200px;
   margin: 0 auto;
   padding-top: 20px;
-  border-top: 1px solid rgba(244, 234, 213, 0.06);
+  border-top: 1px solid rgba(var(--ink-rgb), 0.1);
   font-size: var(--t-petit);
-  opacity: 0.55;
+  /* Plus d'opacite du tout (13/09, audit axe, deuxieme passe) : a 0,55
+     l'encre tombait a 3,8:1 sur le papier, et une opacite de bloc DELAVE
+     aussi ses enfants, donc l'annee mexica restait a 3,7:1 malgre sa
+     couleur corrigee. Un jeton de texte secondaire dit la meme discretion
+     sans toucher aux enfants. */
+  color: var(--ink-muted);
   text-align: center;
 }
 
@@ -953,7 +965,11 @@ body.nahual-lab-reveal .ctaButton {
    basculement de temporalité, sans distraire du copyright standard. */
 .footerAztec {
   font-style: italic;
-  color: color-mix(in srgb, #00c078 65%, rgba(244, 234, 213, 0.55));
+  /* 13/09, audit axe : le melange d'un jade vif et d'une creme a demi
+     transparente tombait a 2,75:1 sur la NUIT et 1,3:1 sur le papier, la
+     pire mesure du site. L'annee mexica est une signature, pas un
+     filigrane : elle prend le jeton de texte accentue, sans transparence. */
+  color: var(--accent-text);
 }
 
 /* Xolotl easter egg (29/08). 3 layers activés uniquement quand
@@ -2062,6 +2078,10 @@ body.reading-mode .cantar {
   --accent: #1a8a63;
   --accent-rgb: 26, 138, 99;
   --accent-soft: #1f8f6a;
+  /* Le jade quand il porte du TEXTE : sur le papier, le jade vif tombe a
+     3,4:1 (mesure axe du 13/09). Celui-ci tient 5,6:1 sur le pied de page
+     clair. Le jade vif reste pour les traits et les lueurs. */
+  --accent-text: #12634a;
   --accent-gold: #9a6a12;
   --gold-rgb: 154, 106, 18;
   --control-thumb: #17131f;
