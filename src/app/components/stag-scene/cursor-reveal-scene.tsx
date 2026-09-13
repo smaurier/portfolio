@@ -10,6 +10,7 @@ import { lightPAtArc } from "@/lib/arc-day";
 import { useCurrentDirection } from "./use-current-direction";
 import { applyCursorReveal, createCursorRevealUniforms, setCursorRevealFloor } from "./cursor-reveal";
 import { refletStore } from "./reflet-store";
+import { codexStore } from "./codex-store";
 
 /**
  * Enveloppe toute la scène 3D dans la révélation par curseur (cf
@@ -115,6 +116,14 @@ export default function CursorRevealScene({
     // (13/09) : il suit la part de reflet, donc il arrive avec la face
     // claire et s'en va avec elle, sans branche a maintenir.
     uniforms.uRevealInk.value = refletStore.k;
+    // Le trace du codex (13/09) : meme conversion que la souris, origine
+    // en bas a gauche et pixels du framebuffer.
+    uniforms.uCodex.value = codexStore.amount;
+    if (codexStore.amount > 0.001) {
+      uniforms.uCodexFront.value = codexStore.front;
+      uniforms.uCodexSign.value = codexStore.sign;
+      uniforms.uCodexOrigin.value.set(codexStore.x * dpr, canvas.height - codexStore.y * dpr);
+    }
   });
 
   return <group ref={groupRef}>{children}</group>;

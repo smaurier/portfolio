@@ -63,6 +63,15 @@ export type CursorRevealUniforms = {
    * la couleur ne s'arrete plus sur un cercle parfait mais sur une frange
    * de fibres, comme une encre qui a bu dans le papier. */
   uRevealWobble: { value: number };
+  /** LE TRACE DU CODEX (13/09) : combien le monde est dessine (0 rendu
+   * normal, 1 trait d'encre sur papier), jusqu'ou le geste est alle, et
+   * dans quel sens (le dessin se pose, ou la couleur revient). L'origine
+   * est le disque du miroir, en pixels du framebuffer. Voir lib/theme
+   * codexDraw pour la choregraphie, `codex-store` pour le relais. */
+  uCodex: { value: number };
+  uCodexFront: { value: number };
+  uCodexSign: { value: number };
+  uCodexOrigin: { value: Vector2 };
   /** Force du trait d'encre qui borde la zone de couleur. Monte avec la
    * face claire (le papier) : sur la nuit, l'encre n'aurait rien a border. */
   uRevealInk: { value: number };
@@ -99,6 +108,10 @@ export function createCursorRevealUniforms(): CursorRevealUniforms {
     uMinOpacity: { value: MIN_OPACITY_START },
     uMinSaturation: { value: MIN_SATURATION_START },
     uRevealWobble: { value: 0.22 },
+    uCodex: { value: 0 },
+    uCodexFront: { value: 0 },
+    uCodexSign: { value: 1 },
+    uCodexOrigin: { value: new Vector2(0, 0) },
     uRevealInk: { value: 0 },
   };
   return sharedUniforms;
@@ -142,6 +155,10 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
         shader.uniforms.uMinSaturation = uniforms.uMinSaturation;
         shader.uniforms.uRevealWobble = uniforms.uRevealWobble;
         shader.uniforms.uRevealInk = uniforms.uRevealInk;
+        shader.uniforms.uCodex = uniforms.uCodex;
+        shader.uniforms.uCodexFront = uniforms.uCodexFront;
+        shader.uniforms.uCodexSign = uniforms.uCodexSign;
+        shader.uniforms.uCodexOrigin = uniforms.uCodexOrigin;
 
         shader.fragmentShader = shader.fragmentShader
           .replace(
@@ -156,6 +173,10 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             uniform float uMinSaturation;
             uniform float uRevealWobble;
             uniform float uRevealInk;
+            uniform float uCodex;
+            uniform float uCodexFront;
+            uniform float uCodexSign;
+            uniform vec2 uCodexOrigin;
             // Bruit de valeur en espace ecran : la frange du bord. Deux
             // octaves suffisent pour que l'oeil lise « fibre », pas « cercle ».
             float nahualHash(vec2 p) {
@@ -207,6 +228,31 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             float nahualTrait = (1.0 - smoothstep(0.0, 0.07, abs(reveal - 0.5))) * uRevealInk;
             gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.09, 0.075, 0.12), nahualTrait * 0.16);
             gl_FragColor.a *= mix(uMinOpacity, 1.0, reveal);
+            // LE TRACE DU CODEX (13/09) : pendant la ceremonie du miroir, le
+            // monde se reduit a son dessin. Le trait suit le bord des
+            // volumes (l'angle rasant : c'est la que le tlacuilo pose son
+            // encre), le reste devient papier, et la frange de bruit fait
+            // trembler la ligne comme une main. Le front part du disque :
+            // le dessin se pose vers les bords, la couleur revient de meme.
+            if (uCodex > 0.001) {
+              float dCodex = distance(gl_FragCoord.xy, uCodexOrigin) / max(1.0, length(uResolution)) * 2.0;
+              // Le front n'est pas un compas : il avance comme une main, par
+              // avancees et retards, d'ou le meme grain que la frange.
+              float nahualBord = smoothstep(uCodexFront - 0.2, uCodexFront, dCodex + (nahualGrain - 0.5) * 0.11);
+              float dessine = (uCodexSign > 0.0 ? 1.0 - nahualBord : nahualBord) * uCodex;
+              if (dessine > 0.001) {
+                vec3 nahualVue = normalize(vViewPosition);
+                float rasant = 1.0 - abs(dot(normalize(normal), nahualVue));
+                // Seuils larges (13/09, apres capture) : a 0,32-0,86 le
+                // monde virait au papier blanc sans trait lisible. Le
+                // tlacuilo appuie : la ligne prend des l'angle moyen, et
+                // le grain la fait trembler comme une main.
+                float trait = smoothstep(0.16, 0.58, rasant + (nahualGrain - 0.5) * 0.22);
+                vec3 nahualDessin = mix(vec3(0.95, 0.92, 0.86), vec3(0.07, 0.06, 0.10), trait);
+                gl_FragColor.rgb = mix(gl_FragColor.rgb, nahualDessin, dessine);
+                gl_FragColor.a = mix(gl_FragColor.a, max(gl_FragColor.a, 0.96), dessine);
+              }
+            }
             #include <dithering_fragment>`,
           );
       });

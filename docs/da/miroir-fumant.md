@@ -91,6 +91,28 @@ papiers des ceremonies.
   main. Si un jure sous preference claire s'en plaint, c'est une ligne dans
   `layout.tsx` (lire `prefers-color-scheme` a defaut de memoire).
 
+## Le trace du codex (13/09, idee de Sylvain)
+
+« Toute la scene 3d devrait se dessiner comme si elle etait dessinee
+rapidement par les auteurs du codex. » La ceremonie a donc un PROLOGUE de
+0,8 seconde, avant toute fumee : le monde se reduit a son dessin, depuis
+le disque vers les bords, d'un geste rapide qui ralentit en finissant
+(easeOutCubic, la main du tlacuilo ne cherche pas). Puis la fumee couvre,
+le monde change, et la couleur revient dans le dessin, toujours depuis le
+disque.
+
+Comment c'est fait, et pourquoi c'est peu coûteux : le shader qui revele
+la couleur au curseur est deja pose sur TOUS les materiaux de la scene
+(cursor-reveal). Le trace s'y ajoute en quelques instructions, gardees par
+un `if` : le trait suit l'angle rasant (c'est la que le tlacuilo pose son
+encre), le reste devient papier, et le grain fait trembler la ligne comme
+une main. Aucun passage de post-traitement en plus, donc aucune
+compilation de shader au moment du geste.
+
+La choregraphie entiere est dans `lib/theme` (`codexDraw`), pure et
+testee : combien le monde est dessine, jusqu'ou le geste est alle, et
+dans quel sens. Le fragment lit ces trois valeurs et rien d'autre.
+
 ## Les trois lots
 
 1. **Le disque, les jetons, la fumee, les tests** (fait le 13/09) :

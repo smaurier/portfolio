@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { MIROIR_EVENT, MIROIR_TIMING, miroirDuration, miroirPeakAt, smokeAlpha, smokePhase, type Theme } from "@/lib/theme";
+import { MIROIR_EVENT, MIROIR_TIMING, codexDraw, miroirDuration, miroirPeakAt, smokeAlpha, smokePhase, type Theme } from "@/lib/theme";
+import { codexStore } from "./stag-scene/codex-store";
 import { applyTheme } from "./theme-store";
 
 /**
@@ -92,6 +93,15 @@ export default function MiroirFumant() {
       const frame = (now: number) => {
         const t = (now - t0) / 1000;
         const sp = smokePhase(t, MIROIR_TIMING);
+        // LE TRACE (13/09) : la scene 3D se reduit a son dessin, puis se
+        // recolore. Toute la choregraphie est dans lib/theme (pure et
+        // testee) ; ici on ne fait que la poser pour le shader.
+        const cd = codexDraw(t, MIROIR_TIMING);
+        codexStore.amount = cd.amount;
+        codexStore.front = cd.front;
+        codexStore.sign = cd.sign;
+        codexStore.x = d.x;
+        codexStore.y = d.y;
         if (!bascule && t >= peak) { bascule = true; applyTheme(d.to); }
         const drift = t * 6;
         for (let y = 0; y < H; y++) {
@@ -113,6 +123,7 @@ export default function MiroirFumant() {
         if (t < duree) raf = requestAnimationFrame(frame);
         else {
           if (!bascule) applyTheme(d.to);
+          codexStore.amount = 0;
           canvas.removeAttribute("data-miroir");
           ctx.clearRect(0, 0, W, H);
           occupe = false;
@@ -122,7 +133,13 @@ export default function MiroirFumant() {
       return () => cancelAnimationFrame(raf);
     };
     abonnes.add(jouer);
-    return () => { abonnes.delete(jouer); occupe = false; };
+    return () => {
+      abonnes.delete(jouer);
+      occupe = false;
+      // Si la page change au milieu de la ceremonie, le monde resterait
+      // dessine pour toujours : on le rend a ses couleurs.
+      codexStore.amount = 0;
+    };
   }, []);
 
   return <canvas ref={canvasRef} className="miroirFumant" aria-hidden="true" />;
