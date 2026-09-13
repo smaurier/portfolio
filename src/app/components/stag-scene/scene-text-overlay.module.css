@@ -159,6 +159,30 @@
 /* Chapitres scroll-driven storytelling (28/08 task #63) — texte
    narratif qui apparait par chapitre, ancre autour du milieu d'une
    phase reveal-arc. Kicker discret jade, ligne texte crème centree. */
+/* L'ENCADRE DU CHAPITRE (13/09, retour Sylvain « on ne voit pas l'encadre
+   I - L'approche »). Mesure faite avant de toucher : le bloc EST a
+   l'ecran, a opacite 1, a toutes les hauteurs d'ecran testees (640 a
+   1080). Ce qui manquait, c'est le panneau : contrairement au hero
+   (`.block`), le chapitre n'avait ni fond, ni ombre de texte, et une
+   graisse 300 centree se perd sur une scene chargee. Il prend donc le
+   meme traitement que le hero : un fond qui suit la luminosite de la
+   scene (`--scene-lum`, nul la nuit, franc quand le monde s'eclaircit) et
+   le meme halo. */
+.chapter {
+  align-self: center;
+  max-width: 680px;
+  padding: 16px 24px;
+  border-radius: 12px;
+  /* Contrairement au hero, un PLANCHER de fond meme la nuit : le hero est
+     ancre a gauche sur le vide, le chapitre tombe au milieu, sur la
+     Piedra et l'herbe, la ou la scene est la plus chargee. 0,46 suffit a
+     ce que l'encadre existe sans peser (retour du 27/08 : « trop lourds »). */
+  background: rgba(var(--panel-rgb), calc(0.46 + 0.24 * var(--scene-lum, 0)));
+  text-shadow: 0 0 6px rgba(var(--shadow-rgb), 0.55), 0 0 2px rgba(var(--shadow-rgb), 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
 .chapterKicker {
   font-size: var(--t-petit);
   letter-spacing: var(--interlettre-caps);

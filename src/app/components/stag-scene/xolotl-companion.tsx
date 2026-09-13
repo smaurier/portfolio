@@ -6,6 +6,7 @@ import { useAnimations, useGLTF } from "@react-three/drei";
 import { AdditiveBlending, AnimationMixer, Color, DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, ShaderMaterial, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { makeRimWarp, rimCrossing, rimSlowdown, rimSurface } from "@/lib/xolotl-rim";
+import { angleCambrure, cambrure, repartirCambrure } from "@/lib/xolotl-cambrure";
 import { bodyFromFeet, fitSupportPlane, type SupportPoint } from "@/lib/quadruped-stance";
 import { DOG_LEG_LIMITS, twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
@@ -202,6 +203,31 @@ type Leg = {
   twinHip: Object3D | null;
   twinKnee: Object3D | null;
 };
+
+/** LA CHAINE DU DOS (13/09, retour Sylvain « Xolotl est encore trop rigide,
+ * il devrait se cambrer legerement au moment d'entrer et sortir du
+ * bassin »). Du bassin vers les epaules : c'est l'ordre que
+ * `repartirCambrure` suppose (les poids montent vers l'avant). Noms releves
+ * sur le rig par une sonde, comme ceux des membres. */
+const SPINE = [
+  "Wolf_Spine_01SHJnt_26",
+  "Wolf_Spine_02SHJnt_25",
+  "Wolf_Spine_03SHJnt_24",
+  "Wolf_Spine_04SHJnt_23",
+  "Wolf_Spine_TopSHJnt_22",
+];
+
+type Vertebre = { os: Object3D; jumelle: Object3D | null };
+
+function collectSpine(root: Group, twinRoot: Group | null): Vertebre[] {
+  const out: Vertebre[] = [];
+  for (const nom of SPINE) {
+    const os = root.getObjectByName(nom);
+    if (!os) continue;
+    out.push({ os, jumelle: twinRoot?.getObjectByName(nom) ?? null });
+  }
+  return out;
+}
 
 function collectLegs(root: Group, twinRoot: Group | null): Leg[] {
   const out: Leg[] = [];
@@ -622,6 +648,8 @@ export default function XolotlCompanion() {
   }, []);
   const prevRadiusRef = useRef<number | null>(null);
   const legsRef = useRef<Leg[] | null>(null);
+  const spineRef = useRef<Vertebre[] | null>(null);
+  const cambrureRef = useRef(0);
   const stanceRef = useRef<{ y: number; pitch: number; roll: number } | null>(null);
   const rimWarp = useMemo(() => makeRimWarp(START_X, END_X, Z_DEPTH_NORTH, RIM_SPEC), []);
   /** L'action de marche, tenue en ref pour que la boucle d'image regle sa
@@ -643,6 +671,8 @@ export default function XolotlCompanion() {
       delta: new Quaternion(),
       parentQuat: new Quaternion(),
       axis: new Vector3(),
+      axis2: new Vector3(),
+      cambrureAxis: new Vector3(),
     }),
     []
   );
@@ -845,6 +875,10 @@ export default function XolotlCompanion() {
       const found = collectLegs(scene as Group, clonedScene as Group);
       if (found.length > 0) legsRef.current = found;
     }
+    if (inNorth && !spineRef.current) {
+      const dos = collectSpine(scene as Group, clonedScene as Group);
+      if (dos.length > 0) spineRef.current = dos;
+    }
     const sc = ikScratch;
     // Les quatre appuis, un point (x, z, hauteur) par coussinet. Le plan
     // qui passe au mieux par ces quatre points donne d'un coup hauteur,
@@ -920,7 +954,7 @@ export default function XolotlCompanion() {
     // indebogable depuis l'image seule. Compte aussi les BASCULES de
     // source, qui remettent le lissage a zero.
     if (typeof window !== "undefined") {
-      const w = window as unknown as { __nahualXolotl?: { y: number; pitch: number; roll: number; source: string; bascules: number; r: number } };
+      const w = window as unknown as { __nahualXolotl?: { y: number; pitch: number; roll: number; source: string; bascules: number; r: number; cambrure: number } };
       const prec = w.__nahualXolotl;
       w.__nahualXolotl = {
         y: +y.toFixed(4),
@@ -929,6 +963,9 @@ export default function XolotlCompanion() {
         source: fromFeet ? "appuis" : "repli",
         bascules: (prec?.bascules ?? 0) + (sourceChanged ? 1 : 0),
         r: +Math.hypot(x, zDepth).toFixed(3),
+        // La cambrure du dos (13/09) : l'ANGLE reellement applique, en
+        // degres (la ref porte une valeur normalisee, pas un angle).
+        cambrure: +((angleCambrure(cambrureRef.current) * 180) / Math.PI).toFixed(2),
       };
     }
     g.position.set(x, y, zDepth);
@@ -978,6 +1015,32 @@ export default function XolotlCompanion() {
         // phase, donc les rotations locales se recopient telles quelles.
         if (leg.twinHip) leg.twinHip.quaternion.copy(leg.hip.quaternion);
         if (leg.twinKnee) leg.twinKnee.quaternion.copy(leg.knee.quaternion);
+      }
+    }
+    // LA CAMBRURE (13/09) : le dos s'arrondit en descendant dans l'eau, se
+    // tend en remontant sur la pierre. Un mouvement de colonne, pose
+    // PAR-DESSUS le cycle de marche (le mixer a deja ecrit sa pose cette
+    // image), reparti sur les cinq vertebres, croupe vers epaules. La
+    // valeur est lissee : la vitesse radiale d'une image a l'autre est
+    // bruitee, et un dos ne claque pas.
+    if (inNorth && spineRef.current) {
+      const prevR = prevRadiusRef.current;
+      const dt = Math.max(1 / 120, Math.min(delta, 1 / 20));
+      const vitesseRadiale = prevR === null ? 0 : (radius - prevR) / dt;
+      const cible = sceneRefs?.reducedMotionRef.current ? 0 : cambrure(radius, vitesseRadiale, RIM_SPEC);
+      cambrureRef.current += (cible - cambrureRef.current) * Math.min(1, dt * 6);
+      const total = angleCambrure(cambrureRef.current);
+      if (Math.abs(total) > 1e-4) {
+        const parts = repartirCambrure(total, spineRef.current.length);
+        // Meme axe que l'assiette du corps : le lateral du chien, pris en
+        // monde une fois, puis ramene dans le repere de chaque os par
+        // applyWorldDelta.
+        sc.cambrureAxis.copy(PITCH_AXIS).applyQuaternion(g.quaternion);
+        for (let i = 0; i < spineRef.current.length; i++) {
+          const v = spineRef.current[i];
+          applyWorldDelta(v.os, sc.cambrureAxis, parts[i], sc.delta, sc.parentQuat, sc.axis2);
+          if (v.jumelle) v.jumelle.quaternion.copy(v.os.quaternion);
+        }
       }
     }
     if (inNorth) {

@@ -2077,7 +2077,8 @@ body.reading-mode .cantar {
 /* Tant que la scene garde sa nuit (lot 2 : la scene refletee), le texte
    d'encre ne peut pas flotter nu sur elle : les blocs de scene prennent un
    panneau de papier. */
-html[data-theme="light"] [data-scene-overlay] [class*="block"] {
+html[data-theme="light"] [data-scene-overlay] [class*="block"],
+html[data-theme="light"] [data-scene-overlay] [class*="chapter"]:not(p) {
   background: rgba(var(--panel-rgb), 0.82);
   padding: 18px 20px;
 }
@@ -2132,6 +2133,14 @@ html[data-theme="light"] .logoLink img {
 .themeToggle:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+/* Le nom accessible du disque est porte par `aria-label` ET `title`, avec
+   exactement le meme texte (regle Access42 : toutes les methodes de
+   nommage portent le meme contenu). L'infobulle native du `title`
+   suffit ; une infobulle maison a ete essayee le 13/09 et retiree
+   (Sylvain : « tres moche et mal fait »). */
+.themeToggle {
+  position: relative;
 }
 .themeToggle[aria-pressed="true"] .themeToggleReflet {
   stroke-width: 1.8;

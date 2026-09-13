@@ -119,7 +119,7 @@ export default function StagScene({
               getOpacity={(p) => getChapterOpacity(p, i)}
               initialOpacity={0}
             >
-              <div aria-hidden="true">
+              <div aria-hidden="true" className={overlayStyles.chapter}>
                 <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
                 <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
               </div>
