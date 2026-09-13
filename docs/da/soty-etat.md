@@ -106,6 +106,17 @@ Une ligne par passe : la date, ce qui a bouge, la note. Les notes sont un
 jugement, pas une mesure ; ce qui est mesure est dans `revue-soty-10-09.md`
 et dans le tableau d'avancement de `plan-execution.md`.
 
+- **13/09, l'audit complet** (`audit-13-09.md`, production du jour, captures,
+  video, signes vitaux, accessibilite, son, cosmogonie) : **8,85 -> 8,1**.
+  La note baisse parce que l'audit a trouve ce que les passes precedentes
+  supposaient acquis : le calque de texte des pages n'est pas fixe (les
+  chapitres 2 a 4 de l'accueil et les clotures des quatre pages echo ne
+  sont jamais visibles sur ordinateur, depuis le 25/08, en ligne aussi),
+  la ligne de seuil est sous le bouton du mode recit, le chant est sous
+  les boutons sur telephone, et la barre du metier n'est pas tenue sur
+  trois pages (Contact 30 im/s en mediane). Par axe : design 8,5,
+  utilisabilite 7,0, creativite 9,0, contenu 8,0. L'ordre des corrections
+  est en section 10 du rapport.
 - **12/09, le voile d'entree** : 8,8 -> 8,85. Sylvain : « parfois tout
   s'affiche, parfois non, et c'est saccade ». Mesure par le vrai chemin, a
   froid : la ceremonie (phrase, points cardinaux qui rejoignent la

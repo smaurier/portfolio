@@ -80,6 +80,29 @@ Chrome reel, dev, `?shaders-prod`.
 
 ---
 
+## 0 bis. L'audit du 13/09 : ce qu'il ajoute au backlog
+
+Rapport complet : `audit-13-09.md` (grille, mesures, etat de l'art, ordre
+propose). Les entrees ci-dessous en sont la liste de travail.
+
+| # | quoi | oracle | effort | decision |
+| --- | --- | --- | --- | --- |
+| X1 | **Le calque de texte n'est pas fixe** : chapitres 2 a 4 de l'accueil et clotures des pages echo jamais visibles sur ordinateur (`scene-text-overlay` en `absolute` sans ancetre positionne, depuis le 25/08). `position: fixed`, mode recit en statique, cloture qui cede au pied de page | un test e2e : quand l'opacite d'un chapitre ou d'une cloture vaut 1, son rectangle est DANS la fenetre, sur les cinq pages | S | a faire en premier |
+| X2 | **La ligne de seuil sous le bouton du mode recit** (quatre pages echo) et sous la boussole sur telephone : la placer dans le calque fixe, en haut a gauche, premier quart de l'arc | `controls-overlap` vert ; `cloture-seuil.mjs` sans chevauchement | S | a faire |
+| X3 | **Le chant sous la colonne de boutons sur telephone** (regression du 11/09) : couloir de 72 px sous 767 px | `controls-overlap` vert sur les trois cadrages | S | a faire |
+| X4 | **La cloture et le pied de page** : le panneau fixe passe sous le pied des 85 % (Centre), et sur telephone la colonne de boutons le recouvre | capture a 92 % : panneau entier ; `controls-overlap` | S | a faire |
+| X5 | **La barre du metier sur Ouest, Nord, Sud** : herbe a 5 000 sur telephone, simulateurs du Nord initialises en tranches, etoiles et colibris du Sud a moitie sur telephone | `vitals.mjs` Pixel 7 x4 : mediane 60 et 5e centile >= 45 sur les cinq pages ; TBT < 1 s | M | a faire |
+| X6 | **L'image fixe du Centre** : le foyer visible a 0 %, une lueur au sol, le cerf eclaire ; et la ligne de premiere arrivee (« Tu reviens » seulement au retour) | capture a 0 % : le cerf et les braseros lisibles | S | a faire |
+| X7 | **Le son, la chaine** : limiteur en fin de chaine, fondu croise des nappes au voyage, deux convolutions generees (Nord, Est), panoramique du chien et du serpent, respiration de la nappe | pas de depassement de 0 dB (mesure par l'analyseur) ; une seule cloche par geste | M | a faire |
+| X8 | **Les danseuses** : offrandes lisibles (taille x2 a x3, braise vive, lumiere par bol), pose reelle au sol, camera qui descend au carrefour | capture a 92 % : papiers et braises lisibles a 1440 px | M | a faire |
+| X9 | **Le chien** : cinematique inverse des pattes vers la hauteur d'appui, ralenti au bord, deux eclaboussures | video de l'entree, pattes sur la pierre | M | a faire |
+| X10 | **Profondeur de champ au repos** (bureau) : bokehScale 1 a 1,5, focus sur le cerf, resolutionScale 0,5 | 60 im/s bureau conserves ; capture nette sur le cerf, douce au loin | S | a decider |
+| X11 | **Le ciel du Sud** (lot 4 du 08/09) | capture a 50 % : nuages lisibles | S | a faire |
+| X12 | **Les sources du Nord** et deux affirmations a verifier (papillons des Cihuateteo, Xolotl guide des ames) | `nord-sources.md` avec livre et folio | S | Sylvain |
+| X13 | **Chargement** : decodage meshopt en worker, SVG du voile (160 Ko), KTX2 quand `toktx` | images longues pendant le voile a froid : 6 -> 2 | M | a faire |
+| X14 | **404 dessinee** et en-tetes de securite (`netlify.toml`) | 404 dans le monde ; en-tetes presents en production | S | a faire |
+| X15 | **Le chemin de cempasuchil se vide au repos** : recycler les fleurs au bord du bassin | 60 s au repos : autant de fleurs qu'a l'arrivee | S | a faire |
+
 ## 1. Visuel (design, 40)
 
 | # | quoi | pourquoi | oracle | effort | decision |
