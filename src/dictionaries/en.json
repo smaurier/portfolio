@@ -75,6 +75,8 @@
       "intro": "Some things only happen to those who watch. Here are the ones that happened to you.",
       "close": "Close",
       "count": "{n} traces out of {total}",
+      "jour": "Your day is {jour}, {glose}: the name the tonalpohualli gives to your first visit here.",
+      "jourCerf": "Your day is {jour}, {glose}: you came here on the very day of the sign this site was born from.",
       "hidden": "A trace still to be found",
       "lines": {
         "centzon-thrown": "The four hundred stars were thrown into the sky before you.",

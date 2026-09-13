@@ -6,6 +6,8 @@ import { useFocusTrap } from "@/lib/use-focus-trap";
 import { TRACE_IDS, traceCount, type TraceId, type Traces } from "@/lib/traces";
 import { getTraces, hydrateTraces, subscribeTraces } from "./traces-store";
 import { renderWithNahuatl } from "../../lib/nahuatl";
+import { estJourDuCerf, jourDe, nomCourt } from "@/lib/tonalpohualli";
+import { premiereVisite } from "./premiere-visite";
 
 /**
  * TracesPanel (05/09) : « ce que la scene vous a montre ». Un panneau
@@ -21,6 +23,10 @@ export type TracesLabels = {
   intro: string;
   close: string;
   count: string; // « {n} traces sur {total} »
+  /** « Ton jour : {jour}, {glose} » (le tonalpohualli de la premiere visite). */
+  jour: string;
+  /** La meme ligne, quand ce jour est celui du cerf. */
+  jourCerf: string;
   hidden: string;
   lines: Record<TraceId, string>;
 };
@@ -56,6 +62,17 @@ export default function TracesPanel({ labels, locale, onClose }: { labels: Trace
     };
   }, [onClose]);
 
+  // LE JOUR DU VISITEUR (13/09) : le jour du tonalpohualli de la premiere
+  // visite. Calcule a l'ouverture du carnet, jamais au rendu serveur (il
+  // depend du calendrier de la machine du visiteur).
+  const [jour, setJour] = useState<{ nom: string; glose: string; cerf: boolean } | null>(null);
+  useEffect(() => {
+    const j = jourDe(new Date(premiereVisite()));
+    const glose = locale === "en" ? j.signe.en : locale === "es" ? j.signe.es : j.signe.fr;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- depend du calendrier local, pas du serveur
+    setJour({ nom: nomCourt(j), glose, cerf: estJourDuCerf(j) });
+  }, [locale]);
+
   const n = traceCount(traces);
   const count = labels.count.replace("{n}", String(n)).replace("{total}", String(TRACE_IDS.length));
 
@@ -76,6 +93,11 @@ export default function TracesPanel({ labels, locale, onClose }: { labels: Trace
         </button>
         <h2 className={styles.title}>{renderWithNahuatl(labels.title)}</h2>
         <p className={styles.intro}>{renderWithNahuatl(labels.intro)}</p>
+        {jour && (
+          <p className={styles.jour}>
+            {renderWithNahuatl((jour.cerf ? labels.jourCerf : labels.jour).replace("{jour}", jour.nom).replace("{glose}", jour.glose))}
+          </p>
+        )}
         <p className={styles.count}>{count}</p>
         <ol className={styles.list}>
           {TRACE_IDS.map((id) => {

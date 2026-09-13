@@ -55,6 +55,17 @@
   opacity: 0.85;
 }
 
+/* LE JOUR DU VISITEUR (13/09) : le nom que le tonalpohualli donne a la
+   premiere visite. Une ligne, au-dessus du compte, dans le ton du Codex. */
+.jour {
+  margin: 0 0 0.8rem;
+  font-size: var(--t-petit);
+  line-height: 1.6;
+  color: var(--ink-muted);
+  border-left: 2px solid rgba(var(--gold-rgb), 0.55);
+  padding-left: 0.9rem;
+}
+
 .count {
   margin: 0 0 1.2rem;
   font-size: var(--t-petit);

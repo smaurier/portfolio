@@ -75,6 +75,8 @@
       "intro": "Algunas cosas solo le ocurren a quien mira. Estas son las que te ocurrieron a ti.",
       "close": "Cerrar",
       "count": "{n} huellas de {total}",
+      "jour": "Tu día es {jour}, {glose}: el nombre que el tonalpohualli da a tu primera visita.",
+      "jourCerf": "Tu día es {jour}, {glose}: entraste aquí justo el día del signo que hizo nacer este sitio.",
       "hidden": "Una huella todavía por encontrar",
       "lines": {
         "centzon-thrown": "Las cuatrocientas estrellas fueron lanzadas al cielo ante ti.",

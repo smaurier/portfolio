@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/immutability -- pattern gamedev r3f useFrame : mutation d'objets three a 60 fps (meme precedent que sud-sky). */
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, CanvasTexture, Color, Group, NormalBlending, Sprite, SpriteMaterial } from "three";
 import { INK_BODIES, bodiesInInk } from "@/lib/reflet";
+import { apresMidiIci } from "@/lib/heure-du-lieu";
 import { refletStore } from "./reflet-store";
 import { moonDirection, sunDirection } from "@/lib/direction-light";
 import { dayAtArc, sunInTheWest } from "@/lib/arc-day";
@@ -103,6 +104,10 @@ export default function SudSkyBodies() {
     () => new SpriteMaterial({ map: radialTexture(64, 0.0, 0.5, 0, 4), color: new Color("#fff6e0"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }),
     [],
   );
+  const apresMidiRef = useRef(false);
+  useEffect(() => {
+    apresMidiRef.current = apresMidiIci();
+  }, []);
   const inkSun = useMemo(() => new Color(INK_BODIES.sun), []);
   const inkMoon = useMemo(() => new Color(INK_BODIES.moon), []);
   const inkVenus = useMemo(() => new Color(INK_BODIES.venus), []);
@@ -155,7 +160,9 @@ export default function SudSkyBodies() {
       const pNow = sceneRefs?.progressRef.current ?? 0;
       // A l'Est (06/09), le soleil suit son propre arc : il parait face au
       // regard a l'instant ou le gel eclate.
-      const sd = east ? eastSunDirection(pNow) : sunDirection(day, sunInTheWest(direction, sc.cinematic && sc.cinematicAfternoon));
+      // Le disque suit la meme verite que la lumiere (13/09) : l'heure du
+      // lieu hors contemplation, celle de Tenochtitlan pendant.
+      const sd = east ? eastSunDirection(pNow) : sunDirection(day, sunInTheWest(direction, sc.cinematic ? sc.cinematicAfternoon : apresMidiRef.current));
       sun.position.set(sd.x * RADIUS, sd.y * RADIUS, sd.z * RADIUS);
       halo.position.copy(sun.position);
       const up = Math.max(0, Math.min(1, (sd.y + 0.02) / 0.12));

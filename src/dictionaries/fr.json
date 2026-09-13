@@ -75,6 +75,8 @@
       "intro": "Certaines choses n'arrivent qu'à qui regarde. Voici celles qui te sont arrivées.",
       "close": "Fermer",
       "count": "{n} traces sur {total}",
+      "jour": "Ton jour est {jour}, {glose} : le nom que le tonalpohualli donne à ta première venue ici.",
+      "jourCerf": "Ton jour est {jour}, {glose} : tu es entré ici le jour même du signe qui a fait naître ce site.",
       "hidden": "Une trace encore à trouver",
       "lines": {
         "centzon-thrown": "Les quatre cents étoiles ont été jetées dans le ciel devant toi.",

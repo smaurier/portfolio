@@ -24,6 +24,7 @@ import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { useSceneRefs } from "./scene-refs-context";
 import { useTheme } from "../theme-store";
 import { approachReflet, refletFogColorFor, refletFogRange, refletK, refletLight, REFLET_PAPER } from "@/lib/reflet";
+import { apresMidiIci } from "@/lib/heure-du-lieu";
 import { refletStore } from "./reflet-store";
 import { getSceneControls } from "../scene-controls-store";
 
@@ -113,6 +114,11 @@ export default function RevealLighting({
   const paperColor = useMemo(() => new Color().setRGB(REFLET_PAPER.r / 255, REFLET_PAPER.g / 255, REFLET_PAPER.b / 255, SRGBColorSpace), []);
   const clearScratch = useMemo(() => new Color(), []);
   const clearKRef = useRef(-1);
+  // Lu une fois : une visite ne traverse pas le midi.
+  const apresMidiRef = useRef(false);
+  useEffect(() => {
+    apresMidiRef.current = apresMidiIci();
+  }, []);
   const directionalColorScratch = useMemo(() => new Color(), []);
 
   // LA LUMINOSITE DE LA SCENE, PUBLIEE AU CSS (11/09). Les panneaux de texte
@@ -147,7 +153,10 @@ export default function RevealLighting({
     // Lune -> soleil (05/09) : le rig de la direction a un etat de nuit ; l'arc
     // de revelation l'emmene vers le jour (rigAtArc, identite pour les autres).
     const sc = getSceneControls();
-    const rigTarget = rigAtArc(getLightRig(hour), dayAtArc(direction, rawP), sunInTheWest(direction, sc.cinematic && sc.cinematicAfternoon));
+    // L'HEURE DU LIEU (13/09, lib/heure-du-lieu) : hors contemplation, le
+    // soleil de la page suit le cote du midi ou se trouve le visiteur. En
+    // contemplation, c'est l'heure de Tenochtitlan qui commande (05/09).
+    const rigTarget = rigAtArc(getLightRig(hour), dayAtArc(direction, rawP), sunInTheWest(direction, sc.cinematic ? sc.cinematicAfternoon : apresMidiRef.current));
 
     {
       const frozen = frostStore.active ? frostStore.state.frost : 0;

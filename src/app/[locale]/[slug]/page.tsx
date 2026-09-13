@@ -61,8 +61,20 @@ export async function generateMetadata({
   if (!key) return {};
   const dict = getDictionary(locale);
   const pageTitle = dict[key].title;
+  // L'IMAGE DE PARTAGE DE LA PAGE (13/09) : le layout pose explicitement
+  // celle de l'accueil ; sans cette ligne, un lien vers Services montrerait
+  // encore la carte du Centre. Chaque page pointe donc la sienne, generee
+  // par `opengraph-image.tsx` de ce meme segment, dans sa direction.
+  const ogUrl = `/${locale}/${slug}/opengraph-image`;
   return {
     title: `${pageTitle} · ${SITE_NAME}`,
+    openGraph: {
+      title: `${pageTitle} · ${SITE_NAME}`,
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${pageTitle} · ${SITE_NAME}` }],
+    },
+    twitter: {
+      images: [ogUrl],
+    },
   };
 }
 
