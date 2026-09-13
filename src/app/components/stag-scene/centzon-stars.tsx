@@ -9,6 +9,8 @@ import { advanceEnvelope } from "@/lib/envelope-clock";
 import { centzonStore } from "./centzon-store";
 import { markTrace } from "../traces-store";
 import { useCurrentDirection } from "./use-current-direction";
+import { refletStarOpacity } from "@/lib/reflet";
+import { refletStore } from "./reflet-store";
 import { useSceneRefs } from "./scene-refs-context";
 
 /**
@@ -215,8 +217,10 @@ export default function CentzonStars() {
     alpha.needsUpdate = true;
     lpos.needsUpdate = true;
     lalpha.needsUpdate = true;
-    pointsMaterial.uniforms.uOpacity.value = blend;
-    linesMaterial.uniforms.uOpacity.value = blend;
+    // Dans le miroir, les etoiles s'effacent (13/09, lot 3 du reflet).
+    const etoiles = blend * refletStarOpacity(refletStore.k);
+    pointsMaterial.uniforms.uOpacity.value = etoiles;
+    linesMaterial.uniforms.uOpacity.value = etoiles;
     // Taille en pixels : proportionnelle a la hauteur du viewport.
     pointsMaterial.uniforms.uScale.value = state.size.height * state.viewport.dpr * 0.3;
   });

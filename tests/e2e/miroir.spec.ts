@@ -111,3 +111,19 @@ test("mouvement reduit : pas de fumee, la face change tout de suite", async ({ b
   expect(fumee).toBeNull();
   await ctx.close();
 });
+
+test("la 404 sort du voile et prend la face memorisee", async ({ page }) => {
+  // Next rend la page introuvable dans sa coquille d'erreur : les scripts en
+  // ligne du layout n'y tournent pas et aucune scene ne pose data-loaded.
+  // NotFoundReveal fait les deux au montage (T4 du miroir, 13/09).
+  test.setTimeout(60_000);
+  await page.addInitScript(() => { try { localStorage.setItem("nahual-theme", "light"); } catch {} });
+  const reponse = await page.goto("/fr/nulle-part");
+  expect(reponse?.status()).toBe(404);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light", { timeout: 10_000 });
+  await expect(page.locator("html")).toHaveAttribute("data-loaded", "true", { timeout: 10_000 });
+  await expect(page.locator("[data-veil]")).toBeHidden({ timeout: 10_000 });
+  await expect(page.locator("main[data-not-found] h1").first()).toBeVisible();
+  const fond = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  expect(luminance(fond), "la 404 est sur le papier").toBeGreaterThan(0.7);
+});

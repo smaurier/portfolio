@@ -5,6 +5,8 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { BackSide, Color, LinearFilter, RepeatWrapping, ShaderMaterial, SRGBColorSpace, Texture, TextureLoader, type Fog, type Mesh } from "three";
 import { useCurrentDirection } from "./use-current-direction";
+import { REFLET_PAPER, refletSkyMix } from "@/lib/reflet";
+import { refletStore } from "./reflet-store";
 import { useSceneRefs } from "./scene-refs-context";
 import { horizonLuminance, skyDaylight, zenithInto, zenithSpread, ZENITH_SPREAD_DAY } from "@/lib/sky-zenith";
 import { skyPhotoNeeded, type SkyPhotoDirection } from "@/lib/sky-photo";
@@ -111,6 +113,9 @@ export default function SudSky() {
           uSkyOffset: { value: 0 },
           uDusk: { value: 0 },
           uDuskColor: { value: new Color("#000000") },
+          // Le reflet (13/09, miroir lot 3) : part de papier dans le ciel.
+          uReflet: { value: 0 },
+          uPaper: { value: new Color().setRGB(REFLET_PAPER.r / 255, REFLET_PAPER.g / 255, REFLET_PAPER.b / 255, SRGBColorSpace) },
         },
         vertexShader: /* glsl */ `
           varying vec3 vDir;
@@ -132,6 +137,8 @@ export default function SudSky() {
           uniform float uSkyOffset;
           uniform float uDusk;
           uniform vec3 uDuskColor;
+          uniform float uReflet;
+          uniform vec3 uPaper;
           varying vec3 vDir;
           void main() {
             // Elevation 0 a l'horizon, 1 au zenith ; sous l'horizon on garde
@@ -169,6 +176,9 @@ export default function SudSky() {
             // Le crepuscule de l'Ouest : une bande mauve-corail posee sur
             // l'horizon, qui monte quand le soleil est tombe.
             col += uDuskColor * (1.0 - smoothstep(0.0, 0.32, e)) * uDusk;
+            // Dans le miroir, le ciel est du papier qui garde un lavis de
+            // l'heure (aube, midi, crepuscule).
+            col = mix(col, uPaper, uReflet);
             gl_FragColor = vec4(col, uOpacity);
           }
         `,
@@ -301,6 +311,7 @@ export default function SudSky() {
     const d = Math.min(1, Math.max(0, (day - 0.3) / 0.45));
     material.uniforms.uDay.value = d * d * (3 - 2 * d);
     material.uniforms.uDusk.value = direction === "cendre" ? remapWestArc(pNow).dusk : direction === "dore" ? dawnAtArc(pNow) : 0;
+    material.uniforms.uReflet.value = refletSkyMix(refletStore.k);
     // Le dome suit la camera : toujours centre sur elle.
     mesh.position.copy(state.camera.position);
   });

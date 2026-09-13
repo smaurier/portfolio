@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NotFoundReveal from "../components/not-found-reveal";
 
 /**
  * LA 404 DANS LE MONDE (13/09, X14 de l'audit). Avant : la page blanche
@@ -17,6 +18,7 @@ const LIGNES = [
 export default function NotFound() {
   return (
     <main id="main" className="contentPage" tabIndex={-1} data-not-found="">
+      <NotFoundReveal />
       <p className="notFoundCode" aria-hidden="true">404</p>
       {LIGNES.map((l) => (
         <section key={l.lang} lang={l.lang} className="notFoundLang">

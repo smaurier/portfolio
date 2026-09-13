@@ -93,3 +93,44 @@ export function refletGrade(grade: GradeRig, k: number): GradeRig {
 export function refletStarOpacity(k: number): number {
   return 1 - k;
 }
+
+/**
+ * LOT 3 : direction par direction (13/09, choix faits sans Sylvain, a
+ * verifier avec son oeil). La regle : le reflet inverse la lumiere, pas le
+ * recit. Chaque monde garde son arc et son heure ; ce qui change, c'est
+ * la matiere : le papier a la place de la nuit.
+ */
+import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+
+/** Part de papier dans le brouillard, PAR direction. L'Ouest et l'Est
+ * gardent plus de leur teinte (crepuscule abricot puis mauve, aube rouge
+ * puis or) : a 0,88 l'Ouest etait tout papier au tiers de l'arc. */
+export const REFLET_FOG_PAPER: Partial<Record<DirectionKey, number>> = {
+  cendre: 0.68,
+  dore: 0.78,
+};
+export function fogPaperFor(direction?: DirectionKey): number {
+  return (direction && REFLET_FOG_PAPER[direction]) ?? REFLET.fogPaper;
+}
+export function refletFogColorFor(night: ColorRgb255, k: number, direction?: DirectionKey): ColorRgb255 {
+  const t = fogPaperFor(direction) * k;
+  return { r: lerp(night.r, REFLET_PAPER.r, t), g: lerp(night.g, REFLET_PAPER.g, t), b: lerp(night.b, REFLET_PAPER.b, t) };
+}
+
+/** Le dome de ciel (Sud, Ouest, Est) : la photo, l'aube, le crepuscule
+ * passent dans le papier mais y laissent un lavis (0,7 de papier a plein
+ * reflet : la bande rouge de l'aube reste une bande rose). */
+export const REFLET_SKY_PAPER = 0.7;
+export function refletSkyMix(k: number): number {
+  return REFLET_SKY_PAPER * k;
+}
+
+/** Les astres : additifs la nuit (ils ajoutent leur lumiere au noir), ils
+ * disparaitraient sur le papier. Dans le miroir ils deviennent des disques
+ * d'ENCRE poses sur le papier (soleil d'or de codex, lune d'encre bleue,
+ * Venus une pointe d'encre) : la bascule de fusion se fait a mi-reflet,
+ * sous la fumee. */
+export const INK_BODIES = { sun: "#b8862a", moon: "#6b6f86", venus: "#3a3550" } as const;
+export function bodiesInInk(k: number): boolean {
+  return k >= 0.5;
+}

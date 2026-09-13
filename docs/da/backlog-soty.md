@@ -114,8 +114,8 @@ et lots : `docs/da/miroir-fumant.md`.
 | --- | --- | --- | --- | --- |
 | ~~T1~~ | ~~Le disque, les jetons, la fumee~~ (fait, 13/09) : `lib/theme` (pur, teste), `theme-store`, `miroir-fumant.tsx` (canvas, la fumee monte du disque, couvre, le monde change au milieu de la tenue, se retire), `theme-toggle.tsx` (bandeau + menu mobile), face claire en jetons, `prefers-color-scheme` retire au profit de l'attribut (la nuit par defaut), souffle sonore | e2e `miroir.spec.ts` : ceremonie, persistance avant le premier paint, contraste 4,5:1 sur cinq pages, mouvement reduit, clavier | M | fait, a regarder |
 | ~~T2~~ | ~~La scene refletee~~ (fait, 13/09) : `lib/reflet` (pur, teste, identite a k = 0) + `refletStore` lisse par `reveal-lighting` (brume papier, far x 0,85, ambiante x 2,2 papier, directionnelle x 1,15), grade compose dans `post-fx`, Voie lactee effacee, couleur de clear du renderer qui suit la face (la chaine d'effets sort un noir opaque dans le ciel vide : decouverte du 13/09) | e2e `reflet.spec.ts` (luminance du canvas : claire > 0,45, nuit < 0,25, claire apres la ceremonie) : 2/2 ; `miroir.spec.ts` 7/7 | M | fait |
-| T3 | **Direction par direction** : ce que chaque monde devient dans le miroir sans trahir son arc | l'oeil de Sylvain | L | apres T2 |
-| T4 | Le voile sur la face claire (aujourd'hui la nuit du rite, puis le reflet : voulu ou non ?) ; l'image Open Graph ; la 404 | captures | S | a decider |
+| ~~T3~~ | ~~Direction par direction~~ (fait, 13/09, sur mes choix) : brume moins papier a l'Ouest/Est, dome de ciel en lavis (`uReflet`), astres en disques d'encre (fusion normale a mi-reflet), etoiles du Sud effacees, eau du Nord qui reste d'obsidienne | captures des trois arcs ; unitaires `reflet.test.ts` 10/10 ; e2e reflet 2/2 | M | fait, l'oeil de Sylvain sur l'Ouest |
+| ~~T4~~ | ~~Voile, OG, 404 sur la face claire~~ (fait, 13/09) : Piedra a l'encre sur le voile ; la 404 sortait du voile (coquille d'erreur de Next, scripts en ligne jamais executes) : `NotFoundReveal` ; OG reste la nuit | e2e `miroir.spec.ts` (404 : statut, face, voile cache, papier) 8/8 | S | fait |
 
 ## 1. Visuel (design, 40)
 

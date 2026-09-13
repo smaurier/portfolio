@@ -23,7 +23,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
 import { useSceneRefs } from "./scene-refs-context";
 import { useTheme } from "../theme-store";
-import { approachReflet, refletFogColor, refletFogRange, refletK, refletLight, REFLET_PAPER } from "@/lib/reflet";
+import { approachReflet, refletFogColorFor, refletFogRange, refletK, refletLight, REFLET_PAPER } from "@/lib/reflet";
 import { refletStore } from "./reflet-store";
 import { getSceneControls } from "../scene-controls-store";
 
@@ -250,7 +250,7 @@ export default function RevealLighting({
       const fogHex = getFogColor(p, west ? westFogTint(west.dusk) : direction === "dore" ? eastFogTint(rawP) : fogTint);
       if (refletStore.k > 0) {
         // Dans le miroir, la brume est du papier qui garde un souvenir de la direction.
-        const m = refletFogColor(hexToRgb255(fogHex), refletStore.k);
+        const m = refletFogColorFor(hexToRgb255(fogHex), refletStore.k, direction);
         fogRef.current.color.setRGB(m.r / 255, m.g / 255, m.b / 255, SRGBColorSpace);
       } else {
         fogRef.current.color.set(fogHex);

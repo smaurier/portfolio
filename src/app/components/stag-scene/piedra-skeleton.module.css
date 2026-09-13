@@ -177,6 +177,13 @@
   object-fit: contain;
   will-change: transform;
 }
+/* Sur la face claire (13/09, T4 du miroir), la Piedra est dessinee a
+   l'encre : le SVG a des traits blancs, on l'inverse sur le papier. */
+:global(html[data-theme="light"]) .inner,
+:global(html[data-theme="light"]) .middle,
+:global(html[data-theme="light"]) .outer {
+  filter: invert(1) brightness(0.35);
+}
 
 /* Coeur central (0-25%) : glyphe Nahui Ollin, opacite 0.30, HORAIRE. */
 .inner {

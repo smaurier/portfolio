@@ -96,9 +96,37 @@ sens, la meme ceremonie.
    rechargement. Les panneaux de scene restent a 0,82 de papier sur la
    face claire : a revoir avec l'oeil de Sylvain maintenant que la scene
    est claire derriere (peut-etre suivre `--scene-lum` comme la nuit).
-3. **Direction par direction** (a faire, avec l'oeil de Sylvain) : ce que chaque monde devient dans
-   le miroir, sans trahir son arc (l'Est commence gele et de nuit, l'Ouest
-   finit dans le noir : le reflet inverse la lumiere, pas le recit).
+3. **Direction par direction** (fait le 13/09, sur mes choix, Sylvain
+   verifie a la fin) : le reflet inverse la lumiere, pas le recit. Chaque
+   monde garde son arc et son heure ; ce qui change, c'est la matiere.
+   - La brume garde plus de sa teinte a l'Ouest (0,68 de papier) et a
+     l'Est (0,78) : crepuscule abricot puis mauve, aube rouge puis or,
+     restent des lavis (`REFLET_FOG_PAPER`).
+   - Le dome de ciel (Sud, Ouest, Est) passe a 0,7 de papier dans son
+     shader (`uReflet`, `uPaper`) : la bande rouge de l'aube devient une
+     bande rose, la photo de midi un lavis.
+   - Les astres : additifs la nuit, ils disparaitraient sur le papier. A
+     mi-reflet (sous la fumee) ils passent en fusion normale et deviennent
+     des disques d'encre : soleil d'or de codex (#b8862a), lune d'encre
+     bleue, Venus une pointe. Le halo du soleil reste additif, invisible.
+   - Les quatre cents etoiles du Sud s'effacent comme la Voie lactee.
+   - Le Nord : le cerf d'obsidienne sur le papier, les lames noires ; l'eau
+     du tezcatl RESTE noire (elle reflete le ciel cuit) : le miroir
+     lui-meme reste d'obsidienne dans le reflet du monde. Choix assume.
+   - L'Ouest a mi-arc est une page presque blanche ou ne restent que les
+     Cihuateteo dans leur fumee et le portique : c'est l'inverse de sa
+     nuit, et c'est calme. A regarder avec Sylvain : c'est le monde le
+     plus transforme par le miroir.
+4. **T4, les contextes hors scene** (fait le 13/09) : le voile dessine la
+   Piedra a l'encre sur le papier (le SVG a des traits blancs, inverse
+   sur la face claire) ; la 404 sortait du voile : Next rend la page
+   introuvable dans sa coquille d'erreur (`<html id="__next_error__">`),
+   les scripts en ligne du layout n'y tournent jamais et aucune scene ne
+   pose `data-loaded`, elle restait donc sous le voile noir avec les
+   boutons « Entrer avec le son » (capture). `NotFoundReveal` repose la
+   face memorisee et les trois attributs de l'arrivee au montage ; oracle
+   dans `miroir.spec.ts`. L'image Open Graph reste la nuit, face par
+   defaut du site.
 
 ## Ce que la premiere capture du reflet a montre (13/09)
 

@@ -74,3 +74,33 @@ describe("le reflet : la scene dans le miroir", () => {
     expect(refletStarOpacity(0.5)).toBeCloseTo(0.5);
   });
 });
+
+import { REFLET_SKY_PAPER, bodiesInInk, fogPaperFor, refletFogColorFor, refletSkyMix } from "./reflet";
+
+describe("le reflet, lot 3 : direction par direction", () => {
+  it("l'Ouest et l'Est gardent plus de leur teinte dans la brume", () => {
+    expect(fogPaperFor("cendre")).toBeLessThan(fogPaperFor("jade"));
+    expect(fogPaperFor("dore")).toBeLessThan(fogPaperFor("jade"));
+    expect(fogPaperFor(undefined)).toBe(REFLET.fogPaper);
+    const nuit = { r: 120, g: 60, b: 90 };
+    const ouest = refletFogColorFor(nuit, 1, "cendre");
+    const centre = refletFogColorFor(nuit, 1, "jade");
+    // Plus loin du papier a l'Ouest qu'au Centre.
+    expect(REFLET_PAPER.r - ouest.r).toBeGreaterThan(REFLET_PAPER.r - centre.r);
+    // A k = 0, la nuit, quelle que soit la direction.
+    expect(refletFogColorFor(nuit, 0, "cendre")).toEqual(nuit);
+  });
+
+  it("le dome de ciel passe dans le papier en gardant un lavis", () => {
+    expect(refletSkyMix(0)).toBe(0);
+    expect(refletSkyMix(1)).toBe(REFLET_SKY_PAPER);
+    expect(REFLET_SKY_PAPER).toBeLessThan(1);
+  });
+
+  it("les astres passent a l'encre a mi-reflet", () => {
+    expect(bodiesInInk(0)).toBe(false);
+    expect(bodiesInInk(0.49)).toBe(false);
+    expect(bodiesInInk(0.5)).toBe(true);
+    expect(bodiesInInk(1)).toBe(true);
+  });
+});

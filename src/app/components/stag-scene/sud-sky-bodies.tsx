@@ -3,7 +3,9 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { AdditiveBlending, CanvasTexture, Color, Group, Sprite, SpriteMaterial } from "three";
+import { AdditiveBlending, CanvasTexture, Color, Group, NormalBlending, Sprite, SpriteMaterial } from "three";
+import { INK_BODIES, bodiesInInk } from "@/lib/reflet";
+import { refletStore } from "./reflet-store";
 import { moonDirection, sunDirection } from "@/lib/direction-light";
 import { dayAtArc, sunInTheWest } from "@/lib/arc-day";
 import { remapWestArc } from "@/lib/ouest-arc";
@@ -101,6 +103,9 @@ export default function SudSkyBodies() {
     () => new SpriteMaterial({ map: radialTexture(64, 0.0, 0.5, 0, 4), color: new Color("#fff6e0"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }),
     [],
   );
+  const inkSun = useMemo(() => new Color(INK_BODIES.sun), []);
+  const inkMoon = useMemo(() => new Color(INK_BODIES.moon), []);
+  const inkVenus = useMemo(() => new Color(INK_BODIES.venus), []);
   const venusShows = useMemo(() => (typeof window === "undefined" ? false : isEveningStar() || readXolotlSpawn("cendre")), []);
   const morningShows = useMemo(() => (typeof window === "undefined" ? false : isMorningStar()), []);
   useFrame((state) => {
@@ -117,6 +122,21 @@ export default function SudSkyBodies() {
     if (!g.visible) return;
     g.position.copy(state.camera.position);
     const day = dayAtArc(direction, sceneRefs?.progressRef.current ?? 0);
+    // LES ASTRES DANS LE MIROIR (13/09, lot 3) : additifs la nuit, ils
+    // disparaitraient sur le papier. A mi-reflet (sous la fumee) ils
+    // passent en fusion normale et deviennent des disques d'encre : soleil
+    // d'or de codex, lune d'encre bleue, Venus une pointe. Le halo reste
+    // additif (invisible sur le papier, c'est voulu).
+    const ink = bodiesInInk(refletStore.k);
+    const blendingVoulu = ink ? NormalBlending : AdditiveBlending;
+    for (const m of [moonMaterial, sunMaterial, venusMaterial]) {
+      if (m.blending !== blendingVoulu) {
+        m.blending = blendingVoulu;
+        m.needsUpdate = true;
+      }
+    }
+    const k = refletStore.k;
+
     // La lune : a l'ouest, elle se couche quand le soleil monte (moonDirection,
     // la meme direction que la lumiere de nuit) ; elle palit avec le jour.
     const moon = moonRef.current;
@@ -125,6 +145,7 @@ export default function SudSkyBodies() {
       moon.position.set(md.x * RADIUS, md.y * RADIUS, md.z * RADIUS);
       moon.scale.setScalar(6.5);
       moonMaterial.opacity = (south ? blend : 0) * Math.max(0, 1 - day * 1.6) * (md.y > -0.02 ? 1 : 0) * 0.95;
+      moonMaterial.color.set("#dfe8ff").lerp(inkMoon, k);
     }
     // Le soleil : se leve a l'est, monte au zenith (sunDirection, la meme
     // direction que la lumiere de jour). Disque + halo, plus forts en montant.
@@ -144,7 +165,8 @@ export default function SudSkyBodies() {
       sunMaterial.opacity = blend * up;
       sunHaloMaterial.opacity = blend * up * (0.35 + 0.25 * day);
       // Rougeoyant a l'horizon, blanc-or en montant.
-      sunMaterial.color.setRGB(1, 0.8 + 0.16 * day, 0.6 + 0.3 * day);
+      sunMaterial.color.setRGB(1, 0.8 + 0.16 * day, 0.6 + 0.3 * day).lerp(inkSun, k);
+      venusMaterial.color.set("#fff6e0").lerp(inkVenus, k);
       const venus = venusRef.current;
       if (venus) {
         // A l'est du soleil couchant (azimut 60 deg du decor) : Venus du soir
