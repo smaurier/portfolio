@@ -603,6 +603,26 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     };
     const onVeille = (e: Event) => {
       const etat = (e as CustomEvent<{ etat?: string }>).detail?.etat;
+      if (etat === "don") {
+        // LE DON (13/09) : la 52e seconde. Une seule voix grave qui s'enfle
+        // et se retire, sous la melodie, sans l'interrompre.
+        const ctx = ctxRef.current;
+        const master = masterGainRef.current;
+        if (!ctx || !master || muted) return;
+        const t = ctx.currentTime;
+        const o = ctx.createOscillator();
+        o.type = "sine";
+        o.frequency.setValueAtTime(55, t);
+        o.frequency.exponentialRampToValueAtTime(82.4, t + 5);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.12, t + 2.5);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 7);
+        o.connect(g).connect(master);
+        o.start(t);
+        o.stop(t + 7.2);
+        return;
+      }
       if (etat !== "en-cours") {
         arreter();
         return;

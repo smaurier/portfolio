@@ -57,7 +57,6 @@
       "cinematicOff": "Stop contemplation",
       "photo": "Photo of the scene",
       "ecoOn": "Eco mode: lighter rendering",
-
       "ecoOff": "Leave eco mode",
       "pauseOn": "Freeze the scene",
       "pauseOff": "Resume the scene",
@@ -85,7 +84,8 @@
         "xiuhcoatl-strike": "The xiuhcoatl struck the stone.",
         "glyph-lit": "The year glyph caught fire.",
         "xolotl": "Xolotl passed by, and you saw him.",
-        "true-north": "The rose aligned with true north, in your hand."
+        "true-north": "The rose aligned with true north, in your hand.",
+        "veille": "You stayed fifty-two seconds without doing anything, and the world answered."
       }
     },
     "readingMode": {
@@ -480,6 +480,10 @@
       "title": "Ollin, the tremor of the 5th sun",
       "text": "We live under Nahui Ollin, the sun of the four movements. Nahua prophecy says our world endures only as long as it trembles: when Ollin ceases, the earth stills one final time, Tonatiuh dies, the Tzitzimime descend. Every breath, every heartbeat, every touch is living proof of Ollin. On this site, when you press the mouse or tap the screen, a radial wave crosses the scene: that is Ollin manifesting. The stag Mazātl, messenger between worlds, feels the vibration before your eyes do. The four guardians awaken, the central fire redistributes. You are performing a ritual whose name you did not know. The historic Ollin glyph is a central circle bordered by four cardinal rays · the same five-point cross as the compass in the bottom right. Gesture and structure answer each other."
     },
+    "tonalpohualli": {
+      "title": "Tonalpohualli, the count of destinies",
+      "text": "The sacred calendar counts 260 days: twenty day signs turning against thirteen numbers, so that a pair such as 7 Mazātl, 7 Deer, only comes back after 260 days. The day of birth gave the child its name and its omen; from it comes the word tonalli, the share of heat and destiny a person carries. The deer is the seventh sign, and it is the sign this site was born from. What the site does with it: it remembers the day of your first visit and names it for you, in the book of traces. Going from a modern date to a tonalpohualli day requires a correlation, and scholars have not settled it; we use Alfonso Caso's, anchored on the fall of Tenochtitlan, 13 August 1521 Julian, that is 23 August 1521 Gregorian, which was 1 Cōātl. Competing correlations shift the count by a few days. We do not hide that debate, and we do not settle it either."
+    },
     "entities": {
       "title": "The three entities of the Nahua being",
       "text": "In Nahua thought, a person is not a single soul but three entities that coexist, each lodged in a part of the body. They separate at death and take distinct paths. Understanding this triptych is understanding why Teyolía names the Memory page of this site.",
@@ -530,7 +534,7 @@
       "list": [
         {
           "name": "Florentine Codex · Sahagún, around 1577",
-          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Book I: Ehecatl, sweeper of the road of the rain gods. Book III: the birth of Huitzilopochtli at Coatepec (chapter 1), the nine stages toward Mictlán and the dead warriors returning as birds and butterflies (appendix). Book VI: the Cihuateteo carrying the sun in a litter of quetzal feathers. Book VII: the sun created at Teotihuacan, and Xolotl. Book VII, chapter 2: the sun created at Teotihuacan, motionless until the gods' sacrifice and Ehecatl's breath.",
+          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Book I: Ehecatl, sweeper of the road of the rain gods. Book III: the birth of Huitzilopochtli at Coatepec (chapter 1), the nine stages toward Mictlán and the dead warriors returning as birds and butterflies (appendix). Book VI: the Cihuateteo carrying the sun in a litter of quetzal feathers. Book VII: the sun created at Teotihuacan, and Xolotl. Book VII, chapter 2: the sun created at Teotihuacan, motionless until the gods' sacrifice and Ehecatl's breath. Book IV: the book of omens, which unfolds the twenty trecenas of the tonalpohualli and tells what each day promises. Book VII: the binding of the years and the New Fire, the 52 years after which every fire was put out.",
           "online": [
             {
               "label": "Digital Florentine Codex, Getty Research Institute, Book III (Nahuatl, Spanish, English)",
@@ -646,6 +650,17 @@
             }
           ],
           "physical": "Frances Karttunen, An Analytical Dictionary of Nahuatl, University of Oklahoma Press, 1992, ISBN 9780806124216."
+        },
+        {
+          "name": "Alfonso Caso, Los calendarios prehispánicos, 1967",
+          "text": "The correlation the site uses to name the day of a visit: the fall of Tenochtitlan, 13 August 1521 Julian (23 August Gregorian), was 1 Cōātl. It is the best documented date in the Mexica calendar, reported by both Indigenous and Spanish witnesses. Other correlations exist (Rafael Tena, among others) and shift the count by a few days.",
+          "online": [
+            {
+              "label": "Review and polemic, Estudios de Cultura Náhuatl (UNAM, 1969)",
+              "url": "https://nahuatl.historicas.unam.mx/index.php/ecn/article/view/78550"
+            }
+          ],
+          "physical": "Alfonso Caso, Los calendarios prehispánicos, Universidad Nacional Autónoma de México, 1967."
         }
       ]
     }

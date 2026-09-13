@@ -18,6 +18,26 @@
  * `sound-design` et `globals.css`.
  */
 export const VEILLE_DELAI_MS = 20_000;
+/**
+ * LE DON DE LA VEILLE (13/09). Combien de temps de contemplation avant que
+ * le monde reponde ? **52 secondes**, le xiuhmolpilli : la ligature des
+ * annees, les 52 ans au bout desquels le calendrier solaire de 365 jours
+ * et le compte des destins de 260 jours retombent ensemble, et ou l'on
+ * eteignait tous les feux pour rallumer le Feu Nouveau (Sahagun, livre
+ * VII). Le site a deja choisi ce nombre pour la mue d'or ; ici c'est sa
+ * version calme : rester 52 secondes sans rien faire, c'est une ligature.
+ *
+ * Le delai d'ENTREE, lui, est une vingtaine (20 s) : les vingt signes de
+ * jours, les vingt jours du mois. C'est le seul nombre atteste assez court
+ * pour qu'un visiteur le rencontre vraiment (mesure de la visite type :
+ * 52 s d'immobilite n'arrivent jamais, 20 s arrivent des qu'on lit).
+ */
+export const VEILLE_DON_S = 52;
+
+/** Le don est-il du, apres `secondes` de veille ininterrompue ? */
+export function donDue(secondes: number): boolean {
+  return secondes >= VEILLE_DON_S;
+}
 /** `?veille=<ms>` sur l'URL raccourcit le delai (tests, demonstration). */
 export const VEILLE_PARAM = "veille";
 /** Attribut pose sur <html> pendant la veille. */

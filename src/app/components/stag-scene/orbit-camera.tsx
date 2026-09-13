@@ -421,7 +421,10 @@ export default function OrbitCamera({
     // reduit elle reste a zero pour la camera. Pendant la veille, la
     // camera quitte le chemin du defilement pour une derive tres lente
     // autour du cerf, qui reste l'axe du regard.
-    veilleStore.k = approachVeille(veilleStore.k, veilleStore.active && !reducedMotionRef.current ? 1 : 0, Math.min(delta, 0.1));
+    const dtVeille = Math.min(delta, 0.1);
+    veilleStore.k = approachVeille(veilleStore.k, veilleStore.active && !reducedMotionRef.current ? 1 : 0, dtVeille);
+    // Le don (13/09) : la 52e seconde de contemplation, lissee comme le reste.
+    veilleStore.don = approachVeille(veilleStore.don, veilleStore.donActif ? 1 : 0, dtVeille);
     if (veilleStore.k > 0) {
       const d = deriveVeille((performance.now() - veilleStore.depuis) / 1000);
       const az = d.azimuth * veilleStore.k;

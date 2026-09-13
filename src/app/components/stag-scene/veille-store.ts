@@ -5,4 +5,11 @@
  * veille lissee, par la camera une fois par image ; `depuis` marque
  * l'entree. Meme pattern que frostStore.
  */
-export const veilleStore: { active: boolean; k: number; depuis: number } = { active: false, k: 0, depuis: 0 };
+export const veilleStore: { active: boolean; k: number; depuis: number; don: number; donActif: boolean } = {
+  active: false,
+  k: 0,
+  depuis: 0,
+  /** Part du don, lissee par la camera (0 avant la 52e seconde). */
+  don: 0,
+  donActif: false,
+};

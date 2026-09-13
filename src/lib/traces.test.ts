@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { parseTraces, recordTrace, serializeTraces, TRACE_IDS, traceCount, type Traces } from "./traces";
 
 describe("les traces : ce que la scene vous a montre", () => {
-  it("sept traces, dans l'ordre du recit (la boussole vraie ferme la liste, 13/09)", () => {
-    expect(TRACE_IDS).toEqual(["centzon-thrown", "huitzilin-catch", "sunrise", "xiuhcoatl-strike", "glyph-lit", "xolotl", "true-north"]);
+  it("huit traces, dans l'ordre du recit (13/09 : la boussole, puis la veille)", () => {
+    expect(TRACE_IDS).toEqual(["centzon-thrown", "huitzilin-catch", "sunrise", "xiuhcoatl-strike", "glyph-lit", "xolotl", "true-north", "veille"]);
   });
 
   it("enregistrer une trace garde la premiere date, ne l'ecrase pas", () => {

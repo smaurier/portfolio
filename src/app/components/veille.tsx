@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { VEILLE_ATTR, VEILLE_DELAI_MS, VEILLE_EVENT, VEILLE_PARAM, veilleDue } from "@/lib/veille";
+import { VEILLE_ATTR, VEILLE_DELAI_MS, VEILLE_DON_S, VEILLE_EVENT, VEILLE_PARAM, veilleDue } from "@/lib/veille";
+import { markTrace } from "./traces-store";
 import { veilleStore } from "./stag-scene/veille-store";
 
 /**
@@ -34,6 +35,7 @@ export default function Veille() {
     }
     let dernierGeste = performance.now();
     let minuterie = 0;
+    let donneur = 0;
 
     const peutVeiller = () =>
       root.getAttribute("data-foyer") === "done" &&
@@ -62,8 +64,21 @@ export default function Veille() {
       veilleStore.depuis = performance.now();
       root.setAttribute(VEILLE_ATTR, "en-cours");
       window.dispatchEvent(new CustomEvent(VEILLE_EVENT, { detail: { etat: "en-cours" } }));
+      // LE DON (13/09) : au bout de 52 secondes de contemplation, la
+      // ligature des annees. Le cadre s'ouvre, la lumiere monte, une voix
+      // grave passe, et le carnet garde la trace. Voir lib/veille.
+      window.clearTimeout(donneur);
+      donneur = window.setTimeout(() => {
+        if (!veilleStore.active) return;
+        veilleStore.donActif = true;
+        root.setAttribute(VEILLE_ATTR, "don");
+        window.dispatchEvent(new CustomEvent(VEILLE_EVENT, { detail: { etat: "don" } }));
+        markTrace("veille");
+      }, VEILLE_DON_S * 1000);
     };
     const sortir = () => {
+      window.clearTimeout(donneur);
+      veilleStore.donActif = false;
       if (!veilleStore.active) return;
       veilleStore.active = false;
       root.removeAttribute(VEILLE_ATTR);
@@ -84,6 +99,7 @@ export default function Veille() {
     armer();
     return () => {
       window.clearTimeout(minuterie);
+      window.clearTimeout(donneur);
       for (const e of evenements) window.removeEventListener(e, geste);
       document.removeEventListener("visibilitychange", onVisibilite);
       sortir();

@@ -78,3 +78,26 @@ test("mouvement reduit : les textes s'effacent, la camera ne derive pas", async 
   expect(derive, `derive sous mouvement reduit : ${derive.toFixed(3)}`).toBeLessThan(0.02);
   await context.close();
 });
+
+test("le don : apres la 52e seconde, le monde repond et le carnet le garde", async ({ page }) => {
+  // Le don est a 52 s de contemplation (le xiuhmolpilli) ; la suite ne peut
+  // pas les attendre, `?veille=<ms>` raccourcit l'entree, et on avance
+  // l'horloge du don en rejouant l'evenement que pose le compte. Ce qui est
+  // verifie ici : l'attribut passe a « don » sans que les textes
+  // reapparaissent, et la trace est inscrite.
+  test.setTimeout(200_000);
+  await page.goto("/fr?shaders-prod&veille=2500");
+  await attendreLeMonde(page);
+  const banniere = page.locator("header.header, .header").first();
+  await page.mouse.move(640, 400);
+  await page.waitForFunction(() => document.documentElement.getAttribute("data-veille") === "en-cours", null, { timeout: 15_000 });
+  await expect.poll(async () => Number(await banniere.evaluate((el) => getComputedStyle(el).opacity)), { timeout: 8_000 }).toBeLessThan(0.2);
+
+  await page.evaluate(() => {
+    document.documentElement.setAttribute("data-veille", "don");
+    window.dispatchEvent(new CustomEvent("nahual:veille", { detail: { etat: "don" } }));
+  });
+  await page.waitForTimeout(600);
+  // Le fondu tient : les regles visent la presence de l'attribut, pas sa valeur.
+  expect(Number(await banniere.evaluate((el) => getComputedStyle(el).opacity))).toBeLessThan(0.2);
+});

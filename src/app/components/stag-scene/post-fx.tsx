@@ -124,7 +124,10 @@ export default function PostFX() {
       // suit l'arc. C'est le « fondu » de l'arbitrage du 08/09, obtenu avec
       // la vignette qui existe deja plutot qu'avec un voile de plus.
       const sortie = refs.exitRef.current;
-      vignetteRef.current.darkness = 0.9 - p * 0.25 + grade.vignetteAdd + sortie * 0.3;
+      // Le don de la veille (13/09) : au bout de 52 secondes, le cadre
+      // s'ouvre encore, lentement. C'est tout ce qu'on voit ; le reste est
+      // dans le son et dans le carnet.
+      vignetteRef.current.darkness = 0.9 - p * 0.25 + grade.vignetteAdd + sortie * 0.3 - veilleStore.don * 0.16;
     }
 
     const p = transition ? transition.transitionProgressRef.current : 0;

@@ -371,6 +371,13 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
         <p>{renderWithNahuatl(dict.ollin.text)}</p>
       </section>
 
+      {/* Le compte des destins (13/09) : la mecanique du jour du visiteur a
+          sa page de Codex, avec sa correlation et son debat. */}
+      <section className="codexSection">
+        <h2>{renderWithNahuatl(dict.tonalpohualli.title)}</h2>
+        <p>{renderWithNahuatl(dict.tonalpohualli.text)}</p>
+      </section>
+
       <section className="codexSection">
         <h2>{renderWithNahuatl(dict.entities.title)}</h2>
         <p>{renderWithNahuatl(dict.entities.text)}</p>

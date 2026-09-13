@@ -57,7 +57,6 @@
       "cinematicOff": "Detener la contemplación",
       "photo": "Foto de la escena",
       "ecoOn": "Modo eco: renderizado ligero",
-
       "ecoOff": "Salir del modo eco",
       "pauseOn": "Congelar la escena",
       "pauseOff": "Reanudar la escena",
@@ -85,7 +84,8 @@
         "xiuhcoatl-strike": "La xiuhcoatl golpeó la piedra.",
         "glyph-lit": "El glifo del año se encendió.",
         "xolotl": "Xolotl pasó, y tú lo viste.",
-        "true-north": "La rosa se alineó con el norte verdadero, en tu mano."
+        "true-north": "La rosa se alineó con el norte verdadero, en tu mano.",
+        "veille": "Te quedaste cincuenta y dos segundos sin hacer nada, y el mundo respondió."
       }
     },
     "readingMode": {
@@ -480,6 +480,10 @@
       "title": "Ollin, el temblor del 5º sol",
       "text": "Vivimos bajo Nahui Ollin, el sol de los cuatro movimientos. La profecía nahua dice que nuestro mundo perdura mientras tiembla: cuando Ollin cesa, la tierra se detiene una última vez, Tonatiuh muere, los Tzitzimime descienden. Cada respiración, cada latido, cada toque es prueba viva de Ollin. En este sitio, cuando presionas el ratón o tocas la pantalla, una onda radial atraviesa la escena: es Ollin manifestándose. El ciervo Mazātl, mensajero entre mundos, siente la vibración antes que tus ojos. Los cuatro guardianes despiertan, el fuego central redistribuye. Estás realizando un ritual cuyo nombre desconocías. El glifo histórico de Ollin es un círculo central bordeado por cuatro rayos cardinales · la misma cruz de cinco puntos que la brújula en la esquina inferior derecha. El gesto y la estructura se responden."
     },
+    "tonalpohualli": {
+      "title": "Tonalpohualli, la cuenta de los destinos",
+      "text": "El calendario sagrado cuenta 260 días: veinte signos de días que giran contra trece números, de modo que una pareja como 7 Mazātl, 7 Venado, solo vuelve al cabo de 260 días. El día de nacimiento daba su nombre y su augurio al niño; de ahí viene la palabra tonalli, la parte de calor y de destino que lleva una persona. El venado es el séptimo signo, y es el que hizo nacer este sitio. Lo que el sitio hace con ello: guarda el día de tu primera visita y te lo nombra, en el cuaderno de las huellas. Pasar de una fecha de hoy a un día del tonalpohualli exige una correlación, y los especialistas no la han zanjado; tomamos la de Alfonso Caso, anclada en la caída de Tenochtitlan, el 13 de agosto de 1521 juliano, es decir el 23 de agosto de 1521 gregoriano, que era 1 Cōātl. Las correlaciones rivales desplazan la cuenta unos días. No ocultamos ese debate, y tampoco lo zanjamos."
+    },
     "entities": {
       "title": "Las tres entidades del ser nahua",
       "text": "En el pensamiento nahua, una persona no es un alma única sino tres entidades que cohabitan, cada una alojada en una parte del cuerpo. Se separan en la muerte y toman caminos distintos. Comprender este tríptico es comprender por qué Teyolía da nombre a la página Memoria de este sitio.",
@@ -530,7 +534,7 @@
       "list": [
         {
           "name": "Códice Florentino · Sahagún, hacia 1577",
-          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Libro I: Ehecatl, el barrendero del camino de los dioses de la lluvia. Libro III: el nacimiento de Huitzilopochtli en Coatepec (capítulo 1), las nueve etapas hacia el Mictlán y los guerreros muertos que vuelven como aves y mariposas (apéndice). Libro VI: las Cihuateteo que llevan el sol en unas andas de plumas de quetzal. Libro VII: el sol creado en Teotihuacan, y Xolotl. Libro VII, capítulo 2: el sol creado en Teotihuacan, inmóvil hasta el sacrificio de los dioses y el soplo de Ehecatl.",
+          "text": "Bernardino de Sahagún, Historia general de las cosas de Nueva España. Libro I: Ehecatl, el barrendero del camino de los dioses de la lluvia. Libro III: el nacimiento de Huitzilopochtli en Coatepec (capítulo 1), las nueve etapas hacia el Mictlán y los guerreros muertos que vuelven como aves y mariposas (apéndice). Libro VI: las Cihuateteo que llevan el sol en unas andas de plumas de quetzal. Libro VII: el sol creado en Teotihuacan, y Xolotl. Libro VII, capítulo 2: el sol creado en Teotihuacan, inmóvil hasta el sacrificio de los dioses y el soplo de Ehecatl. Libro IV: el libro de los augurios, que despliega las veinte trecenas del tonalpohualli y dice lo que promete cada día. Libro VII: la atadura de los años y el Fuego Nuevo, los 52 años tras los cuales se apagaban todos los fuegos.",
           "online": [
             {
               "label": "Digital Florentine Codex, Getty Research Institute, libro III (náhuatl, español, inglés)",
@@ -646,6 +650,17 @@
             }
           ],
           "physical": "Frances Karttunen, An Analytical Dictionary of Nahuatl, University of Oklahoma Press, 1992, ISBN 9780806124216."
+        },
+        {
+          "name": "Alfonso Caso, Los calendarios prehispánicos, 1967",
+          "text": "La correlación que el sitio usa para nombrar el día de una visita: la caída de Tenochtitlan, el 13 de agosto de 1521 juliano (23 de agosto gregoriano), fue 1 Cōātl. Es la fecha mejor documentada del calendario mexica, referida por testigos indígenas y españoles. Existen otras correlaciones (Rafael Tena, entre otras) que desplazan la cuenta unos días.",
+          "online": [
+            {
+              "label": "Reseña y polémica, Estudios de Cultura Náhuatl (UNAM, 1969)",
+              "url": "https://nahuatl.historicas.unam.mx/index.php/ecn/article/view/78550"
+            }
+          ],
+          "physical": "Alfonso Caso, Los calendarios prehispánicos, Universidad Nacional Autónoma de México, 1967."
         }
       ]
     }
