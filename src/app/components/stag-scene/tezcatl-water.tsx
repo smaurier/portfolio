@@ -60,7 +60,19 @@ const WATER_RADIUS = 6.4;
  * a un bord, les lames volent AU-DESSUS d'un bassin. */
 const RIM_INNER = WATER_RADIUS - 0.12;
 const RIM_OUTER = WATER_RADIUS + 0.38;
+/** Ce que la pierre depasse AU-DESSUS de la nappe. */
 const RIM_HEIGHT = 0.09;
+/** Dessus de la margelle, en monde. */
+const RIM_TOP = WATER_LEVEL + RIM_HEIGHT;
+/** Dessous de la pierre (13/09, retour Sylvain "on a juste la face du haut
+ * ce qui fait qu'on voit a travers") : la margelle etait un ruban de 9 cm
+ * flottant au ras de la nappe, sans flanc interieur ni assise. On voyait
+ * donc sous elle et a travers elle. C'est une VASQUE DE PIERRE posee sur
+ * le parvis : elle descend jusqu'au sol (plat a y=0 sous FLAT_RADIUS, cf
+ * terrain-height) et s'y enfonce de quelques centimetres pour ne pas
+ * z-fighter avec lui. Hauteur totale 0.34, ce que la marche de Xolotl
+ * suppose deja (xolotl-rim rimSurface va de groundY a rim.top). */
+const RIM_BOTTOM = -0.06;
 const MARGELLE_COLOR = new Color("#0d0a16");
 const WATER_COLOR = new Color("#0b0714");
 const SPEC_COLOR = new Color("#cfc6f2");
@@ -211,6 +223,7 @@ export default function TezcatlWater() {
   }, [size.width, size.height]);
   useEffect(() => () => reflection.target.dispose(), [reflection]);
   const rimRef = useRef<Mesh>(null);
+  const rimInnerRef = useRef<Mesh>(null);
   const rimTopRef = useRef<Mesh>(null);
   const rimMaterial = useMemo(() => {
     const m = new MeshPhysicalMaterial({
@@ -220,6 +233,12 @@ export default function TezcatlWater() {
       clearcoat: 1,
       clearcoatRoughness: 0.12,
       envMapIntensity: 1.4,
+      // Les trois pans sont des surfaces ouvertes : vu d'en face le flanc
+      // exterieur presente sa face avant, vu du bassin c'est l'interieur
+      // qui doit se voir. DoubleSide ferme la pierre depuis tous les
+      // angles pour ~600 triangles, plutot que trois materiaux a garder
+      // en phase sur l'opacite.
+      side: DoubleSide,
       transparent: true,
       opacity: 0,
     });
@@ -403,6 +422,7 @@ export default function TezcatlWater() {
     const visible = mountVisible && opacityRef.current > 0.003;
     if (meshRef.current) meshRef.current.visible = visible;
     if (rimRef.current) rimRef.current.visible = visible;
+    if (rimInnerRef.current) rimInnerRef.current.visible = visible;
     if (rimTopRef.current) rimTopRef.current.visible = visible;
     rimMaterial.opacity = Math.min(1, opacityRef.current / WATER_OPACITY);
     if (!visible) {
@@ -527,12 +547,18 @@ export default function TezcatlWater() {
       >
         <planeGeometry args={[EXTENT * 2, EXTENT * 2]} />
       </mesh>
-      {/* Margelle : anneau d'obsidienne polie qui affleure au-dessus de la
-        * nappe (flanc + dessus), reflete le ciel du Mictlan. */}
-      <mesh ref={rimRef} material={rimMaterial} position={[0, WATER_LEVEL + RIM_HEIGHT * 0.5, 0]} frustumCulled={false} raycast={() => null} visible={false}>
-        <cylinderGeometry args={[RIM_OUTER, RIM_OUTER, RIM_HEIGHT, 96, 1, true]} />
+      {/* Margelle : anneau d'obsidienne polie pose sur le parvis, qui
+        * affleure de 9 cm au-dessus de la nappe et reflete le ciel du
+        * Mictlan. Trois pans, pierre fermee : flanc exterieur, flanc
+        * interieur (visible sous l'eau depuis le bassin) et dessus. Le
+        * dessous est enfoui dans le sol, donc pas de face a dessiner. */}
+      <mesh ref={rimRef} material={rimMaterial} position={[0, (RIM_TOP + RIM_BOTTOM) * 0.5, 0]} frustumCulled={false} raycast={() => null} visible={false}>
+        <cylinderGeometry args={[RIM_OUTER, RIM_OUTER, RIM_TOP - RIM_BOTTOM, 96, 1, true]} />
       </mesh>
-      <mesh ref={rimTopRef} material={rimMaterial} position={[0, WATER_LEVEL + RIM_HEIGHT, 0]} rotation={[-Math.PI / 2, 0, 0]} frustumCulled={false} raycast={() => null} visible={false}>
+      <mesh ref={rimInnerRef} material={rimMaterial} position={[0, (RIM_TOP + RIM_BOTTOM) * 0.5, 0]} frustumCulled={false} raycast={() => null} visible={false}>
+        <cylinderGeometry args={[RIM_INNER, RIM_INNER, RIM_TOP - RIM_BOTTOM, 96, 1, true]} />
+      </mesh>
+      <mesh ref={rimTopRef} material={rimMaterial} position={[0, RIM_TOP, 0]} rotation={[-Math.PI / 2, 0, 0]} frustumCulled={false} raycast={() => null} visible={false}>
         <ringGeometry args={[RIM_INNER, RIM_OUTER, 96]} />
       </mesh>
     </>
