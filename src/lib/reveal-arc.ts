@@ -215,11 +215,22 @@ export function getIntroOpacity(progress: number): number {
  * qui accompagne le scroll sans jamais occulter la scene 3D.
  *
  * Chapitres :
- *  0 : L'approche       (penombre ~0.05-0.18)
- *  1 : Le regard         (conscience ~0.28-0.42)
- *  2 : Face-a-face       (face-a-face ~0.53-0.67)
- *  3 : Les chemins       (chemins-reveles ~0.78-0.90)
- *  4 : L'Ollin           (climax ~0.92-1.0, ne s'efface pas : 29/08)
+ *  0 : L'approche       (toute la penombre,        0.03-0.25)
+ *  1 : Le regard         (toute la conscience,      0.26-0.50)
+ *  2 : Face-a-face       (tout le face-a-face,      0.51-0.74)
+ *  3 : Les chemins       (les chemins reveles,      0.75-0.94)
+ *  4 : L'Ollin           (climax 0.95-1.0, ne s'efface pas : 29/08)
+ *
+ * 13/09, retour Sylvain : « l'encadre apparait au scroll seulement un court
+ * moment, c'est un bug ». Mesure : les cinq fenetres ne couvraient que 61 %
+ * de l'arc, avec 34 % de vide entre elles, et chaque chapitre ne tenait sa
+ * pleine opacite que sur 5 % de l'arc, soit 83 pixels de defilement sur un
+ * ecran de 800 : un cran de molette. Les fenetres epousent desormais les
+ * PHASES de l'arc (penombre, conscience, face-a-face, chemins), ce qui les
+ * double ET remet chaque texte en face de ce que la scene raconte ; le
+ * fondu passe de 30 a 18 % de la fenetre, ce qui allonge encore le
+ * plateau. Un ecart d'un centieme reste entre deux fenetres : deux
+ * chapitres visibles ensemble pousseraient la colonne (cf FadingBlock).
  *
  * Le 5e chapitre est le seul dont le tuple contient un troisieme
  * booleen `keepAfterEnd` : au lieu de fade out symetrique bell curve,
@@ -229,12 +240,19 @@ export function getIntroOpacity(progress: number): number {
  */
 type ChapterWindow = readonly [number, number] | readonly [number, number, boolean];
 const CHAPTER_WINDOWS: readonly ChapterWindow[] = [
-  [0.05, 0.18],
-  [0.28, 0.42],
-  [0.53, 0.67],
-  [0.78, 0.90],
-  [0.92, 1.0, true],
+  [0.03, 0.25],
+  [0.26, 0.5],
+  [0.51, 0.74],
+  [0.75, 0.94],
+  [0.95, 1.0, true],
 ];
+
+/** Part de la fenetre consommee par le fondu, de chaque cote. Le reste est
+ * le plateau, ou le texte est lisible. 0,3 -> 0,18 le 13/09. */
+const CHAPTER_FADE_SHARE = 0.18;
+
+/** Le nombre de chapitres du Centre (la table ci-dessus fait foi). */
+export const CHAPTER_COUNT = CHAPTER_WINDOWS.length;
 
 export function getChapterOpacity(progress: number, chapterIdx: number): number {
   const w = CHAPTER_WINDOWS[chapterIdx];
@@ -245,12 +263,12 @@ export function getChapterOpacity(progress: number, chapterIdx: number): number 
   if (p < start) return 0;
   if (p > end && !keepAfterEnd) return 0;
   const t = Math.min(1, (p - start) / (end - start));
-  const fadeIn = Math.min(1, t / 0.3);
+  const fadeIn = Math.min(1, t / CHAPTER_FADE_SHARE);
   if (keepAfterEnd) {
     // Pas de fade out : plateau tenu apres montee.
     return fadeIn;
   }
-  const fadeOut = Math.min(1, (1 - t) / 0.3);
+  const fadeOut = Math.min(1, (1 - t) / CHAPTER_FADE_SHARE);
   return Math.min(fadeIn, fadeOut);
 }
 

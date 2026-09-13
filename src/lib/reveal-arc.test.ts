@@ -1,18 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  arcProgress,
-  arcScrollHeight,
-  getAmbientIntensity,
-  getDirectionalIntensity,
-  getFogColor,
-  getHeadTurnAmount,
-  getIdleClipName,
-  getIntroOpacity,
-  getMilpaGrowth,
-  getNavEmphasis,
-  getRevealFloor,
-  getRevealPhase,
-} from "./reveal-arc";
+import { CHAPTER_COUNT, arcProgress, arcScrollHeight, getAmbientIntensity, getChapterOpacity, getDirectionalIntensity, getFogColor, getHeadTurnAmount, getIdleClipName, getIntroOpacity, getMilpaGrowth, getNavEmphasis, getRevealFloor, getRevealPhase } from "./reveal-arc";
 
 /** "#rrggbb" -> {r,g,b} pour comparer numériquement plutôt que sur une
  * chaîne exacte (fragile face à l'arrondi). */
@@ -273,5 +260,72 @@ describe("arcProgress : la longueur de l'arc, une seule source", () => {
   it("la hauteur de l'arc suit le viewport", () => {
     expect(arcScrollHeight(800)).toBe(1600);
     expect(arcScrollHeight(412)).toBe(824);
+  });
+});
+
+describe("les chapitres du Centre : assez longtemps pour etre lus", () => {
+  // 13/09, retour Sylvain : « l'encadre apparait au scroll seulement un
+  // court moment, c'est un bug ». Ces oracles fixent ce qui manquait : une
+  // duree, une couverture, et l'interdiction de deux chapitres ensemble.
+  const PAS = 0.001;
+
+  function opacites(p: number): number[] {
+    return Array.from({ length: CHAPTER_COUNT }, (_, i) => getChapterOpacity(p, i));
+  }
+
+  it("chaque chapitre atteint la pleine opacite", () => {
+    for (let i = 0; i < CHAPTER_COUNT; i++) {
+      let max = 0;
+      for (let p = 0; p <= 1; p += PAS) max = Math.max(max, getChapterOpacity(p, i));
+      expect(max, `chapitre ${i}`).toBeCloseTo(1, 2);
+    }
+  });
+
+  it("chaque chapitre tient sa pleine opacite sur au moins 12 % de l'arc", () => {
+    // 12 % de deux hauteurs d'ecran, soit environ 190 pixels de defilement
+    // sur un ecran de 800 : de quoi lire deux lignes. Avant le 13/09 :
+    // 5 %, soit un cran de molette. Le dernier chapitre est hors de cette
+    // regle : il monte a la toute fin de l'arc et ne redescend plus, donc
+    // il reste a l'ecran pendant tout le quart de page qui suit l'arc.
+    for (let i = 0; i < CHAPTER_COUNT - 1; i++) {
+      let plateau = 0;
+      for (let p = 0; p <= 1; p += PAS) if (getChapterOpacity(p, i) > 0.99) plateau += PAS;
+      expect(plateau, `chapitre ${i} : ${(plateau * 100).toFixed(1)} %`).toBeGreaterThan(0.12);
+    }
+  });
+
+  it("un chapitre est presque toujours a l'ecran : au plus 5 % de vide", () => {
+    let vide = 0;
+    for (let p = 0.03; p <= 1; p += PAS) {
+      if (opacites(p).every((o) => o <= 0.001)) vide += PAS;
+    }
+    expect(vide, `${(vide * 100).toFixed(1)} % de l'arc sans chapitre`).toBeLessThan(0.05);
+  });
+
+  it("jamais deux chapitres ensemble : la colonne ne bouge pas", () => {
+    for (let p = 0; p <= 1; p += PAS) {
+      const visibles = opacites(p).filter((o) => o > 0.001).length;
+      expect(visibles, `a p=${p.toFixed(3)}`).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("les chapitres suivent les phases de l'arc", () => {
+    // Au milieu de chaque phase, c'est le chapitre de cette phase qui parle.
+    const attendu: [number, number][] = [
+      [0.12, 0],
+      [0.38, 1],
+      [0.62, 2],
+      [0.85, 3],
+      [1, 4],
+    ];
+    for (const [p, idx] of attendu) {
+      const o = opacites(p);
+      expect(o[idx], `a p=${p}, le chapitre ${idx}`).toBeGreaterThan(0.9);
+    }
+  });
+
+  it("le dernier ne s'efface plus une fois monte", () => {
+    expect(getChapterOpacity(1, 4)).toBeCloseTo(1, 2);
+    expect(getChapterOpacity(0.999, 4)).toBeGreaterThan(0.9);
   });
 });
