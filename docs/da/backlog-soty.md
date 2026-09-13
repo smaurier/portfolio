@@ -121,6 +121,23 @@ mecaniques qui echouent a la premiere question n'ont pas ete reprises.
 | D4 | Xolotl est un tirage : un jure a peu de chances de le voir | a decider |
 | D5 | Mises en attente par la regle : le jour du visiteur (tonalpohualli), la lumiere du lieu, l'image de partage par page | apres D2-D4 |
 
+## 0 quinquies. L'os a ronger : ce que chaque mecanique peut encore donner (13/09)
+
+Registre complet : `docs/da/mecaniques-du-site.md` (douze familles, six
+axes : mythologie, cinematographie, implementation, accessibilite, preuve
+de competence, diffusion). Ce qui en sort, par ordre de valeur :
+
+| # | quoi | axes servis | effort |
+| --- | --- | --- | --- |
+| O1 | **Enoncer ce que le site sait deja** : Venus du soir, annee mexica, heure du lieu, jour du visiteur, foyer qui se souvient. Une ligne au bon endroit, pas une page | mythologie, contenu, preuve | S |
+| O2 | **La page Accessibilite devient une demonstration** : la meme navigation au clavier, sans JavaScript, en mode recit, avec les annonces | accessibilite, preuve, diffusion | M |
+| O3 | **Le retour d'un visiteur connu** : une ligne a la place de « Tu reviens au foyer », qui dise depuis quand | memoire, contenu | S |
+| O4 | **La phrase du voile devient la phrase du jour** (la meme toute la journee, reprise au Codex avec sa source) | mythologie, contenu | S |
+| O5 | **Une video avec le son** sur Projets ou dans le making-of : le son n'existe pas hors du site | son, diffusion | M |
+| O6 | **Le geste du don** de la veille, encore trop discret : decision de recit | cinematographie | M |
+| O7 | **La contemplation** (camera a l'heure de Tenochtitlan) est introuvable : la lier a la veille ou au Codex | cinematographie | S |
+| O8 | **Le Codex devient une ressource citable** (sources verifiees, fiches par direction) | contenu, diffusion | M |
+
 ## 0 ter. Le miroir fumant : les deux faces du monde (13/09, dernier chantier)
 
 Sylvain : « fais-moi un bouton pour switcher au light theme [...] fidele au
