@@ -120,6 +120,9 @@ export default function CursorRevealScene({
     // (13/09) : il suit la part de reflet, donc il arrive avec la face
     // claire et s'en va avec elle, sans branche a maintenir.
     uniforms.uRevealInk.value = refletStore.k;
+    // L'obsidienne est l'autre face du meme geste : elle monte quand le
+    // papier tombe.
+    uniforms.uRevealObsidienne.value = 1 - refletStore.k;
     // Le trace du codex (13/09) : meme conversion que la souris, origine
     // en bas a gauche et pixels du framebuffer.
     uniforms.uCodex.value = codexStore.amount;

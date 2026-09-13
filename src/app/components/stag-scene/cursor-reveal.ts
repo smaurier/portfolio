@@ -72,6 +72,11 @@ export type CursorRevealUniforms = {
    * dans quel sens (le dessin se pose, ou la couleur revient). L'origine
    * est le disque du miroir, en pixels du framebuffer. Voir lib/theme
    * codexDraw pour la choregraphie, `codex-store` pour le relais. */
+  /** L'OBSIDIENNE (13/09, Sylvain : « on devrait avoir un traitement
+   * d'obsidienne a l'opposee sur le darkmode [...] peut-etre avec de la
+   * brillance »). Symetrique de l'encre : monte avec la nuit, tombe avec
+   * le papier. */
+  uRevealObsidienne: { value: number };
   uCodex: { value: number };
   uCodexFront: { value: number };
   uCodexSign: { value: number };
@@ -117,6 +122,7 @@ export function createCursorRevealUniforms(): CursorRevealUniforms {
     uMinOpacity: { value: MIN_OPACITY_START },
     uMinSaturation: { value: MIN_SATURATION_START },
     uRevealWobble: { value: 0.22 },
+    uRevealObsidienne: { value: 1 },
     uCodex: { value: 0 },
     uCodexFront: { value: 0 },
     uCodexSign: { value: 1 },
@@ -164,6 +170,7 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
         shader.uniforms.uMinSaturation = uniforms.uMinSaturation;
         shader.uniforms.uRevealWobble = uniforms.uRevealWobble;
         shader.uniforms.uRevealInk = uniforms.uRevealInk;
+        shader.uniforms.uRevealObsidienne = uniforms.uRevealObsidienne;
         shader.uniforms.uCodex = uniforms.uCodex;
         shader.uniforms.uCodexFront = uniforms.uCodexFront;
         shader.uniforms.uCodexSign = uniforms.uCodexSign;
@@ -182,6 +189,7 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             uniform float uMinSaturation;
             uniform float uRevealWobble;
             uniform float uRevealInk;
+            uniform float uRevealObsidienne;
             uniform float uCodex;
             uniform float uCodexFront;
             uniform float uCodexSign;
@@ -233,24 +241,51 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             // pas) ET la saturation (il est vif, justement). La teinte ne
             // bouge pas. Nul sur la nuit : uRevealInk vaut zero.
             float nahualLum = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
-            // Doses (13/09, deux passes de capture). La scene claire arrive
-            // DEJA lavee ici (la brume de papier du reflet, le grade
-            // desature) : saturer 2,6 fois puis remonter la valeur de 0,34
-            // rendait un pigment... pale. Le pigment mord donc plus fort, et
-            // on remonte beaucoup moins la valeur, sinon tout se retasse
-            // vers le blanc.
-            vec3 nahualVif = clamp(vec3(nahualLum) + (gl_FragColor.rgb - vec3(nahualLum)) * 4.5, 0.0, 1.0);
-            vec3 nahualPigment = clamp(nahualVif * 0.9 + 0.12, 0.0, 1.0);
-            vec3 nahualRevele = mix(gl_FragColor.rgb, nahualPigment, uRevealInk);
-            gl_FragColor.rgb = mix(flooredColor, nahualRevele, reveal);
+            // Doses (13/09, trois passes de capture). Laver vers le blanc
+            // desaturait ; saturer 4,5 fois BRULAIT les couleurs (retour de
+            // Sylvain). La mesure juste : une saturation moderee, et une
+            // remontee de valeur qui ne touche QUE les ombres, en fonction
+            // de leur noirceur. Les tons deja clairs ne bougent donc pas et
+            // rien ne vient taper dans le blanc.
+            vec3 nahualVif = vec3(nahualLum) + (gl_FragColor.rgb - vec3(nahualLum)) * 2.2;
+            vec3 nahualPigment = clamp(nahualVif + (1.0 - nahualVif) * 0.26 * (1.0 - nahualLum), 0.0, 1.0);
+            // DEUX TRAITEMENTS, UN PAR FACE (13/09, Sylvain : « il y a deux
+            // traitements differents, un d'amate, l'autre pour
+            // l'obsidienne »). Le pigment ne vit que sur le papier ; la
+            // gravure, plus bas, que sur la pierre. C'est uRevealInk, la
+            // part de reflet, qui separe les deux, et rien d'autre : une
+            // tentative de le lier en plus a la brume du reflet a ete
+            // essayee le 13/09 et retiree (elle ne laissait de couleur que
+            // dans les lointains, la ou tout est minuscule).
+            float nahualPapier = uRevealInk;
+            float nahualMord = reveal;
+            vec3 nahualRevele = mix(gl_FragColor.rgb, nahualPigment, nahualPapier);
+            gl_FragColor.rgb = mix(flooredColor, nahualRevele, nahualMord);
             // LE TRAIT (13/09) : sur le papier, la couleur ne s'arrete pas
             // toute seule, un trait d'encre la borde, comme au Codex. Bande
             // etroite autour de la frontiere, jamais sur la nuit.
             // Bande ETROITE : a 0,34 ce n'etait plus un trait mais une tache
             // qui noircissait tout le halo (capture du 13/09).
-            float nahualTrait = (1.0 - smoothstep(0.0, 0.07, abs(reveal - 0.5))) * uRevealInk;
+            float nahualTrait = (1.0 - smoothstep(0.0, 0.07, abs(reveal - 0.5))) * nahualPapier;
             gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.09, 0.075, 0.12), nahualTrait * 0.16);
-            gl_FragColor.a *= mix(uMinOpacity, 1.0, reveal);
+            // LA GRAVURE D'OBSIDIENNE (13/09, Sylvain : « il y a deux
+            // traitements differents, un d'amate, l'autre pour l'obsidienne,
+            // ou l'on pourrait d'ailleurs plus penser a la gravure d'une
+            // scene »). L'exact oppose du Codex : la ou le papier prend un
+            // trait d'encre SOMBRE, la pierre prend un trait INCISE, clair,
+            // parce que l'entaille est la seule chose qui accroche la
+            // lumiere sur un miroir noir. Le fond, lui, se polit : il se
+            // creuse d'un cran. Trait fin, jamais un halo : c'est un burin,
+            // pas un projecteur.
+            float nahualPoli = reveal * uRevealObsidienne;
+            if (nahualPoli > 0.001) {
+              vec3 nahualVueP = normalize(vViewPosition);
+              float nahualRasant = 1.0 - abs(dot(normalize(normal), nahualVueP));
+              float nahualIncise = smoothstep(0.74, 0.99, nahualRasant + (nahualGrain - 0.5) * 0.1);
+              gl_FragColor.rgb *= 1.0 - 0.16 * nahualPoli;
+              gl_FragColor.rgb += vec3(0.42, 0.40, 0.52) * nahualIncise * nahualPoli * 0.6;
+            }
+            gl_FragColor.a *= mix(uMinOpacity, 1.0, nahualMord);
             // LE TRACE DU CODEX (13/09) : pendant la ceremonie du miroir, le
             // monde se reduit a son dessin. Le trait suit le bord des
             // volumes (l'angle rasant : c'est la que le tlacuilo pose son
