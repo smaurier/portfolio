@@ -35,6 +35,10 @@
       "ourTranslation": "Traduction française du site, d'après l'espagnol de l'édition.",
       "editionLink": "L'édition ouverte de l'UNAM"
     },
+    "theme": {
+      "toLight": "Retourner le miroir : le monde clair",
+      "toDark": "Retourner le miroir : la nuit"
+    },
     "sound": {
       "on": "Activer le son",
       "off": "Couper le son",

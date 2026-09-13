@@ -56,6 +56,7 @@
   --veil-soft-rgb: 6, 5, 10;     /* voile du panneau des traces */
   --veil-core: #0a0710;          /* coeur du degrade d'intro */
   --veil-solid: #000;            /* ecran d'intro, fond du canvas */
+  --stage-ground: #000;          /* le sol du canvas : la nuit sur les deux faces tant que la scene n'est pas refletee (lot 2 du miroir) */
   --shadow-rgb: 0, 0, 0;         /* ombres portees du texte de scene */
   --accent: #00c078;             /* vert d'etat actif */
   --accent-rgb: 0, 192, 120;
@@ -120,8 +121,12 @@
   --footer-height: 0px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+/* LA NUIT PAR DEFAUT, quelle que soit la preference systeme (13/09, le
+   miroir fumant) : ce bloc etait sous `prefers-color-scheme: dark` et ne
+   s'appliquait donc pas aux visiteurs en clair, qui recevaient les fonds
+   vifs des directions sur la nuit du site. La face claire est un choix, le
+   disque d'obsidienne du bandeau. */
+:root:not([data-theme="light"]) {
     --background: #0a0a0a;
     --foreground: #ededed;
     --font-geist: "Geist VF", sans-serif;
@@ -134,7 +139,6 @@
     --turquoise-bg: #082347;
     --cendre-bg: #4d1e1e;
     --obsidienne-bg: #24123a;
-  }
 }
 
 html,
@@ -224,10 +228,11 @@ main:focus {
   overflow: hidden;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+html:not([data-theme="light"]) {
+  color-scheme: dark;
+}
+html[data-theme="light"] {
+  color-scheme: light;
 }
 
 .st1 {
@@ -314,10 +319,8 @@ main:focus {
   filter: invert(1);
 }
 
-@media (prefers-color-scheme: dark) {
-  .logoLink img {
-    filter: none;
-  }
+html:not([data-theme="light"]) .logoLink img {
+  filter: none;
 }
 
 .logoText {
@@ -391,7 +394,7 @@ main:focus {
   padding: calc(var(--header-height) + 40px) 24px calc(var(--footer-height) + 40px);
   background: rgba(10, 8, 14, 0.96);
   backdrop-filter: blur(12px);
-  color: #f2ece1;
+  color: var(--ink-warm);
   overflow-y: auto;
 }
 
@@ -408,7 +411,7 @@ main:focus {
    blanc = gris. Le site est en dark permanent (color-scheme
    force ligne body.nahual-lab-reveal), le header doit suivre. */
 body.nahual-lab-reveal .header {
-  background: rgba(10, 8, 14, 0.82);
+  background: rgba(var(--panel-deep-rgb), 0.82);
 }
 
 .mobileNav ul,
@@ -424,7 +427,7 @@ body.nahual-lab-reveal .header {
 .mobileNav a {
   font-size: var(--t-chapeau);
   font-weight: 600;
-  color: #f2ece1;
+  color: var(--ink-warm);
 }
 
 .mobileExternal {
@@ -510,7 +513,7 @@ body.nahual-lab-reveal .header_bottom nav a {
      passe AA texte normal, marge confortable même pour un petit texte. */
 body.nahual-lab-reveal .header,
 body.nahual-lab-reveal .siteFooter {
-  color: #fff;
+  color: var(--ink);
 }
 
 /* Retiré plutôt que recoloré (retour direct de Sylvain) : le liseré du
@@ -542,7 +545,7 @@ body.nahual-lab-reveal main {
   align-items: center;
   text-align: left;
   padding: calc(40px + var(--header-height)) 6vw calc(80px + var(--footer-height));
-  color: #f2ece1;
+  color: var(--ink-warm);
   gap: 32px;
   position: relative;
   isolation: isolate;
@@ -662,14 +665,14 @@ body.nahual-lab-reveal .contentPage h2 {
 body.nahual-lab-reveal .contentPage p {
   font-size: var(--t-corps);
   line-height: var(--il-corps);
-  color: rgba(242, 236, 225, 0.86);
+  color: rgba(var(--ink-warm-rgb), 0.86);
   /* Text-shadow subtile pour lisibilité contre la scène 3D — pas card,
      halo sombre derrière le texte. */
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 body.nahual-lab-reveal .contentPage a:not(.ctaButton) {
-  color: #f2ece1;
+  color: var(--ink-warm);
   text-decoration: underline;
   /* text-decoration-color cardinal + underline-offset animé au hover
      (Immersive Garden pattern). */
@@ -724,11 +727,10 @@ body.nahual-lab-reveal .serviceCard {
    direction donne la sensation de creux/contour douce type Rauno.me/
    Vercel. En dark, elle serait contradictoire avec la scène nocturne
    et redondante avec le halo H1 — donc omise. */
-@media (prefers-color-scheme: light) {
-  body.nahual-lab-reveal .serviceCard {
+html[data-theme="light"] body.nahual-lab-reveal .serviceCard {
+    background: rgba(var(--panel-rgb), 0.86);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--direction-color, rgba(0, 0, 0, 0.06)) 12%, transparent),
                 inset 0 -8px 24px color-mix(in srgb, var(--direction-color, transparent) 8%, transparent);
-  }
 }
 
 /* Dark mode (28/08 retour Sylvain "fond transparent en dark mode,
@@ -736,13 +738,11 @@ body.nahual-lab-reveal .serviceCard {
    perdent leur bg gradient dense + blur → flottent nues sur canvas
    3D noir. Cohérent avec compass dark transparent. Signature "moins
    d'UI, plus de scène". */
-@media (prefers-color-scheme: dark) {
-  body.nahual-lab-reveal .serviceCard {
+html:not([data-theme="light"]) body.nahual-lab-reveal .serviceCard {
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     box-shadow: none;
-  }
 }
 
 /* Frise codex 1px en top+bottom — pattern répétitif points cardinaux,
@@ -797,7 +797,7 @@ body.nahual-lab-reveal .creditNote {
   font-size: var(--t-petit);
   line-height: var(--il-corps);
   font-style: italic;
-  color: rgba(242, 236, 225, 0.55);
+  color: rgba(var(--ink-warm-rgb), 0.55);
   text-align: center;
   max-width: 640px;
   padding: 0 8px;
@@ -829,7 +829,7 @@ body.nahual-lab-reveal .cardIndex {
 
 body.nahual-lab-reveal .note {
   font-size: var(--t-corps);
-  color: rgba(242, 236, 225, 0.55);
+  color: rgba(var(--ink-warm-rgb), 0.55);
 }
 
 body.nahual-lab-reveal .ctaButton {
@@ -839,7 +839,7 @@ body.nahual-lab-reveal .ctaButton {
   border: 1px solid #f2ece1;
   border-radius: 999px;
   font-weight: 600;
-  color: #f2ece1;
+  color: var(--ink-warm);
   /* UN FOND, ET PAS SEULEMENT AU SURVOL (09/09). Mesure du contraste reel
      sur les pixels du fond : a mi-arc de la page Services, ou le monde de
      glace est presque blanc, ce bouton tombait a 1,41:1 sur 100 % de sa
@@ -890,9 +890,9 @@ body.nahual-lab-reveal .ctaButton {
   position: relative;
   padding: 48px 6vw 24px;
   margin-top: 30vh;
-  background: rgba(8, 6, 12, 0.92);
+  background: rgba(var(--panel-deep-rgb), 0.92);
   backdrop-filter: blur(12px);
-  color: #f4ead5;
+  color: var(--ink);
   font-size: var(--t-corps);
   border-top: 1px solid rgba(244, 234, 213, 0.08);
   z-index: 50;
@@ -1128,7 +1128,7 @@ button:focus-visible,
    opaque. */
 
 body.reading-mode {
-  background: #0a0710;
+  background: var(--veil-solid);
 }
 
 /* Force FadingBlock et RevealText a etre visibles sans anim. Le rAF
@@ -1308,7 +1308,7 @@ body.reading-mode .projectCase {
 .projectCase h2 {
   font-size: var(--t-chapeau);
   margin: 0;
-  color: #f4ead5;
+  color: var(--ink);
 }
 .projectCaseText {
   font-size: var(--t-corps);
@@ -1367,7 +1367,7 @@ body.reading-mode .projectCase {
 .codexSection h2 {
   font-size: var(--t-chapeau);
   margin: 0 0 1rem;
-  color: #f4ead5;
+  color: var(--ink);
 }
 .codexSection p {
   font-size: var(--t-corps);
@@ -1633,7 +1633,7 @@ body.nahual-lab-reveal .serviceCard {
 }
 .projetDetailSection h2 {
   font-size: var(--t-chapeau);
-  color: #f4ead5;
+  color: var(--ink);
   margin: 0 0 1rem;
 }
 .projetDetailSection p {
@@ -2018,4 +2018,146 @@ body.reading-mode .cantar {
 .notFoundLink {
   text-decoration: underline;
   text-underline-offset: 0.2em;
+}
+
+
+/* ===================================================================
+   LA FACE CLAIRE : LE MONDE DANS LE MIROIR (13/09, le miroir fumant).
+   Pas un « mode jour » : le reflet. Papier d'amate pour le fond, encre
+   d'obsidienne pour le texte, le jade et l'or assombris pour tenir 4,5:1
+   sur le papier. Meme chaine de jetons que la nuit : rien d'autre a
+   redefinir. Le choix se pose sur <html> avant le premier paint (script
+   inline du layout), donc aucun eclair. Sources et lots :
+   docs/da/miroir-fumant.md.
+   =================================================================== */
+:root[data-theme="light"] {
+  --background: #f3ece0;
+  --foreground: #17131f;
+  --ink: #17131f;
+  --ink-rgb: 23, 19, 31;
+  --ink-warm: #1d1626;
+  --ink-warm-rgb: 29, 22, 38;
+  --ink-invert: #f3ece0;
+  --ink-muted: #5b5266;
+  --ink-on-warm: #17151c;
+  --panel-rgb: 243, 236, 224;
+  --panel-deep-rgb: 236, 228, 214;
+  --panel-closure-rgb: 240, 233, 221;
+  --veil-rgb: 243, 236, 224;
+  --veil-soft-rgb: 240, 233, 221;
+  --veil-core: #efe7d9;
+  --veil-solid: #f3ece0;
+  --shadow-rgb: 255, 250, 240;
+  --accent: #1a8a63;
+  --accent-rgb: 26, 138, 99;
+  --accent-soft: #1f8f6a;
+  --accent-gold: #9a6a12;
+  --gold-rgb: 154, 106, 18;
+  --control-thumb: #17131f;
+  --jade-bg: #d7efe3;
+  --dore-bg: #f6e6bd;
+  --turquoise-bg: #d6e6f5;
+  --cendre-bg: #f2d9d3;
+  --obsidienne-bg: #e6dcf3;
+}
+/* Tant que la scene garde sa nuit (lot 2 : la scene refletee), le texte
+   d'encre ne peut pas flotter nu sur elle : les blocs de scene prennent un
+   panneau de papier. */
+html[data-theme="light"] [data-scene-overlay] [class*="block"] {
+  background: rgba(var(--panel-rgb), 0.82);
+  padding: 18px 20px;
+}
+html[data-theme="light"] .cantar,
+html[data-theme="light"] .seuilTete[data-seuil-tete="fixe"] {
+  background: rgba(var(--panel-rgb), 0.86);
+}
+html[data-theme="light"] body.nahual-lab-reveal main[data-direction] > :where(section, article, div):not(.sr-only) {
+  background: rgba(var(--panel-rgb), 0.86);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+}
+html[data-theme="light"] .logoLink img {
+  filter: invert(1);
+}
+
+/* Le disque d'obsidienne : le bouton qui retourne le miroir. */
+:root {
+  --tezcatl-hi: #5d5570;
+  --tezcatl-mid: #221c2e;
+  --tezcatl-lo: #07050b;
+  --tezcatl-bord: rgba(var(--ink-rgb), 0.45);
+  --tezcatl-reflet: rgba(244, 234, 213, 0.55);
+}
+:root[data-theme="light"] {
+  --tezcatl-hi: #6e6683;
+  --tezcatl-mid: #2a2338;
+  --tezcatl-lo: #0a0710;
+  --tezcatl-reflet: rgba(243, 236, 224, 0.95);
+}
+.themeToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.3s ease;
+}
+.themeToggle:hover,
+.themeToggle:focus-visible {
+  opacity: 1;
+  transform: rotate(-20deg);
+}
+.themeToggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.themeToggle[aria-pressed="true"] .themeToggleReflet {
+  stroke-width: 1.8;
+}
+.themeToggleMobile {
+  width: 44px;
+  height: 44px;
+  margin-top: 8px;
+}
+
+/* La fumee : plein cadre, au-dessus de tout sauf du voile de chargement,
+   floutee pour que le cinquieme de resolution devienne de la fumee. */
+.miroirFumant {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9400;
+  pointer-events: none;
+  display: none;
+  filter: blur(7px);
+  transform: scale(1.04);
+}
+.miroirFumant[data-miroir="en-cours"] {
+  display: block;
+}
+/* Les surfaces suivent la face en douceur ; sous mouvement reduit, la
+   fumee ne joue pas et ce fondu court fait tout le geste. */
+html[data-theme] body,
+html[data-theme] .header,
+html[data-theme] .siteFooter {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .themeToggle {
+    transition: none;
+  }
+}
+
+/* La face claire et le corps de page (13/09) : `color-scheme` suit la face
+   aussi sous le corps du site, sinon les controles natifs restent sombres. */
+html[data-theme="light"] body.nahual-lab-reveal {
+  color-scheme: light;
 }

@@ -35,6 +35,10 @@
       "ourTranslation": "Texto en español de la edición.",
       "editionLink": "La edición abierta de la UNAM"
     },
+    "theme": {
+      "toLight": "Voltear el espejo: el mundo claro",
+      "toDark": "Voltear el espejo: la noche"
+    },
     "sound": {
       "on": "Activar sonido",
       "off": "Silenciar",

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import ObfuscatedEmail from "./obfuscated-email";
+import ThemeToggle from "./theme-toggle";
 import CardinalLink from "./stag-scene/cardinal-link";
 import type { Dictionary, Locale } from "../../dictionaries";
 import { getPageKeyFromSlug, getPath } from "../../lib/routes";
@@ -95,6 +96,8 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
             </li>
           ))}
         </ul>
+        {/* Le disque d'obsidienne : le miroir se retourne ici (13/09). */}
+        <ThemeToggle labels={dict.theme} />
       </div>
       <div className="header_bottom">
         <CardinalLink
@@ -198,6 +201,7 @@ export default function Header({ locale, dict }: { locale: Locale; dict: Diction
               </li>
             ))}
           </ul>
+          <ThemeToggle labels={dict.theme} className="themeToggleMobile" />
         </div>
       )}
     </header>

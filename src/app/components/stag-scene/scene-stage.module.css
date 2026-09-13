@@ -7,7 +7,10 @@
   position: fixed;
   inset: 0;
   z-index: 0;
-  background: var(--veil-solid);
+  /* La nuit sur les deux faces tant que la scene n'est pas refletee (13/09,
+     lot 2 du miroir) : la scene est composee sur ce sol ; en papier, la
+     nuit rendue par-dessus devenait un negatif. */
+  background: var(--stage-ground);
 }
 
 /* Conteneur du contenu HTML de la page (soit vide pour la home, soit

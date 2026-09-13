@@ -30,6 +30,8 @@ import NepantlaFrame from "../components/stag-scene/nepantla-frame";
 import SeuilLine from "../components/seuil-line";
 import FooterSentinel from "../components/footer-sentinel";
 import DockSentinel from "../components/dock-sentinel";
+import MiroirFumant from "../components/miroir-fumant";
+import { THEME_STORAGE_KEY } from "@/lib/theme";
 import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
@@ -216,7 +218,14 @@ export default async function LocaleLayout({
             majoritairement sombre : Chrome/Safari appliquent la
             scrollbar sombre + form controls sombres AVANT que le CSS
             parse, evite le flash de scrollbar blanche sur fond noir. */}
-        <meta name="color-scheme" content="dark" />
+        <meta name="color-scheme" content="dark light" />
+        {/* LE MIROIR FUMANT (13/09) : la face du monde se pose sur <html>
+            AVANT le premier paint, sinon on verrait la nuit une image
+            avant le reflet. La nuit est la face par defaut, quelle que
+            soit la preference systeme (choix documente, lib/theme). */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          try{var th=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});document.documentElement.setAttribute("data-theme",th==="light"?"light":"dark");}catch(e){document.documentElement.setAttribute("data-theme","dark");}
+        ` }} />
         {/* JSON-LD structuré (28/08) : Person + WebSite + ProfessionalService.
             Injecté dans <head> plutôt que <body> pour être détecté par les
             crawlers dès le premier byte. Un script par entité (schema.org
@@ -374,6 +383,8 @@ export default async function LocaleLayout({
           {/* Le pied de page est la vraie fin (13/09) : les calques fixes s'effacent quand il entre. */}
           <FooterSentinel />
           <DockSentinel />
+          {/* La fumee du miroir (13/09) : la ceremonie qui retourne le monde. */}
+          <MiroirFumant />
           {/* Footer exhaustif (28/08 retour Sylvain) : 4 colonnes :
               Navigation, Ressources, Légal, Contact. Bottom row : ©
               + baseline localisée. */}

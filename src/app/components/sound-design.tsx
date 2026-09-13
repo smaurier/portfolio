@@ -6,6 +6,7 @@ import { useCurrentDirection } from "./stag-scene/use-current-direction";
 import { useCardinalTransition } from "./stag-scene/cardinal-transition-context";
 import { arrivalCueFor, shouldPlayArrival } from "@/lib/journey-cues";
 import { SHADERS_WARM_EVENT } from "./stag-scene/shader-warmup";
+import { MIROIR_EVENT } from "@/lib/theme";
 import type { DirectionKey } from "./stag-scene/direction-colors";
 import { frostStore } from "./stag-scene/frost-store";
 import { armChime, stepChime } from "@/lib/climax-chime";
@@ -570,6 +571,50 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
 
   // Plus de cloche au clic (13/09, X7) : elle doublait celle du climax, et
   // le voyage a maintenant son pont (les couches qui se croisent).
+
+  // LE SOUFFLE DU MIROIR (13/09) : quand le disque d'obsidienne se
+  // retourne, un souffle de fumee (bruit en bande qui monte puis s'eteint)
+  // et un grave qui s'enfle, le temps de la ceremonie. Une seule voix.
+  useEffect(() => {
+    const onMiroir = (e: Event) => {
+      const ctx = ctxRef.current;
+      const master = masterGainRef.current;
+      if (!ctx || !master || muted) return;
+      const versClair = (e as CustomEvent<{ to?: string }>).detail?.to === "light";
+      const now = ctx.currentTime;
+      const noise = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 2.4), ctx.sampleRate);
+      const d = noise.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const src = ctx.createBufferSource();
+      src.buffer = noise;
+      const band = ctx.createBiquadFilter();
+      band.type = "bandpass";
+      band.Q.value = 1.4;
+      band.frequency.setValueAtTime(versClair ? 260 : 1400, now);
+      band.frequency.exponentialRampToValueAtTime(versClair ? 1600 : 220, now + 2.2);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.14, now + 0.7);
+      g.gain.setValueAtTime(0.14, now + 1.1);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 2.4);
+      src.connect(band).connect(g).connect(master);
+      src.start(now);
+      src.stop(now + 2.45);
+      const o = ctx.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(versClair ? 48 : 64, now);
+      o.frequency.exponentialRampToValueAtTime(versClair ? 72 : 42, now + 2.2);
+      const og = ctx.createGain();
+      og.gain.setValueAtTime(0.0001, now);
+      og.gain.exponentialRampToValueAtTime(0.1, now + 0.9);
+      og.gain.exponentialRampToValueAtTime(0.0001, now + 2.4);
+      o.connect(og).connect(master);
+      o.start(now);
+      o.stop(now + 2.45);
+    };
+    window.addEventListener(MIROIR_EVENT, onMiroir);
+    return () => window.removeEventListener(MIROIR_EVENT, onMiroir);
+  }, [muted]);
 
   // LE SUD, LA CHALEUR (11/09). Un bourdon de midi : deux sinus graves un
   // peu desaccordes sous un passe-bas, dont le volume MONTE AVEC LE JOUR de

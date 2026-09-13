@@ -103,6 +103,20 @@ propose). Les entrees ci-dessous en sont la liste de travail.
 | ~~X14~~ | ~~404 et en-tetes~~ (fait, 13/09) : `[locale]/not-found.tsx` dans le monde, trois langues, retour au Centre ; `netlify.toml` : X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, COOP (pas de CSP : chantier a part, nonce) | 404 stylée ; en-tetes en production Netlify | S | fait |
 | ~~X15~~ | ~~Le chemin de cempasuchil se vide au repos~~ (fait, 13/09) : retour des fleurs en 4 a 14 s au lieu de 10 a 40 | 60 s au repos : les fleurs sont la | S | fait |
 
+## 0 ter. Le miroir fumant : les deux faces du monde (13/09, dernier chantier)
+
+Sylvain : « fais-moi un bouton pour switcher au light theme [...] fidele au
+theme mythologique [...] de grosses allusions au miroir fumant [...] une
+vraie transition cinematographiee aux deux passages ». Dossier de sources
+et lots : `docs/da/miroir-fumant.md`.
+
+| # | quoi | oracle | effort | decision |
+| --- | --- | --- | --- | --- |
+| ~~T1~~ | ~~Le disque, les jetons, la fumee~~ (fait, 13/09) : `lib/theme` (pur, teste), `theme-store`, `miroir-fumant.tsx` (canvas, la fumee monte du disque, couvre, le monde change au milieu de la tenue, se retire), `theme-toggle.tsx` (bandeau + menu mobile), face claire en jetons, `prefers-color-scheme` retire au profit de l'attribut (la nuit par defaut), souffle sonore | e2e `miroir.spec.ts` : ceremonie, persistance avant le premier paint, contraste 4,5:1 sur cinq pages, mouvement reduit, clavier | M | fait, a regarder |
+| T2 | **La scene refletee** : `useTheme()` cote scene, un rig « reflet » commun (ciel clair, brume papier, exposition et ambiante montees, grade desature) ; les panneaux de texte reprennent leur transparence selon `--scene-lum` | captures des cinq pages a 0, 50 et 92 % sur la face claire ; contraste tenu ; `programmes-tardifs` a zero (aucune variante compilee en cours d'arc par le basculement) | L | a faire, avec Sylvain |
+| T3 | **Direction par direction** : ce que chaque monde devient dans le miroir sans trahir son arc | l'oeil de Sylvain | L | apres T2 |
+| T4 | Le voile sur la face claire (aujourd'hui la nuit du rite, puis le reflet : voulu ou non ?) ; l'image Open Graph ; la 404 | captures | S | a decider |
+
 ## 1. Visuel (design, 40)
 
 | # | quoi | pourquoi | oracle | effort | decision |

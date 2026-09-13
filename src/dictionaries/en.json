@@ -35,6 +35,10 @@
       "ourTranslation": "English translation by the site, from the Spanish of the edition.",
       "editionLink": "The UNAM open edition"
     },
+    "theme": {
+      "toLight": "Turn the mirror: the bright world",
+      "toDark": "Turn the mirror: the night"
+    },
     "sound": {
       "on": "Turn sound on",
       "off": "Turn sound off",
