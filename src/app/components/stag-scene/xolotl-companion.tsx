@@ -217,14 +217,22 @@ const SPINE = [
   "Wolf_Spine_TopSHJnt_22",
 ];
 
-type Vertebre = { os: Object3D; jumelle: Object3D | null };
+type Vertebre = {
+  os: Object3D;
+  jumelle: Object3D | null;
+  /** La pose ECRITE PAR LE MIXER cette image, avant notre cambrure. */
+  base: Quaternion;
+  /** La pose que NOUS avons laissee la derniere fois. */
+  posee: Quaternion;
+  amorcee: boolean;
+};
 
 function collectSpine(root: Group, twinRoot: Group | null): Vertebre[] {
   const out: Vertebre[] = [];
   for (const nom of SPINE) {
     const os = root.getObjectByName(nom);
     if (!os) continue;
-    out.push({ os, jumelle: twinRoot?.getObjectByName(nom) ?? null });
+    out.push({ os, jumelle: twinRoot?.getObjectByName(nom) ?? null, base: new Quaternion(), posee: new Quaternion(), amorcee: false });
   }
   return out;
 }
@@ -1030,17 +1038,31 @@ export default function XolotlCompanion() {
       const cible = sceneRefs?.reducedMotionRef.current ? 0 : cambrure(radius, vitesseRadiale, RIM_SPEC);
       cambrureRef.current += (cible - cambrureRef.current) * Math.min(1, dt * 6);
       const total = angleCambrure(cambrureRef.current);
-      if (Math.abs(total) > 1e-4) {
-        const parts = repartirCambrure(total, spineRef.current.length);
-        // Meme axe que l'assiette du corps : le lateral du chien, pris en
-        // monde une fois, puis ramene dans le repere de chaque os par
-        // applyWorldDelta.
-        sc.cambrureAxis.copy(PITCH_AXIS).applyQuaternion(g.quaternion);
-        for (let i = 0; i < spineRef.current.length; i++) {
-          const v = spineRef.current[i];
-          applyWorldDelta(v.os, sc.cambrureAxis, parts[i], sc.delta, sc.parentQuat, sc.axis2);
-          if (v.jumelle) v.jumelle.quaternion.copy(v.os.quaternion);
+      const parts = repartirCambrure(total, spineRef.current.length);
+      // Meme axe que l'assiette du corps : le lateral du chien, pris en
+      // monde une fois, puis ramene dans le repere de chaque os par
+      // applyWorldDelta.
+      sc.cambrureAxis.copy(PITCH_AXIS).applyQuaternion(g.quaternion);
+      for (let i = 0; i < spineRef.current.length; i++) {
+        const v = spineRef.current[i];
+        // LA POSE DE DEPART, A CHAQUE IMAGE (13/09, retour Sylvain « il y a
+        // un vrai probleme avec Xolotl »). La premiere version posait le
+        // delta SUR la pose courante, en supposant que le mixer la
+        // reecrivait a chaque image. Mesure : le cycle de marche n'anime
+        // PAS la premiere vertebre, donc le delta s'ajoutait a lui-meme et
+        // le dos restait tordu de 28 degres pour le reste de la visite,
+        // cambrure revenue a zero. On repart donc de la pose du mixer
+        // quand il a ecrit, de la notre sinon : meme motif que le regard
+        // vers le soleil du cerf (stag-model).
+        if (!v.amorcee || !v.os.quaternion.equals(v.posee)) {
+          v.base.copy(v.os.quaternion);
+          v.amorcee = true;
+        } else {
+          v.os.quaternion.copy(v.base);
         }
+        applyWorldDelta(v.os, sc.cambrureAxis, parts[i], sc.delta, sc.parentQuat, sc.axis2);
+        v.posee.copy(v.os.quaternion);
+        if (v.jumelle) v.jumelle.quaternion.copy(v.os.quaternion);
       }
     }
     if (inNorth) {
