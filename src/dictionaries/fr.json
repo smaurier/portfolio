@@ -82,7 +82,8 @@
         "sunrise": "Tu as vu le soleil se lever à l'est.",
         "xiuhcoatl-strike": "Le xiuhcoatl a frappé la pierre.",
         "glyph-lit": "Le glyphe de l'année s'est embrasé.",
-        "xolotl": "Xolotl est passé, et tu l'as vu."
+        "xolotl": "Xolotl est passé, et tu l'as vu.",
+        "true-north": "La rose s'est alignée sur le vrai nord, dans ta main."
       }
     },
     "readingMode": {
@@ -90,6 +91,8 @@
       "off": "Désactiver le mode récit accessible"
     },
     "compass": {
+      "trueNorth": "Boussole cardinale, alignée sur le vrai nord",
+      "uncertain": "Boussole cardinale, nord incertain : bouge le téléphone en huit",
       "expand": "Explorer les 5 directions",
       "close": "Fermer"
     },

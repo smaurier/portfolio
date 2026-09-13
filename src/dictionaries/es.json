@@ -82,7 +82,8 @@
         "sunrise": "Viste salir el sol por el este.",
         "xiuhcoatl-strike": "La xiuhcoatl golpeó la piedra.",
         "glyph-lit": "El glifo del año se encendió.",
-        "xolotl": "Xolotl pasó, y tú lo viste."
+        "xolotl": "Xolotl pasó, y tú lo viste.",
+        "true-north": "La rosa se alineó con el norte verdadero, en tu mano."
       }
     },
     "readingMode": {
@@ -90,6 +91,8 @@
       "off": "Desactivar el modo lectura accesible"
     },
     "compass": {
+      "trueNorth": "Brújula cardinal, alineada con el norte verdadero",
+      "uncertain": "Brújula cardinal, norte incierto: mueve el teléfono en forma de ocho",
       "expand": "Explorar las 5 direcciones",
       "close": "Cerrar"
     },

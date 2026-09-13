@@ -7,7 +7,9 @@
  * reste a voir. Pur : identifiants, enregistrement immuable, stockage.
  */
 
-export const TRACE_IDS = ["centzon-thrown", "huitzilin-catch", "sunrise", "xiuhcoatl-strike", "glyph-lit", "xolotl"] as const;
+// "true-north" (13/09, la boussole vraie) : la rose s'est alignee sur le vrai
+// nord du visiteur, sur telephone.
+export const TRACE_IDS = ["centzon-thrown", "huitzilin-catch", "sunrise", "xiuhcoatl-strike", "glyph-lit", "xolotl", "true-north"] as const;
 export type TraceId = (typeof TRACE_IDS)[number];
 
 /** Trace -> date (ms) de la premiere fois. */

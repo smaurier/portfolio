@@ -82,7 +82,8 @@
         "sunrise": "You saw the sun rise in the east.",
         "xiuhcoatl-strike": "The xiuhcoatl struck the stone.",
         "glyph-lit": "The year glyph caught fire.",
-        "xolotl": "Xolotl passed by, and you saw him."
+        "xolotl": "Xolotl passed by, and you saw him.",
+        "true-north": "The rose aligned with true north, in your hand."
       }
     },
     "readingMode": {
@@ -90,6 +91,8 @@
       "off": "Disable accessible reading mode"
     },
     "compass": {
+      "trueNorth": "Cardinal compass, aligned with true north",
+      "uncertain": "Cardinal compass, north uncertain: move the phone in a figure eight",
       "expand": "Explore the 5 directions",
       "close": "Close"
     },

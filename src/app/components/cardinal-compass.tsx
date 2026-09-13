@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { pageKeys, slugs, getPath, type PageKey } from "@/lib/routes";
 import type { Dictionary, Locale } from "@/dictionaries";
@@ -10,6 +10,8 @@ import { useCurrentDirection } from "./stag-scene/use-current-direction";
 import { useCardinalTransition, type CardinalDirection } from "./stag-scene/cardinal-transition-context";
 import type { DirectionKey } from "./stag-scene/direction-colors";
 import styles from "./cardinal-compass.module.css";
+import { useBoussole } from "./use-boussole";
+import { markTrace } from "./traces-store";
 
 /**
  * Cardinal compass (28/08 retour Sylvain). Indicateur bas droite,
@@ -144,6 +146,12 @@ export default function CardinalCompass({
   const current = useCurrentDirection();
   const transition = useCardinalTransition();
   const [overlayOpen, setOverlayOpen] = useState(false);
+  // LA BOUSSOLE VRAIE (13/09) : sur telephone, la rose tourne pour que son
+  // nord pointe le vrai nord (lib/boussole, use-boussole). Ailleurs, rien.
+  const boussole = useBoussole();
+  useEffect(() => {
+    if (boussole.etat === "vive") markTrace("true-north");
+  }, [boussole.etat]);
 
   function localeSafe(): Locale {
     return isLocale(locale) ? locale : "fr";
@@ -197,17 +205,25 @@ export default function CardinalCompass({
     <>
       <nav
         className={styles.compass}
-        aria-label={l === "fr" ? "Boussole cardinale" : l === "en" ? "Cardinal compass" : "Brújula cardinal"}
-       data-scene-controls="">
-        <span className={styles.slotEmpty} aria-hidden="true" />
-        {dot(SLOTS.N)}
-        <span className={styles.slotEmpty} aria-hidden="true" />
-        {dot(SLOTS.W)}
-        {dot(SLOTS.C)}
-        {dot(SLOTS.E)}
-        <span className={styles.slotEmpty} aria-hidden="true" />
-        {dot(SLOTS.S)}
-        <span className={styles.slotEmpty} aria-hidden="true" />
+        aria-label={
+          boussole.etat === "vive" ? labels.trueNorth : boussole.etat === "incertaine" ? labels.uncertain : l === "fr" ? "Boussole cardinale" : l === "en" ? "Cardinal compass" : "Brújula cardinal"
+        }
+        data-scene-controls=""
+        data-boussole={boussole.etat}
+      >
+        {/* La rose : la grille qui tourne. Les boutons gardent leur ordre DOM
+            et leurs libelles ; seule leur place a l'ecran suit le nord. */}
+        <div className={styles.rose} style={{ ["--boussole-rotation" as string]: `${boussole.rotation.toFixed(1)}deg` }}>
+          <span className={styles.slotEmpty} aria-hidden="true" />
+          {dot(SLOTS.N)}
+          <span className={styles.slotEmpty} aria-hidden="true" />
+          {dot(SLOTS.W)}
+          {dot(SLOTS.C)}
+          {dot(SLOTS.E)}
+          <span className={styles.slotEmpty} aria-hidden="true" />
+          {dot(SLOTS.S)}
+          <span className={styles.slotEmpty} aria-hidden="true" />
+        </div>
         {/* Bouton expand (28/08 boite outil C) : ouvre modal detaille
             les 5 directions cardinales avec descriptions mytho. */}
         <button
