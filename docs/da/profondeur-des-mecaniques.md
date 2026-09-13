@@ -54,10 +54,15 @@ secondes d'immobilite qu'un jure qui fait defiler n'a jamais.
 
 Deux faits de plus, trouves par la meme sonde :
 
-- La boussole se cache pendant la descente (`dock-sentinel`, corrige le
-  13/09 pour les recouvrements de texte). Pour changer de direction, il
-  faut remonter d'un cran. C'est un choix defendable, mais cela veut dire
-  que **la navigation atypique du site est invisible la moitie du temps**.
+- La boussole n'etait pas cliquable a la fin de la sonde. Verification
+  faite avant d'en tirer une conclusion : sur ordinateur, ce n'est pas la
+  colonne qui se cache au defilement (`dock-sentinel` ne s'applique que
+  sous 767 px), c'est le pied de page qui, une fois a l'ecran, efface les
+  controles (regle du 13/09 : « le pied de page est la vraie fin »). Les
+  deux comportements sont voulus et testes. **Il n'y a donc rien a
+  corriger ici**, seulement a savoir : pour changer de direction depuis le
+  bas d'une page, il faut d'abord quitter le pied de page. Sur telephone,
+  la colonne revient des qu'on remonte.
 - Le chant est monte a l'ecran pendant presque toute la visite, et le
   calque de texte n'est visible que 838 images sur environ 4500 : le texte
   du site est vu beaucoup moins longtemps que la scene. Ce n'est pas un
@@ -99,13 +104,10 @@ Trois verdicts : **profonde** (elle tient les trois questions),
    aujourd'hui elle efface et derive ; elle pourrait, apres une minute,
    donner quelque chose que la visite active ne donne jamais. A voir avec
    Sylvain, c'est une decision de recit, pas de code.
-3. **La boussole du bandeau.** Cachee pendant la descente. Piste : la
-   rendre a mi-page quand le defilement s'arrete, plutot qu'au seul
-   defilement vers le haut.
-4. **Le passage de Xolotl.** Tirage au sort : un jure a une chance sur
+3. **Le passage de Xolotl.** Tirage au sort : un jure a une chance sur
    quelques-unes de le voir. La mecanique est belle et ratee pour cette
    seule raison.
-5. **Le mode recit.** Excellent pour le dossier d'accessibilite, jamais
+4. **Le mode recit.** Excellent pour le dossier d'accessibilite, jamais
    ouvert par un visiteur. Il ne sera jamais vu : c'est acceptable, parce
    qu'il repond a la question 3 a lui seul.
 

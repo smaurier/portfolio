@@ -117,7 +117,7 @@ mecaniques qui echouent a la premiere question n'ont pas ete reprises.
 | --- | --- | --- |
 | ~~D1~~ | ~~Le miroir n'etait jamais declenche~~ : l'eclat court sur le bord du disque, une fois par session, seulement pour qui n'a jamais choisi sa face (e2e `miroir.spec.ts`) | fait 13/09 |
 | D2 | La veille n'est jamais declenchee par un jure qui fait defiler : lui donner une recompense qu'une visite active ne donne pas (decision de recit, avec Sylvain) | a decider |
-| D3 | La boussole se cache pendant toute la descente (`dock-sentinel`) : la rendre quand le defilement s'arrete, pas seulement vers le haut | a faire |
+| ~~D3~~ | ~~La boussole cachee pendant la descente~~ : verifie, faux sur ordinateur (`dock-sentinel` ne joue que sous 767 px) ; c'est le pied de page qui efface les controles quand il est a l'ecran, et c'est voulu (X4). Rien a corriger | verifie 13/09 |
 | D4 | Xolotl est un tirage : un jure a peu de chances de le voir | a decider |
 | D5 | Mises en attente par la regle : le jour du visiteur (tonalpohualli), la lumiere du lieu, l'image de partage par page | apres D2-D4 |
 
