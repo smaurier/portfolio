@@ -1754,11 +1754,19 @@ body.nahual-cinematic * {
    (sud-sky.tsx), donc cet etat n'est jamais pose. La regle de transition est
    quand meme neutralisee la, par principe. */
 html[data-strike="1"] .contentPage {
-  /* 0,06 et non 0,12 : a 0,12 les panneaux de verre des cartes teintaient
-     encore le centre du cadre, verifie a la capture. Et le retrait est plus
-     franc (2,5rem) : il faut que le mouvement se lise comme « le contenu
-     s'incline », pas comme un bug d'opacite. */
-  opacity: 0.06;
+  /* 0,12 -> 0,06 -> 0 (14/09). On etait descendu a 0,06 parce qu'a 0,12 les
+     panneaux de verre des cartes teintaient encore le centre du cadre. La
+     capture telephone du 14/09, face NUIT, montre que 0,06 ne suffit pas
+     non plus : un texte clair a 6 % sur une scene sombre reste lisible, et
+     la colonne entiere flottait en fantome sur la prairie pendant les 3,4
+     secondes de la frappe. Sur le papier elle disparaissait, parce qu'une
+     encre sombre a 6 % sur un fond clair ne se voit pas : le defaut
+     n'existait que d'un cote du miroir.
+     Zero va donc dans le sens de l'intention d'origine, pas contre elle :
+     degager le cadre pour le geste. Ce qui fait lire le retrait comme un
+     mouvement et non comme un bug d'opacite, c'est le retrait de 2,5rem et
+     la transition, tous deux intacts. */
+  opacity: 0;
   transform: translateY(2.5rem);
   pointer-events: none;
 }
