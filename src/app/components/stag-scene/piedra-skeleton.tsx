@@ -50,11 +50,15 @@ const PIEDRA_SRC = "/img/piedra-del-sol-v2.svg";
 export default function PiedraSkeleton({
   phrase,
   translation,
+  hearthLine,
   label,
   sound,
 }: {
   phrase: string;
   translation: string;
+  /** La ligne du retour : « Le feu brule encore. » Elle remplace la
+   * traduction quand le foyer est deja allume (14/09). */
+  hearthLine: string;
   label: string;
   sound: { choiceLabel: string; enterWith: string; enterWithout: string };
 }) {
@@ -113,6 +117,14 @@ export default function PiedraSkeleton({
         <p className={styles.translation}>
           <SplitText text={translation} ariaLabel={translation} />
         </p>
+        {/* LE VOILE COURT SE NOMME (14/09, retour de Sylvain : « ca donne
+            l'impression de quelque chose de bugge si c'est mal compris »).
+            Il avait raison : un voile ampute se lit comme une panne. Celui
+            d'un visiteur qui revient dit donc ce qu'il est, en une ligne,
+            et redevient une recompense au lieu d'un manque. Les deux
+            lignes sont rendues, c'est le CSS qui choisit, parce que
+            l'attribut du foyer est pose avant le premier paint. */}
+        <p className={styles.hearthLine}>{hearthLine}</p>
         {/* Le choix du son (11/09) : une invitation pendant l'attente, pas une
             porte. Le voile s'ouvre de lui-meme, avec ou sans reponse. */}
         <VeilSoundChoice label={sound} />

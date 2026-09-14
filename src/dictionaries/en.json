@@ -494,7 +494,7 @@
         "apresMidi": "Where you are, the sun has passed the meridian: the day is coming down.",
         "matin": "Where you are, the sun has not passed the meridian yet: the day is rising.",
         "jour": "Your first visit here bore the name {jour}, {glose}.",
-        "foyer": "Your hearth was already lit when you arrived: you came here within the last four days."
+        "foyer": "Your hearth was already lit when you arrived: you came here within the last four days, so the fire never went out and the entry ceremony did not play again. That is why your veil was short."
       }
     },
     "entities": {
@@ -880,7 +880,8 @@
         "translation": "\"Twenty flowers\" · the marigold, bridge between the living and Mictlán"
       }
     ],
-    "loadingLabel": "Loading the scene"
+    "loadingLabel": "Loading the scene",
+    "hearthLine": "The fire is still burning."
   },
   "closure": {
     "jade": {

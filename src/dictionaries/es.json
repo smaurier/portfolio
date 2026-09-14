@@ -494,7 +494,7 @@
         "apresMidi": "Donde estás, el sol ya pasó el meridiano: el día baja.",
         "matin": "Donde estás, el sol aún no pasó el meridiano: el día sube.",
         "jour": "Tu primera visita aquí llevaba el nombre de {jour}, {glose}.",
-        "foyer": "Tu hogar ya estaba encendido al llegar: viniste aquí en los últimos cuatro días."
+        "foyer": "Tu hogar ya estaba encendido al llegar: viniste aquí en los últimos cuatro días, así que el fuego no se apagó y la ceremonia de entrada no volvió a jugarse. Por eso tu velo fue corto."
       }
     },
     "entities": {
@@ -880,7 +880,8 @@
         "translation": "«Veinte flores» · el cempasúchil, puente entre los vivos y Mictlán"
       }
     ],
-    "loadingLabel": "Cargando la escena"
+    "loadingLabel": "Cargando la escena",
+    "hearthLine": "El fuego sigue ardiendo."
   },
   "closure": {
     "jade": {

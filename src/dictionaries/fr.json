@@ -494,7 +494,7 @@
         "apresMidi": "Chez toi, le soleil a passé le méridien : le jour redescend.",
         "matin": "Chez toi, le soleil n'a pas encore passé le méridien : le jour monte.",
         "jour": "Ta première venue ici portait le nom de {jour}, {glose}.",
-        "foyer": "Ton foyer était déjà allumé en arrivant : tu es venu ici dans les quatre derniers jours."
+        "foyer": "Ton foyer était déjà allumé en arrivant : tu es venu ici dans les quatre derniers jours, alors le feu ne s'est pas éteint et la cérémonie d'entrée ne s'est pas rejouée. C'est pour cela que ton voile était court."
       }
     },
     "entities": {
@@ -880,7 +880,8 @@
         "translation": "« Vingt fleurs » · le souci des morts, pont entre les vivants et Mictlán"
       }
     ],
-    "loadingLabel": "Chargement de la scène"
+    "loadingLabel": "Chargement de la scène",
+    "hearthLine": "Le feu brûle encore."
   },
   "closure": {
     "jade": {

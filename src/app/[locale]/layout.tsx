@@ -30,6 +30,8 @@ import NepantlaFrame from "../components/stag-scene/nepantla-frame";
 import SeuilLine from "../components/seuil-line";
 import FooterSentinel from "../components/footer-sentinel";
 import DockSentinel from "../components/dock-sentinel";
+import DefilementSentinel from "../components/defilement-sentinel";
+import ChantSentinel from "../components/chant-sentinel";
 import MiroirFumant from "../components/miroir-fumant";
 import Veille from "../components/veille";
 import GrainAmate from "../components/grain-amate";
@@ -343,6 +345,7 @@ export default async function LocaleLayout({
         <PiedraSkeleton
           phrase={loadingPhrase.phrase}
           translation={loadingPhrase.translation}
+          hearthLine={dict.lab.hearthLine}
           label={dict.lab.loadingLabel}
           sound={dict.common.sound}
         />
@@ -393,6 +396,10 @@ export default async function LocaleLayout({
           {/* Le pied de page est la vraie fin (13/09) : les calques fixes s'effacent quand il entre. */}
           <FooterSentinel />
           <DockSentinel />
+          {/* Le bandeau se ferme des qu'on defile (14/09). */}
+          <DefilementSentinel />
+          {/* Le chant a la priorite sur les chapitres, sur petit ecran (14/09). */}
+          <ChantSentinel />
           {/* La fumee du miroir (13/09) : la ceremonie qui retourne le monde. */}
           <MiroirFumant />
           {/* La veille (13/09) : vingt secondes sans geste, le monde continue sans nous. */}

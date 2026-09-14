@@ -2454,3 +2454,37 @@ html:not([data-theme="light"]) body.nahual-lab-reveal .serviceCard {
 .demoA11y h3 {
   margin-top: 1.6rem;
 }
+
+/* ===================================================================
+   LE BANDEAU SE FERME QUAND ON DEFILE (14/09). En haut de page rien ne
+   passe dessous : il garde sa transparence et la scene respire. Des le
+   premier defilement, il devient opaque, et plus aucun texte ne se lit a
+   travers lui. Mesure a l'origine : tous les recouvrements texte contre
+   texte du site venaient de la, sur les cinq pages, telephone compris.
+   =================================================================== */
+html[data-defile] .header {
+  background: color-mix(in srgb, var(--background) 98%, transparent);
+}
+html[data-defile][data-theme="light"] .header {
+  background-color: rgba(var(--panel-deep-rgb), 0.99);
+}
+.header {
+  transition: background-color 0.3s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .header {
+    transition: none;
+  }
+}
+
+/* QUAND LE CHANT ENTRE, LA SCENE SE TAIT (14/09). Sur petit ecran, les
+   chapitres fixes du calque tombaient sur le chant qui defile : deux voix
+   dans la meme place. Le chant ferme la page, c'est lui qui reste. Sur
+   grand ecran ils ne se touchent pas, la regle ne s'y applique donc pas. */
+@media (max-width: 900px) {
+  html[data-chant-in-view="true"] [data-scene-overlay] {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.45s ease;
+  }
+}
