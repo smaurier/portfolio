@@ -157,7 +157,7 @@ est exactement la moitie de 60, donc un depassement de peu.
 | --- | --- | --- |
 | ~~F1a~~ | ~~La cuisson du papier des bandelettes~~ (fait, 14/09) : le profil de Contact, telephone, processeur ralenti, montrait **27,7 % du temps processeur dans le generateur d'amate** (hash, noise, amatePattern). Pas une boucle par image : une cuisson de 256 x 32 par bandelette, plus d'un million de tirages de hachage, REFAITE a chaque montage du composant donc a chaque passage de page. Texture gardee au niveau du module et cuite en demi-resolution sur petit ecran : **27,7 % -> 5,5 %** au profil | fait |
 | ~~F1b~~ | ~~Le sol fige~~ (fait, 14/09) : deux maillages poses une fois pour toutes qui recomposaient leur matrice a chaque image | fait |
-| F1c | Le reste du decor fige, composant par composant. **Attention, mon estimation initiale de 225 objets etait fausse** : elle comptait les os de Xolotl et des Cihuateteo, qui bougent (ils etaient simplement immobiles pendant la fenetre de mesure). Hors os, le gisement est d'une centaine d'objets, soit environ 6 % du temps processeur (parcours de scene et matrices), pas les 1,9 ms annoncees | M |
+| ~~F1c~~ | ~~Le reste du decor fige~~ (fait en partie, 14/09) : voir ci-dessous. **73 objets figeables a Contact, 44 apres.** Le reste est laisse libre a dessein, et la raison est ecrite | fait en partie |
 | ~~F1e~~ | ~~La chauffe qui ne se taisait jamais~~ (fait, 14/09) : voir ci-dessous, c'est la plus grosse prise de la journee | fait |
 | ~~F1f~~ | ~~Le parcours de scene de la capture~~ (fait, 14/09) : 856 objets traverses DEUX fois par image, indefiniment, pour ne rien trouver | fait |
 | F1d | **Refaire la mesure d'images par seconde sur une machine au repos.** Celle du 14/09 au soir est inexploitable : mes propres serveurs et compilations saturaient la machine, Contact tombait a 12 images par seconde la ou il en faisait 30 le matin, et un A/B avant/apres n'a montre aucune difference mesurable | S |
@@ -224,7 +224,51 @@ personne.
 Au profil, `traverse` pesait 3,3 % des echantillons a lui seul : il a disparu
 du releve.
 
-### Ce que ces deux corrections ne prouvent PAS
+### F1c : ce qu'on a fige, et ce qu'on a refuse de figer
+
+Figes le 14/09, apres avoir LU que rien n'ecrit jamais dans leur
+transformation : les **quatorze hampes d'ocotillo** (posees depuis le 18/08,
+alors que leurs fleurs, elles, etaient figees depuis le 11/09 : le gel etait
+tombe sur les enfants et pas sur le tronc), le **disque de la piedra** et ses
+16641 sommets (seule sa matiere bouge : l'or du gel, la glace, le reflet), et
+les trois nuages de points qui ne vivent que par leurs sommets (esprits,
+anneau de feu, vapeur des fleches).
+
+**73 objets figeables a Contact, 44 apres** (sonde `figeables2.mjs`, Pixel 7,
+processeur divise par quatre).
+
+Ce qu'on a REFUSE de figer, et c'est le plus interessant : une sonde montre
+un objet immobile, elle ne montre pas qu'il l'est toujours.
+
+- La **voie lactee** et les **Centzon Huitznahua** recopient la position de
+  la camera a chaque image. Ils paraissaient immobiles parce qu'ils etaient
+  simplement caches pendant la mesure. Les figer aurait colle le ciel au
+  fond de la scene.
+- Le **rai du Sud** oriente sa lance et pose son bassin a chaque image.
+- Les maillages des **Cihuateteo** et de **Xolotl** sont a l'origine de leur
+  groupe : c'est le groupe qui porte la descente et la marche. Immobiles
+  tant que la scene ne les a pas appelees.
+
+Le cliquet est `tests/e2e/decor-fige.spec.ts` : au plus trente objets non
+grees immobiles recomposent leur matrice, sur trois pages. Il ne voit pas le
+decor gree, et sa portee exacte est ecrite dans son entete.
+
+### La regression visuelle est aveugle depuis quelque temps
+
+En verifiant que F1c ne cassait rien, la suite `regression-visuelle` a
+echoue sur Services et Projets. **Ce n'est pas F1c** : avec mes
+modifications mises de cote, Services echoue plus fort encore (0,46 et 0,24
+de pixels differents contre 0,24 et 0,21). Les references datent d'avant les
+changements visuels du 13 et du 14 septembre : grain d'amate, poli de
+l'obsidienne, pigment, trace du codex, contrastes, fenetres de chapitre.
+
+Elles ne gardent donc plus rien. Les refaire demande de REGARDER les
+differences d'abord, ce qui est une decision de Sylvain, pas une commande a
+lancer :
+
+    VISUEL=1 pnpm exec playwright test tests/e2e/regression-visuelle.spec.ts --update-snapshots
+
+### Ce que ces corrections ne prouvent PAS
 
 **Aucun gain d'images par seconde n'est etabli.** Les appels evites sont
 certains, parce que ce sont des comptes. Le debit, lui, ne l'est pas : la

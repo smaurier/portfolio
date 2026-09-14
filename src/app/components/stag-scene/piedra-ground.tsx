@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
-import { DoubleSide, PlaneGeometry, RepeatWrapping, type MeshPhysicalMaterial } from "three";
+import { DoubleSide, PlaneGeometry, RepeatWrapping, type Mesh, type MeshPhysicalMaterial } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { useCurrentDirection } from "./use-current-direction";
 import { frostStore } from "./frost-store";
 import { addShaderModifier } from "./shader-patch";
 import { useSceneRefs } from "./scene-refs-context";
+import { useFigeUneFois } from "./use-fige-une-fois";
 
 /**
  * PiedraGround (30/08). Gravure de la Piedra del Sol au sol, sous le
@@ -99,6 +100,11 @@ const PIEDRA_ICE = { roughness: 0.08, metalness: 0.25, opacity: 0.6, clearcoat: 
 export default function PiedraGround() {
   const [colorMap, heightMap] = useTexture([PIEDRA_MAP, PIEDRA_HEIGHTMAP]);
   const materialRef = useRef<MeshPhysicalMaterial>(null);
+  // Le disque est pose une fois pour toutes : seule sa MATIERE bouge (or du
+  // gel, glace, reflet), jamais sa transformation. 16641 sommets, une
+  // matrice recomposee a chaque image pour rien (14/09, F1c).
+  const piedraRef = useRef<Mesh>(null);
+  useFigeUneFois(piedraRef);
   const skyMap = useMemo(() => getMictlanSky(), []);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
@@ -169,7 +175,7 @@ export default function PiedraGround() {
     // (alpha 0.1 sur du turquoise), puis sa profondeur rejetait le sol
     // dessous : tout le disque montrait le ciel. Diagnostique en coupant
     // depthWrite (le cyan disparaissait). Le disque passe toujours apres.
-    <mesh name="piedra" geometry={geometry} position={[0, 0.005, 0]} receiveShadow renderOrder={1}>
+    <mesh ref={piedraRef} name="piedra" geometry={geometry} position={[0, 0.005, 0]} receiveShadow renderOrder={1}>
       <meshPhysicalMaterial
         ref={materialRef}
         map={colorMap}

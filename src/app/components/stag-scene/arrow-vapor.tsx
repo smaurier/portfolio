@@ -18,6 +18,7 @@ import {
 import { tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { useFigeUneFois } from "./use-fige-une-fois";
 
 /**
  * ArrowVapor (04/09). Les fleches de Temiminaloyan, une fois plantees
@@ -44,6 +45,8 @@ const SPARK_DYING = new Color("#7a1200");
 
 export default function ArrowVapor() {
   const pointsRef = useRef<Points>(null);
+  // Pose : seuls les sommets vivent (14/09, F1c).
+  useFigeUneFois(pointsRef);
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   const smokeTexture = useTexture(SMOKE_SPRITE);

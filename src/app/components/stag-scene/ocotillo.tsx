@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useRef } from "react";
+import type { Group as GroupType, Object3D } from "three";
 import { useFrame } from "@react-three/fiber";
 import { freezeDecor } from "@/lib/freeze-decor";
+import { useFigeUneFois } from "./use-fige-une-fois";
 import { useGLTF } from "@react-three/drei";
 import { Box3, CatmullRomCurve3, TubeGeometry, Vector3 } from "three";
 import {
@@ -101,12 +103,18 @@ function OcotilloCluster({
   seed: number;
 }) {
   const wands = useMemo(() => generateOcotilloCluster({ wandCount: 7, seed }), [seed]);
+  // Les HAMPES seulement (14/09, F1c) : elles sont posees une fois pour
+  // toutes, et se recomposaient a chaque image pour rien. Pas le groupe du
+  // bouquet, qui reste a r3f, ni les fleurs, qui se normalisent a la
+  // premiere image et se figent elles-memes ensuite (voir OcotilloFlower).
+  const bouquetRef = useRef<GroupType>(null);
+  useFigeUneFois<GroupType>(bouquetRef, (racine) => racine.children.filter((c: Object3D) => c.type === "Mesh"));
   // Rayon de placement (6-9) au-delà de FLAT_RADIUS du terrain (4,
   // terrain-height.ts) : même bug que background-flora.tsx (base plantée
   // dans/flottant au-dessus du sol sculpté), même correction.
   const terrainY = getTerrainHeight(x, z);
   return (
-    <group position={[x, terrainY, z]} rotation={[0, rotationY, 0]} scale={scale}>
+    <group ref={bouquetRef} position={[x, terrainY, z]} rotation={[0, rotationY, 0]} scale={scale}>
       {wands.map((wand, i) => (
         <OcotilloWand key={i} config={wand} />
       ))}

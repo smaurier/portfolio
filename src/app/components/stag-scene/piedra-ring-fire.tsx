@@ -6,6 +6,7 @@ import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferGeometry, CanvasTexture, Color, Float32BufferAttribute, Points, ShaderMaterial } from "three";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { useCurrentDirection } from "./use-current-direction";
+import { useFigeUneFois } from "./use-fige-une-fois";
 
 /**
  * PiedraRingFire (05/09, la frappe). La GERBE DE FEU qui sort du sillon
@@ -49,6 +50,8 @@ type Particle = { alive: boolean; x: number; y: number; z: number; vx: number; v
 
 export default function PiedraRingFire() {
   const pointsRef = useRef<Points>(null);
+  // Pose : seuls les sommets vivent (14/09, F1c).
+  useFigeUneFois(pointsRef);
   const direction = useCurrentDirection();
   const particles = useMemo<Particle[]>(
     () => Array.from({ length: POOL }, () => ({ alive: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, age: 0, life: 1, size: 1 })),
