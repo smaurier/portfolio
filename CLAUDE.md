@@ -8,7 +8,15 @@ workflow d'actions) : c'est **Netlify**, qui reconstruit le site a chaque
 poussee sur la branche de production. Le compte gratuit donne 300 minutes
 par mois, et ce depot fait vingt a cinquante commits par jour.
 
-La regle, desormais :
+**GEL COMPLET jusqu'au 30/09/2026 inclus (decide le 14/09 par Sylvain :
+« tu ne vas plus rien pousser sur main du mois »).** Aucune poussee sur
+`main`, pour aucune raison, sans un go explicite de sa part. Donc aucune
+construction Netlify du mois : l'economie est totale, et les trois gardes
+ci-dessous ne reprennent leur interet qu'a la reprise des poussees. Tout
+s'accumule sur `dev` en attendant, et part en une seule avance rapide le
+jour ou il le dit.
+
+La regle de fond, pour quand le gel sera leve :
 
 - **On travaille sur `dev`.** On y commit et on y pousse autant qu'on veut :
   aucune construction n'en part (`netlify.toml` saute explicitement les
