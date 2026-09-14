@@ -238,17 +238,27 @@ export default function RevealLighting({
             serpentShadowActiveRef.current = true;
           }
         } else {
+          // L'etat ne bascule que si le gel a REELLEMENT eu lieu (14/09) :
+          // une carte d'ombre jamais rendue ne se gele pas, sinon elle
+          // n'existera jamais et le pilote refusera de tracer tout ce qui
+          // recoit une ombre. Voir freezeShadow.
           const wantDir = hour === "turquoise";
           if (wantDir !== dirShadowActiveRef.current) {
-            dirShadowActiveRef.current = wantDir;
-            if (wantDir) thawShadow(dl);
-            else freezeShadow(gl, dl);
+            if (wantDir) {
+              dirShadowActiveRef.current = true;
+              thawShadow(dl);
+            } else if (freezeShadow(gl, dl)) {
+              dirShadowActiveRef.current = false;
+            }
           }
           const wantSerpent = persistentLights.serpentShadowWanted;
           if (sp && wantSerpent !== serpentShadowActiveRef.current) {
-            serpentShadowActiveRef.current = wantSerpent;
-            if (wantSerpent) thawShadow(sp);
-            else freezeShadow(gl, sp);
+            if (wantSerpent) {
+              serpentShadowActiveRef.current = true;
+              thawShadow(sp);
+            } else if (freezeShadow(gl, sp)) {
+              serpentShadowActiveRef.current = false;
+            }
           }
         }
       }

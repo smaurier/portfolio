@@ -353,7 +353,35 @@ EXT_meshopt_compression.
 9. **Chargement** : decodage en worker, KTX2 (quand `toktx`), SVG du voile.
 10. **404, en-tetes**.
 
-## 11. Un defaut ouvert, a instrumenter : le monde disparait a densite 2 apres un saut
+## 11. RESOLU le 14/09 : le monde disparaissait a densite 2 apres un saut
+
+**La cause, trouvee en instrumentant une compilation de production** (le
+defaut se reproduit a la quatrieme tentative environ) : le pilote refusait
+le tracé. `getError` rendait 1282 et la console disait « GL_INVALID_OPERATION:
+glDrawElements: Mismatch between texture format and sampler type
+(signed/unsigned/float/shadow) ». Tout ce qui recoit une ombre disparaissait
+donc, c'est-a-dire les materiaux standard : le sol, l'herbe, les montagnes,
+le cerf. Ce qui n'en recoit pas continuait de s'afficher, d'ou l'image a
+moitie vide.
+
+Le gel des ombres (`freezeShadow`) coupait le rendu de profondeur EN
+ATTENTE avant de regarder si la carte existait, puis sortait si elle etait
+absente. Quand le gel tombait avant le premier rendu de la carte, celle-ci
+n'etait donc JAMAIS creee, pendant que les materiaux, eux, avaient ete
+compiles avec les ombres : ils echantillonnaient une carte qui n'existe
+pas. Densite 2 et saut de defilement ne faisaient que decaler l'ordre des
+premieres images assez pour que la course se perde de ce cote-la, ce qui
+explique l'intermittence et l'absence sur le serveur de dev.
+
+**La correction** : une carte d'ombre jamais rendue ne se gele pas, elle se
+RECLAME ; et l'appelant ne bascule son etat que si le gel a vraiment eu
+lieu. Verifie : douze tentatives de la recette exacte, plus aucune erreur
+GL, le monde entier rendu a chaque fois. Oracle dans
+`persistent-lights.test.ts`.
+
+### L'enonce d'origine
+
+
 
 Reproduit trois fois en production (`dpr.mjs`, `dpr-temps.mjs`) : Contact,
 densite 2 (un MacBook), saut direct de 0 a 80 % de l'arc apres le voile.
