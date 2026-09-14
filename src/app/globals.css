@@ -2419,3 +2419,18 @@ html:not([data-theme="light"]) body.nahual-lab-reveal .serviceCard {
     inset 0 1px 0 rgba(var(--ink-warm-rgb), 0.1),
     0 10px 26px -14px rgba(0, 0, 0, 0.8);
 }
+
+/* LES MATIERES SONT UN LUXE DE GRAND ECRAN (14/09). Mesure sur Pixel 7,
+   processeur ralenti quatre fois, en production : les deux calques plein
+   ecran en mode de fusion coutent au cinquieme centile (20 -> 15 images
+   par seconde sur Projets). Sur un telephone qui tient deja la barre de
+   justesse, le grain du papier et le poli de la pierre sont la premiere
+   chose a couper : ils ajoutent une matiere, ils ne portent aucune
+   information. Les panneaux, eux, gardent la leur : c'est un fond
+   d'element, pas une couche plein ecran. */
+@media (max-width: 900px) {
+  .grainAmate,
+  .poliObsidienne {
+    display: none !important;
+  }
+}

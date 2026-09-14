@@ -121,6 +121,42 @@ mecaniques qui echouent a la premiere question n'ont pas ete reprises.
 | D4 | Xolotl est un tirage : un jure a peu de chances de le voir | a decider |
 | D5 | Mises en attente par la regle : le jour du visiteur (tonalpohualli), la lumiere du lieu, l'image de partage par page | apres D2-D4 |
 
+## 0 sexies. La barre du metier sur telephone : ce que la mesure du 14/09 dit
+
+Mesure sur Pixel 7, processeur ralenti quatre fois, compilation de
+production, defilement regulier a travers l'arc :
+
+| page | face | mediane | 5e centile |
+| --- | --- | --- | --- |
+| Projets | nuit | 59,9 | 20 |
+| Projets | papier | 59,9 | 20 |
+| Contact | nuit | 30,0 | 15 |
+| Contact | papier | 30,0 | 12 |
+
+Deux choses en sortent.
+
+1. **Les calques de matiere ne sont pas le probleme** (grain d'amate, poli
+   d'obsidienne) : leur cout est au bord du bruit de mesure. Ils sont tout
+   de meme coupes sous 900 px depuis le 14/09 : sur un telephone qui tient
+   la barre de justesse, une matiere plein ecran est la premiere chose a
+   retirer, et elle ne porte aucune information.
+2. **Contact est limite par le PROCESSEUR, pas par la geometrie** : il a
+   moins d'objets et moins de triangles que Projets (207 contre 233, 158
+   contre 172 milliers de triangles) et tourne deux fois moins vite. Le
+   profil d'echantillonnage montre la recomposition des matrices et les
+   parcours de scene en tete.
+
+**Le levier, chiffre le 14/09** : sur les 855 objets de la scene, 610
+recomposent leur matrice a chaque image, et **225 d'entre eux n'ont pas
+bouge d'un cheveu en deux secondes**. A l'etalonnage du 10/09 (488 objets
+figes valaient 4,1 ms par image), cela represente environ 1,9 ms sur un
+budget de 16,7 : de quoi repasser sous la barre, puisque la mediane de 30
+est exactement la moitie de 60, donc un depassement de peu.
+
+| # | quoi | effort |
+| --- | --- | --- |
+| F1 | Etendre `freezeDecor` composant par composant (il n'est pose que sur la flore de fond et l'ocotillo). Le piege est documente dans la lib : un objet fige ne bougera plus si on ecrit dans sa position sans appeler `updateMatrix`. A faire avec la liste des 225, pas en aveugle | M |
+
 ## 0 quinquies. L'os a ronger : ce que chaque mecanique peut encore donner (13/09)
 
 Registre complet : `docs/da/mecaniques-du-site.md` (douze familles, six
