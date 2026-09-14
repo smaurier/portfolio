@@ -158,7 +158,79 @@ est exactement la moitie de 60, donc un depassement de peu.
 | ~~F1a~~ | ~~La cuisson du papier des bandelettes~~ (fait, 14/09) : le profil de Contact, telephone, processeur ralenti, montrait **27,7 % du temps processeur dans le generateur d'amate** (hash, noise, amatePattern). Pas une boucle par image : une cuisson de 256 x 32 par bandelette, plus d'un million de tirages de hachage, REFAITE a chaque montage du composant donc a chaque passage de page. Texture gardee au niveau du module et cuite en demi-resolution sur petit ecran : **27,7 % -> 5,5 %** au profil | fait |
 | ~~F1b~~ | ~~Le sol fige~~ (fait, 14/09) : deux maillages poses une fois pour toutes qui recomposaient leur matrice a chaque image | fait |
 | F1c | Le reste du decor fige, composant par composant. **Attention, mon estimation initiale de 225 objets etait fausse** : elle comptait les os de Xolotl et des Cihuateteo, qui bougent (ils etaient simplement immobiles pendant la fenetre de mesure). Hors os, le gisement est d'une centaine d'objets, soit environ 6 % du temps processeur (parcours de scene et matrices), pas les 1,9 ms annoncees | M |
+| ~~F1e~~ | ~~La chauffe qui ne se taisait jamais~~ (fait, 14/09) : voir ci-dessous, c'est la plus grosse prise de la journee | fait |
+| ~~F1f~~ | ~~Le parcours de scene de la capture~~ (fait, 14/09) : 856 objets traverses DEUX fois par image, indefiniment, pour ne rien trouver | fait |
 | F1d | **Refaire la mesure d'images par seconde sur une machine au repos.** Celle du 14/09 au soir est inexploitable : mes propres serveurs et compilations saturaient la machine, Contact tombait a 12 images par seconde la ou il en faisait 30 le matin, et un A/B avant/apres n'a montre aucune difference mesurable | S |
+
+### F1e, la prise du 14/09 : la chauffe des shaders recompilait en boucle
+
+En cherchant ou passait le temps de Contact apres la correction du papier,
+le profil a montre `WebGLRenderer.compile` **dans la boucle d'images**.
+
+La chauffe des shaders surveille les materiaux pour recompiler ceux qui ont
+change avant que le rendu ne le fasse a sa place, en synchrone. Son temoin
+etait `material.version`. Mauvais temoin, et pour une raison qui ne se
+devine pas : three rend un materiau transparent en double face **en deux
+passes**, face arriere puis face avant, et pose `needsUpdate = true` avant
+chacune (`renderObject`, et le meme geste dans `prepareMaterial` ; verifie a
+la source de r185). La version de ces materiaux grimpe donc de deux a chaque
+image, pour toujours, sans que leur programme change d'un cheveu.
+
+La chauffe y lisait un changement, remettait l'objet dans sa file, le
+recompilait, ce qui rebougeait la version. Une boucle qui ne s'arretait
+jamais, et chaque `compile` parcourt la scene entiere pour ramasser les
+lumieres.
+
+**Mesure, production, Pixel 7, processeur ralenti quatre fois**, trois
+passes de defilement d'affilee :
+
+| page | appels a `compile` avant | apres |
+| --- | --- | --- |
+| Accueil | 702 en 702 images (un par image, sans fin) | **0** |
+| Contact | 2568 en 669 images (quatre par image) | 43 a la premiere passe, **0** ensuite |
+| Memoire | 2614 en 722 images | 11 a la premiere passe, **0** ensuite |
+
+Et Contact finit avec **62 programmes au lieu de 73** : l'ancien code en
+fabriquait une douzaine en trop, en pure perte.
+
+La correction tient en une idee : ne plus surveiller la version, mais **ce
+qui change vraiment le programme**. Chez nous c'est le nombre de
+modificateurs de shader, puisque c'est lui qui entre dans la cle de cache
+(`signatureMateriau`, dans `shader-patch.ts`). Pour les materiaux qui ne
+sont pas rendus en deux passes, la version reste le bon temoin et continue
+d'etre lue : elle attrape ce qui ne passe pas par ce module, comme la carte
+d'environnement posee apres coup.
+
+L'oracle qui manquait est `tests/e2e/materiaux-stables.spec.ts` : sur trois
+pages, la troisieme passe de defilement ne doit declencher **aucun** appel a
+`compile`. Verifie rouge sur l'ancien code (95, puis 560, puis 944 appels,
+croissants), vert sur le nouveau.
+
+### F1f : le parcours de scene de la capture
+
+La meme chauffe cherchait les objets nouveaux en parcourant la scene
+entiere, a chaque image, et deux fois : une dans sa boucle d'image, une dans
+`scene.onBeforeRender`. Soit 1712 visites par image sur Contact, pour ne
+rien trouver la quasi totalite du temps.
+
+Or three previent : `Object3D.add` et `attach` emettent `childadded` sur le
+parent. Il suffit d'ecouter les objets deja vus (`src/lib/ajouts-scene.ts`,
+10 tests) : tant que personne n'a rien ajoute, il n'y a rien a chercher. Le
+parcours complet n'a plus lieu que quand un objet a pu apparaitre. Le
+contrat est strict et ecrit dans le module : le balayage doit surveiller
+TOUT ce qu'il traverse, sinon un sous-arbre entier entre sans reveiller
+personne.
+
+Au profil, `traverse` pesait 3,3 % des echantillons a lui seul : il a disparu
+du releve.
+
+### Ce que ces deux corrections ne prouvent PAS
+
+**Aucun gain d'images par seconde n'est etabli.** Les appels evites sont
+certains, parce que ce sont des comptes. Le debit, lui, ne l'est pas : la
+meme compilation, mesuree deux fois, a rendu 162 puis 254 images sur la
+meme fenetre a Memoire. Cette machine ne peut pas trancher. F1d reste
+ouvert, et c'est sur un vrai telephone que ca se verra (V3).
 
 ## 0 quinquies. L'os a ronger : ce que chaque mecanique peut encore donner (13/09)
 

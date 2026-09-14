@@ -4,12 +4,13 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useProgress } from "@react-three/drei";
-import { MATERIAL_SWEEP_EVERY } from "./shader-patch";
+import { MATERIAL_SWEEP_EVERY, signatureMateriau } from "./shader-patch";
 import { useCurrentDirection } from "./use-current-direction";
 import type { DirectionKey } from "./direction-colors";
 import { Texture, WebGLRenderTarget, type Material, type Object3D } from "three";
 import { useSceneRefs } from "./scene-refs-context";
 import { SONDE } from "@/lib/sonde";
+import { creerSuiviAjouts } from "@/lib/ajouts-scene";
 import { initialEnvironmentWarm, installEnvironmentBake, warmEnvironmentStep } from "./environment-warm";
 
 /**
@@ -113,10 +114,17 @@ export default function ShaderWarmup() {
   const connusRef = useRef(new WeakSet<Object3D>());
   // Par materiau : ses objets porteurs, et sa version au dernier passage.
   const porteursRef = useRef(new Map<Material, Set<WithMaterial>>());
-  const versionsMatRef = useRef(new Map<Material, number>());
+  /** Par materiau, sa signature au dernier passage : ce qui bouge quand son
+   *  PROGRAMME doit etre refait, et pas la version, que le rendu incremente
+   *  deux fois par image sur les materiaux deux passes (shader-patch). */
+  const signaturesRef = useRef(new Map<Material, string>());
   // La file : les objets froids, ranges sur la couche froide en attendant
   // leur programme, avec leur masque de couches d'origine.
   const fileRef = useRef(new Map<WithMaterial, number>());
+  /** Qui dit si un objet a pu apparaitre depuis le dernier parcours complet
+   *  (14/09). Sans lui, la capture parcourait les 856 objets de la scene
+   *  deux fois par image, pour toujours. */
+  const suiviRef = useRef(creerSuiviAjouts());
   const warmingRef = useRef(false);
   const annexRef = useRef<Array<() => void>>([]);
   /** Les objets dont le programme est en cours de LIAISON : on attend
@@ -165,12 +173,26 @@ export default function ShaderWarmup() {
   // apres celui-ci a sa boucle d'image APRES la sienne, et pouvait ajouter
   // un objet entre la capture et le rendu (mesure du 11/09 : le rig du
   // serpent, un programme ne au rendu a 15 % de l'arc a Projets).
+  //
+  // Elle fait DEUX choses de couts tres differents, et depuis le 14/09 elles
+  // ne tournent plus a la meme cadence :
+  //
+  //  - le parcours de la scene, qui cherche les objets nouveaux. Il coute
+  //    856 visites sur Contact, et ne trouve rien la quasi totalite du
+  //    temps. Il n'a donc lieu que si `suivi` a vu passer un `childadded`
+  //    (ajouts-scene). Le contrat de ce suivi impose de surveiller TOUT ce
+  //    que le parcours traverse, sinon un sous-arbre entrerait sans
+  //    reveiller personne : c'est fait dans le parcours lui-meme.
+  //  - la comparaison des versions de materiaux, une par materiau, qui
+  //    reste a CHAQUE appel : un modificateur pose par un balayage ne
+  //    change aucun enfant de la scene, donc rien ne le signalerait.
   const capturer = useCallback(() => {
     const connus = connusRef.current;
     const file = fileRef.current;
     const porteurs = porteursRef.current;
-    const versionsMat = versionsMatRef.current;
+    const signatures = signaturesRef.current;
     const attente = attenteRef.current;
+    const suivi = suiviRef.current;
     const geler = (o: WithMaterial) => {
       if (file.has(o)) return;
       // Deja sur la couche froide, en attente de liaison (12/09) : son vrai
@@ -187,7 +209,11 @@ export default function ShaderWarmup() {
       file.set(o, o.layers.mask);
       o.layers.set(COLD_LAYER);
     };
-    scene.traverse((o) => {
+    if (suivi.sale()) scene.traverse((o) => {
+      // Le contrat d'ajouts-scene : tout objet traverse devient un guetteur,
+      // y compris ceux qui n'ont pas de materiau (un groupe vide est
+      // exactement l'endroit ou un modele vient s'accrocher).
+      suivi.surveiller(o);
       const m = o as WithMaterial;
       if (!m.material) return;
       if (connus.has(o)) return;
@@ -198,21 +224,23 @@ export default function ShaderWarmup() {
         if (!set) {
           set = new Set();
           porteurs.set(mat, set);
-          versionsMat.set(mat, mat.version);
+          signatures.set(mat, signatureMateriau(mat));
         }
         set.add(m);
       }
       geler(m);
     });
-    // Les versions, A CHAQUE IMAGE et par materiau (une comparaison par
+    suivi.marquerPropre();
+    // Les signatures, A CHAQUE IMAGE et par materiau (une comparaison par
     // materiau, pas un parcours) : les balayages (givre, fondu, revelation)
     // posent leurs modificateurs dans leur propre boucle d'image, et un
     // materiau modifie doit etre recompile AVANT le rendu qui suit, sinon
     // c'est le rendu qui le compile, en synchrone (mesure du 11/09 : un
     // programme ne au rendu a 15 % de l'arc a Projets, une fois sur deux).
     for (const [mat, set] of porteurs) {
-      if (versionsMat.get(mat) === mat.version) continue;
-      versionsMat.set(mat, mat.version);
+      const sig = signatureMateriau(mat);
+      if (signatures.get(mat) === sig) continue;
+      signatures.set(mat, sig);
       for (const o of set) if (o.parent) geler(o);
     }
   }, [scene]);
@@ -374,12 +402,23 @@ export default function ShaderWarmup() {
       }
       return true;
     };
+    // LA SIGNATURE D'APRES COMPILATION, absorbee (14/09). Compiler un
+    // materiau peut changer sa propre signature : `prepareMaterial`, dans
+    // three, pose deux fois `needsUpdate` sur un materiau transparent en
+    // double face pour en compiler les deux variantes (source de r185). Ce
+    // que la compilation a change n'est pas un changement a rattraper : on
+    // note donc la signature APRES, jamais avant.
+    const absorberVersions = (o: WithMaterial) => {
+      const signatures = signaturesRef.current;
+      for (const m of Array.isArray(o.material) ? o.material : o.material ? [o.material] : []) signatures.set(m, signatureMateriau(m));
+    };
     for (const [o, masque] of file) {
       const t0 = performance.now();
       const prev = gl.getRenderTarget();
       if (viaCible) gl.setRenderTarget(cibleRef.current);
       gl.compile(o, camera, scene);
       gl.setRenderTarget(prev);
+      absorberVersions(o);
       file.delete(o);
       const cree = compte();
       derniereRef.current.nom = `${cree ? "compile" : "cache"} ${o.type} ${o.name || "(sans nom)"}`;

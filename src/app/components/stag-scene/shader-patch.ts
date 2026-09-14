@@ -1,4 +1,4 @@
-import type { Material } from "three";
+import { DoubleSide, type Material } from "three";
 
 /**
  * Compose plusieurs modificateurs onBeforeCompile sur un même matériau.
@@ -54,4 +54,33 @@ export function addShaderModifier(material: Material, modifier: ShaderModifier):
   // pas le decor). Le nombre de modificateurs entre dans la cle.
   material.customProgramCacheKey = () => `mods${modifiers.length}`;
   material.needsUpdate = true;
+}
+
+/**
+ * CE QUI OBLIGE VRAIMENT A RECOMPILER UN MATERIAU (14/09).
+ *
+ * La chauffe des shaders doit recompiler un materiau dont le programme a
+ * change, et elle s'appuyait pour cela sur `material.version`. Mauvais
+ * temoin : three rend un materiau transparent en double face EN DEUX
+ * PASSES, face arriere puis face avant, et pose `needsUpdate = true` avant
+ * chacune (`renderObject`, et le meme geste dans `prepareMaterial`, source
+ * de r185). La version de ces materiaux grimpe donc de deux a chaque image,
+ * pour toujours, sans que leur programme bouge d'un cheveu.
+ *
+ * La chauffe y lisait un changement, remettait l'objet dans sa file, le
+ * recompilait, ce qui rebougeait la version. Mesure du 14/09, Memoire :
+ * trois maillages recompiles a CHAQUE image, +2256 versions en trois
+ * secondes, et `compile` a 2,8 % du processeur, dont un parcours complet de
+ * la scene par appel.
+ *
+ * Pour ces materiaux-la, la seule chose qui change leur programme chez nous
+ * est le nombre de modificateurs, puisque c'est lui qui entre dans la cle de
+ * cache (`customProgramCacheKey` ci-dessus). Pour tous les autres, la
+ * version reste le bon temoin : elle attrape aussi ce qui ne passe pas par
+ * ce module, comme la carte d'environnement posee apres coup.
+ */
+export function signatureMateriau(material: Material): string {
+  const mods = modifiersByMaterial.get(material)?.length ?? 0;
+  const deuxPasses = material.transparent === true && material.side === DoubleSide && material.forceSinglePass === false;
+  return deuxPasses ? `2p/${mods}` : `${material.version}/${mods}`;
 }
