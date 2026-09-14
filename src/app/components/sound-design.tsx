@@ -6,6 +6,8 @@ import { useCurrentDirection } from "./stag-scene/use-current-direction";
 import { useCardinalTransition } from "./stag-scene/cardinal-transition-context";
 import { arrivalCueFor, shouldPlayArrival } from "@/lib/journey-cues";
 import { SHADERS_WARM_EVENT } from "./stag-scene/shader-warmup";
+import { SONDE } from "@/lib/sonde";
+import { monterAuPlancher, plancherDuLieu } from "@/lib/haut-parleur";
 import { MIROIR_EVENT } from "@/lib/theme";
 import { VEILLE_EVENT, noteVeille } from "@/lib/veille";
 import type { DirectionKey } from "./stag-scene/direction-colors";
@@ -140,11 +142,23 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     const levelRef = { current: 0 };
     WindowAny.__nahualAudioLevel = levelRef;
     const buffer = new Uint8Array(analyser.frequencyBinCount);
+    // Sonde de dev (14/09, retour de Sylvain sur une saturation entendue au
+    // telephone) : le niveau CRETE en sortie et la reduction de gain du
+    // limiteur, les deux seules valeurs qui disent si la chaine tape trop
+    // fort ou si c'est le limiteur qui s'entend.
+    const creteBuffer = SONDE ? new Float32Array(analyser.fftSize) : null;
     function tick() {
       analyser.getByteFrequencyData(buffer);
       let sum = 0;
       for (let i = 0; i < buffer.length; i++) sum += buffer[i];
       levelRef.current = sum / buffer.length / 255; // 0..1
+      if (SONDE && creteBuffer) {
+        analyser.getFloatTimeDomainData(creteBuffer);
+        let crete = 0;
+        for (let i = 0; i < creteBuffer.length; i++) crete = Math.max(crete, Math.abs(creteBuffer[i]));
+        const w = window as unknown as { __nahualSon?: { crete: number; reduction: number } };
+        w.__nahualSon = { crete: +crete.toFixed(3), reduction: +limiter.reduction.toFixed(2) };
+      }
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
@@ -225,7 +239,12 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     }
 
     // Ambient : 3 sinus low avec léger detuning pour donner épaisseur
-    const freqs = [87.31, 110, 130.81]; // F2, A2, C3 : accord mineur cosmique
+    // 14/09 : sur un petit haut-parleur, ces trois notes sont SOUS ce que
+    // l'appareil sait rendre ; elles ne s'entendent pas mais font distordre
+    // tout le reste (retour de Sylvain, « impression de saturer »). On les
+    // monte alors d'une octave : meme accord, registre audible.
+    const plancher = plancherDuLieu();
+    const freqs = [87.31, 110, 130.81].map((f) => monterAuPlancher(f, plancher)); // F2, A2, C3 : accord mineur cosmique
     const nodes: { osc: OscillatorNode; gain: GainNode }[] = [];
     // LA RESPIRATION (13/09, X7) : la nappe monte et descend sur 40 s, un
     // tiers de sa force, pour que le silence existe. Un LFO sur le gain.
@@ -403,7 +422,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
       boom.stop(now + 1.5);
       const sub = ctx.createOscillator();
       sub.type = "sine";
-      sub.frequency.setValueAtTime(70, now + 0.05);
+      sub.frequency.setValueAtTime(monterAuPlancher(70, plancherDuLieu()), now + 0.05);
       sub.frequency.exponentialRampToValueAtTime(32, now + 1.0);
       const subGain = ctx.createGain();
       subGain.gain.setValueAtTime(0.0001, now);
@@ -612,8 +631,9 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
         const t = ctx.currentTime;
         const o = ctx.createOscillator();
         o.type = "sine";
-        o.frequency.setValueAtTime(55, t);
-        o.frequency.exponentialRampToValueAtTime(82.4, t + 5);
+        const plancherD = plancherDuLieu();
+        o.frequency.setValueAtTime(monterAuPlancher(55, plancherD), t);
+        o.frequency.exponentialRampToValueAtTime(monterAuPlancher(82.4, plancherD), t + 5);
         const g = ctx.createGain();
         g.gain.setValueAtTime(0.0001, t);
         g.gain.exponentialRampToValueAtTime(0.12, t + 2.5);
@@ -658,12 +678,16 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
           const bas = ctx.createBiquadFilter();
           bas.type = "lowpass";
           bas.frequency.value = 1400;
+          // La melodie de la veille descend a 110 Hz : sur un petit
+          // haut-parleur, ses premieres notes se perdent et font distordre
+          // les autres (14/09). Meme remede, par octaves.
+          const hz = monterAuPlancher(note.frequence, plancherDuLieu());
           const o1 = ctx.createOscillator();
           o1.type = "sine";
-          o1.frequency.value = note.frequence;
+          o1.frequency.value = hz;
           const o2 = ctx.createOscillator();
           o2.type = "triangle";
-          o2.frequency.value = note.frequence;
+          o2.frequency.value = hz;
           o2.detune.value = 6;
           const g2 = ctx.createGain();
           g2.gain.value = 0.35;
@@ -716,8 +740,11 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
       src.stop(now + 2.45);
       const o = ctx.createOscillator();
       o.type = "sine";
-      o.frequency.setValueAtTime(versClair ? 48 : 64, now);
-      o.frequency.exponentialRampToValueAtTime(versClair ? 72 : 42, now + 2.2);
+      // Meme raison que la nappe (14/09) : sous 150 Hz, un telephone ne
+      // joue pas la note, il la distord.
+      const plancherM = plancherDuLieu();
+      o.frequency.setValueAtTime(monterAuPlancher(versClair ? 48 : 64, plancherM), now);
+      o.frequency.exponentialRampToValueAtTime(monterAuPlancher(versClair ? 72 : 42, plancherM), now + 2.2);
       const og = ctx.createGain();
       og.gain.setValueAtTime(0.0001, now);
       og.gain.exponentialRampToValueAtTime(0.1, now + 0.9);
