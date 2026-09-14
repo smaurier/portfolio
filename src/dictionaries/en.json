@@ -484,6 +484,19 @@
       "title": "Tonalpohualli, the count of destinies",
       "text": "The sacred calendar counts 260 days: twenty day signs turning against thirteen numbers, so that a pair such as 7 Mazātl, 7 Deer, only comes back after 260 days. The day of birth gave the child its name and its omen; from it comes the word tonalli, the share of heat and destiny a person carries. The deer is the seventh sign, and it is the sign this site was born from. What the site does with it: it remembers the day of your first visit and names it for you, in the book of traces. Going from a modern date to a tonalpohualli day requires a correlation, and scholars have not settled it; we use Alfonso Caso's, anchored on the fall of Tenochtitlan, 13 August 1521 Julian, that is 23 August 1521 Gregorian, which was 1 Cōātl. Competing correlations shift the count by a few days. We do not hide that debate, and we do not settle it either."
     },
+    "monde": {
+      "title": "What the world knows, right now",
+      "intro": "This site does not merely tell you about the sky: it computes it on your machine, at the moment you read. Here is what it knows about this very minute.",
+      "lines": {
+        "venusSoir": "Venus is the evening star: Xólotl is escorting the sun beneath the earth.",
+        "venusMatin": "Venus is the morning star: Quetzalcóatl is announcing the day.",
+        "annee": "The current Mexica year is {annee}.",
+        "apresMidi": "Where you are, the sun has passed the meridian: the day is coming down.",
+        "matin": "Where you are, the sun has not passed the meridian yet: the day is rising.",
+        "jour": "Your first visit here bore the name {jour}, {glose}.",
+        "foyer": "Your hearth was already lit when you arrived: you came here within the last four days."
+      }
+    },
     "entities": {
       "title": "The three entities of the Nahua being",
       "text": "In Nahua thought, a person is not a single soul but three entities that coexist, each lodged in a part of the body. They separate at death and take distinct paths. Understanding this triptych is understanding why Teyolía names the Memory page of this site.",

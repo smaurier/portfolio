@@ -5,6 +5,7 @@ import Link from "next/link";
 import ObfuscatedEmail from "../../components/obfuscated-email";
 import ShortcutsToggle from "../../components/shortcuts-toggle";
 import XolotlCodexReader from "../../components/xolotl-codex-reader";
+import CeQueLeMondeSait from "../../components/ce-que-le-monde-sait";
 import EchoScenePage from "../../components/stag-scene/echo-scene-page";
 import type { DirectionKey } from "../../components/stag-scene/direction-colors";
 import { getDictionary, isLocale, locales, type Locale, type Dictionary } from "../../../dictionaries";
@@ -298,7 +299,7 @@ function toRoman(n: number): string {
  * Alondra, cadre franco-mexicain) + respect (garde-fou appropriation)
  * + refs (inspirations, remerciements).
  */
-function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
+function CodexPage({ dict, locale }: { dict: Dictionary["codex"]; locale: Locale }) {
   return (
     <div className="contentPage codexPage">
       <XolotlCodexReader />
@@ -370,6 +371,10 @@ function CodexPage({ dict }: { dict: Dictionary["codex"] }) {
         <h2>{renderWithNahuatl(dict.ollin.title)}</h2>
         <p>{renderWithNahuatl(dict.ollin.text)}</p>
       </section>
+
+      {/* Ce que le monde sait (14/09) : les valeurs vraies, calculees chez le
+          visiteur, que le site gardait pour lui. */}
+      <CeQueLeMondeSait labels={dict.monde} locale={locale} />
 
       {/* Le compte des destins (13/09) : la mecanique du jour du visiteur a
           sa page de Codex, avec sa correlation et son debat. */}
@@ -559,7 +564,7 @@ export default async function LocalizedPage({
       content = <MemoirePage dict={fullDict.memoire} />;
       break;
     case "codex":
-      content = <CodexPage dict={fullDict.codex} />;
+      content = <CodexPage dict={fullDict.codex} locale={locale} />;
       break;
     case "mentionsLegales":
       content = <LegalPage dict={fullDict.mentionsLegales} />;

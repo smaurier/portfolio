@@ -484,6 +484,19 @@
       "title": "Tonalpohualli, le compte des destins",
       "text": "Le calendrier sacré compte 260 jours : vingt signes de jours qui tournent contre treize nombres, si bien qu'un couple comme 7 Mazātl, 7 Cerf, ne revient qu'au bout de 260 jours. Le jour de naissance donnait son nom et son augure à l'enfant ; c'est de là que vient le mot tonalli, la part de chaleur et de destin qu'une personne porte. Le cerf est le septième signe, et c'est lui qui a fait naître ce site. Ce que le site en fait : il retient le jour de ta première venue et te le nomme, dans le carnet des traces. Passer d'une date d'aujourd'hui à un jour du tonalpohualli demande une corrélation, et les savants n'ont pas tranché ; nous retenons celle d'Alfonso Caso, ancrée sur la chute de Tenochtitlan, le 13 août 1521 julien, soit le 23 août 1521 grégorien, qui était 1 Cōātl. Les corrélations concurrentes décalent le compte de quelques jours. Nous ne cachons pas ce débat : nous ne le tranchons pas non plus."
     },
+    "monde": {
+      "title": "Ce que le monde sait, maintenant",
+      "intro": "Ce site ne se contente pas de raconter le ciel : il le calcule chez toi, à l'instant où tu lis. Voici ce qu'il sait de cette minute-ci.",
+      "lines": {
+        "venusSoir": "Vénus est l'étoile du soir : c'est Xólotl qui accompagne le soleil sous la terre.",
+        "venusMatin": "Vénus est l'étoile du matin : c'est Quetzalcóatl qui annonce le jour.",
+        "annee": "L'année mexica en cours est {annee}.",
+        "apresMidi": "Chez toi, le soleil a passé le méridien : le jour redescend.",
+        "matin": "Chez toi, le soleil n'a pas encore passé le méridien : le jour monte.",
+        "jour": "Ta première venue ici portait le nom de {jour}, {glose}.",
+        "foyer": "Ton foyer était déjà allumé en arrivant : tu es venu ici dans les quatre derniers jours."
+      }
+    },
     "entities": {
       "title": "Les trois entités de l'être nahua",
       "text": "Dans la pensée nahua, une personne n'est pas une âme unique mais trois entités qui cohabitent, chacune logée dans une partie du corps. Elles se séparent à la mort et prennent des chemins distincts. Comprendre ce triptyque, c'est comprendre pourquoi Teyolía nomme la page Mémoire de ce site.",

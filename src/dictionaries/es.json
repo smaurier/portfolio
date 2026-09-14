@@ -484,6 +484,19 @@
       "title": "Tonalpohualli, la cuenta de los destinos",
       "text": "El calendario sagrado cuenta 260 días: veinte signos de días que giran contra trece números, de modo que una pareja como 7 Mazātl, 7 Venado, solo vuelve al cabo de 260 días. El día de nacimiento daba su nombre y su augurio al niño; de ahí viene la palabra tonalli, la parte de calor y de destino que lleva una persona. El venado es el séptimo signo, y es el que hizo nacer este sitio. Lo que el sitio hace con ello: guarda el día de tu primera visita y te lo nombra, en el cuaderno de las huellas. Pasar de una fecha de hoy a un día del tonalpohualli exige una correlación, y los especialistas no la han zanjado; tomamos la de Alfonso Caso, anclada en la caída de Tenochtitlan, el 13 de agosto de 1521 juliano, es decir el 23 de agosto de 1521 gregoriano, que era 1 Cōātl. Las correlaciones rivales desplazan la cuenta unos días. No ocultamos ese debate, y tampoco lo zanjamos."
     },
+    "monde": {
+      "title": "Lo que el mundo sabe, ahora",
+      "intro": "Este sitio no solo cuenta el cielo: lo calcula en tu máquina, en el momento en que lees. Esto es lo que sabe de este minuto.",
+      "lines": {
+        "venusSoir": "Venus es la estrella de la tarde: es Xólotl quien acompaña al sol bajo la tierra.",
+        "venusMatin": "Venus es la estrella de la mañana: es Quetzalcóatl quien anuncia el día.",
+        "annee": "El año mexica en curso es {annee}.",
+        "apresMidi": "Donde estás, el sol ya pasó el meridiano: el día baja.",
+        "matin": "Donde estás, el sol aún no pasó el meridiano: el día sube.",
+        "jour": "Tu primera visita aquí llevaba el nombre de {jour}, {glose}.",
+        "foyer": "Tu hogar ya estaba encendido al llegar: viniste aquí en los últimos cuatro días."
+      }
+    },
     "entities": {
       "title": "Las tres entidades del ser nahua",
       "text": "En el pensamiento nahua, una persona no es un alma única sino tres entidades que cohabitan, cada una alojada en una parte del cuerpo. Se separan en la muerte y toman caminos distintos. Comprender este tríptico es comprender por qué Teyolía da nombre a la página Memoria de este sitio.",
