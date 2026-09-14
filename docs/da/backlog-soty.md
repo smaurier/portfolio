@@ -155,7 +155,10 @@ est exactement la moitie de 60, donc un depassement de peu.
 
 | # | quoi | effort |
 | --- | --- | --- |
-| F1 | Etendre `freezeDecor` composant par composant (il n'est pose que sur la flore de fond et l'ocotillo). Le piege est documente dans la lib : un objet fige ne bougera plus si on ecrit dans sa position sans appeler `updateMatrix`. A faire avec la liste des 225, pas en aveugle | M |
+| ~~F1a~~ | ~~La cuisson du papier des bandelettes~~ (fait, 14/09) : le profil de Contact, telephone, processeur ralenti, montrait **27,7 % du temps processeur dans le generateur d'amate** (hash, noise, amatePattern). Pas une boucle par image : une cuisson de 256 x 32 par bandelette, plus d'un million de tirages de hachage, REFAITE a chaque montage du composant donc a chaque passage de page. Texture gardee au niveau du module et cuite en demi-resolution sur petit ecran : **27,7 % -> 5,5 %** au profil | fait |
+| ~~F1b~~ | ~~Le sol fige~~ (fait, 14/09) : deux maillages poses une fois pour toutes qui recomposaient leur matrice a chaque image | fait |
+| F1c | Le reste du decor fige, composant par composant. **Attention, mon estimation initiale de 225 objets etait fausse** : elle comptait les os de Xolotl et des Cihuateteo, qui bougent (ils etaient simplement immobiles pendant la fenetre de mesure). Hors os, le gisement est d'une centaine d'objets, soit environ 6 % du temps processeur (parcours de scene et matrices), pas les 1,9 ms annoncees | M |
+| F1d | **Refaire la mesure d'images par seconde sur une machine au repos.** Celle du 14/09 au soir est inexploitable : mes propres serveurs et compilations saturaient la machine, Contact tombait a 12 images par seconde la ou il en faisait 30 le matin, et un A/B avant/apres n'a montre aucune difference mesurable | S |
 
 ## 0 quinquies. L'os a ronger : ce que chaque mecanique peut encore donner (13/09)
 

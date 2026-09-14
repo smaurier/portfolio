@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
-import { PlaneGeometry } from "three";
+import { useEffect, useMemo, useRef } from "react";
+import { PlaneGeometry, type Group } from "three";
+import { freezeDecor } from "@/lib/freeze-decor";
 import { getTerrainHeight } from "@/lib/terrain-height";
 
 /**
@@ -73,8 +74,18 @@ export default function Ground() {
     return geo;
   }, []);
 
+  // LE SOL NE BOUGE JAMAIS (14/09, F1). Deux maillages poses une fois pour
+  // toutes qui, par defaut, recomposent leur matrice a chaque image et
+  // forcent la propagation a leurs enfants (voir lib/freeze-decor pour le
+  // raisonnement et le piege). Mesure du profil de Contact : les parcours de
+  // scene et les matrices comptent pour environ 6 % du temps processeur.
+  const racineRef = useRef<Group>(null);
+  useEffect(() => {
+    if (racineRef.current) freezeDecor(racineRef.current);
+  }, []);
+
   return (
-    <>
+    <group ref={racineRef}>
       <mesh name="ground" geometry={geometry} position={[0, -0.005, 0]} receiveShadow>
         <meshStandardMaterial color={GROUND_COLOR} flatShading />
       </mesh>
@@ -113,6 +124,6 @@ export default function Ground() {
           `}
         />
       </mesh>
-    </>
+    </group>
   );
 }

@@ -69,6 +69,14 @@ export default function GrainAmate() {
       }
     };
 
+    // NE PAS CUIRE CE QUI NE SERA PAS MONTRE (14/09). Mesure au profileur,
+    // Contact, telephone, processeur ralenti : 27 % du temps processeur
+    // passait dans le generateur de papier (hash, noise, amatePattern) —
+    // sur un telephone, ou la feuille de style cache justement ces deux
+    // calques depuis le meme jour. On cuisait une texture pour la jeter.
+    // Meme seuil que la regle CSS : au-dela, rien a cuire.
+    if (window.matchMedia("(max-width: 900px)").matches) return;
+
     const auRepos = (fn: () => void) => {
       const w = window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
       if (typeof w.requestIdleCallback === "function") w.requestIdleCallback(fn, { timeout: 2000 });

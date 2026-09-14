@@ -35,6 +35,36 @@ const WIDTH = 0.09;
  * bande par bandelette (graine differente), cf lib/amate-texture. */
 const TEX_W = 256;
 const BAND_H = 32;
+/** LE PAPIER DES BANDELETTES, CUIT UNE SEULE FOIS (14/09).
+ *
+ * Profil de Contact, telephone, processeur ralenti : 27 % du temps passait
+ * dans le generateur de papier (hash, noise, amatePattern). Ce n'etait pas
+ * une boucle par image, c'etait CETTE cuisson : 256 x 32 par bandelette,
+ * soit pres de cinquante mille pixels et plus d'un million de tirages de
+ * hachage, refaits a chaque montage du composant, donc a chaque passage de
+ * page. Sur un telephone, cela bloque le fil principal en pleine scene.
+ *
+ * Deux remedes, sans rien changer a l'image : la texture est gardee au
+ * niveau du module (elle est la meme pour tout le monde, elle ne depend
+ * d'aucune prop), et sur petit ecran elle est cuite en demi-resolution,
+ * ce qui divise le travail par quatre pour une bande de neuf centimetres
+ * de large vue a deux metres. */
+let textureAmatePartagee: DataTexture | null = null;
+function textureAmate(): DataTexture {
+  if (textureAmatePartagee) return textureAmatePartagee;
+  const petit = typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches;
+  const w = petit ? TEX_W / 2 : TEX_W;
+  const h = petit ? BAND_H / 2 : BAND_H;
+  const data = new Uint8Array(w * h * ANCHORS.length * 4);
+  for (let i = 0; i < ANCHORS.length; i++) data.set(bakeAmate(w, h, 11 + i * 3), i * w * h * 4);
+  const t = new DataTexture(data, w, h * ANCHORS.length, RGBAFormat, UnsignedByteType);
+  t.colorSpace = SRGBColorSpace;
+  t.minFilter = LinearFilter;
+  t.magFilter = LinearFilter;
+  t.needsUpdate = true;
+  textureAmatePartagee = t;
+  return t;
+}
 /** Ancrages : os (noms sans point, GLTFLoader) + decalage local monde. */
 const ANCHORS: { bone: string; offset: [number, number, number]; length: number }[] = [
   // Ancrages EN SURFACE (deuxieme capture 02/09 : ancrees sur les os,
@@ -69,16 +99,7 @@ export default function AmateStrips() {
   const lookupRef = useRef(0);
   const anchorPos = useMemo(() => new Vector3(), []);
 
-  const texture = useMemo(() => {
-    const data = new Uint8Array(TEX_W * BAND_H * ANCHORS.length * 4);
-    for (let i = 0; i < ANCHORS.length; i++) data.set(bakeAmate(TEX_W, BAND_H, 11 + i * 3), i * TEX_W * BAND_H * 4);
-    const t = new DataTexture(data, TEX_W, BAND_H * ANCHORS.length, RGBAFormat, UnsignedByteType);
-    t.colorSpace = SRGBColorSpace;
-    t.minFilter = LinearFilter;
-    t.magFilter = LinearFilter;
-    t.needsUpdate = true;
-    return t;
-  }, []);
+  const texture = useMemo(() => textureAmate(), []);
   const material = useMemo(
     () =>
       new MeshStandardMaterial({
@@ -115,7 +136,11 @@ export default function AmateStrips() {
       }),
     []
   );
-  useEffect(() => () => { for (const r of ribbons) r.geometry.dispose(); material.dispose(); texture.dispose(); }, [ribbons, material, texture]);
+  // La texture n'est PAS liberee ici (14/09) : elle est partagee au niveau
+  // du module et resservie au prochain montage. La detruire couterait une
+  // cuisson complete a chaque passage de page, ce qu'on vient justement
+  // de supprimer.
+  useEffect(() => () => { for (const r of ribbons) r.geometry.dispose(); material.dispose(); }, [ribbons, material]);
 
   useFrame((state, delta) => {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
