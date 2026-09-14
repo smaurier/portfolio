@@ -25,3 +25,10 @@ La regle, desormais :
 - `netlify.toml` saute aussi la construction quand la seule difference
   depuis le dernier deploiement touche `docs/`, `tests/`, `.scratch/` ou un
   fichier `.md` : ces chemins ne sont pas servis au visiteur.
+
+Les trois gardes sont verifiees sur de vrais commits du depot (14/09) : un
+commit de documentation seule sort en code 0 (on saute), un commit qui melange
+`docs/` et du code sort en 1 (on construit). Sur les quatorze derniers jours,
+**342 commits, dont 70 que la seule regle de chemins aurait suffi a ne pas
+construire** (20 %). Le reste est couvert par la branche : un commit sur `dev`
+ne declenche rien du tout.
