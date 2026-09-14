@@ -14,6 +14,32 @@
   # champ packageManager de package.json (Corepack).
   command = "pnpm run build"
 
+  # NE PAS RECONSTRUIRE POUR RIEN (14/09, demande de Sylvain : « je risque
+  # d'etre facture car je push trop »). Netlify reconstruit a CHAQUE
+  # poussee sur la branche de production, et le compte gratuit donne 300
+  # minutes de construction par mois. Le rythme de ce depot est de vingt a
+  # cinquante commits par jour : a deux minutes la construction, cela
+  # depasse l'enveloppe mensuelle en moins d'une semaine.
+  #
+  # `ignore` est une commande : code 0 = on saute la construction, code
+  # different de 0 = on construit. Ici on saute quand la difference entre
+  # le dernier commit construit et celui-ci ne touche QUE de la
+  # documentation, des tests ou des brouillons : rien de tout cela n'est
+  # servi au visiteur. Si la variable de commit cachee manque (toute
+  # premiere construction), la commande echoue, donc on construit : le
+  # defaut est du bon cote.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ':(exclude)docs/**' ':(exclude)tests/**' ':(exclude).scratch/**' ':(exclude)*.md'"
+
+# LES BRANCHES NE CONSTRUISENT JAMAIS (14/09). Le travail vit desormais sur
+# `dev` et ne rejoint `main` que lorsqu'il y a quelque chose a montrer. Ces
+# deux gardes valent meme si les deploiements de branche ou les apercus de
+# fusion sont actives dans l'interface : un code 0 saute toujours.
+[context.branch-deploy]
+  ignore = "exit 0"
+
+[context.deploy-preview]
+  ignore = "exit 0"
+
 [build.environment]
   # 28/08 : 20 → 22 (retour Netlify UI "Agent Runners work best with
   # Node.js 22 or higher"). Node 22 est le LTS courant, requis par
