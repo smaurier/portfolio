@@ -136,10 +136,9 @@ production, defilement regulier a travers l'arc :
 Deux choses en sortent.
 
 1. **Les calques de matiere ne sont pas le probleme** (grain d'amate, poli
-   d'obsidienne) : leur cout est au bord du bruit de mesure. Ils sont tout
-   de meme coupes sous 900 px depuis le 14/09 : sur un telephone qui tient
-   la barre de justesse, une matiere plein ecran est la premiere chose a
-   retirer, et elle ne porte aucune information.
+   d'obsidienne) : leur cout est au bord du bruit de mesure. Ils avaient
+   tout de meme ete coupes sous 900 px le 14/09 au matin ; **ils sont
+   revenus le soir meme**, voir plus bas. C'etait une coupe injustifiee.
 2. **Contact est limite par le PROCESSEUR, pas par la geometrie** : il a
    moins d'objets et moins de triangles que Projets (207 contre 233, 158
    contre 172 milliers de triangles) et tourne deux fois moins vite. Le
@@ -267,6 +266,54 @@ differences d'abord, ce qui est une decision de Sylvain, pas une commande a
 lancer :
 
     VISUEL=1 pnpm exec playwright test tests/e2e/regression-visuelle.spec.ts --update-snapshots
+
+### La matiere revient au telephone (14/09 au soir)
+
+Sylvain : « je veux absolument ce travail sur l'amate et l'obsidienne ». Il
+avait raison de le reclamer : les deux nappes plein ecran, le grain du
+papier sur la face claire et le poli de la pierre sur la nuit, avaient ete
+coupees sous 900 px le matin meme, au nom d'un cout lu a « 20 puis 15 images
+par seconde au cinquieme centile ».
+
+**Cette mesure ne valait rien.** Une mediane d'ecarts d'images ne tombe que
+dans quelques paliers (1000/50, 1000/66, 1000/80) : elle ne distingue pas 15
+de 20. Remesure sur des fenetres de duree FIXE dont on compte les images, en
+ALTERNANT avec et sans pour que la derive de la machine ne decide pas, Pixel
+7, processeur divise par quatre, en production :
+
+| face | avec les nappes | sans | ecart |
+| --- | --- | --- | --- |
+| claire | 216 images | 226 | 4,4 % |
+| nuit | 234 images | 225 | **4,0 % a l'envers** |
+
+Les plages se recouvrent (208 a 220 contre 212 a 232). Le cout n'est pas
+mesurable, et ce n'est en rien la perte d'un quart des images qui avait
+justifie la coupe.
+
+**Ce qui coutait vraiment, c'etait la cuisson**, et elle avait ete coupee
+avec les nappes. Rendue au telephone, elle prenait **385 ms d'un seul tenant
+sur le fil principal**. Un temps mort du navigateur n'est pas un autre fil :
+une tache de 385 ms reste une tache de 385 ms.
+
+La matiere n'a pas ete touchee d'un pixel. Ce qui a change, c'est la facon
+de la cuire :
+
+- **par bandes de lignes** (`bakeAmateGrainRows`, `bakeObsidianPolishRows`).
+  Chaque pixel ne depend que de ses coordonnees ; deux tests verifient que
+  le decoupage rend exactement la meme matiere, octet par octet, tranches
+  inegales comprises ;
+- **douze temps morts au lieu d'un**, avec une patience bornee a un quart de
+  seconde : avec le delai de garde d'origine de deux secondes, une page qui
+  charge une scene 3D n'est jamais au repos et la matiere mettait huit
+  secondes a se poser ;
+- **la face ouverte d'abord** : un visiteur de la nuit voyait sinon sa
+  pierre arriver quatre secondes apres la page.
+
+Resultat, meme telephone : **la plus longue tache passe de 385 ms a moins de
+100**, et la matiere de la face regardee est posee des la sixieme etape,
+environ une seconde. Garde : `tests/e2e/matieres.spec.ts`, qui verifie sur
+telephone que la nappe est affichee, qu'elle porte bien son image cuite et
+qu'elle se voit.
 
 ### Ce que ces corrections ne prouvent PAS
 

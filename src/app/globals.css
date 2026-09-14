@@ -2420,20 +2420,27 @@ html:not([data-theme="light"]) body.nahual-lab-reveal .serviceCard {
     0 10px 26px -14px rgba(0, 0, 0, 0.8);
 }
 
-/* LES MATIERES SONT UN LUXE DE GRAND ECRAN (14/09). Mesure sur Pixel 7,
-   processeur ralenti quatre fois, en production : les deux calques plein
-   ecran en mode de fusion coutent au cinquieme centile (20 -> 15 images
-   par seconde sur Projets). Sur un telephone qui tient deja la barre de
-   justesse, le grain du papier et le poli de la pierre sont la premiere
-   chose a couper : ils ajoutent une matiere, ils ne portent aucune
-   information. Les panneaux, eux, gardent la leur : c'est un fond
-   d'element, pas une couche plein ecran. */
-@media (max-width: 900px) {
-  .grainAmate,
-  .poliObsidienne {
-    display: none !important;
-  }
-}
+/* LA MATIERE EXISTE AUSSI SUR TELEPHONE (14/09 au soir, apres remesure).
+
+   Ces deux nappes avaient ete coupees sous 900 px le matin meme, au nom
+   d'un cout lu a « 20 puis 15 images par seconde au cinquieme centile ».
+   Cette mesure ne valait rien : une mediane d'ecarts d'images ne tombe que
+   dans quelques paliers (1000/50, 1000/66, 1000/80) et ne distingue donc
+   pas 15 de 20.
+
+   Remesure sur Pixel 7, processeur ralenti quatre fois, en production, sur
+   des fenetres de duree FIXE dont on compte les images, en ALTERNANT avec
+   et sans pour que la derive de la machine ne decide pas :
+
+     face claire : avec 216 images, sans 226   (4,4 % d'ecart)
+     face nuit   : avec 234 images, sans 225   (4,0 % A L'ENVERS)
+
+   Les plages se recouvrent (208 a 220 contre 212 a 232). Le cout n'est pas
+   mesurable, et ce n'est en aucun cas la perte d'un quart des images qui
+   avait justifie la coupe. L'amate et l'obsidienne sont la matiere de ce
+   site, pas un ornement de grand ecran : elles reviennent au telephone.
+
+   Garde : tests/e2e/matieres.spec.ts. */
 
 /* LA DEMONSTRATION D'ACCESSIBILITE (14/09). La ligne qui lit le nom
    accessible de l'element focalise doit se voir d'un coup d'oeil : c'est

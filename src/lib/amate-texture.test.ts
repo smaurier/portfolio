@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AMATE_GRAIN_OPTIONS, amatePattern, bakeAmate, bakeAmateGrain, bakeAmateGrainSeamless, bakeObsidianPolish, bakeObsidianPolishSeamless, fadeToPaper } from "./amate-texture";
+import { AMATE_GRAIN_OPTIONS, amatePattern, bakeAmate, bakeAmateGrain, bakeAmateGrainRows, bakeAmateGrainSeamless, bakeObsidianPolish, bakeObsidianPolishRows, bakeObsidianPolishSeamless, fadeToPaper } from "./amate-texture";
 
 const NO_SPATTER = { spatters: 0, fray: 0.12 };
 
@@ -245,5 +245,59 @@ describe("l'obsidienne polie : le pendant du papier, pour la nuit", () => {
     const marche = Math.abs(colonne(0) - colonne(size - 1));
     const pas = Math.abs(colonne(12) - colonne(13));
     expect(marche).toBeLessThanOrEqual(pas * 1.5 + 1);
+  });
+});
+
+describe("bakeAmateGrainRows (cuire le papier par tranches)", () => {
+  it("rend exactement la meme matiere qu'une cuisson d'un bloc", () => {
+    // L'oracle qui compte : on decoupe pour ne pas bloquer le fil
+    // principal (mesure du 14/09 : 349 ms sur un Pixel 7 au processeur
+    // divise par quatre). Si le decoupage changeait un seul octet, ce ne
+    // serait plus la meme matiere, et c'est la matiere qu'on garde.
+    const taille = 64;
+    const graine = 11;
+    const attendu = bakeAmateGrain(taille, graine);
+
+    const parTranches = new Uint8Array(taille * taille * 4);
+    // Des tranches INEGALES, pour qu'un decoupage regulier ne masque pas un
+    // hors-bord : 0-7, 7-40, 40-63, 63-64.
+    for (const [a, b] of [[0, 7], [7, 40], [40, 63], [63, 64]]) {
+      bakeAmateGrainRows(parTranches, taille, graine, a, b);
+    }
+    expect(parTranches).toEqual(attendu);
+  });
+
+  it("ne touche a rien hors de sa tranche", () => {
+    const taille = 16;
+    const out = new Uint8Array(taille * taille * 4).fill(7);
+    bakeAmateGrainRows(out, taille, 3, 4, 6);
+    // Avant la tranche, et apres, tout est reste tel quel.
+    for (const y of [0, 3, 6, 15]) {
+      expect(out[(y * taille + 0) * 4], `ligne ${y} intacte`).toBe(7);
+    }
+    // Dans la tranche, l'alpha a ete pose.
+    for (const y of [4, 5]) {
+      expect(out[(y * taille + 0) * 4 + 3], `ligne ${y} cuite`).toBe(255);
+    }
+  });
+
+  it("borne les tranches hors limites plutot que de deborder", () => {
+    const taille = 8;
+    const out = new Uint8Array(taille * taille * 4);
+    expect(() => bakeAmateGrainRows(out, taille, 1, -5, 999)).not.toThrow();
+    expect(out[out.length - 1]).toBe(255);
+  });
+});
+
+describe("bakeObsidianPolishRows (le poli par tranches)", () => {
+  it("rend exactement le meme poli qu'une cuisson d'un bloc", () => {
+    const taille = 64;
+    const graine = 15;
+    const attendu = bakeObsidianPolish(taille, graine);
+    const parTranches = new Uint8Array(taille * taille * 4);
+    for (const [a, b] of [[0, 9], [9, 33], [33, 64]]) {
+      bakeObsidianPolishRows(parTranches, taille, graine, a, b);
+    }
+    expect(parTranches).toEqual(attendu);
   });
 });

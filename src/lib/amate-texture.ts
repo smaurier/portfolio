@@ -141,9 +141,20 @@ export function bakeAmate(width: number, height: number, seed: number, options: 
  */
 export const AMATE_GRAIN_OPTIONS: AmateOptions = { spatters: 0, fray: 0 };
 
-export function bakeAmateGrain(size: number, seed: number): Uint8Array {
-  const data = new Uint8Array(size * size * 4);
-  for (let y = 0; y < size; y++) {
+/**
+ * UNE TRANCHE DE LIGNES du papier, ecrite dans `data` (14/09).
+ *
+ * Meme calcul, au pixel pres, que la cuisson d'un bloc : chaque pixel ne
+ * depend que de ses propres coordonnees. C'est ce qui permet de rendre la
+ * main au navigateur entre deux tranches, sur un telephone ou la tuile
+ * entiere coute 349 ms d'un seul tenant (Pixel 7, processeur divise par
+ * quatre). Le decoupage ne change RIEN au resultat, et un test le verifie
+ * octet par octet, tranches inegales comprises.
+ */
+export function bakeAmateGrainRows(data: Uint8Array, size: number, seed: number, y0: number, y1: number): void {
+  const debut = Math.max(0, Math.min(size, Math.floor(y0)));
+  const fin = Math.max(debut, Math.min(size, Math.ceil(y1)));
+  for (let y = debut; y < fin; y++) {
     const v = (y + 0.5) / size;
     for (let x = 0; x < size; x++) {
       const u = (x + 0.5) / size;
@@ -155,6 +166,11 @@ export function bakeAmateGrain(size: number, seed: number): Uint8Array {
       data[o + 3] = 255;
     }
   }
+}
+
+export function bakeAmateGrain(size: number, seed: number): Uint8Array {
+  const data = new Uint8Array(size * size * 4);
+  bakeAmateGrainRows(data, size, seed, 0, size);
   return data;
 }
 
@@ -250,9 +266,12 @@ export function fadeToPaper(data: Uint8Array, k: number): Uint8Array {
  * la fibre. Posee en `screen` a faible opacite, elle n'eclaircit rien :
  * elle fait glisser une lumiere.
  */
-export function bakeObsidianPolish(size: number, seed: number): Uint8Array {
-  const data = new Uint8Array(size * size * 4);
-  for (let y = 0; y < size; y++) {
+/** Une tranche de lignes du poli, meme raison et meme garantie que
+ *  `bakeAmateGrainRows` : le decoupage ne change pas un octet. */
+export function bakeObsidianPolishRows(data: Uint8Array, size: number, seed: number, y0: number, y1: number): void {
+  const debut = Math.max(0, Math.min(size, Math.floor(y0)));
+  const fin = Math.max(debut, Math.min(size, Math.ceil(y1)));
+  for (let y = debut; y < fin; y++) {
     const v = (y + 0.5) / size;
     for (let x = 0; x < size; x++) {
       const u = (x + 0.5) / size;
@@ -271,6 +290,11 @@ export function bakeObsidianPolish(size: number, seed: number): Uint8Array {
       data[o + 3] = 255;
     }
   }
+}
+
+export function bakeObsidianPolish(size: number, seed: number): Uint8Array {
+  const data = new Uint8Array(size * size * 4);
+  bakeObsidianPolishRows(data, size, seed, 0, size);
   return data;
 }
 
