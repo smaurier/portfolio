@@ -768,6 +768,20 @@
   "accessibilite": {
     "title": "Déclaration d'accessibilité",
     "intro": "Nahual s'engage à rendre son site accessible conformément au Référentiel général d'amélioration de l'accessibilité (RGAA) version 4.1.",
+    "demo": {
+      "title": "Essaie toi-même",
+      "intro": "Une déclaration dit ce qu'on a fait. Elle ne le prouve pas. Voici trois choses à essayer, ici, sur cette page : la machine répond en direct.",
+      "clavierTitle": "Le clavier",
+      "clavierAide": "Appuie sur Tabulation. La ligne ci-dessous lit, à chaque déplacement, le nom accessible de l'élément atteint : exactement ce qu'un lecteur d'écran annoncerait. Un nom qui manquerait se verrait ici tout de suite.",
+      "clavierVide": "En attente d'un premier déplacement au clavier.",
+      "mouvementTitle": "Le mouvement réduit",
+      "mouvementReduit": "Ton système demande moins de mouvement, et le site l'a entendu : la cérémonie d'entrée, la fumée du miroir, la dérive de la caméra et les transitions cardinales ne jouent pas. Les textes, eux, ne changent pas.",
+      "mouvementNormal": "Ton système n'a rien demandé de particulier, donc le site joue ses mouvements. Active la préférence dans ton système et recharge : la cérémonie d'entrée, la fumée du miroir et la dérive de la caméra s'arrêtent, sans qu'aucun contenu disparaisse.",
+      "recitTitle": "Le mode récit",
+      "recitAide": "La scène en trois dimensions se coupe et le site devient un texte, avec ses chants et ses chapitres. Le contenu ne change pas : c'est la même page, sans le décor.",
+      "recitActiver": "Activer le mode récit",
+      "recitDesactiver": "Revenir à la scène"
+    },
     "sections": [
       {
         "title": "État de conformité",

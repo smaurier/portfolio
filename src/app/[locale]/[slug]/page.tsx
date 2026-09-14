@@ -6,6 +6,7 @@ import ObfuscatedEmail from "../../components/obfuscated-email";
 import ShortcutsToggle from "../../components/shortcuts-toggle";
 import XolotlCodexReader from "../../components/xolotl-codex-reader";
 import CeQueLeMondeSait from "../../components/ce-que-le-monde-sait";
+import AccessibiliteDemo from "../../components/accessibilite-demo";
 import EchoScenePage from "../../components/stag-scene/echo-scene-page";
 import type { DirectionKey } from "../../components/stag-scene/direction-colors";
 import { getDictionary, isLocale, locales, type Locale, type Dictionary } from "../../../dictionaries";
@@ -573,7 +574,18 @@ export default async function LocalizedPage({
       content = <LegalPage dict={fullDict.planDuSite} />;
       break;
     case "accessibilite":
-      content = <LegalPage dict={fullDict.accessibilite} topExtra={<ShortcutsToggle locale={locale} />} />;
+      content = (
+        <LegalPage
+          dict={fullDict.accessibilite}
+          topExtra={
+            <>
+              <ShortcutsToggle locale={locale} />
+              {/* La page demontre avant de declarer (14/09, O2). */}
+              <AccessibiliteDemo labels={fullDict.accessibilite.demo} />
+            </>
+          }
+        />
+      );
       break;
     case "confidentialite":
       content = <LegalPage dict={fullDict.confidentialite} />;

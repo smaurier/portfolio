@@ -165,8 +165,8 @@ de competence, diffusion). Ce qui en sort, par ordre de valeur :
 
 | # | quoi | axes servis | effort |
 | --- | --- | --- | --- |
-| O1 | **Enoncer ce que le site sait deja** : Venus du soir, annee mexica, heure du lieu, jour du visiteur, foyer qui se souvient. Une ligne au bon endroit, pas une page | mythologie, contenu, preuve | S |
-| O2 | **La page Accessibilite devient une demonstration** : la meme navigation au clavier, sans JavaScript, en mode recit, avec les annonces | accessibilite, preuve, diffusion | M |
+| ~~O1~~ | ~~Enoncer ce que le site sait deja~~ (fait, 14/09) : section « Ce que le monde sait, maintenant » au Codex, calculee chez le visiteur (Venus, annee mexica, cote du midi, jour du tonalpohualli, foyer deja allume) ; lib pure et testee, textes en trois langues. Piege evite : compter les jours depuis la cle du foyer aurait toujours dit « 0 », la cle etant reecrite a chaque visite | fait |
+| ~~O2~~ | ~~La page Accessibilite devient une demonstration~~ (fait, 14/09) : bloc « Essaie toi-meme » avec la lecture EN DIRECT du nom accessible de l'element focalise (muette pour les technologies d'assistance, qui l'annoncent deja), l'etat reel du mouvement reduit et ce que le site en fait, et le mode recit a portee de main | fait |
 | O3 | **Le retour d'un visiteur connu** : une ligne a la place de « Tu reviens au foyer », qui dise depuis quand | memoire, contenu | S |
 | O4 | **La phrase du voile devient la phrase du jour** (la meme toute la journee, reprise au Codex avec sa source) | mythologie, contenu | S |
 | O5 | **Une video avec le son** sur Projets ou dans le making-of : le son n'existe pas hors du site | son, diffusion | M |

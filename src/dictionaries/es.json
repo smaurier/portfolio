@@ -768,6 +768,20 @@
   "accessibilite": {
     "title": "Declaración de accesibilidad",
     "intro": "Nahual se compromete a hacer su sitio accesible conforme al Referencial general de mejora de la accesibilidad (RGAA) versión 4.1.",
+    "demo": {
+      "title": "Pruébalo tú mismo",
+      "intro": "Una declaración dice lo que se hizo. No lo demuestra. Aquí hay tres cosas para probar, en esta misma página: la máquina responde en directo.",
+      "clavierTitle": "El teclado",
+      "clavierAide": "Pulsa Tabulador. La línea de abajo lee, en cada movimiento, el nombre accesible del elemento alcanzado: exactamente lo que anunciaría un lector de pantalla. Un nombre que faltara se vería aquí de inmediato.",
+      "clavierVide": "Esperando un primer movimiento con el teclado.",
+      "mouvementTitle": "El movimiento reducido",
+      "mouvementReduit": "Tu sistema pide menos movimiento, y el sitio lo escuchó: la ceremonia de entrada, el humo del espejo, la deriva de la cámara y las transiciones cardinales no se reproducen. Los textos no cambian.",
+      "mouvementNormal": "Tu sistema no pidió nada en particular, así que el sitio reproduce sus movimientos. Activa la preferencia en tu sistema y recarga: la ceremonia de entrada, el humo del espejo y la deriva de la cámara se detienen, sin que desaparezca ningún contenido.",
+      "recitTitle": "El modo relato",
+      "recitAide": "La escena en tres dimensiones se corta y el sitio se vuelve un texto, con sus cantos y sus capítulos. El contenido no cambia: es la misma página, sin el decorado.",
+      "recitActiver": "Activar el modo relato",
+      "recitDesactiver": "Volver a la escena"
+    },
     "sections": [
       {
         "title": "Estado de conformidad",

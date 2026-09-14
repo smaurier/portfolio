@@ -768,6 +768,20 @@
   "accessibilite": {
     "title": "Accessibility statement",
     "intro": "Nahual is committed to making its site accessible under the French General Accessibility Improvement Reference (RGAA) version 4.1.",
+    "demo": {
+      "title": "Try it yourself",
+      "intro": "A statement says what was done. It does not prove it. Here are three things to try, right here on this page: the machine answers live.",
+      "clavierTitle": "The keyboard",
+      "clavierAide": "Press Tab. The line below reads, at each move, the accessible name of the element you reached: exactly what a screen reader would announce. A missing name would show up here at once.",
+      "clavierVide": "Waiting for a first keyboard move.",
+      "mouvementTitle": "Reduced motion",
+      "mouvementReduit": "Your system asks for less motion, and the site heard it: the entry ceremony, the mirror smoke, the camera drift and the cardinal transitions do not play. The texts do not change.",
+      "mouvementNormal": "Your system asked for nothing in particular, so the site plays its motion. Turn the preference on in your system and reload: the entry ceremony, the mirror smoke and the camera drift stop, without any content disappearing.",
+      "recitTitle": "Reading mode",
+      "recitAide": "The three-dimensional scene is cut and the site becomes a text, with its songs and its chapters. The content does not change: it is the same page, without the set.",
+      "recitActiver": "Turn on reading mode",
+      "recitDesactiver": "Back to the scene"
+    },
     "sections": [
       {
         "title": "Conformance state",

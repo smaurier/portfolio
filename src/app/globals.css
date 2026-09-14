@@ -2434,3 +2434,23 @@ html:not([data-theme="light"]) body.nahual-lab-reveal .serviceCard {
     display: none !important;
   }
 }
+
+/* LA DEMONSTRATION D'ACCESSIBILITE (14/09). La ligne qui lit le nom
+   accessible de l'element focalise doit se voir d'un coup d'oeil : c'est
+   elle qui fait la preuve. Monospace pour qu'un nom vide se remarque, et
+   une bordure de la couleur d'etat du site. */
+.demoA11yEcho {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: var(--t-petit);
+  line-height: 1.6;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.45);
+  background: rgba(var(--panel-rgb), 0.5);
+  color: var(--ink);
+  min-height: 3.2em;
+  overflow-wrap: anywhere;
+}
+.demoA11y h3 {
+  margin-top: 1.6rem;
+}
