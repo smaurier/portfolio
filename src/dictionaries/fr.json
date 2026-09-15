@@ -785,15 +785,15 @@
     "sections": [
       {
         "title": "État de conformité",
-        "text": "Ce site est en conformité partielle avec le RGAA 4.1. Un audit complet est prévu après stabilisation de la refonte 2026."
+        "text": "Aucun audit RGAA complet n'a encore été mené sur ce site. Il ne peut donc pas déclarer de taux de conformité, et n'en déclare pas. Ce qui suit est une auto-évaluation, avec ses mesures.\n\nCe qui est mesuré et automatisé : zéro violation relevée par axe-core sur les cinq pages, dans les deux faces et les trois langues ; le parcours au clavier est vérifié par un test automatique, en haut de page et après l'acte de sortie ; les contrastes du texte de document sont vérifiés dans les deux faces.\n\nL'audit complet, critère par critère, est prévu après l'examen RGAA d'octobre 2026. Son taux et sa liste de non-conformités seront publiés ici."
       },
       {
         "title": "Contenus non accessibles",
-        "text": "La scène 3D interactive (canvas WebGL) reste décorative : le contenu textuel principal (titres, textes, liens) est accessible aux technologies d'assistance. Une préférence prefers-reduced-motion est respectée."
+        "text": "La scène en trois dimensions est INTERACTIVE, pas décorative : elle se parcourt au clavier et à la manette, elle s'oriente, elle se met en pause. Tout ce qu'elle raconte existe aussi hors d'elle.\n\nLes alternatives : le mode récit coupe la scène et rend la même page en texte, avec ses chants et ses chapitres ; une commande de pause fige le mouvement (touche G ou le bouton de la colonne, WCAG 2.2.2) ; la préférence système de mouvement réduit est respectée ; une description textuelle de la scène est disponible.\n\nCe qui reste à vérifier : le rendu sur un lecteur d'écran réel n'a pas encore été testé sur toutes les pages, et la démonstration de cette page recalcule le nom accessible plutôt que de lire celui du navigateur, ce qui peut diverger."
       },
       {
         "title": "Établissement de cette déclaration",
-        "text": "Cette déclaration a été établie le 28 août 2026 sur la base d'une auto-évaluation. Un audit externe est planifié après obtention de la certification RGAA (octobre 2026)."
+        "text": "Déclaration établie le 28 août 2026, mise à jour le 15 septembre 2026, sur la base d'une auto-évaluation.\n\nTechnologies : HTML, CSS, JavaScript, WebGL. Outils : axe-core, Playwright. Environnement de test : Chromium et WebKit, sur ordinateur et sur téléphone émulé. Pages testées : l'accueil, les quatre directions, le Codex, le plan du site, cette page. Trois langues.\n\nUn audit externe est planifié après l'obtention de la certification RGAA, en octobre 2026."
       },
       {
         "title": "Retour et contact",

@@ -784,16 +784,16 @@
     },
     "sections": [
       {
-        "title": "Conformance state",
-        "text": "This site is partially compliant with RGAA 4.1. A full audit is planned after the 2026 redesign stabilizes."
+        "title": "Conformance status",
+        "text": "No full RGAA audit has been carried out on this site yet. It therefore cannot state a conformance rate, and does not. What follows is a self-assessment, with its measurements.\n\nWhat is measured and automated: zero violations reported by axe-core across the five pages, in both faces and all three languages; the keyboard path is checked by an automated test, at the top of the page and after the closing act; document text contrast is checked in both faces.\n\nThe full audit, criterion by criterion, is planned after the RGAA examination in October 2026. Its rate and its list of non-conformities will be published here."
       },
       {
         "title": "Non-accessible content",
-        "text": "The interactive 3D scene (WebGL canvas) is decorative: main textual content (titles, texts, links) is accessible to assistive technologies. prefers-reduced-motion is respected."
+        "text": "The three-dimensional scene is INTERACTIVE, not decorative: it can be explored with a keyboard and a gamepad, it can be oriented, it can be paused. Everything it tells also exists outside it.\n\nThe alternatives: reading mode turns the scene off and renders the same page as text, with its songs and its chapters; a pause control freezes movement (the G key or the button in the column, WCAG 2.2.2); the system's reduced-motion preference is honoured; a text description of the scene is available.\n\nWhat remains to be checked: rendering on a real screen reader has not yet been tested on every page, and the demonstration on this page recomputes the accessible name rather than reading the browser's own, which may diverge."
       },
       {
-        "title": "Statement drafting",
-        "text": "This statement was drafted on August 28, 2026 based on self-assessment. An external audit is planned after obtaining RGAA certification (October 2026)."
+        "title": "How this statement was prepared",
+        "text": "Statement prepared on 28 August 2026, updated on 15 September 2026, on the basis of a self-assessment.\n\nTechnologies: HTML, CSS, JavaScript, WebGL. Tools: axe-core, Playwright. Test environment: Chromium and WebKit, on desktop and on emulated mobile. Pages tested: the home page, the four directions, the Codex, the site map, this page. Three languages.\n\nAn external audit is planned after the RGAA certification is obtained, in October 2026."
       },
       {
         "title": "Feedback and contact",

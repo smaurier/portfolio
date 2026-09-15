@@ -785,15 +785,15 @@
     "sections": [
       {
         "title": "Estado de conformidad",
-        "text": "Este sitio cumple parcialmente con el RGAA 4.1. Una auditoría completa está prevista tras la estabilización del rediseño 2026."
+        "text": "Todavía no se ha realizado ninguna auditoría RGAA completa de este sitio. Por lo tanto no puede declarar una tasa de conformidad, y no la declara. Lo que sigue es una autoevaluación, con sus mediciones.\n\nLo que está medido y automatizado: cero violaciones detectadas por axe-core en las cinco páginas, en las dos caras y en los tres idiomas; el recorrido con teclado se verifica mediante una prueba automática, al principio de la página y después del acto de salida; el contraste del texto del documento se verifica en ambas caras.\n\nLa auditoría completa, criterio por criterio, está prevista después del examen RGAA de octubre de 2026. Su tasa y su lista de no conformidades se publicarán aquí."
       },
       {
-        "title": "Contenido no accesible",
-        "text": "La escena 3D interactiva (canvas WebGL) permanece decorativa: el contenido textual principal (títulos, textos, enlaces) es accesible a las tecnologías de asistencia. Se respeta prefers-reduced-motion."
+        "title": "Contenidos no accesibles",
+        "text": "La escena tridimensional es INTERACTIVA, no decorativa: se recorre con el teclado y con el mando, se orienta, se pausa. Todo lo que cuenta existe también fuera de ella.\n\nLas alternativas: el modo relato apaga la escena y devuelve la misma página en texto, con sus cantos y sus capítulos; un control de pausa congela el movimiento (tecla G o el botón de la columna, WCAG 2.2.2); se respeta la preferencia de movimiento reducido del sistema; hay una descripción textual de la escena.\n\nLo que queda por verificar: la lectura con un lector de pantalla real aún no se ha probado en todas las páginas, y la demostración de esta página recalcula el nombre accesible en lugar de leer el del navegador, lo que puede divergir."
       },
       {
         "title": "Elaboración de esta declaración",
-        "text": "Esta declaración se elaboró el 28 de agosto de 2026 en base a una autoevaluación. Una auditoría externa está planificada tras la obtención de la certificación RGAA (octubre 2026)."
+        "text": "Declaración elaborada el 28 de agosto de 2026, actualizada el 15 de septiembre de 2026, sobre la base de una autoevaluación.\n\nTecnologías: HTML, CSS, JavaScript, WebGL. Herramientas: axe-core, Playwright. Entorno de prueba: Chromium y WebKit, en ordenador y en móvil emulado. Páginas probadas: la portada, las cuatro direcciones, el Códice, el mapa del sitio, esta página. Tres idiomas.\n\nUna auditoría externa está prevista tras la obtención de la certificación RGAA, en octubre de 2026."
       },
       {
         "title": "Retroalimentación y contacto",

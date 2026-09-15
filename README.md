@@ -38,10 +38,13 @@ lieu.
 - L'accessibilité comme partie du dessin : navigation au clavier et à la
   manette, lien d'évitement, annonces de route, mouvement réduit respecté et
   une pause du mouvement, mode lecture, description de scène, contrastes
-  mesurés au pixel, axe à chaque commit.
+  mesurés au pixel, axe sur les cinq pages dans la suite end-to-end.
 - Un chant par direction, tiré des *Cantares mexicanos* (XVIe siècle), en
-  nahuatl, dans l'espagnol de l'édition León-Portilla (UNAM, 2011) et dans
-  notre traduction, visible pour tout le monde.
+  nahuatl, avec le chant, la strophe et le folio cités, et un lien vers
+  l'édition ouverte de l'UNAM. À côté du nahuatl, le visiteur lit sa propre
+  langue : l'espagnol de l'édition León-Portilla (UNAM, 2011) s'il est
+  hispanophone, sinon notre traduction, marquée comme telle. Visible pour
+  tout le monde, jamais réservé aux lecteurs d'écran.
 - Trois langues : français, anglais, espagnol, avec le nahuatl là où il est
   attesté.
 
