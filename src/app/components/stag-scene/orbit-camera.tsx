@@ -49,6 +49,14 @@ const WEST_RADIUS_SCALE = 1.55;
 const SOUTH_RADIUS_SCALE = 1.62; // 1.36 -> 1.48 -> 1.62 (05/09, « on reculera la camera pour bien voir » les rochers de l annee)
 const PARALLAX_X = 0.5;
 const PARALLAX_Y = 0.35;
+/* LES JEUX D'OPTIONS DU PARCOURS, hors de la boucle d'images (15/09).
+   Ils etaient construits a chaque image, dont un par etalement d'objet
+   pour le miroir : deux objets par image, pour des valeurs constantes. */
+const CHEMIN_BUREAU = {} as const;
+const CHEMIN_TELEPHONE = { startRadius: 8, endRadius: 4.8, startHeight: 3.2, endHeight: 2.0 } as const;
+const CHEMIN_BUREAU_MIROIR = { mirror: true } as const;
+const CHEMIN_TELEPHONE_MIROIR = { ...CHEMIN_TELEPHONE, mirror: true } as const;
+
 const MOUSE_LERP = 0.08;
 // Multiplicateur maximum du parallax pendant une onde Ollin (29/08).
 // Au peak du press, la camera suit ×2.5 plus fort le curseur, decroit
@@ -247,19 +255,27 @@ export default function OrbitCamera({
     // la caméra pivote autour du cerf au changement de direction).
     const rawP = progressRef.current;
     const northEase = nb * nb * (3 - 2 * nb);
-    const pathOpts = isMobile ? { startRadius: 8, endRadius: 4.8, startHeight: 3.2, endHeight: 2.0 } : {};
-    const normal = getOrbitCameraPosition(rawP, pathOpts);
-    const mirrored = getOrbitCameraPosition(rawP, { ...pathOpts, mirror: true });
+    const pathOpts = isMobile ? CHEMIN_TELEPHONE : CHEMIN_BUREAU;
+    const pathMiroir = isMobile ? CHEMIN_TELEPHONE_MIROIR : CHEMIN_BUREAU_MIROIR;
+    // LE PARCOURS MIROIR NE SERT QU'AU NORD (15/09). Il etait calcule a
+    // chaque image des cinq directions, puis jete par la branche du
+    // dessous : une seconde helice, ses sinus et cosinus, et deux objets de
+    // plus par image, pour rien quatre fois sur cinq. Le fondu du milieu,
+    // lui, a bien besoin des deux, et le reste du geste est inchange.
     const position =
       northEase <= 0.001
-        ? normal
+        ? getOrbitCameraPosition(rawP, pathOpts)
         : northEase >= 0.999
-          ? mirrored
-          : {
-              x: normal.x + (mirrored.x - normal.x) * northEase,
-              y: normal.y,
-              z: normal.z + (mirrored.z - normal.z) * northEase,
-            };
+          ? getOrbitCameraPosition(rawP, pathMiroir)
+          : (() => {
+              const normal = getOrbitCameraPosition(rawP, pathOpts);
+              const mirrored = getOrbitCameraPosition(rawP, pathMiroir);
+              return {
+                x: normal.x + (mirrored.x - normal.x) * northEase,
+                y: normal.y,
+                z: normal.z + (mirrored.z - normal.z) * northEase,
+              };
+            })();
     // La contemplation : orbite lente (un tour en ~100 s).
     {
       const nowMs = performance.now();
@@ -375,7 +391,9 @@ export default function OrbitCamera({
       position.z *= dolly;
       position.y += speed * SWING_LIFT;
 
-      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45) + arrival.fovOffset;
+      // `isMobile` est deja la lecture de cette image : on ne redemande pas
+      // sa largeur au navigateur une troisieme fois (15/09).
+      const baseFov = (isMobile ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45) + arrival.fovOffset;
       const fovSortie = baseFov - sortie * EXIT_FOV_CLOSE;
       const cadre = filmOffsetFor(isMobile ? 0 : FRAME_SHIFT * (1 - jb), camera as PerspectiveCamera);
       const perspCam = camera as PerspectiveCamera;
@@ -387,7 +405,9 @@ export default function OrbitCamera({
     } else {
       // Retour repos FOV : safety, réévalue le base FOV responsive (+ la
       // focale solaire du Sud, continue le long de l'arc).
-      const baseFov = (typeof window !== "undefined" && window.innerWidth < 768 ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45) + arrival.fovOffset;
+      // `isMobile` est deja la lecture de cette image : on ne redemande pas
+      // sa largeur au navigateur une troisieme fois (15/09).
+      const baseFov = (isMobile ? 58 : 45) - nb * 5 + solarBlend * (sud.fov - 45) + arrival.fovOffset;
       const fovSortie = baseFov - sortie * EXIT_FOV_CLOSE;
       const cadre = filmOffsetFor(isMobile ? 0 : FRAME_SHIFT * (1 - jb), camera as PerspectiveCamera);
       const perspCam = camera as PerspectiveCamera;
