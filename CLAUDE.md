@@ -8,13 +8,21 @@ workflow d'actions) : c'est **Netlify**, qui reconstruit le site a chaque
 poussee sur la branche de production. Le compte gratuit donne 300 minutes
 par mois, et ce depot fait vingt a cinquante commits par jour.
 
-**GEL COMPLET jusqu'au 30/09/2026 inclus (decide le 14/09 par Sylvain :
-« tu ne vas plus rien pousser sur main du mois »).** Aucune poussee sur
-`main`, pour aucune raison, sans un go explicite de sa part. Donc aucune
-construction Netlify du mois : l'economie est totale, et les trois gardes
-ci-dessous ne reprennent leur interet qu'a la reprise des poussees. Tout
-s'accumule sur `dev` en attendant, et part en une seule avance rapide le
-jour ou il le dit.
+**GEL LEVE LE 15/09 PAR SYLVAIN, pour une raison qui fait jurisprudence.**
+Le gel avait ete pose le 14/09 (« tu ne vas plus rien pousser sur main du
+mois »). Le lendemain, `pnpm audit` a revele DEUX EXECUTIONS DE CODE A
+DISTANCE non authentifiees dans la version de Next servie en production
+(16.3.1, corrigee en 16.3.3). Le gel avait donc ete decide sans cette
+information, et il protegeait des minutes de construction que la regle
+`ignore` de `netlify.toml`, posee le meme jour, protege deja : une poussee
+coute deux minutes sur une enveloppe mensuelle de trois cents.
+
+**La regle qui en sort, et qui vaut pour la suite : un correctif de
+securite n'attend jamais un gel de facturation.** Un gel se pose sur du
+confort, jamais sur une faille. Tout gel futur porte cette exception.
+
+Hors securite, la regle de fond ci-dessous s'applique : on pousse sur
+`main` quand il y a quelque chose a MONTRER, au plus une fois par jour.
 
 La regle de fond, pour quand le gel sera leve :
 
