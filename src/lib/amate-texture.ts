@@ -266,6 +266,62 @@ export function fadeToPaper(data: Uint8Array, k: number): Uint8Array {
  * la fibre. Posee en `screen` a faible opacite, elle n'eclaircit rien :
  * elle fait glisser une lumiere.
  */
+const TAU = Math.PI * 2;
+
+/** Une somme d'ondes a frequences ENTIERES : exactement periodique sur la
+ *  tuile, par construction. Chaque terme est [fu, fv, amplitude, phase].
+ *  Rendue dans [0, 1]. */
+function ondes(u: number, v: number, termes: ReadonlyArray<readonly [number, number, number, number]>): number {
+  let somme = 0;
+  let total = 0;
+  for (const [fu, fv, amp, phase] of termes) {
+    somme += amp * Math.sin(TAU * (fu * u + fv * v) + phase);
+    total += amp;
+  }
+  return total > 0 ? 0.5 + (0.5 * somme) / total : 0.5;
+}
+
+/**
+ * LE POLI DE L'OBSIDIENNE, EN ONDES PERIODIQUES (15/09).
+ *
+ * Retour de Sylvain : « les textures d'obsidienne posees se voient
+ * enormement », puis « on voit la jonction des carres ». Il avait raison, et
+ * la mesure le dit : sur l'ancienne tuile, la colonne la plus marquee
+ * sautait de 4,52 niveaux quand l'interieur n'en variait que de 0,51, soit
+ * neuf fois la normale. Ce n'etait pas le bord de la tuile (le demi-decalage
+ * le raccordait bien) mais la CROIX centrale de ce raccord : on y fondait
+ * l'image avec elle-meme, moitie-moitie, et cette couture se repetait a
+ * chaque tuile. La feuille de style etirant la tuile de 192 a 380 ou 460
+ * pixels, la couture devenait une arete droite en travers d'une carte.
+ *
+ * On ne raccorde donc plus rien : le motif est PERIODIQUE par construction.
+ * Des ondes a frequences entieres se referment exactement sur la tuile, y
+ * compris a travers le cintrage, qui est lui aussi une onde. Aucun bord,
+ * aucune croix, rien a fondre.
+ *
+ * Et cela reste la meme matiere : de larges nappes lentes, un eclat plus
+ * fin par-dessus, dans le meme intervalle presque noir (0,04 a 0,28). Une
+ * pierre polie renvoie justement des ondulations douces, pas du grain.
+ */
+export function obsidianPolish(u: number, v: number, seed: number): number {
+  const g = seed * 0.37;
+  // Le cintrage : la coordonnee le long de la nappe se courbe avec la
+  // hauteur, donc les nappes s'incurvent au lieu de filer droit. Une onde
+  // entiere, donc elle aussi se referme sur la tuile.
+  const cintre = u + 0.18 * Math.sin(TAU * v + g);
+  const nappe = ondes(cintre, v, [
+    [1, 0, 0.55, g],
+    [2, 1, 0.28, g * 1.7 + 1.1],
+    [1, -2, 0.17, g * 2.3 + 2.4],
+  ]);
+  const eclat = ondes(cintre, v, [
+    [5, 2, 0.6, g * 3.1 + 0.7],
+    [7, -3, 0.4, g * 1.3 + 3.9],
+  ]);
+  // Presque rien : 0,04 a 0,28 de gris. L'ecart fait tout le poli.
+  return clamp01(0.04 + 0.16 * nappe + 0.08 * eclat * eclat);
+}
+
 /** Une tranche de lignes du poli, meme raison et meme garantie que
  *  `bakeAmateGrainRows` : le decoupage ne change pas un octet. */
 export function bakeObsidianPolishRows(data: Uint8Array, size: number, seed: number, y0: number, y1: number): void {
@@ -275,13 +331,7 @@ export function bakeObsidianPolishRows(data: Uint8Array, size: number, seed: num
     const v = (y + 0.5) / size;
     for (let x = 0; x < size; x++) {
       const u = (x + 0.5) / size;
-      // Cintrage : la coordonnee le long de la nappe se courbe avec la
-      // hauteur, donc les nappes s'incurvent au lieu de filer droit.
-      const cintre = u + 0.35 * Math.sin((v + seed * 0.11) * Math.PI * 1.6);
-      const nappe = noise(cintre * 3.1, v * 1.7, seed);
-      const eclat = noise(cintre * 7.3 + 11.2, v * 4.1, seed + 3);
-      // Presque rien : 0,04 a 0,26 de gris. L'ecart fait tout le poli.
-      const n = clamp01(0.04 + 0.16 * nappe + 0.08 * eclat * eclat);
+      const n = obsidianPolish(u, v, seed);
       const o = (y * size + x) * 4;
       // Legerement violette, comme l'obsidienne du site.
       data[o] = Math.round(n * 232);
@@ -298,6 +348,36 @@ export function bakeObsidianPolish(size: number, seed: number): Uint8Array {
   return data;
 }
 
+/**
+ * LA MEME PIERRE, PLUS DISCRETE (15/09).
+ *
+ * Les plaques de pierre (bandeau, panneaux, cartes, pied de page) devaient
+ * prendre « la meme nappe, plus discrete » : le commentaire le disait
+ * depuis le 13/09, le code, lui, leur donnait la nappe a pleine force. D'ou
+ * le retour de Sylvain : « les textures d'obsidienne posees se voient
+ * enormement ».
+ *
+ * La nappe est posee en `screen` : un pixel deux fois plus sombre souleve
+ * deux fois moins le fond. Attenuer, c'est donc simplement rapprocher la
+ * tuile du noir. `k` est la part retiree : 0 rend la nappe telle quelle, 1
+ * l'eteint. Le motif reste periodique, puisqu'on ne touche qu'a l'echelle.
+ */
+export function fadeToStone(data: Uint8Array, k: number): Uint8Array {
+  const t = clamp01(k);
+  const out = new Uint8Array(data.length);
+  for (let i = 0; i < data.length; i += 4) {
+    out[i] = Math.round(data[i] * (1 - t));
+    out[i + 1] = Math.round(data[i + 1] * (1 - t));
+    out[i + 2] = Math.round(data[i + 2] * (1 - t));
+    out[i + 3] = 255;
+  }
+  return out;
+}
+
+/** Le motif est periodique par construction depuis le 15/09 : il n'y a plus
+ *  rien a raccorder. Le nom reste, parce que c'est ce que l'appelant veut
+ *  (une tuile qui se repete sans jonction), et il est desormais tenu sans
+ *  fondu, donc sans croix centrale. */
 export function bakeObsidianPolishSeamless(size: number, seed: number): Uint8Array {
-  return rendreSansCouture(bakeObsidianPolish(size, seed), size);
+  return bakeObsidianPolish(size, seed);
 }

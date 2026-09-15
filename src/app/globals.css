@@ -2413,7 +2413,13 @@ html:not([data-theme="light"]) [data-scene-overlay] [class*="chapter"]:not(p),
 html:not([data-theme="light"]) .cantar,
 html:not([data-theme="light"]) body.nahual-lab-reveal .serviceCard,
 html:not([data-theme="light"]) .siteFooter {
-  background-image: var(--poli-obsidienne, none);
+  /* LA NAPPE ATTENUEE (15/09, retour de Sylvain : « les textures
+     d'obsidienne posees se voient enormement »). Ce bloc promettait « la
+     meme nappe, plus discrete » depuis le 13/09 et lui donnait en fait la
+     nappe a pleine force. `--poli-obsidienne-doux` est la meme pierre,
+     rapprochee du noir : posee en `screen`, elle souleve d'autant moins le
+     fond de la plaque. */
+  background-image: var(--poli-obsidienne-doux, var(--poli-obsidienne, none));
   background-size: 380px 380px;
   background-position: 29px 61px;
   background-repeat: repeat;

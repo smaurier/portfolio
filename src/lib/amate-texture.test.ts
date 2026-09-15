@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AMATE_GRAIN_OPTIONS, amatePattern, bakeAmate, bakeAmateGrain, bakeAmateGrainRows, bakeAmateGrainSeamless, bakeObsidianPolish, bakeObsidianPolishRows, bakeObsidianPolishSeamless, fadeToPaper } from "./amate-texture";
+import { AMATE_GRAIN_OPTIONS, amatePattern, bakeAmate, bakeAmateGrain, bakeAmateGrainRows, bakeAmateGrainSeamless, bakeObsidianPolish, bakeObsidianPolishRows, obsidianPolish, bakeObsidianPolishSeamless, fadeToPaper, fadeToStone } from "./amate-texture";
 
 const NO_SPATTER = { spatters: 0, fray: 0.12 };
 
@@ -299,5 +299,172 @@ describe("bakeObsidianPolishRows (le poli par tranches)", () => {
       bakeObsidianPolishRows(parTranches, taille, graine, a, b);
     }
     expect(parTranches).toEqual(attendu);
+  });
+});
+
+describe("le poli d'obsidienne se repete SANS jonction visible (15/09)", () => {
+  /** L'ecart moyen entre deux colonnes voisines, et l'ecart au raccord.
+   *  Si le raccord saute plus que l'interieur, l'oeil voit la jonction. */
+  function ecarts(data: Uint8Array, size: number) {
+    const lum = (x: number, y: number) => data[(y * size + x) * 4];
+    let interieur = 0;
+    let n = 0;
+    for (let y = 0; y < size; y++) {
+      for (let x = 1; x < size; x++) {
+        interieur += Math.abs(lum(x, y) - lum(x - 1, y));
+        n += 1;
+      }
+    }
+    let raccord = 0;
+    for (let y = 0; y < size; y++) raccord += Math.abs(lum(0, y) - lum(size - 1, y));
+    // Le pire saut du raccord compte aussi : une arete droite se voit meme
+    // si sa moyenne est douce.
+    let pire = 0;
+    for (let y = 0; y < size; y++) pire = Math.max(pire, Math.abs(lum(0, y) - lum(size - 1, y)));
+    return { interieur: interieur / n, raccord: raccord / size, pire };
+  }
+
+  /** Le pire saut a l'INTERIEUR, colonne a colonne : c'est lui que la
+   *  jonction ne doit pas depasser. */
+  function pireInterieur(data: Uint8Array, size: number) {
+    const lum = (x: number, y: number) => data[(y * size + x) * 4];
+    let pire = 0;
+    for (let y = 0; y < size; y++) for (let x = 1; x < size; x++) pire = Math.max(pire, Math.abs(lum(x, y) - lum(x - 1, y)));
+    return pire;
+  }
+
+  it("le raccord ne saute pas plus qu'une colonne ordinaire", () => {
+    // Retour de Sylvain, 15/09 : « les textures d'obsidienne posees se
+    // voient enormement », « on voit la jonction des carres ». La nappe est
+    // etiree de 192 a 380 ou 460 pixels par la feuille de style : le
+    // moindre saut au raccord devient une arete droite en travers d'une
+    // carte.
+    const taille = 128;
+    const tuile = bakeObsidianPolishSeamless(taille, 15);
+    const e = ecarts(tuile, taille);
+    const pireDedans = pireInterieur(tuile, taille);
+    expect(e.raccord, `raccord ${e.raccord.toFixed(2)} contre interieur ${e.interieur.toFixed(2)}`).toBeLessThanOrEqual(e.interieur * 1.5 + 0.5);
+    expect(e.pire, `pire saut au raccord ${e.pire} contre ${pireDedans} a l'interieur`).toBeLessThanOrEqual(pireDedans);
+  });
+
+  it("aucune arete droite a l'interieur de la tuile non plus", () => {
+    // La methode de raccord d'avant fondait la tuile avec elle-meme le long
+    // d'une CROIX centrale : le raccord des bords etait propre, mais la
+    // croix, elle, se voyait, et elle se repete a chaque tuile. C'est elle
+    // que Sylvain lisait comme « des carres ».
+    const taille = 128;
+    const tuile = bakeObsidianPolishSeamless(taille, 15);
+    const lum = (x: number, y: number) => tuile[(y * taille + x) * 4];
+    // L'ecart moyen colonne a colonne, colonne par colonne : une croix
+    // centrale ferait ressortir la colonne du milieu.
+    const parColonne: number[] = [];
+    for (let x = 1; x < taille; x++) {
+      let s = 0;
+      for (let y = 0; y < taille; y++) s += Math.abs(lum(x, y) - lum(x - 1, y));
+      parColonne.push(s / taille);
+    }
+    const moyenne = parColonne.reduce((a, b) => a + b, 0) / parColonne.length;
+    const pire = Math.max(...parColonne);
+    expect(pire, `la colonne la plus marquee saute ${pire.toFixed(2)} pour une moyenne de ${moyenne.toFixed(2)}`).toBeLessThan(moyenne * 3 + 1);
+  });
+});
+
+describe("obsidianPolish (une nappe qui se referme sur la tuile)", () => {
+  it("se referme exactement en u", () => {
+    for (const v of [0, 0.13, 0.5, 0.77, 0.99]) {
+      expect(obsidianPolish(0, v, 15)).toBeCloseTo(obsidianPolish(1, v, 15), 10);
+    }
+  });
+
+  it("se referme exactement en v", () => {
+    for (const u of [0, 0.21, 0.5, 0.63, 0.98]) {
+      expect(obsidianPolish(u, 0, 15)).toBeCloseTo(obsidianPolish(u, 1, 15), 10);
+    }
+  });
+
+  it("reste dans l'intervalle presque noir", () => {
+    let min = 1;
+    let max = 0;
+    for (let i = 0; i < 40; i++) {
+      for (let j = 0; j < 40; j++) {
+        const n = obsidianPolish(i / 40, j / 40, 15);
+        min = Math.min(min, n);
+        max = Math.max(max, n);
+      }
+    }
+    expect(min).toBeGreaterThanOrEqual(0.04);
+    expect(max).toBeLessThanOrEqual(0.28);
+    // Et il FAUT de l'ecart, sinon il n'y a plus de poli du tout.
+    expect(max - min, `amplitude ${(max - min).toFixed(3)}`).toBeGreaterThan(0.08);
+  });
+
+  it("change avec la graine", () => {
+    expect(obsidianPolish(0.3, 0.4, 15)).not.toBeCloseTo(obsidianPolish(0.3, 0.4, 16), 4);
+  });
+});
+
+describe("le grain d'amate : sa jonction se voit-elle aussi ?", () => {
+  it("mesure le raccord du papier, pour decider s'il faut le reprendre", () => {
+    // Sylvain n'a signale que l'obsidienne, mais le papier passe par le
+    // MEME raccord a croix centrale. La feuille de style l'affiche a 192
+    // pixels, soit sa taille exacte, et a 0,22 d'opacite : deux raisons
+    // pour que la couture y soit bien moins lisible. On mesure plutot que
+    // de supposer, et le chiffre reste ecrit ici.
+    const taille = 128;
+    const tuile = bakeAmateGrainSeamless(taille, 11);
+    const lum = (x: number, y: number) => tuile[(y * taille + x) * 4];
+    const parColonne: number[] = [];
+    for (let x = 1; x < taille; x++) {
+      let s = 0;
+      for (let y = 0; y < taille; y++) s += Math.abs(lum(x, y) - lum(x - 1, y));
+      parColonne.push(s / taille);
+    }
+    const moyenne = parColonne.reduce((a, b) => a + b, 0) / parColonne.length;
+    const pire = Math.max(...parColonne);
+    // Le papier est un GRAIN : ses colonnes voisines sautent deja beaucoup,
+    // et la croix s'y noie. Le rapport est ce qui compte, pas la valeur.
+    expect(pire / moyenne, `papier : pire colonne ${pire.toFixed(2)}, moyenne ${moyenne.toFixed(2)}, rapport ${(pire / moyenne).toFixed(2)}`).toBeLessThan(3);
+  });
+});
+
+describe("fadeToStone (la meme pierre, plus discrete)", () => {
+  it("ne touche a rien a zero", () => {
+    const d = bakeObsidianPolish(8, 15);
+    expect(fadeToStone(d, 0)).toEqual(d);
+  });
+
+  it("eteint tout a un", () => {
+    const out = fadeToStone(bakeObsidianPolish(8, 15), 1);
+    for (let i = 0; i < out.length; i += 4) {
+      expect(out[i]).toBe(0);
+      expect(out[i + 1]).toBe(0);
+      expect(out[i + 2]).toBe(0);
+      expect(out[i + 3]).toBe(255);
+    }
+  });
+
+  it("divise l'ecart de moitie a un demi", () => {
+    // La nappe est posee en `screen` : un pixel deux fois plus sombre
+    // souleve deux fois moins le fond. C'est la le bouton de dosage.
+    const d = bakeObsidianPolish(16, 15);
+    const out = fadeToStone(d, 0.5);
+    for (let i = 0; i < out.length; i += 4) {
+      expect(out[i]).toBe(Math.round(d[i] * 0.5));
+    }
+  });
+
+  it("garde la tuile periodique", () => {
+    // Le bon repere n'est pas zero : la colonne 0 et la derniere sont
+    // VOISINES a travers le raccord, elles sont donc separees par un pas
+    // de gradient normal. Ce qu'on verifie, c'est que ce pas-la n'est pas
+    // plus grand que les pas de l'interieur.
+    const taille = 64;
+    const out = fadeToStone(bakeObsidianPolish(taille, 15), 0.55);
+    const lum = (x: number, y: number) => out[(y * taille + x) * 4];
+    let raccord = 0;
+    for (let y = 0; y < taille; y++) raccord = Math.max(raccord, Math.abs(lum(0, y) - lum(taille - 1, y)));
+    let interieur = 0;
+    for (let y = 0; y < taille; y++) for (let x = 1; x < taille; x++) interieur = Math.max(interieur, Math.abs(lum(x, y) - lum(x - 1, y)));
+    expect(raccord, `raccord ${raccord} contre ${interieur} a l'interieur`).toBeLessThanOrEqual(interieur);
   });
 });

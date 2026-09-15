@@ -315,6 +315,43 @@ environ une seconde. Garde : `tests/e2e/matieres.spec.ts`, qui verifie sur
 telephone que la nappe est affichee, qu'elle porte bien son image cuite et
 qu'elle se voit.
 
+### La jonction des carres (15/09, retour de Sylvain)
+
+« Les textures d'obsidienne posees se voient enormement », puis « on voit la
+jonction des carres ». Il avait raison deux fois, et pour deux raisons
+differentes.
+
+**La jonction.** La tuile de poli etait rendue periodique apres coup : on la
+decalait d'une demi-tuile, ce qui raccorde bien les bords, puis on fondait
+l'image avec elle-meme le long d'une CROIX centrale pour effacer la
+discontinuite deplacee au milieu. Les bords etaient propres ; la croix, elle,
+se voyait, et elle se repetait a chaque tuile. Mesure : sur l'ancienne
+tuile, la colonne la plus marquee sautait de **4,52 niveaux quand
+l'interieur n'en variait que de 0,51**, neuf fois la normale. La feuille de
+style etirant la tuile de 192 a 380 ou 460 pixels, cette croix devenait une
+arete droite en travers de chaque carte.
+
+On ne raccorde donc plus rien : **le motif est periodique par
+construction**. Des ondes a frequences entieres se referment exactement sur
+la tuile, y compris a travers le cintrage, qui est lui aussi une onde. Aucun
+bord, aucune croix, rien a fondre. Et c'est plus juste pour la matiere : une
+pierre polie renvoie des ondulations douces, pas du grain.
+
+Le grain d'amate passe par le meme raccord, mais il a ete MESURE et il n'a
+pas le defaut : son grain naturel noie la croix (rapport sous 3, contre 9
+pour la pierre), et il est affiche a sa taille exacte, sans etirement. Il
+reste tel quel.
+
+**La force.** Le bloc des plaques de pierre promettait « la meme nappe, plus
+discrete » depuis le 13/09, et leur donnait en fait la nappe a pleine force.
+Elles prennent desormais `--poli-obsidienne-doux`, la meme pierre rapprochee
+du noir de 55 % : posee en `screen`, une nappe deux fois plus sombre souleve
+deux fois moins le fond de la plaque.
+
+La nappe PLEIN ECRAN, elle, n'a pas bouge de dose (0,3). Sa force est un
+choix d'atmosphere, pas un defaut : a regarder par Sylvain, et c'est un
+seul nombre.
+
 ### Ce que ces corrections ne prouvent PAS
 
 **Aucun gain d'images par seconde n'est etabli.** Les appels evites sont

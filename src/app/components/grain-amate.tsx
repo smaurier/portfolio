@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { bakeAmateGrainRows, bakeObsidianPolishRows, fadeToPaper, rendreSansCouture } from "@/lib/amate-texture";
+import { bakeAmateGrainRows, bakeObsidianPolishRows, fadeToPaper, fadeToStone, rendreSansCouture } from "@/lib/amate-texture";
 import { THEME_EVENT } from "@/lib/theme";
 import { SONDE } from "@/lib/sonde";
 
@@ -31,6 +31,14 @@ const VARIABLE_DOUX = "--grain-amate-doux";
 const PART_DE_BLANC = 0.74;
 /** Le pendant de la nuit : l'obsidienne polie. */
 const VARIABLE_POLI = "--poli-obsidienne";
+/** Les plaques de pierre : la meme nappe, plus discrete. Le commentaire de
+ *  la feuille de style le disait depuis le 13/09 ; le code, lui, leur
+ *  donnait la nappe a pleine force, d'ou « les textures d'obsidienne posees
+ *  se voient enormement » (Sylvain, 15/09). */
+const VARIABLE_POLI_DOUX = "--poli-obsidienne-doux";
+/** La part retiree pour les plaques : posee en `screen`, une nappe deux
+ *  fois plus sombre souleve deux fois moins le fond. */
+const PART_DE_PIERRE = 0.55;
 
 export default function GrainAmate() {
   useEffect(() => {
@@ -118,7 +126,12 @@ export default function GrainAmate() {
       ...Array.from({ length: BANDES }, (_, b) => () => {
         bakeObsidianPolishRows(brutPoli, TAILLE, GRAINE + 4, (b * TAILLE) / BANDES, ((b + 1) * TAILLE) / BANDES);
       }),
-      () => poser(VARIABLE_POLI, rendreSansCouture(brutPoli, TAILLE)),
+      // Aucun raccord a poser : depuis le 15/09 le poli est periodique par
+      // construction (ondes a frequences entieres). Le fondu d'avant
+      // laissait une croix centrale, repetee a chaque tuile, que Sylvain
+      // lisait comme « la jonction des carres ».
+      () => poser(VARIABLE_POLI, brutPoli),
+      () => poser(VARIABLE_POLI_DOUX, fadeToStone(brutPoli, PART_DE_PIERRE)),
     ];
 
     // LA MATIERE QU'ON REGARDE D'ABORD. Les deux sont cuites, mais celle de
