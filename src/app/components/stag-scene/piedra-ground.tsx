@@ -10,6 +10,7 @@ import { frostStore } from "./frost-store";
 import { addShaderModifier } from "./shader-patch";
 import { useSceneRefs } from "./scene-refs-context";
 import { useFigeUneFois } from "./use-fige-une-fois";
+import { useLibereAuDemontage } from "./use-libere";
 
 /**
  * PiedraGround (30/08). Gravure de la Piedra del Sol au sol, sous le
@@ -115,6 +116,7 @@ export default function PiedraGround() {
     geo.rotateX(-Math.PI / 2);
     return geo;
   }, []);
+  useLibereAuDemontage(geometry);
 
   // Force wrap ClampToEdge sur les textures pour eviter que le UV
   // deborde sur la carte (le disc est centre dans un plan carre).

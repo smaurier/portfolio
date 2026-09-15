@@ -391,6 +391,50 @@ gris de depart hors du halo, 0,15 la nuit, plus haut sur le papier). Ecrit,
 teste, mesure : il ne changeait quasiment rien a l'image, et il touchait a
 la progression de l'arc, qui est narrative. Retire.
 
+### La fuite de memoire graphique (15/09)
+
+Le canvas survit aux changements de page. Quand on quitte une direction, ses
+objets sont demontes par React, mais leurs geometries et leurs textures
+restent sur le processeur graphique : le ramasse-miettes de JavaScript ne
+les touche pas, seul `dispose()` les rend.
+
+Mesure, production locale, sept tours des cinq directions :
+
+| tour | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| geometries | 36 | 90 | 130 | 146 | 163 | 181 | 199 | 214 |
+| textures | 47 | 75 | 92 | 95 | 97 | 100 | 104 | 107 |
+
+Le premier tour charge legitimement les cinq mondes. Ensuite, chaque tour
+ajoutait **dix-sept geometries et trois textures**, lineairement, sans
+jamais redescendre, meme apres un ramassage force. Le graphe de scene etait
+propre (989 objets, stable) et le tas JavaScript ne bougeait pas : la fuite
+etait purement graphique.
+
+Ce que ca coute : un visiteur qui se promene dix minutes accumule des
+centaines de geometries. Sur un telephone, et sur iOS ou la memoire
+graphique est serree, cela finit par une perte de contexte WebGL, donc par
+un canvas noir. C'est aussi le risque du JOUR J, quand le site est en page
+d'accueil d'Awwwards.
+
+**Cause** : quinze composants de scene creaient une geometrie sans jamais la
+liberer. Le crochet `useLibereAuDemontage` (et sa variante tableau pour le
+cerf du miroir, qui cuit une geometrie par maillage) les rend au demontage.
+La regle est ecrite dans le module : on ne libere QUE ce qu'on possede, une
+ressource partagee au niveau du module appartient au module.
+
+**Resultat** : les geometries ne bougent plus. 36, 78, puis **105, 105, 105,
+105** au lieu de monter sans fin. Verifie aussi a l'oeil apres deux tours
+complets : rien n'a disparu de la scene.
+
+**Ce qui reste ouvert** : les textures fuient encore, environ trois par
+tour, a la taille des cibles de rendu des simulateurs du Nord (onde 512,
+hauteur 512, ciel 2048x1024, colorant 256). Les deux simulateurs liberent
+pourtant tout ce qu'ils allouent, verifie champ par champ. La cause n'est
+pas trouvee. L'oracle `tests/e2e/fuite-gpu.spec.ts` tient un cliquet a dix
+sur les textures, pour que ce ne soit pas pire en attendant, et a trois sur
+les geometries.
+
 ### Ce que ces corrections ne prouvent PAS
 
 **Aucun gain d'images par seconde n'est etabli.** Les appels evites sont

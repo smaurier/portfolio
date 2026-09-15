@@ -38,6 +38,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import { frostStore } from "./frost-store";
 import { cihuateteoStore } from "./cihuateteo-store";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
+import { useLibereAuDemontage } from "./use-libere";
 
 /**
  * La prairie (05/09, refonte : retour Sylvain « un vrai simulateur
@@ -154,6 +155,7 @@ export default function Grass() {
   const bladeCount = sceneRefs?.perfProfile.bladeCount ?? BLADES_FALLBACK;
   const blades = useMemo(() => makeBlades(bladeCount), [bladeCount]);
   const geometry = useMemo(() => makeBladeGeometry(), []);
+  useLibereAuDemontage(geometry);
   const grid = useMemo(() => createGrassGrid(GRID_SIZE, GRID_EXTENT), []);
   const bendData = useMemo(() => new Uint8Array(GRID_SIZE * GRID_SIZE * 4).fill(128), []);
   const bendMap = useMemo(() => {
@@ -164,6 +166,7 @@ export default function Grass() {
     t.needsUpdate = true;
     return t;
   }, [bendData]);
+  useLibereAuDemontage(bendMap);
   // Uniformes partages entre les recompilations (objets stables).
   const uniforms = useMemo(
     () => ({

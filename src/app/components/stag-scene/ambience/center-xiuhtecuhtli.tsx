@@ -6,6 +6,7 @@ import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, type Points, type ShaderMaterial } from "three";
 import { hearthFlare } from "@/lib/foyer";
 import { foyerStore } from "../foyer-store";
+import { useLibereAuDemontage } from "../use-libere";
 
 /**
  * Centre / Xiuhtecuhtli (28/08 task #43). Le dieu du feu et du temps,
@@ -60,6 +61,7 @@ export default function CenterXiuhtecuhtli({ alphaRef }: { alphaRef: MutableRefO
       },
     };
   }, []);
+  useLibereAuDemontage(geometry);
 
   useFrame((state) => {
     if (!materialRef.current) return;

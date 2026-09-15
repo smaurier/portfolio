@@ -8,6 +8,7 @@ import { columnRise } from "@/lib/zenith-arc";
 import { copalIntensity } from "@/lib/copal";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { useLibereAuDemontage } from "./use-libere";
 
 /**
  * LA COLONNE DU FOYER (E2, 10/09).
@@ -93,6 +94,7 @@ export default function FoyerColumn() {
     () => new CylinderGeometry(TOP_RADIUS, BOTTOM_RADIUS, HEIGHT, 24, 1, true),
     [],
   );
+  useLibereAuDemontage(geometry);
   const material = useMemo(
     () =>
       new ShaderMaterial({

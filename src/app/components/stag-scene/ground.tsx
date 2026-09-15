@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { PlaneGeometry, type Group } from "three";
 import { freezeDecor } from "@/lib/freeze-decor";
 import { getTerrainHeight } from "@/lib/terrain-height";
+import { useLibereAuDemontage } from "./use-libere";
 
 /**
  * Sol du fond : retour de Sylvain le 18/08 : la scène flottait dans un vide
@@ -73,6 +74,7 @@ export default function Ground() {
 
     return geo;
   }, []);
+  useLibereAuDemontage(geometry);
 
   // LE SOL NE BOUGE JAMAIS (14/09, F1). Deux maillages poses une fois pour
   // toutes qui, par defaut, recomposent leur matrice a chaque image et

@@ -12,6 +12,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import { refletStarOpacity } from "@/lib/reflet";
 import { refletStore } from "./reflet-store";
 import { useSceneRefs } from "./scene-refs-context";
+import { useLibereAuDemontage } from "./use-libere";
 
 /**
  * CentzonStars (04/09, le LEAD du Sud). Les 400 etoiles des Centzon
@@ -52,12 +53,14 @@ export default function CentzonStars() {
     g.setAttribute("aAlpha", new BufferAttribute(new Float32Array(CENTZON_COUNT), 1));
     return g;
   }, []);
+  useLibereAuDemontage(pointsGeometry);
   const linesGeometry = useMemo(() => {
     const g = new BufferGeometry();
     g.setAttribute("position", new BufferAttribute(new Float32Array(CENTZON_COUNT * 6), 3));
     g.setAttribute("aAlpha", new BufferAttribute(new Float32Array(CENTZON_COUNT * 2), 1));
     return g;
   }, []);
+  useLibereAuDemontage(linesGeometry);
 
   const pointsMaterial = useMemo(
     () =>

@@ -5,6 +5,7 @@ import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, type Points, type ShaderMaterial } from "three";
+import { useLibereAuDemontage } from "../use-libere";
 
 /** Sprite de volute Kenney Particle Pack (CC0, kenney.nl) : une vraie
  * fumee organique au lieu de disques procéduraux qui se lisaient comme
@@ -118,6 +119,7 @@ export default function NorthMictlantecuhtli({ alphaRef }: { alphaRef: MutableRe
       },
     };
   }, []);
+  useLibereAuDemontage(geometry);
 
 
   useFrame((state) => {

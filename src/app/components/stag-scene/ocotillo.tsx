@@ -5,6 +5,7 @@ import type { Group as GroupType, Object3D } from "three";
 import { useFrame } from "@react-three/fiber";
 import { freezeDecor } from "@/lib/freeze-decor";
 import { useFigeUneFois } from "./use-fige-une-fois";
+import { useLibereAuDemontage } from "./use-libere";
 import { useGLTF } from "@react-three/drei";
 import { Box3, CatmullRomCurve3, TubeGeometry, Vector3 } from "three";
 import {
@@ -76,6 +77,7 @@ function OcotilloWand({ config }: { config: OcotilloWandConfig }) {
     const flowerPoints = generateOcotilloFlowerPlacements(2).map((f) => curve.getPointAt(f.t));
     return { tubeGeometry, flowerPoints };
   }, [config]);
+  useLibereAuDemontage(tubeGeometry);
 
   return (
     <>

@@ -4,6 +4,7 @@
 import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, type Points, type ShaderMaterial } from "three";
+import { useLibereAuDemontage } from "../use-libere";
 
 /**
  * Sud / Huitzilopochtli (28/08 task #43). Dieu-colibri, guerrier du
@@ -51,6 +52,7 @@ export default function SouthHuitzilopochtli({ alphaRef }: { alphaRef: MutableRe
       },
     };
   }, []);
+  useLibereAuDemontage(geometry);
 
   useFrame((state) => {
     if (!materialRef.current) return;

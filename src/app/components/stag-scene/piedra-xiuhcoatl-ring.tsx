@@ -12,6 +12,7 @@ import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { getMictlanSky } from "./mictlan-sky";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { useLibereAuDemontage } from "./use-libere";
 
 /**
  * PiedraXiuhcoatlRing (04/09, VOIE B du Sud, rappel de Sylvain : « ne pas
@@ -52,6 +53,7 @@ export default function PiedraXiuhcoatlRing() {
     geo.rotateX(-Math.PI / 2);
     return geo;
   }, []);
+  useLibereAuDemontage(geometry);
 
   const material = useMemo(() => {
     heightMap.wrapS = RepeatWrapping;

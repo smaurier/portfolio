@@ -7,6 +7,7 @@ import { AdditiveBlending, BufferGeometry, CanvasTexture, Color, Float32BufferAt
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useFigeUneFois } from "./use-fige-une-fois";
+import { useLibereAuDemontage } from "./use-libere";
 
 /**
  * PiedraRingFire (05/09, la frappe). La GERBE DE FEU qui sort du sillon
@@ -64,13 +65,18 @@ export default function PiedraRingFire() {
     g.setAttribute("aSize", new Float32BufferAttribute(new Float32Array(POOL), 1));
     return g;
   }, []);
+  useLibereAuDemontage(geometry);
+  // La carte du sprite est cuite sur un canvas, une par instance : sortie du
+  // uniform pour pouvoir etre rendue au GPU en partant (15/09).
+  const sprite = useMemo(() => spriteTexture(), []);
+  useLibereAuDemontage(sprite);
   const material = useMemo(
     () =>
       new ShaderMaterial({
         transparent: true,
         depthWrite: false,
         blending: AdditiveBlending,
-        uniforms: { uMap: { value: spriteTexture() }, uScale: { value: 300 } },
+        uniforms: { uMap: { value: sprite }, uScale: { value: 300 } },
         vertexShader: /* glsl */ `
           attribute vec3 aColor;
           attribute float aSize;

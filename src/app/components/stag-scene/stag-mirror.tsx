@@ -23,6 +23,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { strippedWarmth } from "@/lib/direction-arc";
 import { TEZCATL_EXTENT, tezcatlStore } from "./tezcatl-store";
+import { useLibereToutAuDemontage } from "./use-libere";
 
 /**
  * StagMirror (01/09, etage 4 sprint identites : element B de la fiche
@@ -190,6 +191,7 @@ export default function StagMirror() {
     for (const geo of baked) geo.applyMatrix4(normalize);
     return baked;
   }, [gltf]);
+  useLibereToutAuDemontage(geometries);
 
   // UN SEUL ShaderMaterial cree imperativement et partage par tous les
   // meshes via material={} : r3f wrappe/clone l'objet `uniforms` passe

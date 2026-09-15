@@ -15,6 +15,7 @@ import {
 import { getRimColorBlend } from "@/lib/reveal-arc";
 import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
 import { useFigeUneFois } from "./use-fige-une-fois";
+import { useLibereAuDemontage } from "./use-libere";
 
 /**
  * Pétales de cempasúchil qui accompagnent le cerf (26/08, Phase 3
@@ -130,6 +131,7 @@ export default function SpiritParticles({
       },
     };
   }, [climaxRimColor, climaxAccentColor]);
+  useLibereAuDemontage(geometry);
 
   const transition = useCardinalTransition();
   const windScratch = useMemo(() => new Vector3(), []);

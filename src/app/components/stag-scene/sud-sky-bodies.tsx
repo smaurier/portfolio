@@ -17,6 +17,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { markTrace } from "../traces-store";
 import { getSceneControls } from "../scene-controls-store";
+import { useLibereAuDemontage } from "./use-libere";
 
 /**
  * SudSkyBodies (05/09, Sylvain en direct). Deux corps dans le ciel du Sud :
@@ -94,6 +95,11 @@ export default function SudSkyBodies() {
     () => new SpriteMaterial({ map: radialTexture(128, 0.0, 1.0, 0, 3), color: new Color("#ffd9a0"), transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }),
     []
   );
+  // Les cartes des astres sont cuites sur un canvas, une par instance : sans
+  // ceci elles restaient sur le GPU a chaque passage (15/09, fuite mesuree).
+  useLibereAuDemontage(moonMaterial.map);
+  useLibereAuDemontage(sunMaterial.map);
+  useLibereAuDemontage(sunHaloMaterial.map);
   const sunRef = useRef<Sprite>(null);
   const sunHaloRef = useRef<Sprite>(null);
   // L'etoile du soir (06/09, Ouest) : Venus au-dessus du couchant, une fois

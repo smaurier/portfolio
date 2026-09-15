@@ -10,6 +10,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import { refletStarOpacity } from "@/lib/reflet";
 import { refletStore } from "./reflet-store";
 import { useSceneRefs } from "./scene-refs-context";
+import { useLibereAuDemontage } from "./use-libere";
 
 /**
  * LA VOIE LACTEE AU CENTRE (E2, 10/09).
@@ -56,6 +57,7 @@ export default function MilkyWay() {
     g.setAttribute("aAlpha", new BufferAttribute(champ.brightness, 1));
     return g;
   }, [champ]);
+  useLibereAuDemontage(geometry);
 
   const material = useMemo(
     () =>

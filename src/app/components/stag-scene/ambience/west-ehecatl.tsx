@@ -4,6 +4,7 @@
 import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, type Points, type ShaderMaterial } from "three";
+import { useLibereAuDemontage } from "../use-libere";
 
 /**
  * Ouest / Ehecatl (28/08 task #43). Dieu du vent, aspect de Quetzalcóatl.
@@ -43,6 +44,7 @@ export default function WestEhecatl({ alphaRef }: { alphaRef: MutableRefObject<n
       },
     };
   }, []);
+  useLibereAuDemontage(geometry);
 
   useFrame((state) => {
     if (!materialRef.current) return;
