@@ -2423,17 +2423,55 @@ html:not([data-theme="light"]) [data-scene-overlay] [class*="chapter"]:not(p),
 html:not([data-theme="light"]) .cantar,
 html:not([data-theme="light"]) body.nahual-lab-reveal .serviceCard,
 html:not([data-theme="light"]) .siteFooter {
-  /* LA NAPPE ATTENUEE (15/09, retour de Sylvain : « les textures
-     d'obsidienne posees se voient enormement »). Ce bloc promettait « la
-     meme nappe, plus discrete » depuis le 13/09 et lui donnait en fait la
-     nappe a pleine force. `--poli-obsidienne-doux` est la meme pierre,
-     rapprochee du noir : posee en `screen`, elle souleve d'autant moins le
-     fond de la plaque. */
+  /* LA PLAQUE D'ABORD, LA NAPPE ENSUITE (15/09).
+
+     Premiere tentative le matin : donner a ces elements la nappe ATTENUEE,
+     pour repondre a « les textures d'obsidienne posees se voient
+     enormement ». Regression immediate, signalee par Sylvain : « sur les
+     encadres sur le darkmode, on n'a plus de padding ».
+
+     La raison, mesuree : sur la face nuit, la plaque de ces elements vit
+     dans `background-image` (un degrade sombre pour les cartes), et cette
+     regle-ci l'ECRASE. Tant que la nappe etait a pleine force, elle tenait
+     lieu de plaque ; attenuee de 55 %, il ne restait plus rien, le texte
+     flottait sur la scene et le rembourrage, intact dans le calcul (22 px
+     sur 28, identique a la face claire), ne se lisait plus.
+
+     On rend donc la plaque SOUS la nappe, en deux couches : la nappe se
+     melange en `screen` sur une pierre sombre, comme le grain se melange en
+     `multiply` sur le papier de la face claire. La plaque reparait, et la
+     nappe peut rester discrete. */
   background-image: var(--poli-obsidienne-doux, var(--poli-obsidienne, none));
   background-size: 380px 380px;
   background-position: 29px 61px;
   background-repeat: repeat;
   background-blend-mode: screen;
+}
+
+/* LA PLAQUE RENDUE AUX SEULS ELEMENTS QUI L'AVAIENT PERDUE (15/09).
+
+   Le bandeau, le chant et le pied de page portent leur plaque dans leur
+   `background-color` : la regle ci-dessus ne leur retire rien, et leur
+   ajouter un fond de plus ne ferait que les assombrir sans raison (le chant
+   serait passe de 0,65 a 0,82 d'opacite, mesure).
+
+   Les cartes et les encadres, eux, portaient la leur dans un DEGRADE, donc
+   dans `background-image` : la regle ci-dessus l'ecrasait. Tant que la
+   nappe etait a pleine force elle en tenait lieu ; attenuee, il ne restait
+   rien et le texte flottait sur la scene, d'ou « sur les encadres sur le
+   darkmode, on n'a plus de padding ». On leur rend donc une pierre sombre
+   SOUS la nappe, exactement comme le grain de la face claire se melange sur
+   son papier. */
+html:not([data-theme="light"]) [data-scene-overlay] [class*="block"],
+html:not([data-theme="light"]) [data-scene-overlay] [class*="chapter"]:not(p),
+html:not([data-theme="light"]) body.nahual-lab-reveal .serviceCard {
+  background-image:
+    var(--poli-obsidienne-doux, var(--poli-obsidienne, none)),
+    linear-gradient(135deg, rgba(13, 12, 17, 0.46), rgba(13, 12, 17, 0.56));
+  background-size: 380px 380px, auto;
+  background-position: 29px 61px, 0 0;
+  background-repeat: repeat, no-repeat;
+  background-blend-mode: screen, normal;
 }
 html:not([data-theme="light"]) [data-scene-overlay] [class*="block"],
 html:not([data-theme="light"]) [data-scene-overlay] [class*="chapter"]:not(p),
