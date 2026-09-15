@@ -352,6 +352,45 @@ La nappe PLEIN ECRAN, elle, n'a pas bouge de dose (0,3). Sa force est un
 choix d'atmosphere, pas un defaut : a regarder par Sylvain, et c'est un
 seul nombre.
 
+### Le pigment du curseur DELAVAIT au lieu de peindre (15/09)
+
+Sylvain : « l'effet encre qui accompagne le curseur est tres mal dose », « le
+dilue sur l'amate ». Mesure, accueil, face claire, 60 % de l'arc, par
+alternance souris-dessus / souris-loin sur la MEME region (on ne peut pas
+figer la scene : figer et mouvement reduit coupent tous deux la boucle de
+rendu, et on lirait un tampon efface, blanc papier ou noir selon la face) :
+
+| face | saturation sous le curseur | luminance |
+| --- | --- | --- |
+| amate, avant | **-54 %** | +51 % |
+| amate, apres | **+82 %** | -8 % |
+| obsidienne | -12 % (inchange) | -16 % (inchange) |
+
+La cause tient en une ligne de shader. La remontee des ombres AJOUTAIT la
+meme quantite aux trois canaux. Or ajouter une constante aux trois canaux
+les rapproche les uns des autres, et rapprocher les canaux, c'est
+DESATURER. Le geste du 13/09 voulait eviter que le pigment fasse une tache
+sombre sur l'amate ; il a fabrique exactement ce qu'il fuyait, un lavage
+vers le blanc. Et c'est mot pour mot l'erreur que le commentaire d'a cote
+decrivait deja : « un lavage vers le blanc DESATURE, c'est le contraire
+d'un pigment ».
+
+On MULTIPLIE desormais au lieu d'ajouter : multiplier garde les rapports
+entre canaux, donc la teinte et la saturation. La valeur monte, la couleur
+reste, ce que fait une encre sur un papier clair.
+
+Dans la meme famille, l'etalonnage du reflet RETIRAIT 0,2 de saturation a
+toute l'image sur la face claire (`REFLET.saturation`), en plus du
+brouillard couleur papier, de l'ambiante doublee et teintee papier, et de
+l'horizon ramene plus pres : quatre dilutions cumulees. Il est a zero. Le
+papier doit venir de la couleur du papier et de sa lumiere, jamais du
+retrait de la couleur. C'est un seul nombre si Sylvain le veut autrement.
+
+**Essaye et ecarte** : un plancher de revelation conscient de la face (le
+gris de depart hors du halo, 0,15 la nuit, plus haut sur le papier). Ecrit,
+teste, mesure : il ne changeait quasiment rien a l'image, et il touchait a
+la progression de l'arc, qui est narrative. Retire.
+
 ### Ce que ces corrections ne prouvent PAS
 
 **Aucun gain d'images par seconde n'est etabli.** Les appels evites sont

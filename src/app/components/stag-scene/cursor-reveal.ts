@@ -252,7 +252,29 @@ export function applyCursorReveal(root: Object3D, uniforms: CursorRevealUniforms
             // de leur noirceur. Les tons deja clairs ne bougent donc pas et
             // rien ne vient taper dans le blanc.
             vec3 nahualVif = vec3(nahualLum) + (gl_FragColor.rgb - vec3(nahualLum)) * 2.2;
-            vec3 nahualPigment = clamp(nahualVif + (1.0 - nahualVif) * 0.26 * (1.0 - nahualLum), 0.0, 1.0);
+            // ON MULTIPLIE, ON N'AJOUTE PLUS (15/09, retour de Sylvain :
+            // « l'effet encre qui accompagne le curseur est tres mal dose »,
+            // « le dilue sur l'amate »).
+            //
+            // La remontee des ombres AJOUTAIT la meme quantite aux trois
+            // canaux : vif + (1 - vif) x 0,26 x (1 - lum). Or ajouter une
+            // constante aux trois canaux les rapproche les uns des autres,
+            // et rapprocher les canaux, c'est DESATURER. La correction du
+            // 13/09 voulait eviter que le pigment fasse une tache sombre sur
+            // l'amate ; elle a fabrique exactement ce qu'elle fuyait, un
+            // lavage vers le blanc.
+            //
+            // Mesure du 15/09, accueil, face claire, a 60 % de l'arc, par
+            // alternance souris-dessus / souris-loin sur la meme region :
+            // sous le curseur, **54 % de saturation en moins et 51 % de
+            // luminance en plus**. Un pigment qui delave.
+            //
+            // Multiplier garde les rapports entre canaux, donc la teinte ET
+            // la saturation : la valeur monte, la couleur reste. C'est ce
+            // que fait une encre posee sur un papier clair, qui se lit plus
+            // claire qu'un aplat mais n'est jamais grise.
+            float nahualMonte = 1.0 + 0.45 * (1.0 - nahualLum);
+            vec3 nahualPigment = clamp(nahualVif * nahualMonte, 0.0, 1.0);
             // DEUX TRAITEMENTS, UN PAR FACE (13/09, Sylvain : « il y a deux
             // traitements differents, un d'amate, l'autre pour
             // l'obsidienne »). Le pigment ne vit que sur le papier ; la

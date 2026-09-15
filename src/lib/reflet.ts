@@ -43,9 +43,24 @@ export const REFLET = {
   directional: 1.15,
   /** L'ambiante prend la teinte du papier. */
   ambientPaper: 0.5,
-  /** Grade : les couleurs se rabattent, le cadre s'ouvre (pas de coins
-   * sombres sur du papier), rien ne brille. */
-  saturation: -0.2,
+  /** Grade : le cadre s'ouvre (pas de coins sombres sur du papier), rien
+   * ne brille.
+   *
+   * LA SATURATION NE SE RABAT PLUS (15/09). Elle valait -0,2 : l'etalonnage
+   * RETIRAIT de la couleur a toute l'image, en plus du brouillard couleur
+   * papier, de l'ambiante doublee et teintee papier, et de l'horizon
+   * ramene plus pres. Quatre dilutions qui se cumulaient. Capture du
+   * 15/09, accueil, face claire, en haut de l'arc : un brouillard beige
+   * sans une seule couleur, le cerf reduit a un fantome. Retour de
+   * Sylvain : « la lumiere est revenue au dilue », « le dilue sur
+   * l'amate ».
+   *
+   * Et c'est la meme erreur que celle deja corrigee dans le pigment du
+   * curseur le 13/09, notee mot pour mot dans cursor-reveal.ts : « un
+   * lavage vers le blanc DESATURE, c'est le contraire d'un pigment ». Le
+   * papier doit venir de la couleur du papier et de sa lumiere, jamais du
+   * retrait de la couleur. */
+  saturation: 0,
   vignetteAdd: -0.3,
   bloomScale: 0.45,
 } as const;
