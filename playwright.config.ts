@@ -32,7 +32,13 @@ export default defineConfig({
     },
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    { name: "chromium", use: { ...devices["Desktop Chrome"] }, testIgnore: /webkit-fumee\.spec\.ts/ },
+    /* LE MOTEUR DE SAFARI (15/09). La suite ne declarait qu'un navigateur, et
+       le site n'avait jamais tourne sous WebKit. Un seul fichier y tourne,
+       une fumee : la suite par defaut garde sa duree, et la panne grossiere
+       ne peut plus passer inapercue. A lancer avec
+       `npx playwright test --project=webkit`. */
+    { name: "webkit", use: { ...devices["iPhone 14"] }, testMatch: /webkit-fumee\.spec\.ts/ },
   ],
   webServer: {
     command: "pnpm run dev",

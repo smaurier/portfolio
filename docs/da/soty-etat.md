@@ -59,10 +59,16 @@ trous s'y ajoutent, et aucun n'est une opinion :
 
 - **le site n'a jamais tourne sur un vrai telephone** (V3, ouvert depuis le
   11/09) ;
-- **le site n'a jamais tourne sur Safari ni sur iOS** : la suite e2e ne
-  declare qu'un seul navigateur, `chromium` (`playwright.config.ts`). Une
-  scene WebGL avec shaders modifies est precisement ce qui casse d'un moteur
-  a l'autre ;
+- ~~le site n'a jamais tourne sur Safari~~ **leve en partie le 15/09** : la
+  suite declare desormais un projet `webkit` (un fichier de fumee,
+  `webkit-fumee.spec.ts`, trois pages), et le site s'y ouvre. Mesure, meme
+  appareil emule (iPhone 14) sous les deux moteurs : chargement 7,7 s contre
+  8,3 s, typographie identique au centieme de pixel, canvas 585x996 des deux
+  cotes, luminance de scene 0,115 contre 0,109. **Les deux moteurs rendent
+  la meme page.** Ce que cela n'etablit PAS : WebKit de Playwright sous
+  Windows n'est pas Safari sur un iPhone (pile graphique, limites memoire et
+  perte de contexte WebGL differentes). La panne grossiere est ecartee,
+  l'appareil reste a faire (V3) ;
 - la suite de regression visuelle ne garde plus rien : ses references
   datent d'avant les changements des 13 et 14/09 (voir le backlog).
 
