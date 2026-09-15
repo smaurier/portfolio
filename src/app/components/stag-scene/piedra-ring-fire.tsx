@@ -98,7 +98,7 @@ export default function PiedraRingFire() {
           }
         `,
       }),
-    []
+    [sprite]
   );
   const spawnAcc = useRef(0);
   const seed = useRef(0);
