@@ -17,6 +17,45 @@ sources ne donne la distribution reelle des notes du jury.
 
 ---
 
+## LA MESURE DU 15/09 QUI DEPLACE TOUT : les dix premieres secondes
+
+Mesure sur la production locale, cache vide, jalons lus dans la page
+(`data-loaded`, `data-foyer`, opacite du voile) :
+
+| condition | canvas | charge | ceremonie finie, VOILE LEVE |
+| --- | --- | --- | --- |
+| bureau, machine a pleine puissance, serveur local | 0,3 s | 7,4 s | **9,5 s** |
+| telephone, processeur divise par quatre, serveur local | 0,0 s | 8,4 s | **10,4 s** |
+| telephone, processeur /4 **et 3G lent** | | 23,5 s | **25,5 s** |
+
+Ce qu'il faut lire dans ces trois lignes : le processeur n'y est presque pour
+rien (7,4 s contre 8,4 avec un processeur quatre fois plus lent) et le
+reseau n'est pas la cause premiere non plus, puisque **sur une machine de
+bureau a pleine puissance, avec un serveur local et donc une bande passante
+infinie, le visiteur attend deja neuf secondes et demie devant le voile.**
+Ce sont nos propres etapes : le chargement des modeles, puis la chauffe des
+shaders, puis la ceremonie.
+
+Un jure Awwwards ouvre un site, regarde, et passe. Neuf secondes et demie
+sur un ecran d'attente est, a soi seul, le poste qui peut couter le site du
+jour, quelle que soit la qualite de ce qu'il y a derriere.
+
+**Consequence sur la note d'utilisabilite ci-dessous (8,8 le 11/09) : elle
+n'est pas defendable en l'etat.** Elle a ete posee sur des mesures d'images
+par seconde une fois la page ouverte, sans jamais compter l'entree. Trois
+trous s'y ajoutent, et aucun n'est une opinion :
+
+- **le site n'a jamais tourne sur un vrai telephone** (V3, ouvert depuis le
+  11/09) ;
+- **le site n'a jamais tourne sur Safari ni sur iOS** : la suite e2e ne
+  declare qu'un seul navigateur, `chromium` (`playwright.config.ts`). Une
+  scene WebGL avec shaders modifies est precisement ce qui casse d'un moteur
+  a l'autre ;
+- la suite de regression visuelle ne garde plus rien : ses references
+  datent d'avant les changements des 13 et 14/09 (voir le backlog).
+
+---
+
 ## Ou on en est
 
 | scene | 08/09 | 10/09 matin | **ce soir** | ce qui la tient | ce qui manque |
