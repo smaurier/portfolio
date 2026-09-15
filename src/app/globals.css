@@ -2394,13 +2394,23 @@ html:not([data-theme="light"]) .poliObsidienne {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background-image: var(--poli-obsidienne, none);
+  /* LA NAPPE ATTENUEE, ET PLUS BASSE (15/09, retour de Sylvain : « la
+     lumiere est revenue au dilue »). Il avait raison, et la cause etait
+     ici. Cette nappe couvre TOUTE la fenetre, scene 3D comprise, en mode
+     `screen` : par construction, `screen` releve les noirs. A pleine tuile
+     et 0,3 d'opacite, elle noyait la scene entiere dans un gris mauve
+     uniforme : le cerf perdait son poids, le ciel sa profondeur, et le feu
+     du bassin disparaissait. Capture comparative du 15/09, avec et sans :
+     sans elle, les noirs sont profonds et la scene respire.
+     Le geste de 13/09 (0,5 -> 0,3) allait deja dans ce sens, il n'allait
+     pas assez loin. On prend donc la tuile DOUCE (la meme pierre, 55 %
+     plus proche du noir) ET une dose plus basse : la lueur reste, le noir
+     revient. C'est un seul nombre si tu veux la bouger. */
+  background-image: var(--poli-obsidienne-doux, var(--poli-obsidienne, none));
   background-repeat: repeat;
   background-size: 460px 460px;
   mix-blend-mode: screen;
-  /* 0,5 -> 0,3 (13/09, capture) : a 0,5 la nappe eclaircissait les noirs,
-     et une obsidienne dont le noir remonte n'est plus une obsidienne. */
-  opacity: 0.3;
+  opacity: 0.18;
 }
 
 /* LES FEUILLES DE PIERRE. Sur la nuit, les panneaux ne sont pas du papier

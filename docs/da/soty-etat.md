@@ -24,7 +24,7 @@ Mesure sur la production locale, cache vide, jalons lus dans la page
 
 | condition | canvas | charge | ceremonie finie, VOILE LEVE |
 | --- | --- | --- | --- |
-| bureau, machine a pleine puissance, serveur local | 0,3 s | 7,4 s | **9,5 s** |
+| bureau, machine a pleine puissance, serveur local | 0,6 s | 7,6 s | **9,6 s** |
 | telephone, processeur divise par quatre, serveur local | 0,0 s | 8,4 s | **10,4 s** |
 | telephone, processeur /4 **et 3G lent** | | 23,5 s | **25,5 s** |
 
@@ -35,6 +35,18 @@ bureau a pleine puissance, avec un serveur local et donc une bande passante
 infinie, le visiteur attend deja neuf secondes et demie devant le voile.**
 Ce sont nos propres etapes : le chargement des modeles, puis la chauffe des
 shaders, puis la ceremonie.
+
+**Un piege de mesure, note ici parce qu'il mordra encore** : `src/lib/is-bot.ts`
+saute volontairement le canvas WebGL pour tout agent contenant
+`HeadlessChrome`, `Chrome-Lighthouse`, `PageSpeed` ou un nom de robot
+(decision du 29/08 : PageSpeed expirait sur nahual.fr). Or l'agent par
+defaut de Playwright contient `HeadlessChrome` : **une sonde de bureau qui
+ne le remplace pas mesure un site SANS SCENE 3D**. Les descripteurs
+d'appareils (Pixel 7, iPhone) posent deja un vrai agent et n'ont pas ce
+probleme. Les chiffres du tableau ci-dessus ont ete refaits avec un vrai
+agent Chrome ; ils n'ont quasiment pas bouge, mais la premiere serie etait
+fausse, et les captures de bureau prises avec l'agent par defaut montraient
+une page sans scene.
 
 Un jure Awwwards ouvre un site, regarde, et passe. Neuf secondes et demie
 sur un ecran d'attente est, a soi seul, le poste qui peut couter le site du

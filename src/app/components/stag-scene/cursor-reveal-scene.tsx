@@ -117,6 +117,23 @@ export default function CursorRevealScene({
     const rawP = progressRef.current;
     const p = lightPAtArc(direction, rawP);
     setCursorRevealFloor(uniforms, getRevealFloor(p));
+    // SONDE DE L'ENCRE (15/09, retour de Sylvain : « la lumiere est revenue
+    // au dilue »). « Dilue » a un sens exact dans ce shader : hors du halo,
+    // la scene est melangee vers son propre gris par `uMinSaturation`. Sans
+    // ces valeurs sous les yeux, on ne peut qu'avoir un avis ; avec elles on
+    // a un nombre. Meme motif que __nahualCodexU.
+    if (SONDE) {
+      (window as unknown as { __nahualEncre?: unknown }).__nahualEncre = {
+        arc: rawP,
+        arcLumiere: p,
+        plancher: getRevealFloor(p),
+        saturationMini: uniforms.uMinSaturation.value,
+        opaciteMini: uniforms.uMinOpacity.value,
+        encre: uniforms.uRevealInk.value,
+        obsidienne: uniforms.uRevealObsidienne.value,
+        rayon: uniforms.uRevealRadius.value,
+      };
+    }
     // Le trait d'encre qui borde la couleur n'existe que sur le papier
     // (13/09) : il suit la part de reflet, donc il arrive avec la face
     // claire et s'en va avec elle, sans branche a maintenir.
