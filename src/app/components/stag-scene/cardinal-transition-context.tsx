@@ -3,6 +3,8 @@
 import gsap from "gsap";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NEPANTLA_TIMING, enterOffset, exitOffset } from "@/lib/nepantla";
+import { descendreVersLaNuit, garantirLeHaut, type ContexteDescente } from "@/lib/descente-nepantla";
+import { moteurDefilement } from "../smooth-scroll";
 import { SHADERS_WARM_EVENT, WARMUP_FALLBACK_MS, getWarmDirection } from "./shader-warmup";
 
 /**
@@ -66,6 +68,16 @@ function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+/** L'etat du defilement au moment ou on le regarde (voir descente-nepantla). */
+function contexteDescente(): ContexteDescente {
+  return {
+    moteur: moteurDefilement.lenis,
+    sansMoteur: (y) => window.scrollTo(0, y),
+    defilement: window.scrollY,
+    mouvementReduit: prefersReducedMotion(),
+  };
+}
+
 export function CardinalTransitionProvider({ children }: { children: ReactNode }) {
   const [transitionDirection, setTransitionDirection] = useState<CardinalDirection | null>(null);
   const transitionProgressRef = useRef(0);
@@ -103,6 +115,20 @@ export function CardinalTransitionProvider({ children }: { children: ReactNode }
     directionRef.current = direction;
     setTransitionDirection(direction);
     transitionProgressRef.current = 0;
+
+    /**
+     * LA DESCENTE VERS LA NUIT (16/09, decision de Sylvain : « on doit
+     * remonter absolument tout en haut lorsqu'on arrive sur une nouvelle
+     * scene, sinon tout se joue lorsqu'on arrive »).
+     *
+     * Elle part AVEC le passage, pas a son terme : le defilement glisse
+     * vers zero pendant que la camera fait son tour, donc l'ancienne
+     * direction redescend vers sa nuit pendant le mouvement et la nouvelle
+     * arrive a la sienne. Une remise a zero seche, elle, n'aurait pu
+     * tomber qu'avant ou apres le commit, et les deux font clignoter (voir
+     * lib/descente-nepantla).
+     */
+    descendreVersLaNuit(contexteDescente(), NEPANTLA_TIMING.exitDelay + NEPANTLA_TIMING.exitDuration);
 
     timelineRef.current?.kill();
     const tl = gsap.timeline();
@@ -146,6 +172,10 @@ export function CardinalTransitionProvider({ children }: { children: ReactNode }
     const frame = frameRef.current;
 
     const reset = () => {
+      // Le filet : la glissade se fait interrompre par le remplacement du
+      // contenu (mesure du 16/09 : elle s'arretait a 418 pixels sur 1 080).
+      // L'invariant doit tenir meme quand elle echoue.
+      garantirLeHaut(contexteDescente());
       timelineRef.current = null;
       transitionProgressRef.current = 0;
       directionRef.current = null;
@@ -203,6 +233,9 @@ export function CardinalTransitionProvider({ children }: { children: ReactNode }
   const completeArrival = useCallback(() => {
     const direction = directionRef.current;
     if (!direction) return; // nav directe (back/forward, URL) : rien a jouer.
+    // Le commit a eu lieu : on redemande la descente pour ce qu'il en
+    // reste, en glissant tant que le monde est encore en mouvement.
+    descendreVersLaNuit(contexteDescente(), NEPANTLA_TIMING.enterDuration);
     // L'ARRIVEE CHAUFFEE (11/09) : le contenu n'entre qu'une fois les
     // programmes de la nouvelle direction compiles (shader-warmup), pour
     // que le premier rendu visible ne fige pas le fil principal en plein

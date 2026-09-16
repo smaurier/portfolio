@@ -2,6 +2,16 @@
 
 import { useEffect } from "react";
 import Lenis from "lenis";
+import type { MoteurDefilement } from "@/lib/descente-nepantla";
+
+/**
+ * Le moteur lisse, publie pour la descente du passage (16/09,
+ * lib/descente-nepantla). Nul quand il n'est pas monte, ce qui est le cas
+ * en mouvement reduit : l'appelant retombe alors sur `window.scrollTo`.
+ * Meme motif que `refletStore` et `arcStore` : un depot, pas un contexte,
+ * parce que le lecteur est une timeline GSAP et non un composant.
+ */
+export const moteurDefilement: { lenis: MoteurDefilement | null } = { lenis: null };
 
 /**
  * Lenis smooth scroll (28/08 task #48). Signature léché SOTY :
@@ -36,6 +46,7 @@ export default function SmoothScroll() {
     // Lenis rAF loop autonome (28/08 retour Sylvain "molette sur cerf
     // glitche" : coordination gsap ticker + ScrollTrigger creait
     // feedback loop avec FaceAFacePin desactive). Retour raf standalone.
+    moteurDefilement.lenis = lenis;
     let rafId = 0;
     function raf(time: number) {
       lenis.raf(time);
@@ -45,6 +56,7 @@ export default function SmoothScroll() {
 
     return () => {
       cancelAnimationFrame(rafId);
+      moteurDefilement.lenis = null;
       lenis.destroy();
     };
   }, []);

@@ -100,11 +100,16 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
     reducedMotionQuery.addEventListener("change", relireMouvement);
     const desabonnerMouvement = subscribeSceneControls(relireMouvement);
 
-    // Reset scroll uniquement au mount initial de la session (layout
-    // persist entre navs SPA, donc ce reset ne se rejoue plus au
-    // changement de page : comportement correct : l'utilisateur qui
-    // navigue en interne ne veut pas repartir de zéro à chaque nav,
-    // il veut voir la scène continue de la nouvelle direction).
+    // Reset scroll au mount initial de la session (le layout persiste entre
+    // les navigations, donc ce reset ne se rejoue pas au changement de
+    // page).
+    //
+    // 16/09 : LE RESTE DE CE COMMENTAIRE ETAIT DEVENU FAUX. Il disait que
+    // « l'utilisateur qui navigue en interne ne veut pas repartir de zero a
+    // chaque nav ». Sylvain a tranche l'inverse : chaque direction porte un
+    // arc complet, et arriver au milieu, c'est arriver quand tout est deja
+    // joue. La remontee se fait desormais PENDANT le passage, en glissant,
+    // et elle vit dans lib/descente-nepantla.
     const previousScrollRestoration = window.history.scrollRestoration;
     window.history.scrollRestoration = "manual";
     window.scrollTo(0, 0);

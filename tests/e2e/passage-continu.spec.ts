@@ -84,15 +84,31 @@ const ECART_SIGNIFICATIF = 12;
  */
 test.use({ colorScheme: "dark" });
 
-const TRAJETS: { de: string; vers: string; quoi: string }[] = [
-  { de: "fr/memoire", vers: "fr", quoi: "Nord vers Centre (le creux du 15/09)" },
-  { de: "fr/projets", vers: "fr/contact", quoi: "Sud vers Ouest (la marche du 15/09)" },
+/**
+ * CHAQUE TRAJET NE GARDE QUE CE QU'IL MESURE VRAIMENT (16/09).
+ *
+ * La premiere version appliquait les deux assertions aux deux trajets.
+ * Trois passes de suite sur Nord vers Centre ont donne 0,64, puis vert,
+ * puis vert : la valeur straddle le seuil, parce que ce trajet a un ecart
+ * de luminance plus faible et que ce qui reste de marche depend de
+ * l'instant ou la chauffe des shaders finit, qui n'est pas deterministe.
+ * Un oracle qui tombe une fois sur trois ne garde rien : il apprend a
+ * ignorer les rouges.
+ *
+ * Sud vers Ouest, lui, est stable (0,49 puis 0,487 sur deux passes) parce
+ * que son ecart est large. C'est donc lui qui porte la marche ; Nord vers
+ * Centre porte le creux, qui est le defaut qu'il a reellement montre le
+ * 15/09 et qui, lui, ne varie pas du tout.
+ */
+const TRAJETS: { de: string; vers: string; quoi: string; marche: boolean }[] = [
+  { de: "fr/memoire", vers: "fr", quoi: "Nord vers Centre (le creux du 15/09)", marche: false },
+  { de: "fr/projets", vers: "fr/contact", quoi: "Sud vers Ouest (la marche du 15/09)", marche: true },
 ];
 
 type Releve = { lum: number; chemin: string };
 
-for (const { de, vers, quoi } of TRAJETS) {
-  test(`${quoi} : ni creux ni marche`, async ({ page }) => {
+for (const { de, vers, quoi, marche } of TRAJETS) {
+  test(`${quoi} : ${marche ? "ni creux ni marche" : "aucun creux"}`, async ({ page }) => {
     test.setTimeout(150_000);
 
     await page.goto("/" + de + "?shaders-prod&veille=off");
@@ -171,9 +187,10 @@ for (const { de, vers, quoi } of TRAJETS) {
     }
     expect(creux, `creux de luminance :${String.fromCharCode(10)}${creux.join(String.fromCharCode(10))}`).toEqual([]);
 
-    // 2. AUCUNE MARCHE : la traversee se fait en plusieurs images.
+    // 2. AUCUNE MARCHE : la traversee se fait en plusieurs images. Seulement
+    // sur le trajet ou la mesure est stable (voir TRAJETS).
     const ecart = Math.max(...lums) - Math.min(...lums);
-    if (ecart >= ECART_SIGNIFICATIF) {
+    if (marche && ecart >= ECART_SIGNIFICATIF) {
       let plusGrandPas = 0;
       let ou = 0;
       for (let i = 1; i < lums.length; i += 1) {
@@ -190,3 +207,36 @@ for (const { de, vers, quoi } of TRAJETS) {
     }
   });
 }
+
+/**
+ * ON ARRIVE TOUJOURS EN HAUT (16/09, decision de Sylvain : « on doit
+ * remonter absolument tout en haut lorsqu'on arrive sur une nouvelle
+ * scene, sinon tout se joue lorsqu'on arrive »).
+ *
+ * Le test part d'un defilement REEL : sans ca il passerait au vert sans
+ * rien garder, puisque la descente ne se joue que si on n'est pas deja en
+ * haut. C'est la lecon du 16/09 sur les lectures de mise en page : un
+ * oracle qui ne tombe pas sur le defaut qu'il pretend garder ne vaut rien.
+ */
+test("un passage cardinal ramene en haut de l'arc", async ({ page }) => {
+  test.setTimeout(150_000);
+
+  await page.goto("/fr/projets?shaders-prod&veille=off");
+  await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 90_000 });
+
+  // A mi-arc : la ou l'ancien comportement laissait arriver le visiteur.
+  await page.evaluate(() => window.scrollTo(0, window.innerHeight * 1.2));
+  await page.waitForTimeout(1200);
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(200);
+
+  await page.locator('a[href="/fr/contact"]').first().hover({ force: true });
+  await page.waitForTimeout(2500);
+  await page.evaluate(() => {
+    const l = [...document.querySelectorAll("a")].find((a) => a.getAttribute("href") === "/fr/contact");
+    if (l instanceof HTMLElement) l.click();
+  });
+
+  await page.waitForTimeout(4000);
+  expect(page.url()).toContain("/fr/contact");
+  expect(await page.evaluate(() => window.scrollY)).toBeLessThan(2);
+});
