@@ -476,10 +476,23 @@ creation », qui est une signature d'atelier et non une offre ; et les
 fiches de projets, qui parlent de clients, de missions et de devis PASSES,
 ce qui est le propre d'un portfolio.
 
-**A REEXAMINER APRES LE 23/10/2026**, et c'est la raison d'etre de cette
-section. Trois questions reviendront ensemble :
+**LE DECLENCHEUR N'EST PAS UNE DATE, C'EST UN CLIENT** (precision de
+Sylvain, 15/09). Il ne rouvrira l'auto-entreprise que s'il a un client
+reel, pas a l'echeance de l'examen. Cela peut donc n'arriver que bien plus
+tard, ou jamais. Rien de cette section n'est a rouvrir le 24 octobre : elle
+attend un evenement.
 
-1. Rouvrir l'auto-entreprise ? L'ouverture est gratuite et, sans chiffre
+L'ordre est donc : un client arrive d'abord, l'immatriculation vient
+ensuite, et le site ne reparle commercialement qu'apres. Et cela repond a
+l'objection evidente, celle de la poule et de l'oeuf : un premier client
+n'arrive pas par un bouton « mes services », il arrive par des gens, par
+une recommandation, ou parce que ce site a servi de preuve. Le portfolio
+montre la competence ; l'offre se formule dans la conversation, pas sur la
+page. Il n'y a donc rien a debloquer ici en attendant.
+
+Le jour ou ce client existe, trois questions reviennent ensemble :
+
+1. Rouvrir l'auto-entreprise. L'ouverture est gratuite et, sans chiffre
    d'affaires, il n'y a pas de cotisations, seulement des declarations a
    zero. Garde-fou existant : jamais freelance affiche tant que salarie.
 2. Si oui, les mentions legales repassent au regime professionnel : il
