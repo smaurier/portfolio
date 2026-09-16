@@ -22,10 +22,23 @@
  * ne fait plus que relire une variable.
  *
  * Le denominateur ne change que si la page change de taille. On le relit
- * donc sur `resize`, sur le `ResizeObserver` de la racine (un chapitre qui
- * se deplie change la hauteur sans redimensionner la fenetre), et de toute
- * facon au moins une fois par demi-seconde : meme si les deux signaux nous
- * echappaient, la valeur ne peut pas vieillir davantage.
+ * donc sur `resize`, et de toute facon au moins une fois par demi-seconde :
+ * meme si ce signal nous echappait, la valeur ne peut pas vieillir
+ * davantage.
+ *
+ * ET LA LECTURE NE SE FAIT PLUS DANS LA BOUCLE D'IMAGE DU TOUT, ce qui est
+ * la correction du soir meme. La premiere version relisait paresseusement,
+ * depuis `lire()`, donc depuis le `useFrame` de l'appelant. Sur mobile, le
+ * defilement fait apparaitre et disparaitre la barre d'URL, ce qui emet des
+ * `resize` : la hauteur etait invalidee en plein arc et relue depuis la
+ * boucle. Mesure sur Memoire, en comptant les lectures faites DEPUIS un
+ * rappel de `requestAnimationFrame` : vingt et une, la ou l'on en attendait
+ * deux par seconde.
+ *
+ * La hauteur se rafraichit donc dans l'ecouteur `scroll`, ou la mise en page
+ * est deja a jour et la lecture gratuite. `lire()` ne touche plus a rien :
+ * il ne fait qu'une division. Une profondeur fausse de moins d'une
+ * demi-seconde pilote des fondus, personne ne la voit.
  *
  * La logique de peremption est separee du DOM (`creerLecteurProfondeur`)
  * parce que les tests de ce depot tournent sans navigateur : c'est le seul
@@ -54,7 +67,11 @@ export type SourceProfondeur = {
 };
 
 export type LecteurProfondeur = {
+  /** Ne lit JAMAIS la mise en page : c'est tout l'interet. */
   lire: () => number;
+  /** Relit la hauteur si elle a vieilli. A n'appeler que d'un endroit ou la
+   *  mise en page est deja a jour, donc d'un ecouteur `scroll` ou `resize`. */
+  rafraichir: () => void;
   /** Jette le denominateur garde : la page a change de taille. */
   oublier: () => void;
 };
@@ -62,14 +79,18 @@ export type LecteurProfondeur = {
 export function creerLecteurProfondeur(source: SourceProfondeur): LecteurProfondeur {
   let denom = -1;
   let luA = -Infinity;
+  const relire = () => {
+    denom = source.hauteurUtile();
+    luA = source.maintenant();
+  };
   return {
     lire() {
-      const t = source.maintenant();
-      if (denom < 0 || t - luA > PEREMPTION_MS) {
-        denom = source.hauteurUtile();
-        luA = t;
-      }
+      // Le tout premier appel n'a rien en reserve : il lit, une fois.
+      if (denom < 0) relire();
       return calculerProfondeur(source.defilement(), denom);
+    },
+    rafraichir() {
+      if (denom < 0 || source.maintenant() - luA > PEREMPTION_MS) relire();
     },
     oublier() {
       denom = -1;
@@ -94,6 +115,9 @@ function brancher(): LecteurProfondeur {
   const noter = () => {
     defilementNote = window.scrollY;
     defileA = performance.now();
+    // La hauteur se relit ICI, dans l'ecouteur, ou la mise en page est deja
+    // a jour : la boucle d'image, elle, ne lira plus jamais rien.
+    lecteur?.rafraichir();
   };
   window.addEventListener("scroll", noter, { passive: true });
   window.addEventListener("resize", () => {
@@ -104,9 +128,6 @@ function brancher(): LecteurProfondeur {
     noter();
     oublier();
   }, { passive: true });
-  if (typeof ResizeObserver !== "undefined") {
-    new ResizeObserver(oublier).observe(document.documentElement);
-  }
   return lecteur;
 }
 

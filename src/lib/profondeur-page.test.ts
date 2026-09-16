@@ -68,28 +68,41 @@ describe("creerLecteurProfondeur", () => {
     expect(b.lecteur.lire()).toBeCloseTo(0.5, 6);
   });
 
-  it("NE RELIT PAS la hauteur a chaque image : c'est tout l'interet", () => {
+  it("NE LIT JAMAIS la hauteur depuis `lire` : c'est tout l'interet", () => {
     const b = banc();
     b.lecteur.lire();
-    expect(b.lectures()).toBe(1);
+    expect(b.lectures()).toBe(1); // le tout premier appel, et lui seul
     for (let i = 0; i < 60; i += 1) {
       b.avancer(1000 / 60);
       b.defiler(i * 10);
       b.lecteur.lire();
     }
-    // Une seconde de defilement, soixante images : deux relectures au plus
-    // (la peremption est a 500 ms), jamais soixante.
-    expect(b.lectures()).toBeLessThanOrEqual(3);
+    // Soixante images de plus, et pas une lecture de mise en page : c'est
+    // l'ecouteur `scroll` qui rafraichit, jamais la boucle.
+    expect(b.lectures()).toBe(1);
   });
 
-  it("relit la hauteur passee la peremption", () => {
+  it("`rafraichir` relit, mais seulement passe la peremption", () => {
+    const b = banc();
+    b.lecteur.lire();
+    expect(b.lectures()).toBe(1);
+    b.lecteur.rafraichir();
+    expect(b.lectures()).toBe(1); // trop tot
+    b.avancer(PEREMPTION_MS + 1);
+    b.lecteur.rafraichir();
+    expect(b.lectures()).toBe(2);
+  });
+
+  it("prend la nouvelle hauteur au rafraichissement suivant", () => {
     const b = banc(2000);
     b.defiler(1000);
     expect(b.lecteur.lire()).toBeCloseTo(0.5, 6);
     b.redimensionner(4000);
     b.avancer(PEREMPTION_MS / 2);
-    expect(b.lecteur.lire()).toBeCloseTo(0.5, 6); // encore en cache
+    b.lecteur.rafraichir();
+    expect(b.lecteur.lire()).toBeCloseTo(0.5, 6); // trop tot, encore en cache
     b.avancer(PEREMPTION_MS);
+    b.lecteur.rafraichir();
     expect(b.lecteur.lire()).toBeCloseTo(0.25, 6);
   });
 
