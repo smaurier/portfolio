@@ -513,3 +513,78 @@ des lectures de mise en page, le compte des objets, la pire tache de
 cuisson, et la disparition de quatre postes du profil.
 
 A refaire sur une machine froide, et surtout sur un vrai telephone.
+
+## 16/09, le chantier memoire : compter ne dit rien, il faut peser
+
+La fuite graphique tra?nait depuis le 15/09 avec un diagnostic ecrit noir sur
+blanc dans `fuite-gpu.spec.ts` : « environ trois textures par tour, de la
+taille des cibles de rendu des simulateurs du Nord ; les deux simulateurs
+liberent pourtant tout ce qu'ils allouent, verifie champ par champ : la
+cause n'est pas trouvee ».
+
+Elle n'etait pas trouvable ainsi, et la raison vaut d'etre gardee : **on
+comptait des textures sans jamais regarder ni leur taille, ni qui les avait
+creees.**
+
+### L'instrument
+
+On n'interroge plus three, qui ne sait dire qu'un nombre. On patche
+`createTexture` et `deleteTexture` du contexte WebGL LUI-MEME, dans un
+script d'initialisation, donc avant que le site demarre, en gardant pour
+chaque texture sa pile d'appel. On suit `bindTexture` et `texImage2D` pour
+lui attacher sa TAILLE. Ce qui n'a pas ete supprime est alors la, avec son
+poids et son adresse de naissance. Sonde : `.scratch/memoire/qui-fuit2.mjs`.
+
+Un detail qui a failli tout fausser : le tour du site doit se faire EN
+CLIQUANT. Une vraie navigation detruit le contexte WebGL et remet tout a
+zero, ce qui donne un releve parfaitement stable et parfaitement faux. La
+fuite n'existe que parce que la toile survit aux changements de page.
+
+### Il y avait deux fuites, de natures opposees
+
+**Le poids.** Sept copies vivantes de la photographie de ciel, 2048 x 1024,
+8 Mo piece, soit 48 Mo pour une seule ressource. L'effet de `sud-sky` depend
+de `direction` : il fabriquait une nouvelle `Texture` a chaque page, et son
+nettoyage appelait `dispose()` SANS vider l'uniforme. Le materiau est
+memoise, il survit au changement : il gardait donc une reference vers une
+texture liberee, et il suffisait d'un rendu pour que three la RE-ALLOUE.
+Cette allocation-la n'appartenait plus a personne.
+
+**Le compte.** Treize textures d'os par tour. three donne a chaque
+`Skeleton` une image ou il ecrit une matrice par os (16 x 16 pour 62 os), et
+elle ne part que sur `dispose()`. Rien ne l'appelait.
+
+Aucune des deux n'etait celle qu'on cherchait, et elles ne se seraient
+jamais vues l'une l'autre : la premiere pese 48 Mo en sept objets, la
+seconde treize objets pour treize kilo-octets.
+
+### Apres
+
+| | avant | apres |
+|---|---|---|
+| textures au 5e tour | 143 | 83 |
+| croissance par tour | +13 | +1 |
+| orphelines 16 x 16 | 41 | 5 |
+| poids, ecran de bureau | ~162 Mo | **113,8 Mo** |
+| poids, telephone | ~65 Mo | **17,2 Mo** |
+
+Le cliquet de l'oracle passe de dix textures a quatre.
+
+### Ou vivent les megaoctets qui restent
+
+Sur un ecran de bureau, 1440 x 900 :
+
+    49,4 Mo  x10  1440x900   cibles plein ecran (post-traitement, encre, voile)
+    32,0 Mo  x 2  2048x2048  cartes d'ombres
+    12,0 Mo  x12  512x512    simulateurs (ondes, hauteur, fluide)
+     8,7 Mo  x 7  720x450    cibles demi-ecran
+     8,0 Mo  x 1  2048x1024  la photographie de ciel
+
+Sur telephone il ne reste que 17,2 Mo : ni ombres, ni post-traitement, ni
+cibles plein ecran. C'est la que la memoire graphique est serree, et c'est
+la qu'on est desormais tres au large.
+
+Deux leviers restent, si un jour le bureau devenait contraint : les cartes
+d'ombres a 1024 au lieu de 2048 rendraient 24 Mo, au prix d'un bord d'ombre
+plus grossier, et les dix cibles plein ecran meritent qu'on demande a
+chacune pourquoi elle existe.
