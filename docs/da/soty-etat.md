@@ -340,3 +340,77 @@ Next.js par defaut. Un jure ne le lit pas ; un recruteur, oui.
 - Pope Tech, animation accessible (pause, mouvement reduit) : <https://blog.pope.tech/2025/12/08/design-accessible-animation-and-movement/>
 - EMIT Solution, WebGL et accessibilite (tout doit exister hors de la scene) : <https://emit-solution.com/blog/webgl-barrierefreiheit-bfsg>
 - Thomas Kole, Tenochtitlan en 3D : <https://googlemapsmania.blogspot.com/2025/11/explore-ancient-tenochtitlan-in-3d.html>
+
+## 16/09 : la traque des images longues, et une lecon de mesure
+
+Objectif pose par Sylvain : « totalement lisse ». Ce n'est pas un objectif
+de debit mais de REGULARITE : la mediane etait deja a 59,9 im/s sur les
+cinq pages ; ce qui casse l'impression de lissage, ce sont les images qui
+depassent 33 ms, et surtout l'alternance 60/30 qui se lit comme un
+tremblement.
+
+### Etat au soir du 16/09 (protocole du jure, Pixel 7, processeur /4)
+
+| Page | 60 Hz | 30 Hz | 20 Hz | pire |
+|---|---|---|---|---|
+| Services | 97,0 % | 2,8 % | 0,3 % | 0 |
+| Memoire | 92,1 % | 6,8 % | 0,6 % | 0,6 % |
+| Accueil | 91,6 % | 5,8 % | 0,9 % | 1,7 % |
+| Projets | 89,2 % | 8,9 % | 0,9 % | 0,9 % |
+| **Contact** | **56,4 %** | **36,0 %** | 6,4 % | 1,2 % |
+
+Projets partait de 30,5 % d'images au-dela de 33 ms, Contact de 29 %.
+
+### Ce qui a ete trouve, et par quelle mesure
+
+1. **Le serpent arrivait au moment narratif.** Releve en nommant les objets
+   apparus A L'INTERIEUR des images longues : `XiuhcoatlRig`, `Skull`, 57
+   objets et trois programmes, vers 14 % de l'arc du Sud. Monte invisible
+   des l'arrivee au Sud, il est desormais compile par la chauffe derriere
+   le voile. `gl.compile` initialise les materiaux en `traverse`
+   (WebGLRenderer r185 l.1433) ; `traverseVisible` ne sert qu'aux lumieres.
+2. **Deux ambiances cardinales sur trois dessinaient a alpha nul.** Un
+   fragment se paie qu'il ecrive ou non. Le Nord seul valait 1,6 ms par
+   image sur Contact.
+3. **Six composants interrogeaient la mise en page a chaque image.**
+   `scrollY`, `scrollHeight`, `innerWidth` lus dans une boucle d'animation
+   forcent un recalcul synchrone. Le plus cher etait `scrollY`, pas
+   `scrollHeight`. Voir `lib/profondeur-page.ts`.
+
+### LE PIEGE DE MESURE, a ne plus retomber dedans
+
+Attribuer un cout a une couche en la cachant puis en comparant le
+POURCENTAGE d'images longues **ne marche pas sur cette machine**. La page
+s'accelere toute seule au fil des passes : six passes de reference
+identiques ont donne 46,6 / 40,6 / 40,3 / 35,6 / 33,3 / 34,3 %, soit un
+ecart-type de 4,6 points et une etendue de 13,3. Une passe cachee suivie
+d'une passe visible mesure donc la derive autant que la couche. Un ordre
+ABBA n'a pas suffi : il annule la derive lineaire, pas ce bruit-la, et le
+resultat disait qu'eteindre une lumiere directionnelle coutait 14 points.
+
+Ce qui marche : **la mediane du temps passe dans `gl.render`**, prise sur
+deux cents echantillons. C'est une mesure, pas une difference entre passes,
+et elle est stable au dixieme de milliseconde (paires mesurees : 6,0/6,0
+contre 11,1/10,1). Deux conclusions de la journee ont ete annulees par ce
+changement d'instrument : « le sol coute 32,5 points » et « l'aura du cerf
+coute 13,6 points » etaient l'un et l'autre du bruit. Sondes :
+`.scratch/audit/composition-image.mjs` et `cout-couches.mjs`.
+
+### Ce qui reste sur Contact, et pourquoi ce n'est plus technique
+
+Le rendu tient en 10,5 ms sur un budget de 16,7, contre 5,4 ms sur
+l'Accueil et 8,3 sur Memoire : il ne laisse pas assez de place a React, au
+defilement et a la composition. Le profil ne montre plus de gachis :
+
+- natif (pilote, rasterisation) 3,5 ms
+- `updateMatrixWorld` 2,2 ms, sur 799 objets dont **368 os**, contre 378
+  objets et 38 os sur l'Accueil
+- internes de three (`renderBufferDirect`, televersements) ~3,1 ms
+- simulations (tissu, vent, meches, grille d'herbe) ~3,9 ms, **deja
+  cadencees une image sur deux** sur mobile
+
+Les deux leviers qui restent sont des decisions de direction artistique, pas
+d'ingenierie : **moins de Cihuateteo a l'Ouest**, ou **moins de meches et de
+lanieres par porteuse** (`hairStrands` et `skirtStrips` sont a 32 sur
+mobile). Un troisieme, plus long : instancier le decor pour faire tomber le
+nombre d'objets de la scene.
