@@ -584,7 +584,59 @@ Sur telephone il ne reste que 17,2 Mo : ni ombres, ni post-traitement, ni
 cibles plein ecran. C'est la que la memoire graphique est serree, et c'est
 la qu'on est desormais tres au large.
 
-Deux leviers restent, si un jour le bureau devenait contraint : les cartes
-d'ombres a 1024 au lieu de 2048 rendraient 24 Mo, au prix d'un bord d'ombre
-plus grossier, et les dix cibles plein ecran meritent qu'on demande a
-chacune pourquoi elle existe.
+### Les deux leviers pris dans la foulee, et celui qu'on n'avait pas vu
+
+**Les ombres passent en VSM a 1024.** `shadows` tout court laissait
+react-three-fiber demander `PCFSoftShadowMap`, deprecie en r185 et remplace
+en silence par `PCFShadowMap` : on dessinait du PCF dur en croyant demander
+du doux. VSM floute vraiment, par une passe separable. Il prend TROIS
+textures par lumiere la ou PCF en prend deux, donc a 2048 il aurait triple
+l'empreinte ; a 1024 il coute moins que le PCF d'avant, et comme il floute
+par construction la resolution n'a plus a porter la douceur.
+
+    textures de la page   109,3 -> 90,3 Mo
+    triangles par image   276 278 -> 462 332
+    debit sur ordinateur  mediane 59,9, 5e centile 59,5, inchange
+
+Les triangles en plus sont exactement le total des objets RECEVEURS : en
+VSM, three les rend dans la carte d'ombre eux aussi, pas seulement les
+projeteurs. C'est la prairie qui les porte, 120 516 triangles pour 20 086
+brins. La passe n'ecrivant que de la profondeur, la carte les absorbe.
+
+### ⚠️ LE POSTE QU'ON NE VOYAIT PAS : les renderbuffers
+
+Tous les comptages precedents, y compris les premiers de cette journee,
+regardaient les TEXTURES. Or un tampon multi-echantillonne est un
+**renderbuffer**, pas une texture. `multisampling={4}`, pose en dur sur
+l'EffectComposer, etait de loin le premier poste de memoire graphique du
+site, et il etait invisible.
+
+    renderbuffers, densite 1 : 122,4 Mo, dont 119 pour la chaine d'effets
+    renderbuffers, densite 2 : 478,4 Mo
+
+Quatre tampons plein ecran, deux en RGBA16F (huit octets le pixel) et deux
+en profondeur 32 bits, multiplies par quatre echantillons, et la densite
+quadruple le tout.
+
+A densite 2, l'ecran rend deja chaque pixel CSS sur quatre pixels
+d'appareil : chaque marche d'escalier y fait la moitie de sa taille
+physique. Le multi-echantillonnage suit donc la densite : quatre
+echantillons quand l'ecran n'en fournit pas, aucun quand il en fournit.
+
+    renderbuffers a densite 2 : 478,4 -> 3,8 Mo
+    textures a densite 2      : 267,1 Mo
+    debit                     : inchange
+
+Sur un ecran retina, environ **745 Mo de memoire graphique ramenes a 271**.
+
+### L'etat, en une ligne
+
+| | textures | renderbuffers |
+|---|---|---|
+| telephone | 17,2 Mo | ~1 Mo (ni ombres ni effets) |
+| bureau, densite 1 | 90,3 Mo | 122,4 Mo |
+| bureau, densite 2 | 267,1 Mo | 3,8 Mo |
+
+Ce qui reste de gros, sur ordinateur, ce sont les cibles plein ecran de la
+chaine d'effets elle-meme (dix a la densite de la toile) : les reduire
+voudrait dire toucher aux effets, pas a leur reglage.
