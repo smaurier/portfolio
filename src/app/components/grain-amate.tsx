@@ -228,10 +228,85 @@ export default function GrainAmate() {
       suivante(0);
     };
 
-    const regarder = () => auRepos(cuire, 2000);
+    /**
+     * D'ABORD LE WORKER (16/09), parce qu'une page qui rend une scene 3D
+     * n'a AUCUN temps mort : le chemin ci-dessus restait honnete, mais il
+     * etalait vingt-deux taches de vingt a quatre-vingt-dix millisecondes
+     * sur le premier defilement du visiteur. Hors du fil principal, il n'y
+     * a plus de tache du tout, et les pixels sont les memes a l'octet pres.
+     *
+     * Le chemin d'en haut reste, et c'est voulu : il sert quand le worker
+     * ou `OffscreenCanvas` manquent, et quand le worker echoue en route.
+     */
+    let worker: Worker | null = null;
+    const urls: string[] = [];
+    const CLES: Record<string, string> = {
+      papier: VARIABLE,
+      papierDoux: VARIABLE_DOUX,
+      pierre: VARIABLE_POLI,
+      pierreDoux: VARIABLE_POLI_DOUX,
+    };
+
+    const parWorker = (): boolean => {
+      if (typeof Worker === "undefined" || typeof OffscreenCanvas === "undefined") return false;
+      try {
+        const t0 = performance.now();
+        let recues = 0;
+        worker = new Worker(new URL("./grain-amate.worker.ts", import.meta.url));
+        worker.onmessage = (evenement: MessageEvent<{ cle: string; image: Blob }>) => {
+          const variable = CLES[evenement.data.cle];
+          if (!variable) return;
+          const url = URL.createObjectURL(evenement.data.image);
+          urls.push(url);
+          root.style.setProperty(variable, `url(${url})`);
+          recues += 1;
+          if (recues < 4) return;
+          fait = true;
+          if (SONDE) {
+            (window as unknown as { __nahualMatiere?: unknown }).__nahualMatiere = {
+              ms: Math.round(performance.now() - t0),
+              pire: 0,
+              durees: [],
+              taille: TAILLE,
+              worker: true,
+            };
+          }
+          worker?.terminate();
+          worker = null;
+        };
+        worker.onerror = () => {
+          worker?.terminate();
+          worker = null;
+          // Le worker a lache en route : on reprend a la main. Les etapes
+          // deja posees ne seront pas refaites, la garde de `cuire` les voit.
+          auRepos(cuire, 250);
+        };
+        worker.postMessage({
+          taille: TAILLE,
+          graine: GRAINE,
+          partDeBlanc: PART_DE_BLANC,
+          partDePierre: PART_DE_PIERRE,
+          nuit: root.dataset.theme !== "light",
+        });
+        return true;
+      } catch {
+        worker = null;
+        return false;
+      }
+    };
+
+    const regarder = () => {
+      if (fait) return;
+      if (parWorker()) return;
+      auRepos(cuire, 2000);
+    };
     regarder();
     window.addEventListener(THEME_EVENT, regarder);
-    return () => window.removeEventListener(THEME_EVENT, regarder);
+    return () => {
+      window.removeEventListener(THEME_EVENT, regarder);
+      worker?.terminate();
+      for (const u of urls) URL.revokeObjectURL(u);
+    };
   }, []);
   return (
     <>
