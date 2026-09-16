@@ -86,6 +86,17 @@ export function useNormalizedClone(path: string, targetHeight: number): Object3D
     // flore et par sud-spines, tous deux via cette fonction, et personne
     // ne rend la scene source elle-meme.
     mergeByMaterial(scene);
+    // PAS D'INSTANCIATION ICI, et c'est une mesure, pas un oubli (16/09).
+    // Les quatre exemplaires d'une espece ont ete instancies puis remis
+    // comme ils etaient : une maille instanciee n'a qu'UN volume englobant,
+    // donc elle perd le culling par plante. Les fleurs d'un bouquet
+    // d'ocotillo sont serrees, elles gagnent ; quatre plantes dispersees sur
+    // un anneau de rayon 6 a 11 autour de la camera, non : on en voyait un
+    // tiers, on les dessinait toutes. Mesure sur Contact, quatre passes :
+    // mediane du rendu 9,3 / 9,4 / 9,9 / 10,1 ms contre 9,6 sans, donc match
+    // nul, pour 9 % de triangles en plus. L'instanciation paie quand les
+    // repetitions sont GROUPEES DANS L'ESPACE, pas quand elles sont eparses.
+    //
     // Puis on retire ce que la fusion laisse derriere elle (16/09) : les
     // groupes vides des feuilles retirees, et les chainons a un seul
     // enfant. `updateMatrixWorld` descend tout le graphe a chaque image,

@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import type { Group as GroupType, InstancedMesh as InstancedMeshType, Material, Mesh, Object3D } from "three";
+import { useMemo, useRef } from "react";
+import type { Group as GroupType, Object3D } from "three";
 import { mergeByMaterial } from "@/lib/merge-meshes";
 import { elaguerDecor } from "@/lib/elaguer-decor";
+import { preparerPieces } from "@/lib/pieces-modele";
+import { MailleInstanciee } from "./maille-instanciee";
 import { useFigeUneFois } from "./use-fige-une-fois";
 import { useLibereToutAuDemontage } from "./use-libere";
 import { useGLTF } from "@react-three/drei";
-import { Box3, BufferGeometry, CatmullRomCurve3, Matrix4, Quaternion, TubeGeometry, Vector3 } from "three";
+import { CatmullRomCurve3, Matrix4, TubeGeometry, Vector3 } from "three";
 import {
   generateOcotilloCluster,
   generateOcotilloFlowerPlacements,
@@ -26,89 +28,34 @@ const FLOWER_MODEL_PATH = "/models/vine-flower.glb";
 // une petite grappe serrée en pointe, pas des fleurs individuelles espacées.
 const FLOWER_TARGET_SIZE = 0.05;
 
-type PieceFleur = { geometry: BufferGeometry; material: Material; pose: Matrix4 };
-
 /**
  * LES FLEURS D'UN BOUQUET, EN UNE SEULE MAILLE (16/09).
  *
  * Chaque fleur etait un `scene.clone(true)` pose dans son propre groupe :
  * vingt-huit fleurs dans la scene, donc vingt-huit appels de dessin et
- * cinquante-six objets de plus dans le graphe, pour une geometrie et un
- * materiau STRICTEMENT identiques. `three` sait dessiner ca en un appel.
- *
- * La normalisation (mise a l'echelle sur FLOWER_TARGET_SIZE et recentrage)
- * se calcule desormais UNE FOIS sur le modele source au lieu d'une fois par
- * clone : elle ne dependait que du modele, jamais du point de pose. Le
- * `useFrame` d'attente n'a plus lieu d'etre, puisqu'on mesure une source
- * deja chargee et non un clone qu'il fallait voir attache au graphe.
- *
- * `matrixAutoUpdate` a faux : les poses sont ecrites une fois. La sphere
- * englobante est recalculee pour couvrir toutes les instances, sinon le
- * culling jetterait le bouquet des que sa premiere fleur sort du cadre.
+ * cinquante-six objets, pour une geometrie et un materiau strictement
+ * identiques depuis la fusion. La normalisation ne dependait que du modele,
+ * jamais du point de pose : elle se calcule maintenant une fois sur la
+ * source (voir lib/pieces-modele), ce qui supprime aussi le `useFrame`
+ * d'attente qui guettait l'attachement de chaque clone au graphe.
  */
-function FleursInstanciees({ piece, points }: { piece: PieceFleur; points: Vector3[] }) {
-  const ref = useRef<InstancedMeshType>(null);
-  useEffect(() => {
-    const maille = ref.current;
-    if (!maille) return;
-    const pose = new Matrix4();
-    const translation = new Matrix4();
-    points.forEach((point, i) => {
-      translation.makeTranslation(point.x, point.y, point.z);
-      pose.multiplyMatrices(translation, piece.pose);
-      maille.setMatrixAt(i, pose);
-    });
-    maille.instanceMatrix.needsUpdate = true;
-    maille.computeBoundingSphere();
-    maille.matrixAutoUpdate = false;
-    maille.updateMatrix();
-  }, [piece, points]);
-  return (
-    <instancedMesh
-      ref={ref}
-      args={[piece.geometry, piece.material, Math.max(1, points.length)]}
-      raycast={() => null}
-    />
-  );
-}
-
 function OcotilloFleurs({ points }: { points: Vector3[] }) {
   const { scene } = useGLTF(FLOWER_MODEL_PATH);
-  const pieces = useMemo<PieceFleur[]>(() => {
+  const pieces = useMemo(() => {
     // Sur la SOURCE, et idempotent : `scene.clone(true)` partage les
     // geometries, donc fusionner un clone disposerait celles des autres.
     mergeByMaterial(scene);
     elaguerDecor(scene);
-    scene.updateMatrixWorld(true);
-    const boite = new Box3().setFromObject(scene);
-    const taille = boite.getSize(new Vector3());
-    const echelle = taille.y > 0 ? FLOWER_TARGET_SIZE / taille.y : 1;
-    const centre = boite.getCenter(new Vector3());
-    const base = new Matrix4().compose(
-      new Vector3(-centre.x * echelle, -boite.min.y * echelle, -centre.z * echelle),
-      new Quaternion(),
-      new Vector3(echelle, echelle, echelle),
-    );
-    const versRacine = new Matrix4().copy(scene.matrixWorld).invert();
-    const out: PieceFleur[] = [];
-    scene.traverse((o) => {
-      const maille = o as Mesh;
-      if (!maille.isMesh || Array.isArray(maille.material)) return;
-      const locale = new Matrix4().multiplyMatrices(versRacine, maille.matrixWorld);
-      out.push({
-        geometry: maille.geometry as BufferGeometry,
-        material: maille.material as Material,
-        pose: new Matrix4().multiplyMatrices(base, locale),
-      });
-    });
-    return out;
+    return preparerPieces(scene, FLOWER_TARGET_SIZE);
   }, [scene]);
-
-  if (points.length === 0) return null;
+  const poses = useMemo(
+    () => points.map((p) => new Matrix4().makeTranslation(p.x, p.y, p.z)),
+    [points],
+  );
   return (
     <>
       {pieces.map((piece, i) => (
-        <FleursInstanciees key={i} piece={piece} points={points} />
+        <MailleInstanciee key={i} piece={piece} poses={poses} />
       ))}
     </>
   );
