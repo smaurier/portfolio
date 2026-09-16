@@ -235,6 +235,9 @@ export default function Cihuateteo() {
   const smokeTexture = useTexture(SMOKE_SPRITE);
   const groupRef = useRef<Group>(null);
   const blendRef = useRef(direction === "cendre" ? 1 : 0);
+  // Le tissu sur telephone : une image sur deux, temps accumule (16/09).
+  const accTissuRef = useRef(0);
+  const pariteTissuRef = useRef(false);
   const scratch = useMemo(() => new Vector3(), []);
   const headForward = useMemo(() => new Vector3(), []);
   const walkClip = useMemo(() => animations.find((a) => a.name === WALK_CLIP) ?? animations[0], [animations]);
@@ -513,6 +516,31 @@ export default function Cihuateteo() {
     const sun = sunDirection(dayAtArc("cendre", progress), true);
     const time = state.clock.elapsedTime;
     const dt = Math.min(delta, 1 / 30);
+    /**
+     * LE TISSU, UNE IMAGE SUR DEUX SUR TELEPHONE (16/09).
+     *
+     * `simEveryOtherFrame` existe dans le profil de qualite depuis le
+     * 05/09, mais seules la brume et l'eau l'honoraient : les chaines de
+     * Verlet des porteuses, qui sont le plus gros poste de la page,
+     * tournaient a plein regime. Profil de Contact, Pixel 7, processeur
+     * divise par quatre : le solveur pesait 1,08 ms par image et la
+     * reecriture des rubans 0,90, sur un budget de 16,7.
+     *
+     * Le temps s'accumule et le pas joue le retard, donc le mouvement garde
+     * sa vitesse : meme motif que mictlan-mist et tezcatl-water. On saute
+     * aussi `finishRibbonBundle`, sinon on televerserait a chaque image une
+     * geometrie qui n'a pas change.
+     *
+     * Ce qu'on accepte : l'ancre suit les os a 60 Hz, la meche a 30, donc
+     * elle traine d'une image de seize millisecondes. Sur des spectres
+     * semi-transparents qui derivent lentement, ca ne se lit pas ; sur
+     * ordinateur rien ne change, le reglage est mobile seulement.
+     */
+    const unSurDeux = sceneRefs?.perfProfile.simEveryOtherFrame ?? false;
+    accTissuRef.current += dt;
+    const pasTissu = !unSurDeux || (pariteTissuRef.current = !pariteTissuRef.current);
+    const dtTissu = pasTissu ? Math.min(accTissuRef.current, 1 / 15) : 0;
+    if (pasTissu) accTissuRef.current = 0;
     const settle = descentBlend(dusk);
     // L'ATTERRISSAGE (09/09) : leur descente etait une PRESENCE, un fondu
     // continu ou rien ne se passait jamais vraiment. Le contact au sol
@@ -593,7 +621,7 @@ export default function Cihuateteo() {
       const skullX = scratch.x, skullY = scratch.y + SKULL_LIFT, skullZ = scratch.z;
       // Un vent doux sur les cheveux : ils TOMBENT, et ondulent au bout.
       const hairWind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 0.35, y: 0, z: WIND_BASE.z * gust * 0.35 };
-      b.hair.forEach((h, k) => {
+      if (pasTissu) b.hair.forEach((h, k) => {
         const s = h.strand;
         // Racine sur le crane : azimut autour de la nuque, inclinaison de la
         // couronne aux oreilles ; tournee avec la tete.
@@ -607,10 +635,10 @@ export default function Cihuateteo() {
               y: Math.sin(time * s.speed * 2.3 + s.phase * 2) * 0.12,
               z: hairWind.z + Math.cos(time * s.speed * 1.3 + s.phase) * 0.22,
             };
-        stepStrip(h.strip, dt, anchor, wind, { gravity: 9, damping: s.damping, windResponse: s.windResponse, iterations: relaxations(4, camDist, clothFar) });
+        stepStrip(h.strip, dtTissu, anchor, wind, { gravity: 9, damping: s.damping, windResponse: s.windResponse, iterations: relaxations(4, camDist, clothFar) });
         writeRibbonSlot(b.hairGeometry, k, h.strip, (u) => 0.04 * (1 - u * 0.45));
       });
-      finishRibbonBundle(b.hairGeometry);
+      if (pasTissu) finishRibbonBundle(b.hairGeometry);
       // La jupe : bandes de tissu depuis la ceinture, qui suivent les
       // hanches et volent dans la danse.
       const hipsBone = b.hipsBone;
@@ -618,22 +646,22 @@ export default function Cihuateteo() {
       else scratch.set(pose.x, pose.y + BEARER_HEIGHT * 0.52, pose.z);
       const waistX = scratch.x, waistY = scratch.y + 0.04, waistZ = scratch.z;
       const skirtWind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 0.5 + hips * 0.35, y: 0.2 * Math.abs(hips), z: WIND_BASE.z * gust * 0.5 };
-      b.skirt.forEach((strip, k) => {
+      if (pasTissu) b.skirt.forEach((strip, k) => {
         const t = (k / b.skirt.length) * Math.PI * 2;
         const lx = Math.sin(t) * HIP_SIDE, lz = Math.cos(t) * HIP_FRONT;
         const anchor = { x: waistX + lx * Math.cos(yaw) + lz * Math.sin(yaw), y: waistY, z: waistZ - lx * Math.sin(yaw) + lz * Math.cos(yaw) };
         // Chaque bande a sa souplesse : le tissu ne bouge pas d'un bloc.
         const j = ((k * 7919) % 13) / 13;
-        stepStrip(strip, dt, anchor, skirtWind, { gravity: 7, damping: 0.976 + 0.012 * j, windResponse: 0.35 + 0.35 * j, iterations: relaxations(3, camDist, clothFar) });
+        stepStrip(strip, dtTissu, anchor, skirtWind, { gravity: 7, damping: 0.976 + 0.012 * j, windResponse: 0.35 + 0.35 * j, iterations: relaxations(3, camDist, clothFar) });
         writeRibbonSlot(b.skirtGeometry, k, strip, (u) => 0.065 * (1 + 0.35 * u));
       });
-      finishRibbonBundle(b.skirtGeometry);
+      if (pasTissu) finishRibbonBundle(b.skirtGeometry);
       // Les papiers du carrefour : plantes au sol devant elle, ils claquent.
-      for (const p of b.papers) {
+      if (pasTissu) for (const p of b.papers) {
         const px = pose.x + Math.sin(pose.yaw + Math.PI / 2) * p.peg.x + Math.sin(pose.yaw) * p.peg.z;
         const pz = pose.z + Math.cos(pose.yaw + Math.PI / 2) * p.peg.x + Math.cos(pose.yaw) * p.peg.z;
         const wind = reduced ? { x: 0, y: 0, z: 0 } : { x: WIND_BASE.x * gust * 1.4 + Math.sin(time * 2.1 + p.phase) * 0.8, y: 1.6 + Math.sin(time * 3.3 + p.phase) * 0.8, z: WIND_BASE.z + Math.cos(time * 1.6 + p.phase) * 0.6 };
-        stepStrip(p.strip, dt, { x: px, y: 0.12, z: pz }, wind, { gravity: 2.5, damping: 0.975, windResponse: 1.6, iterations: relaxations(5, camDist, clothFar) });
+        stepStrip(p.strip, dtTissu, { x: px, y: 0.12, z: pz }, wind, { gravity: 2.5, damping: 0.975, windResponse: 1.6, iterations: relaxations(5, camDist, clothFar) });
         writeRibbonSlot(paperGeometry, p.slot, p.strip, 0.09);
       }
       // Les braises de l'offrande, a ses pieds : elles ne s'allument qu'au
@@ -664,7 +692,7 @@ export default function Cihuateteo() {
     });
     // Les douze papiers ecrivent dans le MEME faisceau : on ne le referme
     // donc qu'une fois, apres la boucle des porteuses.
-    finishRibbonBundle(paperGeometry);
+    if (pasTissu) finishRibbonBundle(paperGeometry);
     // Les positions sont prises, l'herbe peut souffler.
     if (collectSpots) cihuateteoStore.landing += 1;
     hairMaterial.opacity = opacity;
