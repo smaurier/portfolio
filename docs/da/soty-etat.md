@@ -412,5 +412,33 @@ defilement et a la composition. Le profil ne montre plus de gachis :
 Les deux leviers qui restent sont des decisions de direction artistique, pas
 d'ingenierie : **moins de Cihuateteo a l'Ouest**, ou **moins de meches et de
 lanieres par porteuse** (`hairStrands` et `skirtStrips` sont a 32 sur
-mobile). Un troisieme, plus long : instancier le decor pour faire tomber le
-nombre d'objets de la scene.
+mobile).
+
+### Le troisieme levier, pris le meme jour : alleger le graphe
+
+Sylvain a choisi la voie d'ingenierie, celle qui ne touche pas a l'image.
+Deux coupes, `lib/elaguer-decor.ts` et l'instanciation des fleurs
+d'ocotillo, ont fait tomber Contact de 891 a 648 objets, de 163 a 126
+maillages, et sa mediane de rendu de 12,9 a 9,6 ms. Les images a 60 Hz
+passent d'environ 52 % a environ 59 % (cinq passes : 55,0 / 56,7 / 59,7 /
+62,5 / 63,5 ; la mesure varie de huit points d'une passe a l'autre, la
+mediane du rendu, elle, est stable).
+
+**ET LA LIMITE, mesuree puis annulee.** La flore de fond a ete instanciee
+elle aussi, puis remise comme elle etait. Une maille instanciee n'a qu'UN
+volume englobant : elle perd le culling par objet. Quatorze fleurs serrees
+sur un bouquet d'ocotillo y gagnent ; quatre plantes dispersees sur un
+anneau de rayon 6 a 11 autour de la camera, non, puisqu'on en voyait un
+tiers et qu'on les dessinait toutes. Quatre passes : 9,3 / 9,4 / 9,9 / 10,1
+ms contre 9,6 sans, donc match nul, pour 9 % de triangles en plus.
+**L'instanciation paie quand les repetitions sont GROUPEES DANS L'ESPACE.**
+
+### Etat final du 16/09
+
+| Page | 60 Hz | debut de journee |
+|---|---|---|
+| Services | 95,5 % | 94,6 % |
+| Accueil | 93,4 % | 90,7 % |
+| Memoire | 91,4 % | 83,1 % |
+| Projets | 88,3 % | 69,5 % |
+| Contact | ~59 % | 51,9 % |
