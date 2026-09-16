@@ -442,3 +442,74 @@ ms contre 9,6 sans, donc match nul, pour 9 % de triangles en plus.
 | Memoire | 91,4 % | 83,1 % |
 | Projets | 88,3 % | 69,5 % |
 | Contact | ~59 % | 51,9 % |
+
+
+## 16/09, seconde moitie : Contact, et la fin de la mesure sur cette machine
+
+Sylvain a demande de continuer sur Contact. Cinq coupes, toutes
+structurelles, toutes verifiables sans chronometre.
+
+### 1. Le tissu et les feuilles ne lisaient pas leur propre reglage
+
+`simEveryOtherFrame` vit dans le profil de qualite depuis le 05/09. Seules
+`mictlan-mist` et `tezcatl-water` l'honoraient. Les chaines de Verlet des
+Cihuateteo (1,08 ms par image pour le solveur, 0,90 pour la reecriture des
+rubans) et la boucle des cent vingt feuilles de l'Ouest (0,84 ms pour le
+vent, 0,97 pour la hauteur de terrain) tournaient a plein regime sur
+telephone. Elles suivent maintenant le reglage, temps accumule pour garder
+la vitesse du mouvement. Ces quatre postes ont quitte le haut du profil.
+
+### 2. LES DEUX SENTINELLES DE DEFILEMENT, le plus gros gain de la journee
+
+`dock-sentinel` et `defilement-sentinel` etaient deja cadencees par
+`requestIdleCallback`... pardon, par `requestAnimationFrame`, ce qui est la
+bonne forme. Mais elles lisaient `window.scrollY` DANS le rappel. Un rappel
+d'animation tourne avant que le navigateur ait refait sa mise en page :
+repondre l'y force. A chaque image de defilement, sur TOUTES les pages.
+
+Elles lisent desormais la valeur notee par l'ecouteur `scroll`
+(`lib/profondeur-page.defilementPage`). Compte des lectures qui dependent de
+la mise en page, par image, apres toutes les corrections du jour :
+
+    scrollHeight 0,21   scrollY 0,31   innerHeight 0,39   getBoundingClientRect 0,07
+
+Elles etaient une vingtaine ce matin. **C'est la mesure la plus fiable de la
+journee, parce qu'elle ne depend pas de la vitesse de la machine.**
+
+### 3. La matiere cuit hors du fil principal
+
+Le grain de l'amate et le poli de l'obsidienne se cuisaient dans les temps
+morts. Une page qui rend une scene 3D n'en a AUCUN : `requestIdleCallback`
+n'annoncait jamais de repit, c'etait toujours le delai de garde qui
+decidait, et la cuisson s'etalait sur pres de sept secondes en vingt-deux
+taches de vingt a deux cent trente-cinq millisecondes, en plein premier
+defilement. Un worker les cuit maintenant et rend quatre blobs PNG.
+
+    cuisson 6620 -> 887 ms, pire tache sur le fil principal 235 -> 0 ms
+
+Pas d'image cuite a la construction : les quatre tuiles pesent 184 Ko en PNG
+sans perte, 8 Ko en WebP avec perte, mais elles se REPETENT, donc un
+artefact de compression se repeterait avec elles. C'est exactement la
+famille de defaut que Sylvain avait vue le 15/09.
+
+### 4. Le graphe allege
+
+891 -> 648 objets sur Contact, 163 -> 126 maillages, 143 -> 100 appels de
+dessin au pointe (elagage des groupes vides, effondrement des chainons,
+instanciation des vingt-huit fleurs d'ocotillo).
+
+### ⛔ LA MACHINE NE MESURE PLUS, et il faut le savoir avant de relire ces chiffres
+
+En fin de journee, le meme protocole sur la meme page a donne 92,3 % puis
+25,4 % puis 9,1 % d'images a 60 Hz en moins d'une heure. Le NOMBRE TOTAL
+d'images relevees sur une fenetre de duree fixe est tombe de 350 a 132 :
+c'est le navigateur lui-meme qui ne tient plus 60 im/s, sur toutes les
+pages, y compris celles qu'on n'a pas touchees. Apres des heures de
+constructions et de sondes GPU, ce portable est thermiquement a genoux.
+
+**Aucun pourcentage releve apres cette bascule ne vaut rien.** Les chiffres
+qui restent vrais sont ceux qui ne dependent pas de la vitesse : le compte
+des lectures de mise en page, le compte des objets, la pire tache de
+cuisson, et la disparition de quatre postes du profil.
+
+A refaire sur une machine froide, et surtout sur un vrai telephone.
