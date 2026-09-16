@@ -65,8 +65,18 @@ export default function CenterXiuhtecuhtli({ alphaRef }: { alphaRef: MutableRefO
 
   useFrame((state) => {
     if (!materialRef.current) return;
-    materialRef.current.uniforms.uAlpha.value =
-      alphaRef.current * (1 + ARRIVAL_FLARE * hearthFlare(foyerStore.arrival));
+    const alpha = alphaRef.current * (1 + ARRIVAL_FLARE * hearthFlare(foyerStore.arrival));
+    materialRef.current.uniforms.uAlpha.value = alpha;
+    // ETEINDRE PLUTOT QUE DESSINER DU VIDE (16/09). Les trois ambiances
+    // cardinales sont montees ensemble et se fondent par leur alpha : sur
+    // une page donnee, deux dessinent donc a alpha nul, en additif et sans
+    // ecriture de profondeur, sur tous les pixels que leurs points
+    // couvrent. Un fragment se paie qu'il ecrive ou non. Mesure sur Contact
+    // (Pixel 7, processeur divise par quatre, mediane du temps de rendu sur
+    // deux cents images) : la seule ambiance du Nord pesait 1,6 ms par
+    // image, sur un budget de 16,7. Meme motif que sun-beam et
+    // foyer-column, qui le faisaient deja.
+    if (pointsRef.current) pointsRef.current.visible = alpha > 0.002;
     materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
   });
 

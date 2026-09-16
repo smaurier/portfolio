@@ -181,6 +181,16 @@ export default function XiuhcoatlCompanion() {
   const { scene, animations } = useGLTF(MODEL_PATH);
   const { actions } = useAnimations(animations, groupRef);
   const [present, setPresent] = useState(false);
+  // MONTE AVANT D'ETRE VU (16/09). Le rig arrive au moment narratif, vers
+  // 14 % de l'arc du Sud : 57 objets et trois programmes d'un coup, mesures
+  // a cinq images longues (67, 83, 67, 100, 150 ms sur un Pixel 7 bride) pile
+  // sur la transition que le jury regarde. On le monte donc INVISIBLE des
+  // l'arrivee au Sud : `gl.compile` initialise les materiaux en `traverse`
+  // (WebGLRenderer r185 ligne 1433 ; `traverseVisible` ne sert qu'aux
+  // lumieres), donc la chauffe le compile derriere le voile. La frappe ne
+  // paie plus qu'un basculement de `visible`. Le modele etait deja telecharge
+  // dans tous les cas : `useGLTF` est appele hors de la garde.
+  const [montable, setMontable] = useState(false);
   const wanderRef = useRef<WanderState | null>(null);
   const bornAtRef = useRef(0);
   const bankRef = useRef(0);
@@ -213,9 +223,13 @@ export default function XiuhcoatlCompanion() {
     if (!south || isBot() || readingMode.active || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- presence pilotee par la route
       setPresent(false);
+      setMontable(false);
       wanderRef.current = null;
       return;
     }
+    // Le rig peut surgir ici : on le monte invisible tout de suite, pour que
+    // la chauffe le compile. Voir le commentaire de `montable`.
+    setMontable(true);
     const here = decidePresence();
     if (here) {
       wanderRef.current = initialWander(Math.floor(Math.random() * 1e6), XIUHCOATL_WANDER);
@@ -421,7 +435,7 @@ export default function XiuhcoatlCompanion() {
     }
   });
 
-  if (!present) return null;
+  if (!present && !montable) return null;
   return (
     <group ref={groupRef} visible={false}>
       <primitive object={scene} />

@@ -143,7 +143,11 @@ export default function SpiritParticles({
     // Pulse partagé avec rim/edge/aura : les pétales respirent en
     // phase avec le battement cardiaque (formule sin^4 période 4s).
     const pulse = 0.65 + 0.35 * Math.pow(Math.sin(state.clock.elapsedTime * Math.PI * 0.25), 4);
-    uniforms.uIntensity.value = blend * pulse;
+    const intensite = blend * pulse;
+    uniforms.uIntensity.value = intensite;
+    // Meme motif que sun-beam et foyer-column (16/09) : hors fenetre d'arc,
+    // des points additifs a alpha nul se paient quand meme au fragment.
+    if (pointsRef.current) pointsRef.current.visible = intensite > 0.002;
     uniforms.uTime.value = state.clock.elapsedTime;
 
     // Vent cardinal Ehecatl pendant burst transition : pousse les

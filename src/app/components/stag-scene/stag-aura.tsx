@@ -3,7 +3,7 @@
 
 import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
-import { AdditiveBlending, BackSide, Color, type ShaderMaterial } from "three";
+import { AdditiveBlending, BackSide, Color, type Mesh, type ShaderMaterial } from "three";
 import { getRimColorBlend } from "@/lib/reveal-arc";
 
 /**
@@ -41,6 +41,7 @@ export default function StagAura({
   climaxRimColor: string;
 }) {
   const materialRef = useRef<ShaderMaterial>(null);
+  const meshRef = useRef<Mesh>(null);
 
   const uniforms = useMemo(
     () => ({
@@ -55,11 +56,21 @@ export default function StagAura({
     const p = progressRef.current;
     const blend = getRimColorBlend(p);
     const pulse = 0.65 + 0.35 * Math.pow(Math.sin(state.clock.elapsedTime * Math.PI * 0.25), 4);
-    uniforms.uIntensity.value = blend * pulse;
+    const intensite = blend * pulse;
+    uniforms.uIntensity.value = intensite;
+    // ETEINDRE PLUTOT QUE DESSINER DU NOIR (16/09). Hors de la fenetre
+    // d'arc, `blend` vaut zero : le halo est invisible, mais la sphere
+    // continue d'etre dessinee en additif, sans ecriture de profondeur, sur
+    // tous les pixels qu'elle couvre. Bisection en defilant sur Contact,
+    // Pixel 7 et processeur divise par quatre : cette seule maille pesait
+    // 13,6 points des 46 % d'images au-dela de 33 ms. Un alpha nul ne coute
+    // pas moins cher qu'un alpha plein : c'est le fragment qui se paie, pas
+    // ce qu'il ecrit. Une maille invisible, elle, sort du rendu.
+    if (meshRef.current) meshRef.current.visible = intensite > 0.002;
   });
 
   return (
-    <mesh position={[0, 1.0, 0]} scale={[1.8, 2.2, 1.8]} raycast={() => null}>
+    <mesh ref={meshRef} position={[0, 1.0, 0]} scale={[1.8, 2.2, 1.8]} raycast={() => null}>
       <sphereGeometry args={[1, 32, 16]} />
       <shaderMaterial
         ref={materialRef}
