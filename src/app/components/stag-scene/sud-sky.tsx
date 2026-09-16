@@ -101,11 +101,40 @@ const SKY_URL = "/sky/sud-sky.jpg";
  */
 let cielPromis: Promise<Texture> | null = null;
 
-function chargerCiel(): Promise<Texture> {
+/**
+ * REDUIRE L'IMAGE DECODEE (16/09).
+ *
+ * Le fichier fait 120 Ko compresses, mais une fois decode il occupe sa
+ * surface en pixels : 2048 x 1024 en quatre octets, soit HUIT MEGAOCTETS sur
+ * la carte, quel que soit l'ecran qui l'affiche. C'etait le plus gros objet
+ * graphique d'un telephone, huit des 17,2 Mo de textures de la page, pour
+ * une toile de 618 pixels de large.
+ *
+ * On ne touche pas au fichier : le telechargement est deja negligeable et
+ * la face claire du bureau, elle, merite sa pleine definition. C'est la
+ * largeur du profil de qualite qui decide (voir scene-controls).
+ */
+function reduire(image: unknown, largeurMax: number): HTMLCanvasElement | null {
+  const src = image as { width?: number; height?: number } | null;
+  const l = src?.width ?? 0;
+  const h = src?.height ?? 0;
+  if (!l || !h || l <= largeurMax) return null;
+  const cible = document.createElement("canvas");
+  cible.width = largeurMax;
+  cible.height = Math.max(1, Math.round((h * largeurMax) / l));
+  const ctx = cible.getContext("2d");
+  if (!ctx) return null;
+  ctx.drawImage(image as CanvasImageSource, 0, 0, cible.width, cible.height);
+  return cible;
+}
+
+function chargerCiel(largeurMax: number): Promise<Texture> {
   cielPromis ??= new Promise<Texture>((resoudre, rejeter) => {
     new TextureLoader().load(
       SKY_URL,
       (tex) => {
+        const reduite = reduire(tex.image, largeurMax);
+        if (reduite) tex.image = reduite as unknown as HTMLImageElement;
         tex.colorSpace = SRGBColorSpace;
         // La jointure (retour Sylvain) : en ClampToEdge le bord u = 0 / u = 1
         // ne se referme pas, et les mipmaps choisissent un niveau minuscule
@@ -258,10 +287,11 @@ export default function SudSky() {
   // comme au Nord cette texture ne sera jamais affichee. On ne l'abandonne
   // pas pour autant : elle part des que le voile est leve, pour qu'un voyage
   // cardinal vers le Sud la trouve deja en cache.
+  const largeurCiel = sceneRefs?.perfProfile.cielLargeurMax ?? 2048;
   useEffect(() => {
     let vivant = true;
     const poser = () => {
-      chargerCiel()
+      chargerCiel(largeurCiel)
         .then((tex) => {
           if (!vivant) return;
           material.uniforms.uSky.value = tex;
@@ -283,7 +313,7 @@ export default function SudSky() {
       vivant = false;
       arret?.();
     };
-  }, [material, direction]);
+  }, [material, direction, largeurCiel]);
 
   useFrame((state) => {
     const south = direction === "turquoise";

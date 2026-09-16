@@ -75,6 +75,20 @@ export type QualityProfile = {
    * en retard). */
   simEveryOtherFrame: boolean;
   /**
+   * Largeur maximale de la photographie de ciel (16/09).
+   *
+   * Le fichier fait 2048 x 1024, et une fois decode il occupe huit
+   * megaoctets sur la carte, quel que soit l'ecran. C'est le plus gros objet
+   * graphique d'un telephone : sur un Pixel 7, il pesait huit des 17,2 Mo de
+   * textures de la page. Or la toile y fait 618 pixels de large (412 points
+   * a densite 1,5 plafonnee), et le dome est derriere la brume : 1024 y
+   * donne encore plus d'un texel par pixel a l'horizon.
+   *
+   * On reduit l'image DECODEE, pas le fichier : le telechargement ne change
+   * pas, c'est la memoire de la carte qu'on vise.
+   */
+  cielLargeurMax: number;
+  /**
    * Ligules d'une cempasuchil, au Nord (16/09).
    *
    * Refaites le meme jour : elles se lisaient comme un tas de plaques
@@ -90,12 +104,12 @@ export type QualityProfile = {
   cempasuchilPetals: number;
 };
 
-const QUALITY_DESKTOP: QualityProfile = { dprCap: 2, postFx: true, shadows: true, bladeCount: 26000, hairStrands: 90, leafCount: 240, skirtStrips: 52, clothFar: 7, simEveryOtherFrame: false, cempasuchilPetals: 150 };
+const QUALITY_DESKTOP: QualityProfile = { cielLargeurMax: 2048, dprCap: 2, postFx: true, shadows: true, bladeCount: 26000, hairStrands: 90, leafCount: 240, skirtStrips: 52, clothFar: 7, simEveryOtherFrame: false, cempasuchilPetals: 150 };
 // 13/09 (X5 de l'audit, barre du metier) : 9000 -> 5000 brins, 160 -> 120
 // feuilles, 40 -> 32 meches. Mesure avant : Contact a 30 im/s en mediane
 // sous CPU x4, Projets et Memoire a 30 au 5e centile.
-const QUALITY_MOBILE: QualityProfile = { dprCap: 1.5, postFx: false, shadows: false, bladeCount: 5000, hairStrands: 32, leafCount: 120, skirtStrips: 32, clothFar: 0, simEveryOtherFrame: true, cempasuchilPetals: 84 };
-const QUALITY_ECO: QualityProfile = { dprCap: 1, postFx: false, shadows: false, bladeCount: 4000, hairStrands: 28, leafCount: 100, skirtStrips: 24, clothFar: 0, simEveryOtherFrame: true, cempasuchilPetals: 64 };
+const QUALITY_MOBILE: QualityProfile = { cielLargeurMax: 1024, dprCap: 1.5, postFx: false, shadows: false, bladeCount: 5000, hairStrands: 32, leafCount: 120, skirtStrips: 32, clothFar: 0, simEveryOtherFrame: true, cempasuchilPetals: 84 };
+const QUALITY_ECO: QualityProfile = { cielLargeurMax: 768, dprCap: 1, postFx: false, shadows: false, bladeCount: 4000, hairStrands: 28, leafCount: 100, skirtStrips: 24, clothFar: 0, simEveryOtherFrame: true, cempasuchilPetals: 64 };
 
 /** Le profil effectif : eco force le repli, sinon le profil de l'ecran. */
 export function resolveQuality(eco: boolean, isMobile: boolean): QualityProfile {

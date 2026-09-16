@@ -49,6 +49,8 @@ export type PerfProfile = {
   simEveryOtherFrame: boolean;
   /** Ligules d'une cempasuchil, au Nord (16/09). */
   cempasuchilPetals: number;
+  /** Largeur maximale de la photographie de ciel une fois decodee (16/09). */
+  cielLargeurMax: number;
 };
 
 /**
@@ -74,5 +76,6 @@ export function getPerfProfile(viewportWidth: number, eco = false): PerfProfile 
     clothFar: q.clothFar,
     simEveryOtherFrame: q.simEveryOtherFrame,
     cempasuchilPetals: q.cempasuchilPetals,
+    cielLargeurMax: q.cielLargeurMax,
   };
 }
