@@ -347,6 +347,7 @@ export default async function LocaleLayout({
           translation={loadingPhrase.translation}
           hearthLine={dict.lab.hearthLine}
           label={dict.lab.loadingLabel}
+          enter={{ label: dict.lab.enterLabel, hint: dict.lab.enterHint }}
           sound={dict.common.sound}
         />
         {/* Provider transition cardinale "cerf mène" (28/08) : expose

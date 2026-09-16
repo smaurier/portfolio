@@ -881,7 +881,9 @@
       }
     ],
     "loadingLabel": "Chargement de la scène",
-    "hearthLine": "Le feu brûle encore."
+    "hearthLine": "Le feu brûle encore.",
+    "enterLabel": "Entrer",
+    "enterHint": "Passer la cérémonie d'entrée. Le monde s'ouvre dès qu'il est prêt."
   },
   "closure": {
     "jade": {

@@ -51,6 +51,14 @@ const REVEAL_FALLBACK_MS = 4000;
  * ce delai APRES data-reveal-done, on marque quand meme la sequence. */
 const SEQUENCE_FALLBACK_MS = 4000;
 
+/** LA PORTE (16/09, idee de Sylvain). Le visiteur peut demander a entrer
+ *  sans attendre la ceremonie. L'evenement saute la CHOREGRAPHIE, jamais le
+ *  TRAVAIL : les trois portes de `tryPoseLoaded` restent, donc on n'entre
+ *  jamais avant que les octets soient la et que les shaders soient
+ *  compiles. Entrer dans une scene dont les programmes ne sont pas prets
+ *  donnerait une scene qui saccade, ce qui est pire que d'attendre. */
+export const ENTRER_EVENT = "nahual:entrer";
+
 export default function RevealTrigger() {
   const { progress } = useProgress();
   const progressRef = useRef(progress);
@@ -153,6 +161,14 @@ export default function RevealTrigger() {
     // peut plus rester vrai sans que la pose ne suive.
     const veille = window.setInterval(tryPoseLoaded, 500);
 
+    // La porte : on marque la choregraphie comme finie, et c'est tout.
+    // Le travail garde ses propres portes.
+    const onEntrer = () => {
+      markRevealDone();
+      markSequenceDone();
+    };
+    window.addEventListener(ENTRER_EVENT, onEntrer);
+
     skeleton.addEventListener("animationend", onAnimEnd);
     // Fallback global : si la sequence texte ne signale jamais sa
     // fin (traduction vide, CSS change), on marque tout comme
@@ -171,6 +187,7 @@ export default function RevealTrigger() {
 
     return () => {
       window.removeEventListener(SHADERS_WARM_EVENT, onWarm);
+      window.removeEventListener(ENTRER_EVENT, onEntrer);
       skeleton.removeEventListener("animationend", onAnimEnd);
       timers.forEach(clearTimeout);
       window.clearInterval(veille);

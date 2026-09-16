@@ -881,7 +881,9 @@
       }
     ],
     "loadingLabel": "Loading the scene",
-    "hearthLine": "The fire is still burning."
+    "hearthLine": "The fire is still burning.",
+    "enterLabel": "Enter",
+    "enterHint": "Skip the opening ceremony. The world opens as soon as it is ready."
   },
   "closure": {
     "jade": {

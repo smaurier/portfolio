@@ -750,3 +750,72 @@
   outline: 2px solid var(--ink-warm);
   outline-offset: 2px;
 }
+
+/* ===================================================================
+   LA PORTE (16/09, idee de Sylvain). Elle ne se presente pas comme un
+   « passer » : ce serait dire que la ceremonie est un obstacle. Elle se
+   presente comme une porte, discrete, en bas, et elle attend que la
+   premiere phrase soit posee avant d'exister (1,1 s) : proposer une
+   sortie avant meme d'avoir salué serait un aveu.
+   =================================================================== */
+.porte {
+  position: absolute;
+  bottom: clamp(24px, 6vh, 56px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  padding: 10px 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 236, 225, 0.28);
+  background: transparent;
+  color: rgba(242, 236, 225, 0.72);
+  font: inherit;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  animation: porteApparait 600ms ease-out 1100ms both;
+  transition: color 200ms ease-out, border-color 200ms ease-out;
+}
+
+.porte:hover,
+.porte:focus-visible {
+  color: rgba(242, 236, 225, 0.98);
+  border-color: rgba(242, 236, 225, 0.6);
+}
+
+/* Le focus doit se voir sur un fond noir : contour clair, epais, decolle. */
+.porte:focus-visible {
+  outline: 2px solid rgba(242, 236, 225, 0.9);
+  outline-offset: 3px;
+}
+
+/* Pressee : le geste a ete entendu. Le monde s'ouvre des que le travail est
+   fini, ce qui peut prendre encore une seconde ou deux : sans cet etat, le
+   bouton aurait l'air casse. */
+.porte[data-presse="true"] {
+  color: rgba(242, 236, 225, 0.4);
+  border-color: rgba(242, 236, 225, 0.14);
+  cursor: default;
+}
+
+/* LA PORTE SORT DE L'ORDRE DE TABULATION DES QUE LE MONDE EST LA (16/09).
+   Le voile reste dans le document apres sa levee ; un bouton invisible mais
+   focalisable y serait un piege au clavier, juste avant le lien d'evitement.
+   Le test de parcours clavier l'a attrape a la premiere tentative.
+   `display: none` retire l'element de l'ordre, ce qu'une opacite ne fait
+   pas. */
+html[data-loaded="true"] .porte {
+  display: none;
+}
+
+@keyframes porteApparait {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .porte {
+    animation: none;
+  }
+}

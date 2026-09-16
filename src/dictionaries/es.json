@@ -881,7 +881,9 @@
       }
     ],
     "loadingLabel": "Cargando la escena",
-    "hearthLine": "El fuego sigue ardiendo."
+    "hearthLine": "El fuego sigue ardiendo.",
+    "enterLabel": "Entrar",
+    "enterHint": "Saltar la ceremonia de entrada. El mundo se abre en cuanto está listo."
   },
   "closure": {
     "jade": {

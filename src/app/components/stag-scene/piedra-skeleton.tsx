@@ -4,6 +4,7 @@ import SplitText from "../split-text";
 import RevealTrigger from "./reveal-trigger";
 import FoyerArrival from "./foyer-arrival";
 import VeilSoundChoice from "./veil-sound-choice";
+import PorteDEntree from "./porte-entree";
 import styles from "./piedra-skeleton.module.css";
 
 /**
@@ -52,6 +53,7 @@ export default function PiedraSkeleton({
   translation,
   hearthLine,
   label,
+  enter,
   sound,
 }: {
   phrase: string;
@@ -60,6 +62,8 @@ export default function PiedraSkeleton({
    * traduction quand le foyer est deja allume (14/09). */
   hearthLine: string;
   label: string;
+  /** LA PORTE (16/09) : le libelle du bouton et son aide. */
+  enter: { label: string; hint: string };
   sound: { choiceLabel: string; enterWith: string; enterWithout: string };
 }) {
   return (
@@ -159,6 +163,14 @@ export default function PiedraSkeleton({
         />
         <SplitText text="Nahual" />
       </p>
+      {/* LA PORTE (16/09, idee de Sylvain). Un voile qui retient sans porte
+          se lit comme une contrainte ; le meme voile avec une porte se lit
+          comme une offre, et qui veut la ceremonie la regarde. Le bouton
+          saute la CHOREGRAPHIE, jamais le TRAVAIL : on n'entre pas dans une
+          scene dont les shaders ne sont pas compiles, ce serait une scene
+          qui saccade. C'est aussi une sortie pour qui ne veut pas subir une
+          sequence chronometree. */}
+      <PorteDEntree label={enter.label} hint={enter.hint} />
       {/* Pose data-reveal-done="true" sur skeleton apres l'animation
           du dernier char de la traduction : gate CSS pour toute la
           sequence post-reveal (dots + cercle + logo). */}
