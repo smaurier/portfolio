@@ -766,9 +766,9 @@
   z-index: 40;
   padding: 10px 26px;
   border-radius: 999px;
-  border: 1px solid rgba(242, 236, 225, 0.28);
+  border: 1px solid rgba(var(--ink-warm-rgb), 0.28);
   background: transparent;
-  color: rgba(242, 236, 225, 0.72);
+  color: rgba(var(--ink-warm-rgb), 0.72);
   font: inherit;
   font-size: 0.8125rem;
   letter-spacing: 0.08em;
@@ -780,13 +780,13 @@
 
 .porte:hover,
 .porte:focus-visible {
-  color: rgba(242, 236, 225, 0.98);
-  border-color: rgba(242, 236, 225, 0.6);
+  color: rgba(var(--ink-warm-rgb), 0.98);
+  border-color: rgba(var(--ink-warm-rgb), 0.6);
 }
 
 /* Le focus doit se voir sur un fond noir : contour clair, epais, decolle. */
 .porte:focus-visible {
-  outline: 2px solid rgba(242, 236, 225, 0.9);
+  outline: 2px solid rgba(var(--ink-warm-rgb), 0.9);
   outline-offset: 3px;
 }
 
@@ -794,8 +794,8 @@
    fini, ce qui peut prendre encore une seconde ou deux : sans cet etat, le
    bouton aurait l'air casse. */
 .porte[data-presse="true"] {
-  color: rgba(242, 236, 225, 0.4);
-  border-color: rgba(242, 236, 225, 0.14);
+  color: rgba(var(--ink-warm-rgb), 0.4);
+  border-color: rgba(var(--ink-warm-rgb), 0.14);
   cursor: default;
 }
 
