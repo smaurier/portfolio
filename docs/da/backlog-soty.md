@@ -443,6 +443,57 @@ meme compilation, mesuree deux fois, a rendu 162 puis 254 images sur la
 meme fenetre a Memoire. Cette machine ne peut pas trancher. F1d reste
 ouvert, et c'est sur un vrai telephone que ca se verra (V3).
 
+## 0 septies. LE STATUT ET CE QUE LE SITE PROMET (15/09, decision de Sylvain)
+
+**Le constat.** Les mentions legales declaraient « Sylvain Maurier,
+entrepreneur individuel. SIRET : a completer ». Sylvain n'est pas
+entrepreneur individuel : il est salarie, sans immatriculation, et il a
+pose lui-meme que l'auto-entreprise ne rouvre pas avant le 23/10. Une
+mention legale qui affirme un statut inexistant est plus risquee qu'une
+mention absente ; et un numero d'immatriculation ne se declare pas quand on
+n'en a pas, la loi ne le demandant que SI l'editeur est immatricule.
+
+**La loi du 21 juin 2004 prevoit deux regimes.** L'editeur PROFESSIONNEL
+doit donner nom, prenom, domicile, telephone, et son numero
+d'immatriculation s'il en a un. L'editeur NON PROFESSIONNEL (article 6 III
+2) peut ne pas se nommer publiquement, a condition d'avoir donne son
+identite a l'hebergeur, et doit publier celle de l'hebergeur. La page
+relevait du premier sans en tenir aucune obligation.
+
+**La decision du 15/09 : le regime non professionnel, pour le moment.** Le
+site est un portfolio qui presente un travail, ne vend rien et n'accepte
+aucune commande. Trois chaines publiques qui disaient le contraire ont ete
+reformulees, sans toucher au nom ni au ton :
+
+| ou | avant | apres |
+| --- | --- | --- |
+| bouton de l'accueil | « Decouvrir mes services » | « Decouvrir mon travail » |
+| entree de Services | « Deux OFFRES, un seul objectif » | « Deux SAVOIR-FAIRE, un seul objectif » |
+| entree de Contact | « Je suis disponible pour de nouvelles missions, parlons-en » | « ... ou juste une question sur ce que tu viens de voir : ecris-moi » |
+
+Ce qui n'a PAS bouge, et volontairement : le nom « Nahual, studio de
+creation », qui est une signature d'atelier et non une offre ; et les
+fiches de projets, qui parlent de clients, de missions et de devis PASSES,
+ce qui est le propre d'un portfolio.
+
+**A REEXAMINER APRES LE 23/10/2026**, et c'est la raison d'etre de cette
+section. Trois questions reviendront ensemble :
+
+1. Rouvrir l'auto-entreprise ? L'ouverture est gratuite et, sans chiffre
+   d'affaires, il n'y a pas de cotisations, seulement des declarations a
+   zero. Garde-fou existant : jamais freelance affiche tant que salarie.
+2. Si oui, les mentions legales repassent au regime professionnel : il
+   faudra alors nom, prenom, DOMICILE, telephone et le SIRET. Le domicile
+   est le point inconfortable pour un particulier, et c'est lui qu'il faudra
+   arbitrer, pas le SIRET.
+3. Si oui, le site peut redevenir une offre : « mes services », « deux
+   offres », « disponible pour de nouvelles missions » redeviennent
+   exacts, et la page Services peut reprendre son verbe commercial.
+
+Tant que la reponse a la question 1 est non, les trois formulations
+ci-dessus restent au savoir-faire. Le vrai risque n'a jamais ete la mention
+legale : il serait d'exercer une prestation sans immatriculation.
+
 ## 0 quinquies. L'os a ronger : ce que chaque mecanique peut encore donner (13/09)
 
 Registre complet : `docs/da/mecaniques-du-site.md` (douze familles, six

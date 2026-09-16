@@ -138,7 +138,7 @@
   "home": {
     "heroTitle": "Nahual · studio de création",
     "heroText": "Chez les Nahuas, peuple mésoaméricain, le cerf (Mazātl) est le septième jour du calendrier sacré : un messager entre les mondes, associé à la grâce, à la vigilance, et à la faculté de cacher sa vraie nature aux autres. Le nahual, c'est cette même idée : une essence humaine qui se révèle dans sa forme animale véritable, incarnée ici par ce cerf.",
-    "heroCta": "Découvrir mes services",
+    "heroCta": "Découvrir mon travail",
     "aboutTitle": "À propos",
     "aboutText": "Nahual, le studio, applique la même logique au web : transformer une idée en un site bien réel. La preuve que ça a marché ? Il fonctionne pour tout le monde.\n\nSylvain Maurier, développeur frontend senior, 10 ans d'expérience (React, Next.js, Vue/Nuxt, React Native). Spécialisé en accessibilité numérique (RGAA), avec une conviction simple : l'accessibilité se code, pas seulement s'audite.",
     "githubCta": "Voir mon code sur GitHub →",
@@ -168,7 +168,7 @@
   },
   "services": {
     "title": "Services",
-    "intro": "Nahual, c'est le studio de création de Sylvain Maurier, développeur frontend senior spécialisé en accessibilité numérique. Deux offres, un seul objectif : des sites qui marchent, pour tout le monde.",
+    "intro": "Nahual, c'est le studio de création de Sylvain Maurier, développeur frontend senior spécialisé en accessibilité numérique. Deux savoir-faire, un seul objectif : des sites qui marchent, pour tout le monde.",
     "webCard": {
       "title": "Création de site web",
       "text": "Sites vitrines, applications sur-mesure : développement frontend et fullstack (React, Next.js, Vue/Nuxt), design system, performance. Du cahier des charges à la mise en ligne."
@@ -348,7 +348,7 @@
   },
   "contact": {
     "title": "Contact",
-    "intro": "Un projet de site ou un besoin d'audit accessibilité ? Je suis disponible pour de nouvelles missions, parlons-en.",
+    "intro": "Un projet de site, un besoin d'audit accessibilité, ou juste une question sur ce que tu viens de voir : écris-moi.",
     "note": "Une idée à creuser autour d'un café, ou juste envie de parler techno, les deux me vont.",
     "linkedinBefore": "Ou sur",
     "linkedinLinkText": "LinkedIn",

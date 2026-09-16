@@ -138,7 +138,7 @@
   "home": {
     "heroTitle": "Nahual · creative studio",
     "heroText": "Among the Nahua, a Mesoamerican people, the deer (Mazātl) is the seventh day of the sacred calendar: a messenger between worlds, associated with grace, vigilance, and the ability to hide its true nature from others. The nahual is the same idea: a human essence revealed in its true animal form, embodied here by this deer.",
-    "heroCta": "Discover my services",
+    "heroCta": "See my work",
     "aboutTitle": "About",
     "aboutText": "Nahual, the studio, applies the same logic to the web: turning an idea into a real, working site. The proof it worked? It works for everyone.\n\nSylvain Maurier, senior frontend developer, 10 years of experience (React, Next.js, Vue/Nuxt, React Native). Specialized in digital accessibility (RGAA/WCAG), with one simple conviction: accessibility is built, not just audited.",
     "githubCta": "See my code on GitHub →",
@@ -168,7 +168,7 @@
   },
   "services": {
     "title": "Services",
-    "intro": "Nahual is Sylvain Maurier's creative studio, a senior frontend developer specialized in digital accessibility. Two offers, one goal: websites that work, for everyone.",
+    "intro": "Nahual is the creative studio of Sylvain Maurier, a senior frontend developer specialising in digital accessibility. Two skills, one aim: sites that work, for everyone.",
     "webCard": {
       "title": "Website development",
       "text": "Showcase sites, custom applications: frontend and fullstack development (React, Next.js, Vue/Nuxt), design systems, performance. From spec to launch."
@@ -348,7 +348,7 @@
   },
   "contact": {
     "title": "Contact",
-    "intro": "A website project or an accessibility audit need? I'm available for new missions, let's talk.",
+    "intro": "A website project, an accessibility audit, or simply a question about what you have just seen: write to me.",
     "note": "An idea worth exploring over coffee, or just want to talk tech, either works for me.",
     "linkedinBefore": "Or on",
     "linkedinLinkText": "LinkedIn",
