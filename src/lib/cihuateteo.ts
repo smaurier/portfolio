@@ -55,6 +55,21 @@ export const CIHUATETEO = {
   /** Papillons qui s'echappent, par porteuse et par seconde. */
   wispsEscort: 3,
   wispsCrossroads: 10,
+  /**
+   * LA VENUE (16/09). Fenetre du crepuscule sur laquelle elles arrivent.
+   * A `venueStart` le soleil vient de passer le zenith : elles prennent
+   * tout juste leur charge et ne sont pas encore la. A `venueEnd` elles
+   * ont rejoint leur place et escortent pour de bon.
+   */
+  venueStart: 0.04,
+  venueEnd: 0.3,
+  /**
+   * De combien elles se tiennent en arriere quand elles ne sont pas
+   * encore venues, en unites monde, le long de la direction du soleil.
+   * Vingt-six, c'est le `far` du brouillard de l'Ouest : au-dela, la brume
+   * les a entierement mangees, et c'est elle qui fait le fondu.
+   */
+  reculMax: 26,
 };
 
 export type BearerPose = { x: number; y: number; z: number; yaw: number };
@@ -73,6 +88,45 @@ function lerp(a: number, b: number, t: number): number {
 function lerpAngle(a: number, b: number, t: number): number {
   const d = Math.atan2(Math.sin(b - a), Math.cos(b - a));
   return a + d * t;
+}
+
+/**
+ * LA VENUE DES PORTEUSES (16/09). 0 au zenith, 1 quand elles sont en place.
+ *
+ * Les sources sont concordantes : les Cihuateteo guident le soleil « into
+ * the west from noon until sunset ». Elles prennent le relais des guerriers
+ * AU ZENITH. Leur presence n'est donc pas une propriete de la page, c'est
+ * une fonction de la hauteur du soleil, et notre arc de l'Ouest fait deja
+ * ce trajet : le defilement du visiteur EST la descente du soleil.
+ *
+ * CE QUE CA CORRIGE. Jusqu'au 16/09 leur presence suivait la ROUTE
+ * (`west ? 1 : 0`), et la porte `g.visible = blend > 0.01` allumait
+ * quarante-deux mailles a `opacityEscort`, c'est-a-dire a 45 %, en une
+ * image : +22,6 de luminance moyenne au commit, le dernier morceau de la
+ * marche du passage. Le booleen de route etait un contresens de
+ * cosmogonie, et le defaut n'en etait que la trace dans le code.
+ *
+ * Le defaut disparait par CONSTRUCTION et non par masquage : depuis la
+ * descente du 16/09 on arrive toujours en haut de l'arc, donc a l'Ouest au
+ * zenith, donc a l'instant precis ou cette fonction vaut zero.
+ */
+export function presencePorteuses(dusk: number, c = CIHUATETEO): number {
+  return smoothstep(c.venueStart, c.venueEnd, dusk);
+}
+
+/**
+ * De combien elles sont encore loin, en unites monde, a placer le long de
+ * la direction du soleil : elles viennent de Cihuatlampa, qui est un lieu,
+ * et un lieu est loin.
+ *
+ * C'est la seule place du site ou le rideau de brume fonctionne. Ailleurs
+ * le decor est a l'interieur du `near` du brouillard (« il ne touche
+ * jamais la scene proche », 20/08) et refermer le `far` ne le toucherait
+ * pas. Ici, etre loin a un sens, donc la brume peut faire le fondu, pour
+ * rien : pas de shader, pas de transparence en plus, pas de tri.
+ */
+export function reculPorteuses(presence: number, c = CIHUATETEO): number {
+  return (1 - clamp01(presence)) * c.reculMax;
 }
 
 /** 0 tant qu'elles portent le soleil, 1 posees au carrefour. */

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  presencePorteuses,
+  reculPorteuses,
   relaxations,
   CIHUATETEO,
   HAIR_STRANDS,
@@ -178,5 +180,67 @@ describe("landingState : l'atterrissage est un evenement, pas un fondu", () => {
       expect(Number.isFinite(s.flare)).toBe(true);
       expect(Number.isFinite(s.gust)).toBe(true);
     }
+  });
+});
+
+describe("presencePorteuses (la venue, 16/09)", () => {
+  it("AU ZENITH, ELLES NE SONT PAS LA : exactement zero", () => {
+    // C'est tout le correctif. Depuis la descente du 16/09 on arrive
+    // toujours en haut de l'arc de l'Ouest, donc au zenith : si cette
+    // valeur n'est pas nulle, la marche de luminance revient.
+    expect(presencePorteuses(0)).toBe(0);
+    expect(presencePorteuses(CIHUATETEO.venueStart)).toBe(0);
+  });
+
+  it("elles sont entierement la bien avant le carrefour", () => {
+    // Leur descente au carrefour commence a `descendStart` : la venue doit
+    // etre finie avant, sinon elles arriveraient en se posant deja.
+    expect(CIHUATETEO.venueEnd).toBeLessThan(CIHUATETEO.descendStart + 0.1);
+    expect(presencePorteuses(CIHUATETEO.venueEnd)).toBe(1);
+    expect(presencePorteuses(1)).toBe(1);
+  });
+
+  it("ne recule jamais quand le soleil tombe", () => {
+    let precedent = -1;
+    for (let d = 0; d <= 1.0001; d += 0.02) {
+      const p = presencePorteuses(d);
+      expect(p).toBeGreaterThanOrEqual(precedent);
+      precedent = p;
+    }
+  });
+
+  it("commence en douceur : pas de marche a l'entree de la fenetre", () => {
+    // Un seuil dur rendrait le defaut a l'identique, deplace de quelques
+    // images. La derivee doit etre nulle aux deux bornes (smoothstep).
+    const juste = presencePorteuses(CIHUATETEO.venueStart + 0.002);
+    expect(juste).toBeGreaterThan(0);
+    expect(juste).toBeLessThan(0.01);
+  });
+});
+
+describe("reculPorteuses (elles viennent de Cihuatlampa)", () => {
+  it("au plus loin quand elles ne sont pas venues, et AU-DELA DE LA BRUME", () => {
+    // 26 unites, c'est le `far` du brouillard de l'Ouest : au-dela, il les
+    // a entierement mangees. C'est la brume qui fait le fondu.
+    expect(reculPorteuses(0)).toBe(CIHUATETEO.reculMax);
+    expect(CIHUATETEO.reculMax).toBeGreaterThanOrEqual(26);
+  });
+
+  it("nul quand elles sont en place", () => {
+    expect(reculPorteuses(1)).toBe(0);
+  });
+
+  it("decroit sans jamais repasser derriere", () => {
+    let precedent = Infinity;
+    for (let p = 0; p <= 1.0001; p += 0.05) {
+      const r = reculPorteuses(p);
+      expect(r).toBeLessThanOrEqual(precedent);
+      precedent = r;
+    }
+  });
+
+  it("borne les presences aberrantes", () => {
+    expect(reculPorteuses(1.5)).toBe(0);
+    expect(reculPorteuses(-0.4)).toBe(CIHUATETEO.reculMax);
   });
 });

@@ -32,7 +32,7 @@ import {
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { shareSkeletons } from "@/lib/share-skeletons";
 import { libererSquelettes } from "@/lib/liberer-squelettes";
-import { CIHUATETEO, HAIR_STRANDS, LANDING, LANDING_LATCH, bearerHair, bearerOpacity, bearerPose, descentBlend, landingState, litterPose, type HairStrand, wispRate, relaxations, CLOTH_FAR_DISTANCE } from "@/lib/cihuateteo";
+import { CIHUATETEO, HAIR_STRANDS, LANDING, LANDING_LATCH, bearerHair, bearerOpacity, bearerPose, descentBlend, landingState, litterPose, presencePorteuses, reculPorteuses, type HairStrand, wispRate, relaxations, CLOTH_FAR_DISTANCE } from "@/lib/cihuateteo";
 import { createStrip, stepStrip, type Strip } from "@/lib/paper-strip";
 import { remapWestArc } from "@/lib/ouest-arc";
 import { armLatch, stepLatch, type LatchState } from "@/lib/threshold-latch";
@@ -510,16 +510,54 @@ export default function Cihuateteo() {
 
   useFrame((state, delta) => {
     const west = direction === "cendre";
-    blendRef.current += ((west ? 1 : 0) - blendRef.current) * 0.05;
-    const blend = blendRef.current;
-    const g = groupRef.current;
-    if (!g) return;
-    g.visible = blend > 0.01;
-    if (!g.visible) return;
-    const reduced = sceneRefs?.reducedMotionRef.current ?? false;
     const progress = sceneRefs?.progressRef.current ?? 0;
     const { dusk } = remapWestArc(progress);
+    /**
+     * LEUR PRESENCE SUIT LE SOLEIL, PAS LA ROUTE (16/09).
+     *
+     * Elle valait `west ? 1 : 0`, lisse a 0,05 par image, et la porte
+     * `g.visible = blend > 0.01` allumait quarante-deux mailles a
+     * `opacityEscort`, c'est-a-dire a 45 %, EN UNE IMAGE : +22,6 de
+     * luminance moyenne au commit de la route, le dernier morceau de la
+     * marche du passage.
+     *
+     * Les sources disent pourquoi c'etait faux : les Cihuateteo guident le
+     * soleil « into the west from noon until sunset » et prennent le relais
+     * des guerriers AU ZENITH. Leur presence n'est pas une propriete de la
+     * page, c'est une fonction de la hauteur du soleil. Un booleen de route
+     * etait un contresens de cosmogonie, et le defaut n'en etait que la
+     * trace.
+     *
+     * Le correctif ne masque donc rien, il retire la faute : depuis la
+     * descente du 16/09 on arrive toujours en haut de l'arc, donc a l'Ouest
+     * au zenith, donc a l'instant precis ou `presencePorteuses` vaut zero.
+     * Il n'y a plus de marche a lisser, il n'y a plus rien a allumer.
+     *
+     * Pas de lissage par image ici : la presence suit le defilement sans
+     * retard, comme l'arc lui-meme. La route ne sert plus qu'a fermer la
+     * porte quand on n'est pas a l'Ouest, et a ce moment-la la presence est
+     * deja nulle, puisqu'on y arrive et qu'on en repart par le zenith.
+     */
+    const blend = west ? presencePorteuses(dusk) : 0;
+    blendRef.current = blend;
+    const g = groupRef.current;
+    if (!g) return;
+    g.visible = blend > 0.001;
+    if (!g.visible) return;
+    const reduced = sceneRefs?.reducedMotionRef.current ?? false;
+    /**
+     * ET ELLES VIENNENT DE LOIN. Cihuatlampa est un lieu, et un lieu est
+     * loin : tant qu'elles ne sont pas venues, elles se tiennent en arriere
+     * le long de la direction du soleil, au-dela du `far` du brouillard de
+     * l'Ouest, qui les mange entierement. C'est la brume qui fait le fondu,
+     * et c'est la seule place du site ou ce rideau fonctionne : ailleurs le
+     * decor est a l'interieur du `near` et refermer le `far` ne le
+     * toucherait pas.
+     */
     const sun = sunDirection(dayAtArc("cendre", progress), true);
+    const recul = reculPorteuses(blend);
+    const hSun = Math.hypot(sun.x, sun.z) || 1;
+    g.position.set((sun.x / hSun) * recul, 0, (sun.z / hSun) * recul);
     const time = state.clock.elapsedTime;
     const dt = Math.min(delta, 1 / 30);
     /**
@@ -578,7 +616,9 @@ export default function Cihuateteo() {
       const camDist = Math.sqrt((pose.x - state.camera.position.x) ** 2 + (pose.z - state.camera.position.z) ** 2);
       // L'herbe a besoin de savoir OU elles ont touche : c'est elle qui
       // possede la grille de simulation.
-      if (collectSpots) cihuateteoStore.spots.push({ x: pose.x, z: pose.z });
+      // Pas de trace dans l'herbe tant qu'elles ne sont pas venues : leur
+      // pose est celle de leur place, pas celle du recul.
+      if (collectSpots && recul < 0.5) cihuateteoStore.spots.push({ x: pose.x, z: pose.z });
       // Le battement : chaque porteuse a son decalage, l'ensemble garde le
       // meme tempo (une danse de groupe, pas quatre solos).
       const beat = time * DANCE.beatHz * Math.PI * 2 + i * 0.9;
