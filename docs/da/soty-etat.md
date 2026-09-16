@@ -640,3 +640,93 @@ Sur un ecran retina, environ **745 Mo de memoire graphique ramenes a 271**.
 Ce qui reste de gros, sur ordinateur, ce sont les cibles plein ecran de la
 chaine d'effets elle-meme (dix a la densite de la toile) : les reduire
 voudrait dire toucher aux effets, pas a leur reglage.
+
+## 16/09 au soir : l'analyse contre le referentiel, sur machine froide
+
+Demandee par Sylvain apres une journee de correctifs. Les releves de
+l'apres-midi ne valaient rien (voir plus haut) : la machine est restee
+eteinte assez longtemps pour remesurer proprement, et c'est ce qui suit.
+
+### Le bareme, inchange (verifie le 11/09)
+
+Design 40, utilisabilite 30, creativite 20, contenu 10. Au moins dix-huit
+jures, les trois notes les plus eloignees de la moyenne eliminees, mention
+honorable a partir de 6,5, site du jour au plus haut score de sa journee.
+
+Deux consequences qu'on oublie toujours :
+
+ - **la moyenne tronquee suit le jure MEDIAN.** Une excellence de niche est
+   coupee avec les extremes ; un defaut que tout le monde voit survit. Le
+   bareme recompense donc structurellement le relevement des planchers, pas
+   celui des plafonds.
+ - **la performance n'est pas une note, c'est une PORTE.** Le jure Hon Tran
+   decrit trois obligations, direction artistique, mouvement dirige,
+   performance, et conclut : « il en manque une et vous plafonnez dans les
+   sept ». On ne gagne pas de points a etre rapide ; on en perd a ne pas
+   l'etre.
+
+### La mesure de ce soir (protocole exact du jure : Pixel 7, CPU /4)
+
+| page | images a 60 Hz | images > 33 ms | 5e centile | ce matin, > 33 ms |
+| --- | --- | --- | --- | --- |
+| Services | 99,2 % | 1,7 % | 59,5 | 5,4 % |
+| Accueil | 98,3 % | 3,6 % | 59,5 | 9,3 % |
+| Memoire | 98,1 % | 3,0 % | 59,5 | 16,9 % |
+| Projets | 96,0 % | 4,1 % | 59,5 | 30,5 % |
+| Contact | 91,8 % | 13,1 % | 29,9 | 29,0 % |
+
+Ouverture, meme telephone bride : premiere peinture 1,5 s, voile leve a
+6,3 s sur reseau normal. En Fast 3G, 2,3 s et 19,3 s, mais ce dernier
+chiffre vient du serveur local qui ne compresse pas : en production il faut
+compter environ la moitie.
+
+**La porte est franchie.** Le cinquieme centile a 59,5 sur quatre pages
+signifie que quatre-vingt-quinze pour cent des images tiennent le soixante.
+C'etait exactement le plafond nomme le 11/09 : « Contact a 34 % d'images en
+retard ». Il est a 13,1 %.
+
+### Ce que ca change a l'estimation
+
+Le 11/09, note estimee du jury : 7,4 a 7,6, retenue par la performance. Avec
+la porte franchie, l'estimation passe a **7,6 a 7,9**, et ce qui la retient
+desormais n'est plus technique du tout : ce sont les 40 % de design et les
+20 % de creativite.
+
+**Le renseignement strategique de la journee, et il est contre-intuitif :
+l'optimisation ne rapporte plus rien.** Chaque milliseconde gagnee
+au-dela de la porte est une milliseconde qui ne se transforme pas en point.
+Les points qui restent sont dans la lumiere cuite, le fil narratif explicite,
+la partition sonore et les gestes caches, c'est-a-dire dans les deux axes qui
+pesent soixante pour cent a eux deux.
+
+### Les huit axes, ce qui a bouge le 16/09
+
+| axe | avant | apres |
+| --- | --- | --- |
+| Performance | Contact 34 % d'images en retard | quatre pages entre 1,7 et 4,1 %, Contact a 13,1 %, 5e centile a 59,5 |
+| Visuel | cempasuchil « pas realistes » (Sylvain) ; ombres PCF dures | ligules en gouttiere, normales de surface, receptacle ; ombres VSM vraiment douces |
+| Robustesse | fuite graphique ouverte depuis le 15/09 | plus rien ne fuit ; empreinte telephone 65 -> 11,2 Mo, bureau ~745 -> 271 Mo |
+| Les six autres | inchanges | inchanges |
+
+Rien n'a bouge sur le narratif, le cinematographique, le mythologique, les
+tests, l'accessibilite ni le novateur. C'est normal, la journee etait
+technique, mais c'est la que sont les points.
+
+### Ce que je ferais ensuite, par rendement decroissant
+
+ 1. **Un vrai telephone, et un iPhone emprunte.** Ce n'est pas une
+    optimisation, c'est la VERIFICATION que la porte est bien franchie. Tout
+    ce qui precede vient d'une emulation sur une machine dont les propres
+    mesures ont varie de quarante points dans la meme journee. Et sur iOS,
+    l'empreinte graphique qu'on vient de diviser par six n'a jamais ete
+    observee sur l'appareil.
+ 2. **La lumiere cuite sur le decor fixe.** Dernier poste visuel non fait,
+    sur l'axe qui pese 40 %.
+ 3. **Le fil narratif rendu explicite**, une ligne au seuil de chaque
+    direction, et Xolotl dans le role du personnage qu'on suit.
+ 4. **La partition sonore** : des coupes et des motifs par direction plutot
+    que des nappes, comme le carillon du climax.
+
+Et une chose qui ne se mesure pas mais qui bloque tout : **trente-trois
+commits attendent sur `dev`**, dont tout ce qui precede. Ce qui les retient
+est la relecture des textes publics.
