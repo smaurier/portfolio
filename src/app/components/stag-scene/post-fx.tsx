@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, EffectGroup, HueSaturation, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { approachGrade, getGradeRig, type GradeRig } from "@/lib/direction-grade";
@@ -84,7 +84,40 @@ const DOF_FOCUS_RANGE = 12;
 const DOF_BASE_BOKEH = 1.4;
 const DOF_BURST_BOKEH = 3.0;
 
+/**
+ * LE MULTI-ECHANTILLONNAGE SUIT LA DENSITE DE L'ECRAN (16/09).
+ *
+ * `multisampling={4}` etait pose en dur, et c'etait de loin le premier poste
+ * de memoire graphique de tout le site. Mesure sur Projets, ecran de bureau,
+ * en interceptant `createRenderbuffer` -- que le compteur de textures ne voit
+ * PAS, d'ou des mois passes a regarder ailleurs :
+ *
+ *   densite 1 : 122 Mo de renderbuffers, dont 119 pour la chaine d'effets
+ *   densite 2 : 478 Mo
+ *
+ * Quatre tampons plein ecran, deux en RGBA16F (huit octets le pixel) et deux
+ * en profondeur 32 bits, multiplies par QUATRE echantillons. La densite les
+ * quadruple encore, puisqu'elle double chaque cote.
+ *
+ * Or a densite 2 le navigateur sur-echantillonne deja : chaque pixel CSS est
+ * rendu sur quatre pixels d'appareil, puis reduit a la presentation. C'est
+ * exactement ce que fait un multi-echantillonnage, et le payer une seconde
+ * fois ne rend pas les bords plus lisses, il double la facture. A densite 1,
+ * en revanche, il n'y a pas de sur-echantillonnage, et une silhouette low
+ * poly sans lissage s'escalierise franchement.
+ *
+ * D'ou la regle : quatre echantillons quand l'ecran n'en fournit pas, aucun
+ * quand il en fournit. Le gain est le plus gros la ou la memoire l'est
+ * aussi.
+ */
+const DENSITE_SANS_MSAA = 2;
+
 export default function PostFX() {
+  // `gl.getPixelRatio()` et non `window.devicePixelRatio` : c'est la densite
+  // REELLE de la toile, celle que le plafond du profil de qualite a decidee
+  // (dpr={[1, dprCap]}), pas celle de l'ecran.
+  const densite = useThree((s) => s.gl.getPixelRatio());
+  const echantillons = densite >= DENSITE_SANS_MSAA ? 0 : 4;
   const bloomRef = useRef<{ intensity: number } | null>(null);
   const caRef = useRef<{ offset: { x: number; y: number } } | null>(null);
   const dofRef = useRef<{ bokehScale: number } | null>(null);
@@ -171,7 +204,7 @@ export default function PostFX() {
   });
 
   return (
-    <EffectComposer multisampling={4}>
+    <EffectComposer multisampling={echantillons}>
       {/* OllinShockwave (29/08) : onde de pression au pointerdown user,
           signature nahua "tremblement d'Ollin". En premier de la
           chaine : deforme la scene rendue AVANT DOF/bloom/CA, effet
