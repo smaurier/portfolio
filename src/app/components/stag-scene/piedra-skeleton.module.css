@@ -320,7 +320,12 @@
   animation: translationCharReveal 550ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
   /* Demarre apres la phrase (env. 1800ms pour ~20 chars a 45ms + 700ms
      de fade) + stagger plus rapide (20ms) et moins d'aberration. */
-  animation-delay: calc(1800ms + var(--char-index) * 20ms);
+  /* 1800ms -> 700ms et 20ms -> 11ms par caractere (16/09, bornage du
+     voile). La phrase finit vers 1,2 s : attendre 1,8 s laissait six cents
+     millisecondes de page morte, puis 63 caracteres a 20 ms ajoutaient 1,26
+     seconde. La sequence se lit toujours phrase PUIS traduction, elle ne
+     traine plus entre les deux. */
+  animation-delay: calc(700ms + var(--char-index) * 11ms);
 }
 
 @keyframes phraseCharReveal {
@@ -389,7 +394,9 @@
   inset: 0;
   pointer-events: none;
   --dot-radius: min(170px, 34vw);
-  --burst-duration: 900ms;
+  /* 900ms -> 620ms (16/09, bornage du voile) : la queue d'ornement
+     debordait du travail reel de plus d'une seconde. */
+  --burst-duration: 620ms;
 }
 
 /* Etat par defaut : invisible, aucune animation. Les animations sont
@@ -538,7 +545,7 @@
 }
 
 .skeleton[data-reveal-done="true"] .ripple {
-  animation: rippleWave 1500ms ease-out both;
+  animation: rippleWave 1100ms ease-out both;
 }
 
 .skeleton[data-reveal-done="true"] .rippleOne {
@@ -581,8 +588,9 @@
 /* Apparait apres le dernier dot (Nord offset 320ms + burst 900ms) +
    petit gap de respiration. */
 .skeleton[data-reveal-done="true"] .unionCircle {
-  animation: unionCircleReveal 900ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
-  animation-delay: calc(320ms + 900ms + 100ms);
+  animation: unionCircleReveal 620ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  /* Toujours apres le dernier point (offset 320 + burst), gap reduit. */
+  animation-delay: calc(320ms + 620ms + 60ms);
 }
 
 @keyframes unionCircleReveal {
@@ -652,8 +660,9 @@
      - gap 200ms
    = 2420ms → premier char. Icone 100ms avant (2320ms). */
 .skeleton[data-reveal-done="true"] .logoIcon {
-  animation: logoIconAppear 800ms cubic-bezier(0.34, 1.4, 0.5, 1) both;
-  animation-delay: 2320ms;
+  animation: logoIconAppear 600ms cubic-bezier(0.34, 1.4, 0.5, 1) both;
+  /* 2320ms -> 1200ms (16/09, bornage du voile). */
+  animation-delay: 760ms;
 }
 
 @keyframes logoIconAppear {
@@ -673,8 +682,11 @@
 }
 
 .skeleton[data-reveal-done="true"] .logoSignature :global(.char) {
-  animation: logoCharReveal 600ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
-  animation-delay: calc(2420ms + var(--char-index) * 40ms);
+  animation: logoCharReveal 480ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  /* 2420ms -> 1300ms et 40ms -> 28ms par lettre (16/09, bornage du voile).
+     Six lettres : le mot se pose toujours lettre a lettre, en deux fois
+     moins de temps. */
+  animation-delay: calc(860ms + var(--char-index) * 20ms);
 }
 
 @keyframes logoCharReveal {

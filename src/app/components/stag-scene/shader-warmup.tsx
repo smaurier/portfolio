@@ -85,6 +85,12 @@ type Programme = { isReady?: () => boolean };
  *  ou liaison qui ne repond jamais) : 4 s a 60 images par seconde. */
 const ATTENTE_MAX_FRAMES = 240;
 
+/** Combien de programmes peuvent lier EN MEME TEMPS (16/09). Quatre : assez
+ *  pour que la compilation parallele du pilote serve a quelque chose, assez
+ *  peu pour qu'une restauration reste une petite tranche de travail par
+ *  image. */
+const EN_VOL_MAX = 4;
+
 /** La couche ou l'on range un objet le temps de le compiler : aucune camera
  *  du site ne la regarde (la principale voit la couche 0, le miroir de
  *  l'eau la couche 3). */
@@ -348,8 +354,21 @@ export default function ShaderWarmup() {
       if (warmEnvironmentStep(gl, scene, envRef.current, journal) === "encore") return;
     }
 
-    // Un programme EN VOL a la fois : tant que sa liaison n'est pas finie,
-    // rien d'autre ne se compile et l'objet reste sur la couche froide.
+    // PLUSIEURS PROGRAMMES EN VOL, PAS UN SEUL (16/09, bornage du voile).
+    //
+    // La regle d'origine etait « un programme en vol a la fois » : tant
+    // qu'une liaison n'etait pas finie, rien d'autre ne se compilait. Ce qui
+    // compte dans cette regle, c'est qu'aucun objet ne soit RENDU avant que
+    // son programme soit pret, et cet acquis reste entier : chacun attend
+    // toujours sa propre liaison avant de revenir a sa couche.
+    //
+    // Mais serialiser la TOTALITE de la file allongeait la chauffe d'autant :
+    // mesure du 15/09, vingt-cinq programmes a un toutes les 125 ms, soit
+    // 3,6 secondes pendant lesquelles le visiteur regarde un voile. Or
+    // l'extension de compilation parallele existe justement pour que le
+    // pilote travaille sur plusieurs programmes a la fois. On en laisse donc
+    // EN_VOL_MAX en vol : le pilote compile en parallele au lieu de faire la
+    // queue, et personne n'est rendu en avance pour autant.
     const attente = attenteRef.current;
     if (SONDE) {
       const w = window as unknown as { __nahualChauffe?: { crees: number; attente?: string[] } };
@@ -375,7 +394,9 @@ export default function ShaderWarmup() {
         attente.delete(o);
         derniereRef.current.nom = `restaure ${o.type} ${o.name || "(sans nom)"} (${pret ? "pret" : "delai"})`;
       }
-      if (attente.size > 0) return;
+      // On ne rend la main que si la file est PLEINE : en dessous, on peut
+      // lancer la compilation suivante pendant que celles-ci lient encore.
+      if (attente.size >= EN_VOL_MAX) return;
     }
     const programmesDe = (o: WithMaterial): Programme[] => {
       const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];

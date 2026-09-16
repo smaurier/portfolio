@@ -99,8 +99,11 @@ export const FOYER_TIMING = {
   handoffDelay: 0.62,
   handoffDuration: 0.7,
   /** La camera descend l'axe : grammaire jade (implosion axiale). */
-  descentDelay: 0.3,
-  descentDuration: 1.4,
+  /* 0,3 -> 0,15 et 1,4 -> 1,0 (16/09, bornage du voile). La descente reste
+     le geste d'arrivee, elle ne fait plus attendre : elle representait deux
+     des neuf secondes et demie mesurees avant le bornage. */
+  descentDelay: 0.15,
+  descentDuration: 1.0,
   /** Le contenu se pose PENDANT la descente, pas apres. */
   contentDelay: 0.4,
   contentDuration: 0.9,

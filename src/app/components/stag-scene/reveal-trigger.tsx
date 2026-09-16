@@ -31,7 +31,7 @@ import { SHADERS_WARM_EVENT, getWarmDirection } from "./shader-warmup";
  */
 
 /** Duree de respiration entre la fin du logo et le fade out du voile. */
-const HOLD_AFTER_SEQUENCE_MS = 1000;
+const HOLD_AFTER_SEQUENCE_MS = 300;
 
 /** La chauffe des shaders (11/09) : le voile l'attend, mais jamais plus que
  *  ceci apres le chargement complet. Un pilote lent ou un evenement perdu
@@ -45,11 +45,11 @@ const HOLD_WHEN_HEARTH_LIT_MS = 120;
 
 /** Fallback : si aucun animationend "translationCharReveal" ne remonte
  * dans ce delai, on marque quand meme la sequence pour ne pas bloquer. */
-const REVEAL_FALLBACK_MS = 6000;
+const REVEAL_FALLBACK_MS = 4000;
 
 /** Fallback : si aucun animationend "logoCharReveal" ne remonte dans
  * ce delai APRES data-reveal-done, on marque quand meme la sequence. */
-const SEQUENCE_FALLBACK_MS = 6000;
+const SEQUENCE_FALLBACK_MS = 4000;
 
 export default function RevealTrigger() {
   const { progress } = useProgress();
