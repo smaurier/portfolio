@@ -12,6 +12,7 @@ import { useSceneRefs } from "./scene-refs-context";
 import { SONDE } from "@/lib/sonde";
 import { creerSuiviAjouts } from "@/lib/ajouts-scene";
 import { initialEnvironmentWarm, installEnvironmentBake, warmEnvironmentStep } from "./environment-warm";
+import { dernierDefilement } from "@/lib/profondeur-page";
 
 /**
  * LA CHAUFFE DES SHADERS (11/09), au voile ET a chaque arrivee.
@@ -91,6 +92,11 @@ const ATTENTE_MAX_FRAMES = 240;
  *  image. */
 const EN_VOL_MAX = 4;
 
+/** En dessous de ce repos depuis le dernier defilement, on ne compile pas. */
+const REPOS_AVANT_CHAUFFE_MS = 220;
+/** Mais on ne cede pas indefiniment : au-dela, on chauffe malgre tout. */
+const PATIENCE_CHAUFFE_MS = 2500;
+
 /** La couche ou l'on range un objet le temps de le compiler : aucune camera
  *  du site ne la regarde (la principale voit la couche 0, le miroir de
  *  l'eau la couche 3). */
@@ -133,6 +139,8 @@ export default function ShaderWarmup() {
   const suiviRef = useRef(creerSuiviAjouts());
   const warmingRef = useRef(false);
   const annexRef = useRef<Array<() => void>>([]);
+  /** Depuis quand la chauffe cede le pas au defilement (0 = elle ne cede pas). */
+  const cedeDepuisRef = useRef(0);
   /** Les objets dont le programme est en cours de LIAISON : on attend
    *  `isReady()` (COMPLETION_STATUS_KHR, non bloquant) avant de les rendre a
    *  leur couche, sinon c'est le rendu suivant qui bloque le temps de la
@@ -322,6 +330,31 @@ export default function ShaderWarmup() {
 
     if (!readyRef.current) return;
     framesRef.current += 1;
+    /**
+     * LA CHAUFFE CEDE LE PAS AU DEFILEMENT (16/09).
+     *
+     * Une compilation de nuanceur coute de vingt a cent vingt millisecondes
+     * sous processeur divise par quatre, et rien ne peut la raccourcir : ce
+     * qu'on peut choisir, c'est QUAND elle tombe. Dans une pause, elle passe
+     * inapercue ; en plein mouvement, c'est une secousse, et c'est
+     * exactement ce que le jure regarde.
+     *
+     * Mesure du 16/09 au soir sur Contact : les images de 117, 83 et 50 ms
+     * qui restaient etaient toutes groupees a 7 % de l'arc, c'est-a-dire au
+     * premier defilement, et portaient chacune une compilation. Elles
+     * viennent du pre-montage de la direction SUIVANTE (`cendre` appelle
+     * `obsidienne`), qui amene les simulateurs du Nord et leurs passes.
+     *
+     * La patience est bornee : un visiteur qui defile sans jamais s'arreter
+     * finirait sinon par payer la compilation au premier usage, ce qui est
+     * exactement ce qu'on evite. Passe ce delai, on chauffe quand meme.
+     */
+    if (performance.now() - dernierDefilement() < REPOS_AVANT_CHAUFFE_MS) {
+      cedeDepuisRef.current ||= performance.now();
+      if (performance.now() - cedeDepuisRef.current < PATIENCE_CHAUFFE_MS) return;
+    } else {
+      cedeDepuisRef.current = 0;
+    }
     // Plus que la cadence des balayages de materiaux : le fondu de
     // profondeur et la revelation au curseur ont pose leurs modificateurs.
     if (framesRef.current < FRAMES_AFTER_LOAD) return;

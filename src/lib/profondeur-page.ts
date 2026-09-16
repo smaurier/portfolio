@@ -80,6 +80,7 @@ export function creerLecteurProfondeur(source: SourceProfondeur): LecteurProfond
 
 let lecteur: LecteurProfondeur | null = null;
 let defilementNote = 0;
+let defileA = -Infinity;
 
 function brancher(): LecteurProfondeur {
   if (lecteur) return lecteur;
@@ -92,6 +93,7 @@ function brancher(): LecteurProfondeur {
   const oublier = () => lecteur?.oublier();
   const noter = () => {
     defilementNote = window.scrollY;
+    defileA = performance.now();
   };
   window.addEventListener("scroll", noter, { passive: true });
   window.addEventListener("resize", () => {
@@ -106,6 +108,19 @@ function brancher(): LecteurProfondeur {
     new ResizeObserver(oublier).observe(document.documentElement);
   }
   return lecteur;
+}
+
+/**
+ * Quand le visiteur a defile pour la derniere fois, en temps de page.
+ *
+ * Sert a CEDER LE PAS : une tache de fond qui coute vingt millisecondes
+ * passe inapercue dans une pause et se voit comme une secousse en plein
+ * mouvement. Le meme ecouteur `scroll` la note, donc ca ne coute rien.
+ */
+export function dernierDefilement(): number {
+  if (typeof window === "undefined") return -Infinity;
+  brancher();
+  return defileA;
 }
 
 /**
