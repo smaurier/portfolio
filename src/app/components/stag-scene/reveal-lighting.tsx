@@ -10,14 +10,16 @@ import {
   getDirectionalIntensity,
   getFogColor,
   getRimColorBlend,
+  FOG_JADE_TINT,
   type ColorRgb,
 } from "@/lib/reveal-arc";
 import { remapNorthArc } from "@/lib/direction-arc";
 import { remapWestArc, westFogTint } from "@/lib/ouest-arc";
 import { eastFogTint } from "@/lib/est-arc";
-import { dayAtArc, lightPAtArc, sunInTheWest } from "@/lib/arc-day";
+import { sunInTheWest } from "@/lib/arc-day";
+import { avancerFonduArc, fonduArcInitial, jourDuFondu, pDuFondu, type FonduArc } from "@/lib/arc-fondu";
 import { frostStore } from "./frost-store";
-import { approachFog, getFogRange, type FogRange } from "@/lib/direction-fog";
+import { approachFog, approachTint, getFogRange, type FogRange, type FogTint } from "@/lib/direction-fog";
 import { approachRig, getLightRig, rigAtArc, type LightRig } from "@/lib/direction-light";
 import { useCurrentDirection } from "./use-current-direction";
 import { useAtmosphereHour } from "./use-atmosphere-hour";
@@ -26,6 +28,7 @@ import { useTheme } from "../theme-store";
 import { approachReflet, refletFogColorFor, refletFogRange, refletK, refletLight, REFLET_PAPER } from "@/lib/reflet";
 import { apresMidiIci } from "@/lib/heure-du-lieu";
 import { refletStore } from "./reflet-store";
+import { poserArc } from "./arc-store";
 import { getSceneControls } from "../scene-controls-store";
 
 /**
@@ -97,6 +100,13 @@ export default function RevealLighting({
   // Rig lumiere par direction (01/09, etage 2 sprint identites) : meme
   // logique de crossfade que le fog. Init sur la direction du mount.
   const lightRigRef = useRef<LightRig>({ ...getLightRig(hour) });
+  // Teinte affichee du brouillard (16/09) : elle rejoint celle de la
+  // direction par le meme easing que la portee. null tant que la
+  // premiere image ne l'a pas posee.
+  const fogTintRef = useRef<FogTint | null>(null);
+  // Fondu d'un arc a l'autre (16/09, voir arc-fondu) : l'arc de la route
+  // ne bascule plus d'un coup, il traverse comme le reste de l'atmosphere.
+  const fonduRef = useRef<FonduArc>(fonduArcInitial(direction));
   const rigColorScratch = useMemo(() => new Color(), []);
 
   // Palette pour tinter les lumières au climax (26/08, retour Sylvain
@@ -145,7 +155,22 @@ export default function RevealLighting({
     const west = direction === "cendre" ? remapWestArc(rawP) : null;
     // Le progres de lumiere vient de arc-day (09/09) : une seule table pour
     // les cinq directions, au lieu d'une chaine de ternaires par fichier.
-    const p = lightPAtArc(direction, rawP);
+    // ET IL TRAVERSE DEPUIS LE 16/09 (arc-fondu) : chaque direction lit le
+    // meme defilement a sa facon, et cette lecture basculait d'un coup au
+    // commit de la route pendant que la portee, le rig, la teinte et
+    // l'heure traversaient tous proprement. L'arc etait le seul a sauter,
+    // et comme il commande l'ambiante, la directionnelle et le plancher,
+    // c'est lui qu'on voyait : Sud vers Ouest franchissait 50,7 de
+    // luminance en une image. On n'easy pas le defilement, seulement la
+    // BASCULE d'un arc a l'autre : une fois posee, la lecture suit la
+    // molette sans retard.
+    fonduRef.current = avancerFonduArc(fonduRef.current, direction, sceneRefs?.reducedMotionRef.current ? 1 : 0.06);
+    const p = pDuFondu(fonduRef.current, rawP);
+    const jour = jourDuFondu(fonduRef.current, rawP);
+    // Depose pour les autres lecteurs de l'arc (arc-store) : sans ca, le
+    // plancher de revelation au curseur et la camera solaire relisaient
+    // l'arc brut et sautaient au commit pendant que la lumiere traversait.
+    poserArc(p, jour);
     const arrivalGlow = north?.arrivalGlow ?? 0;
     const blend = getRimColorBlend(p);
     // Crossfade du rig lumiere vers la direction courante (etage 2) :
@@ -156,11 +181,11 @@ export default function RevealLighting({
     // L'HEURE DU LIEU (13/09, lib/heure-du-lieu) : hors contemplation, le
     // soleil de la page suit le cote du midi ou se trouve le visiteur. En
     // contemplation, c'est l'heure de Tenochtitlan qui commande (05/09).
-    const rigTarget = rigAtArc(getLightRig(hour), dayAtArc(direction, rawP), sunInTheWest(direction, sc.cinematic ? sc.cinematicAfternoon : apresMidiRef.current));
+    const rigTarget = rigAtArc(getLightRig(hour), jour, sunInTheWest(direction, sc.cinematic ? sc.cinematicAfternoon : apresMidiRef.current));
 
     {
       const frozen = frostStore.active ? frostStore.state.frost : 0;
-      const lum = Math.min(1, Math.max(dayAtArc(direction, rawP), direction === "dore" ? frozen * 0.8 : 0));
+      const lum = Math.min(1, Math.max(jour, direction === "dore" ? frozen * 0.8 : 0));
       if (Math.abs(lum - sceneLumRef.current) > 0.01) {
         sceneLumRef.current = lum;
         document.documentElement.style.setProperty("--scene-lum", lum.toFixed(2));
@@ -266,7 +291,27 @@ export default function RevealLighting({
     if (fogRef.current) {
       // A l'Ouest, la teinte suit le crepuscule (abricot -> mauve), pas la page.
       // A l'Est (06/09), la brume passe du bleu gele au rouge de l'aube puis a l'or.
-      const fogHex = getFogColor(p, west ? westFogTint(west.dusk) : direction === "dore" ? eastFogTint(rawP) : fogTint);
+      const cibleTeinte = west
+        ? westFogTint(west.dusk)
+        : direction === "dore"
+          ? eastFogTint(rawP)
+          : (fogTint ?? FOG_JADE_TINT);
+      // LA TEINTE PASSE COMME LA PORTEE (16/09, voir approachTint). Elle
+      // basculait d'un coup au commit de la route : Sud vers Ouest sautait
+      // de 20 a 72 de luminance en une image (mesure du 15/09). Desormais
+      // elle traverse, et c'est le passage cardinal lui-meme qu'on
+      // regarde : deux secondes de tour de camera pendant lesquelles la
+      // lumiere d'une direction devient celle d'une autre.
+      // Premiere image : on se pose sur la cible, jamais de fondu depuis
+      // une teinte qui ne serait celle d'aucune direction. Mouvement
+      // reduit : snap direct, meme convention que la portee juste en
+      // dessous.
+      const teintePrecedente = fogTintRef.current;
+      fogTintRef.current =
+        teintePrecedente && !sceneRefs?.reducedMotionRef.current
+          ? approachTint(teintePrecedente, cibleTeinte, 0.06)
+          : { ...cibleTeinte };
+      const fogHex = getFogColor(p, fogTintRef.current);
       if (refletStore.k > 0) {
         // Dans le miroir, la brume est du papier qui garde un souvenir de la direction.
         const m = refletFogColorFor(hexToRgb255(fogHex), refletStore.k, direction);

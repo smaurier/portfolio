@@ -116,7 +116,18 @@ const CardinalLink = forwardRef<HTMLAnchorElement, CardinalLinkProps>(function C
     e.preventDefault();
     onClick?.(e);
     transition.startTransition(direction, () => {
-      router.push(href);
+      // `scroll: false` (16/09) : SANS LUI, UNE IMAGE AU NOIR. L'App Router
+      // remonte en haut de page par defaut ; Lenis, monte une seule fois
+      // dans le layout, garde sa propre valeur de defilement et la reecrit
+      // a son tick suivant. Entre les deux, une image est rendue a
+      // l'avancement zero, ou `getRevealFloor(0)` vaut zero : l'arc y est
+      // noir PAR CONSTRUCTION, c'est la nuit du debut. Mesure du 15/09 sur
+      // Nord vers Centre : luminance 32, 32, 32, 30, 12, 71.
+      // Ca ne retire aucun comportement : `scene-refs-context` ecrit deja
+      // que « l'utilisateur qui navigue en interne ne veut pas repartir de
+      // zero a chaque nav, il veut voir la scene continue de la nouvelle
+      // direction ». La ligne rend enfin cette intention vraie.
+      router.push(href, { scroll: false });
     });
   }
 

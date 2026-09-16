@@ -15,7 +15,7 @@ import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { solarCamera } from "@/lib/solar-camera";
-import { dayAtArc } from "@/lib/arc-day";
+import { lireArcJour } from "./arc-store";
 import { tiltToParallax } from "@/lib/tilt";
 import { approachVeille, deriveVeille } from "@/lib/veille";
 import { veilleStore } from "./veille-store";
@@ -320,7 +320,7 @@ export default function OrbitCamera({
     // vers le bas (on descend au Mictlan).
     position.y += nb * 0.45;
     // Contre-plongée Huitztlampa : caméra un peu plus basse, regard levé.
-    const sud = solarCamera(dayAtArc(direction, rawP), sb * xiuhcoatlStore.strike.fire);
+    const sud = solarCamera(lireArcJour(direction, rawP), sb * xiuhcoatlStore.strike.fire);
     position.y += solarBlend * sud.height;
     const solarPush = 1 + sb * (SOUTH_RADIUS_SCALE - 1) + wb * (WEST_RADIUS_SCALE - 1);
     position.x *= solarPush;

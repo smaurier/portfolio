@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { approachFog, DIRECTION_FOG_RANGE, FOG_TINT_OVERRIDE, getFogRange, getFogTint } from "./direction-fog";
+import { approachFog, approachTint, DIRECTION_FOG_RANGE, FOG_TINT_OVERRIDE, getFogRange, getFogTint } from "./direction-fog";
 import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
 
 const DIRECTIONS = Object.keys(DIRECTION_FOG_RANGE) as DirectionKey[];
@@ -79,5 +79,69 @@ describe("getFogTint (le ciel de midi du Sud)", () => {
     expect(sud.b).toBeGreaterThan(sud.r); // turquoise, pas ocre
     expect(sud.g).toBeGreaterThan(sud.r);
     expect(FOG_TINT_OVERRIDE.turquoise).toEqual(sud);
+  });
+});
+
+describe("approachTint (le passage d'une direction a l'autre)", () => {
+  // LE DEFAUT GARDE ICI (mesure du 15/09). Sud vers Ouest sautait de 20 a
+  // 72 de luminance moyenne EN UNE IMAGE : la portee du brouillard etait
+  // lissee par approachFog, sa teinte non, et elle basculait d'un coup au
+  // commit de la route. Est vers Sud et Ouest vers Nord passaient
+  // inapercus parce que leur ecart est faible : le defaut etait la depuis
+  // le debut, seul l'ecart Sud/Ouest le rendait visible.
+  const SUD = { r: 62, g: 168, b: 196 };
+  const OUEST = { r: 150, g: 88, b: 70 };
+
+  it("rapproche chaque composante proportionnellement a alpha", () => {
+    const next = approachTint({ r: 0, g: 100, b: 200 }, { r: 100, g: 0, b: 0 }, 0.5);
+    expect(next.r).toBeCloseTo(50);
+    expect(next.g).toBeCloseTo(50);
+    expect(next.b).toBeCloseTo(100);
+  });
+
+  it("atteint exactement la cible avec alpha 1", () => {
+    expect(approachTint(SUD, OUEST, 1)).toEqual(OUEST);
+  });
+
+  it("snap sur la cible sous l'epsilon, donc la teinte se pose vraiment", () => {
+    const next = approachTint({ r: 150.004, g: 88.004, b: 70.004 }, OUEST, 0.06);
+    expect(next).toEqual(OUEST);
+  });
+
+  it("AUCUNE IMAGE NE FRANCHIT PLUS DE 6 % DE L'ECART : c'est tout l'objet", () => {
+    // Un snap franchit 100 % en une image, et c'est ce qu'on a mesure.
+    let tint = { ...SUD };
+    let plusGrandPas = 0;
+    const ecart = Math.abs(OUEST.g - SUD.g);
+    for (let i = 0; i < 300; i++) {
+      const suivant = approachTint(tint, OUEST, 0.06);
+      plusGrandPas = Math.max(plusGrandPas, Math.abs(suivant.g - tint.g));
+      tint = suivant;
+    }
+    expect(plusGrandPas / ecart).toBeLessThan(0.07);
+  });
+
+  it("converge vraiment, et sans depasser", () => {
+    let tint = { ...SUD };
+    for (let i = 0; i < 300; i++) tint = approachTint(tint, OUEST, 0.06);
+    expect(tint).toEqual(OUEST);
+  });
+
+  it("tient la meme cadence que la portee : les deux arrivent ensemble", () => {
+    // approachFog et approachTint partagent alpha et epsilon : une teinte
+    // qui se poserait apres sa portee ferait un second mouvement visible.
+    let tint = { ...SUD };
+    let range = { near: 11, far: 36 };
+    let imagesTeinte = 0;
+    let imagesPortee = 0;
+    for (let i = 1; i <= 400; i++) {
+      tint = approachTint(tint, OUEST, 0.06);
+      range = approachFog(range, { near: 8, far: 26 }, 0.06);
+      if (imagesTeinte === 0 && tint.r === OUEST.r && tint.g === OUEST.g && tint.b === OUEST.b) imagesTeinte = i;
+      if (imagesPortee === 0 && range.near === 8 && range.far === 26) imagesPortee = i;
+    }
+    expect(imagesTeinte).toBeGreaterThan(0);
+    expect(imagesPortee).toBeGreaterThan(0);
+    expect(Math.abs(imagesTeinte - imagesPortee)).toBeLessThan(60);
   });
 });

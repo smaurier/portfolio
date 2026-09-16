@@ -6,7 +6,7 @@ import { MATERIAL_SWEEP_EVERY } from "./shader-patch";
 import { Vector3, type Group } from "three";
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { remapNorthArc } from "@/lib/direction-arc";
-import { lightPAtArc } from "@/lib/arc-day";
+import { lireArcP } from "./arc-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { applyCursorReveal, createCursorRevealUniforms, setCursorRevealFloor, REVEAL_RADIUS_CSS } from "./cursor-reveal";
 import { SONDE } from "@/lib/sonde";
@@ -115,7 +115,10 @@ export default function CursorRevealScene({
     // Sylvain "plus de lumiere au depart") : sans ca, le haut de page
     // restait noir hors du halo du curseur, quelle que soit la lumiere.
     const rawP = progressRef.current;
-    const p = lightPAtArc(direction, rawP);
+    // L'arc vient du depot (16/09, arc-store) : il traverse pendant un
+    // passage cardinal au lieu de basculer avec la route. Le relire ici
+    // pour son compte faisait sauter le plancher de toute la scene.
+    const p = lireArcP(direction, rawP);
     setCursorRevealFloor(uniforms, getRevealFloor(p));
     // SONDE DE L'ENCRE (15/09, retour de Sylvain : « la lumiere est revenue
     // au dilue »). « Dilue » a un sens exact dans ce shader : hors du halo,

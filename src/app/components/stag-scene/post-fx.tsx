@@ -6,6 +6,7 @@ import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, EffectGroup, 
 import { BlendFunction } from "postprocessing";
 import { approachGrade, getGradeRig, type GradeRig } from "@/lib/direction-grade";
 import { refletGrade } from "@/lib/reflet";
+import { SONDE } from "@/lib/sonde";
 import { refletStore } from "./reflet-store";
 import { veilleStore } from "./veille-store";
 import { columnRise, zenithBlend } from "@/lib/zenith-arc";
@@ -161,6 +162,22 @@ export default function PostFX() {
       // s'ouvre encore, lentement. C'est tout ce qu'on voit ; le reste est
       // dans le son et dans le carnet.
       vignetteRef.current.darkness = 0.9 - p * 0.25 + grade.vignetteAdd + sortie * 0.3 - veilleStore.don * 0.16;
+      // SONDE DU CADRE (16/09, chantier des passages). Meme motif que la
+      // sonde de l'encre : une marche de luminance au commit de la route
+      // restait inexpliquee alors que lumieres, brouillard, camera et
+      // plancher de revelation etaient tous continus. Sans ces valeurs
+      // sous les yeux, on ne peut qu'avoir un avis.
+      if (SONDE) {
+        (window as unknown as { __nahualCadre?: unknown }).__nahualCadre = {
+          vignette: vignetteRef.current.darkness,
+          arc: p,
+          sortie,
+          vignetteAdd: grade.vignetteAdd,
+          saturation: grade.saturation,
+          bloomScale: grade.bloomScale,
+          bloom: bloomRef.current?.intensity ?? -1,
+        };
+      }
     }
 
     const p = transition ? transition.transitionProgressRef.current : 0;

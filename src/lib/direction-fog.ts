@@ -74,3 +74,36 @@ export function approachFog(current: FogRange, target: FogRange, alpha: number):
     far: approachValue(current.far, target.far, alpha),
   };
 }
+
+/**
+ * LA TEINTE PASSE COMME LA PORTEE (16/09). Jusqu'ici approachFog lissait
+ * near/far, mais la teinte, elle, basculait d'un coup au commit de la
+ * route : `getFogColor` recevait `fogTint`, une propriete de la
+ * direction. Mesure du 15/09, echantillon du canvas en vrais pixels :
+ * Sud vers Ouest passait de 20 a 72 de luminance moyenne EN UNE IMAGE.
+ * Est vers Sud et Ouest vers Nord semblaient propres, mais ils avaient le
+ * meme defaut : leur ecart de teinte est simplement trop faible pour
+ * qu'on le voie.
+ *
+ * CE N'EST PAS QU'UNE CORRECTION. Le passage cardinal dure deux secondes
+ * (le tour de camera autour du cerf) et il ne cache rien : on veut donc
+ * VOIR la lumiere d'une direction devenir celle d'une autre pendant ce
+ * tour. La nuit turquoise du Sud qui glisse vers le crepuscule cendre de
+ * l'Ouest, c'est Nepantla, l'entre-deux, et il se regarde.
+ *
+ * MEME ALPHA, MEME EPSILON que approachFog, et c'est deliberé : une
+ * teinte qui se poserait apres sa portee ferait un second mouvement
+ * visible la ou on en veut un seul.
+ *
+ * CE QU'ON N'EASE PAS : la noirceur de l'arc. `getFogColor` multiplie la
+ * teinte par `getRevealFloor(progress)`, et ca doit rester instantane,
+ * colle au defilement. Seule l'IDENTITE de la direction passe en
+ * fondu ; l'heure de la page, elle, suit la molette sans retard.
+ */
+export function approachTint(current: FogTint, target: FogTint, alpha: number): FogTint {
+  return {
+    r: approachValue(current.r, target.r, alpha),
+    g: approachValue(current.g, target.g, alpha),
+    b: approachValue(current.b, target.b, alpha),
+  };
+}
