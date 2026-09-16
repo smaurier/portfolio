@@ -462,8 +462,8 @@ la vitesse du mouvement. Ces quatre postes ont quitte le haut du profil.
 ### 2. LES DEUX SENTINELLES DE DEFILEMENT, le plus gros gain de la journee
 
 `dock-sentinel` et `defilement-sentinel` etaient deja cadencees par
-`requestIdleCallback`... pardon, par `requestAnimationFrame`, ce qui est la
-bonne forme. Mais elles lisaient `window.scrollY` DANS le rappel. Un rappel
+`requestAnimationFrame`, ce qui est la bonne forme. Mais elles lisaient
+`window.scrollY` DANS le rappel. Un rappel
 d'animation tourne avant que le navigateur ait refait sa mise en page :
 repondre l'y force. A chaque image de defilement, sur TOUTES les pages.
 
