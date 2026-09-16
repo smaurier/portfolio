@@ -18,7 +18,15 @@ import type { Dir3 } from "./direction-light";
  */
 
 export const CIHUATETEO = {
-  count: 4,
+  // TROIS PORTEUSES, PAS QUATRE (16/09, arbitrage de Sylvain : « on peut
+  // deja se limiter a trois porteuses, quatre ce n'est pas quelque chose
+  // d'essentiel »). Contact etait la seule page a tourner a quatre-vingt-dix
+  // pour cent de son budget d'image, et ce sont les porteuses qui le
+  // remplissent : 62 os chacune, plus leur chevelure et leur jupe en chaines
+  // de Verlet. Tout est parametre par ce compte, l'eventail comme la
+  // cadence de marche comme la pose du palanquin : il n'y a que ce chiffre
+  // a changer.
+  count: 3,
   /** Distance du cerf a laquelle elles portent le soleil (u). */
   escortRadius: 12,
   /** Ecart lateral entre deux porteuses dans l'eventail (u). */

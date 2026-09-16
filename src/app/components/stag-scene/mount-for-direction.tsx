@@ -7,6 +7,7 @@ import type { DirectionKey } from "./direction-colors";
 import { useCurrentDirection } from "./use-current-direction";
 import { SHADERS_WARM_EVENT, WARMUP_FALLBACK_MS, getWarmDirection } from "./shader-warmup";
 import { NEXT_DIRECTION, addIntent, hasIntent, requestMountSlot, useIntentVersion } from "./direction-intent";
+import { PRET_EVENT } from "./reveal-trigger";
 import { whenRevealed } from "@/lib/apres-le-voile";
 
 /**
@@ -123,7 +124,6 @@ export default function MountForDirection({
  * telechargement de tout le site.
  */
 const NEXT_INTENT_DELAY_MS = 3000;
-
 export function PreloadOnIntent() {
   const done = useRef(new Set<string>());
   const direction = useCurrentDirection();
@@ -132,16 +132,39 @@ export function PreloadOnIntent() {
   // que le visiteur lit (11/09, voir direction-intent).
   useEffect(() => {
     let timer = 0;
+    let fait = false;
+    /**
+     * LE PRE-MONTAGE SE PAIE PENDANT QUE LA PORTE ATTEND (16/09).
+     *
+     * Monter la direction suivante amene ses modeles, ses objets et ses
+     * compilations de nuanceurs. Trois secondes apres l'entree, ca tombait
+     * en plein premier defilement : mesure sur Contact, machine froide, des
+     * images de 117, 83 et 50 ms groupees a 7 % de l'arc, chacune portant
+     * une compilation des simulateurs du Nord.
+     *
+     * `PRET_EVENT` arrive plus tot, quand le monde est charge et chauffe
+     * mais que le visiteur n'a pas encore clique : le voile est leve, rien
+     * ne bouge, personne n'attend. C'est le seul moment gratuit d'une
+     * visite.
+     *
+     * Le chemin d'apres l'entree reste, en filet : si la porte est passee
+     * trop vite, ou si l'evenement n'arrive jamais, on retombe sur l'ancien
+     * declenchement. `fait` garantit qu'on ne monte qu'une fois.
+     */
+    const monter = () => {
+      if (fait) return;
+      fait = true;
+      const next = NEXT_DIRECTION[direction];
+      if (!next) return;
+      for (const path of assetsForDirection(next)) useGLTF.preload(path);
+      addIntent(next);
+    };
+    window.addEventListener(PRET_EVENT, monter);
     const stop = whenRevealed(() => {
-      timer = window.setTimeout(() => {
-        const next = NEXT_DIRECTION[direction];
-        if (next) {
-          for (const path of assetsForDirection(next)) useGLTF.preload(path);
-          addIntent(next);
-        }
-      }, NEXT_INTENT_DELAY_MS);
+      timer = window.setTimeout(monter, NEXT_INTENT_DELAY_MS);
     });
     return () => {
+      window.removeEventListener(PRET_EVENT, monter);
       window.clearTimeout(timer);
       stop();
     };

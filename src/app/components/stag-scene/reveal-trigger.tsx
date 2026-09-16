@@ -59,6 +59,21 @@ const SEQUENCE_FALLBACK_MS = 4000;
  *  donnerait une scene qui saccade, ce qui est pire que d'attendre. */
 export const ENTRER_EVENT = "nahual:entrer";
 
+/**
+ * « LE MONDE EST PRET, LA PORTE ATTEND » (16/09).
+ *
+ * Emis quand les ressources sont la et que la chauffe de la direction
+ * courante a fini, donc AVANT que le visiteur ait clique « Entrer » : le
+ * voile est encore leve, rien ne bouge a l'ecran, et personne n'attend quoi
+ * que ce soit puisque c'est le visiteur qui tient la main.
+ *
+ * C'est le seul moment vraiment gratuit d'une visite, et c'est la qu'il faut
+ * payer ce qui coute : le pre-montage de la direction suivante et ses
+ * compilations. Avant, il tombait trois secondes APRES l'entree, c'est-a-dire
+ * en plein premier defilement, et il y pesait des images de 117 ms.
+ */
+export const PRET_EVENT = "nahual:pret";
+
 export default function RevealTrigger() {
   const { progress } = useProgress();
   const progressRef = useRef(progress);
@@ -94,7 +109,14 @@ export default function RevealTrigger() {
     const hearthLit = !decideCeremony();
     const holdMs = hearthLit ? HOLD_WHEN_HEARTH_LIT_MS : HOLD_AFTER_SEQUENCE_MS;
 
+    let pretEmis = false;
     const tryPoseLoaded = () => {
+      // Le monde est pret des que les ressources et la chauffe le sont,
+      // qu'on soit entre ou non : c'est la fenetre de la porte.
+      if (!pretEmis && progressRef.current >= 100 && warmRef.current) {
+        pretEmis = true;
+        window.dispatchEvent(new CustomEvent(PRET_EVENT));
+      }
       if (SONDE) {
         (window as unknown as { __nahualVoile?: unknown }).__nahualVoile = { progress: progressRef.current, sequenceDone: sequenceDoneRef.current, warm: warmRef.current, done };
       }
