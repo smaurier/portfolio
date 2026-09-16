@@ -35,13 +35,33 @@ const DIRECTIONS = ["/fr/services", "/fr/projets", "/fr/contact", "/fr/memoire",
 /** Les geometries ne doivent plus bouger du tout ; deux de marge pour une
  *  ressource cuite en differe qui arriverait entre deux releves. */
 const TOLERANCE_GEO = 3;
-/** LES TEXTURES FUIENT ENCORE, et ce plafond est un cliquet, pas un accord.
- *  Mesure du 15/09 : environ trois textures par tour, de la taille des
- *  cibles de rendu des simulateurs du Nord (onde 512, hauteur 512, ciel
- *  2048x1024, colorant 256). Les deux simulateurs liberent pourtant tout ce
- *  qu'ils allouent, verifie champ par champ : la cause n'est pas trouvee.
- *  Le cliquet empeche que ce soit pire en attendant. */
-const TOLERANCE_TEX = 10;
+/**
+ * LA CAUSE A ETE TROUVEE LE 16/09, et ce plafond redevient un vrai garde.
+ *
+ * L'hypothese du 15/09 (« des cibles de rendu des simulateurs du Nord »)
+ * etait fausse, et elle l'etait parce qu'on comptait des textures sans
+ * jamais regarder NI leur taille NI qui les avait creees. En interceptant
+ * `createTexture` et `deleteTexture` du contexte WebGL lui-meme, avec la
+ * pile d'appel et la taille de chaque image, il y avait deux fuites, de
+ * natures opposees :
+ *
+ *  - LE POIDS : sept copies de la photographie de ciel (2048 x 1024, 8 Mo
+ *    piece, 48 Mo en trop). L'effet de `sud-sky` depend de `direction`,
+ *    donc il refaisait une texture a chaque page, et son nettoyage appelait
+ *    `dispose()` SANS vider l'uniforme : le materiau, lui, survit, et il
+ *    suffisait d'un rendu pour que three RE-ALLOUE ce qu'on venait de
+ *    liberer. Corrige par un singleton paresseux, comme `mictlan-sky`.
+ *  - LE COMPTE : treize textures d'os par tour. three donne a chaque
+ *    `Skeleton` une image ou il ecrit une matrice par os (16 x 16 pour 62
+ *    os), et elle ne part que sur `dispose()`. Personne ne l'appelait.
+ *    Corrige par `lib/liberer-squelettes`, sur les deux composants qui
+ *    CLONENT leur modele et possedent donc leurs squelettes.
+ *
+ * Apres : le compte monte d'UNE texture par tour au lieu de treize, et le
+ * poids ne bouge plus (113,8 Mo sur un ecran de bureau, 17,2 sur telephone).
+ * Quatre de marge pour une ressource cuite en differe entre deux releves.
+ */
+const TOLERANCE_TEX = 4;
 
 test("deux tours du site n'ajoutent plus rien au processeur graphique", async ({ page }) => {
   test.setTimeout(300_000);

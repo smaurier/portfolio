@@ -31,6 +31,7 @@ import {
 } from "three";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { shareSkeletons } from "@/lib/share-skeletons";
+import { libererSquelettes } from "@/lib/liberer-squelettes";
 import { CIHUATETEO, HAIR_STRANDS, LANDING, LANDING_LATCH, bearerHair, bearerOpacity, bearerPose, descentBlend, landingState, litterPose, type HairStrand, wispRate, relaxations, CLOTH_FAR_DISTANCE } from "@/lib/cihuateteo";
 import { createStrip, stepStrip, type Strip } from "@/lib/paper-strip";
 import { remapWestArc } from "@/lib/ouest-arc";
@@ -493,7 +494,12 @@ export default function Cihuateteo() {
       for (const b of bearers) {
         b.hairGeometry.dispose();
         b.skirtGeometry.dispose();
-
+        // LA TEXTURE D'OS (16/09). `SkeletonUtils.clone` fabrique de
+        // nouveaux squelettes, donc ce composant les POSSEDE, et la texture
+        // ou three ecrit une matrice par os ne part que sur `dispose()`.
+        // Mesure : le compte de textures montait de treize par tour du
+        // site, toutes en 16 x 16, la taille d'un squelette de 62 os.
+        libererSquelettes(b.root);
       }
       paperGeometry.dispose();
       litter.tipGeometry.dispose();

@@ -71,6 +71,60 @@ const PREDAWN_ZENITH = new Color("#1e3069");
  * (xoxouhqui) dans les sources.
  */
 const SKY_URL = "/sky/sud-sky.jpg";
+
+/**
+ * LA PHOTOGRAPHIE DE CIEL, CHARGEE UNE FOIS POUR LA PAGE (16/09).
+ *
+ * L'ancienne version fabriquait un NOUVEL objet `Texture` a chaque
+ * changement de direction (l'effet depend de `direction`), et son nettoyage
+ * appelait `dispose()` sur celle d'avant. Deux defauts, dont un vrai
+ * gaspillage :
+ *
+ *  1. le nettoyage liberait la texture SANS vider l'uniforme. Le materiau
+ *     est memoise, il survit au changement : il gardait donc une reference
+ *     vers une texture liberee, et il suffisait d'un rendu pour que three la
+ *     RE-ALLOUE sur le processeur graphique. Cette allocation-la
+ *     n'appartenait plus a personne, et rien ne la supprimait jamais.
+ *  2. meme sans la course, charger et liberer 2048 x 1024 a chaque page est
+ *     un va-et-vient pur.
+ *
+ * Mesure du 16/09, cinq tours des cinq directions en cliquant (la toile
+ * survit aux changements de page, c'est tout le sujet) : SEPT textures de
+ * 2048 x 1024 vivantes a la fois, soit environ 56 Mo de memoire graphique
+ * pour une seule ressource.
+ *
+ * Un singleton paresseux, exactement comme `mictlan-sky` le fait pour le
+ * ciel du Nord depuis le 12/09. La texture appartient au module, donc
+ * personne ne la libere : c'est la regle deja ecrite dans `use-libere`, et
+ * c'est la bonne ici, puisque trois directions sur cinq l'affichent et que
+ * la toile vit aussi longtemps que la visite.
+ */
+let cielPromis: Promise<Texture> | null = null;
+
+function chargerCiel(): Promise<Texture> {
+  cielPromis ??= new Promise<Texture>((resoudre, rejeter) => {
+    new TextureLoader().load(
+      SKY_URL,
+      (tex) => {
+        tex.colorSpace = SRGBColorSpace;
+        // La jointure (retour Sylvain) : en ClampToEdge le bord u = 0 / u = 1
+        // ne se referme pas, et les mipmaps choisissent un niveau minuscule
+        // sur la discontinuite de fract() : on boucle la texture et on coupe
+        // les mipmaps.
+        tex.wrapS = RepeatWrapping;
+        tex.wrapT = RepeatWrapping;
+        tex.minFilter = LinearFilter;
+        tex.magFilter = LinearFilter;
+        tex.generateMipmaps = false;
+        tex.needsUpdate = true;
+        resoudre(tex);
+      },
+      undefined,
+      rejeter,
+    );
+  });
+  return cielPromis;
+}
 const SKY_SUN_U = 0.584;
 const SKY_TINT = new Color(0.78, 1.0, 0.97);
 const SKY_TINT_MIX = 0.65;
@@ -205,42 +259,29 @@ export default function SudSky() {
   // pas pour autant : elle part des que le voile est leve, pour qu'un voyage
   // cardinal vers le Sud la trouve deja en cache.
   useEffect(() => {
-    let disposed = false;
-    const loader = new TextureLoader();
-    const charger = () => {
-      if (disposed) return;
-      loader.load(SKY_URL, (tex) => {
-        if (disposed) {
-          tex.dispose();
-          return;
-        }
-        tex.colorSpace = SRGBColorSpace;
-        // La jointure (retour Sylvain) : en ClampToEdge le bord u = 0 / u = 1
-        // ne se referme pas, et les mipmaps choisissent un niveau minuscule
-        // sur la discontinuite de fract() : on boucle la texture et on coupe
-        // les mipmaps.
-        tex.wrapS = RepeatWrapping;
-        tex.wrapT = RepeatWrapping;
-        tex.minFilter = LinearFilter;
-        tex.magFilter = LinearFilter;
-        tex.generateMipmaps = false;
-        tex.needsUpdate = true;
-        material.uniforms.uSky.value = tex;
-        material.uniforms.uHasSky.value = 1;
-      });
+    let vivant = true;
+    const poser = () => {
+      chargerCiel()
+        .then((tex) => {
+          if (!vivant) return;
+          material.uniforms.uSky.value = tex;
+          material.uniforms.uHasSky.value = 1;
+        })
+        .catch(() => {
+          // Ciel indisponible : le degrade procedural reste, `uHasSky` a
+          // zero, exactement comme avant le chargement.
+        });
     };
 
     let arret: (() => void) | undefined;
     if (skyPhotoNeeded(direction)) {
-      charger();
+      poser();
     } else {
-      arret = whenRevealed(charger);
+      arret = whenRevealed(poser);
     }
     return () => {
-      disposed = true;
+      vivant = false;
       arret?.();
-      const tex = material.uniforms.uSky.value as Texture | null;
-      if (tex) tex.dispose();
     };
   }, [material, direction]);
 

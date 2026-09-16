@@ -11,6 +11,7 @@ import { bodyFromFeet, fitSupportPlane, type SupportPoint } from "@/lib/quadrupe
 import { DOG_LEG_LIMITS, twoBoneIK, type Vec3 } from "@/lib/two-bone-ik";
 import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { shareSkeletons } from "@/lib/share-skeletons";
+import { libererSquelettes } from "@/lib/liberer-squelettes";
 import { persistentLights } from "./persistent-lights";
 import { getWarmDirection } from "./shader-warmup";
 import { isBot } from "@/lib/is-bot";
@@ -610,6 +611,13 @@ export default function XolotlCompanion() {
     shareSkeletons(c); // un squelette par figure, pas par maillage (lib/share-skeletons)
     return c;
   }, [scene]);
+  // LA TEXTURE D'OS DU DOUBLE (16/09). Ce clone-ci nous appartient, donc
+  // c'est a nous de rendre l'image ou three ecrit une matrice par os : elle
+  // ne part que sur `dispose()`. La scene du cache de `useGLTF`, elle, ne
+  // nous appartient pas, et on n'y touche pas.
+  useEffect(() => () => {
+    libererSquelettes(clonedScene);
+  }, [clonedScene]);
   const cloneGroupRef = useRef<Group>(null);
   const cloneMixer = useMemo(() => new AnimationMixer(clonedScene), [clonedScene]);
 
