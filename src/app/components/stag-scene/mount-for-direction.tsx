@@ -124,6 +124,79 @@ export default function MountForDirection({
  * telechargement de tout le site.
  */
 const NEXT_INTENT_DELAY_MS = 3000;
+
+/**
+ * LA PRELECTURE DOUCE (16/09, demande de Sylvain : « si on peut precharger
+ * un max de choses des le depart, le faire », puis « j'aime l'idee du
+ * fetch »).
+ *
+ * LA DISTINCTION QUI COMMANDE TOUT : telecharger n'est pas decoder. Un
+ * fichier qui descend, c'est du reseau, ca ne touche pas le fil principal.
+ * Un GLB qui se DECODE est une tache longue sur ce fil, de la meme nature
+ * que la compilation de nuanceur qu'on vient de chasser.
+ *
+ * Premiere tentative, le meme jour, mesuree et retiree : appeler
+ * `useGLTF.preload` sur les cinq directions des l'ouverture. Ca DECODE, et
+ * les cinq pages ont recule d'un coup (Accueil 2,5 -> 5,9 % d'images au-dela
+ * de 33 ms, Memoire 1,9 -> 9,3 %, cinquieme centile de 59,5 a 30 partout).
+ *
+ * Ici, on ne fait que remplir le cache HTTP, par des balises `prefetch` que
+ * le navigateur sert a sa plus basse priorite. Aucun decodage, donc aucune
+ * tache longue. Le decodage, lui, reste ou il etait : au survol d'un lien
+ * cardinal, ou a l'entree dans la direction, et il n'a alors plus de reseau
+ * a attendre.
+ *
+ * Les modeles sont servis en `max-age=0` : la prelecture evite donc de
+ * RETELECHARGER les octets, pas la revalidation, qui ne coute qu'un
+ * aller-retour. Les en-tetes de `netlify.toml` bornent ca a une journee.
+ */
+const ORDRE_PRELECTURE: DirectionKey[] = ["jade", "dore", "turquoise", "cendre", "obsidienne"];
+
+/** Un fichier a la fois : sur un lien etroit, quatre prelectures lancees
+ *  ensemble se disputent la bande passante du reste de la page. */
+const DELAI_ENTRE_PRELECTURES_MS = 700;
+
+/**
+ * On ne prend pas d'avance sur le forfait de quelqu'un d'autre : si le
+ * visiteur a demande l'economie de donnees, ou s'il est sur un lien tres
+ * lent, neuf cents kilo-octets qu'il n'utilisera peut-etre jamais ne sont
+ * pas un service qu'on lui rend.
+ */
+function prelectureBienvenue(): boolean {
+  const c = (navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  if (!c) return true;
+  if (c.saveData) return false;
+  return c.effectiveType !== "slow-2g" && c.effectiveType !== "2g";
+}
+
+function prelectureDouce(deja: DirectionKey | null): () => void {
+  if (typeof document === "undefined" || !prelectureBienvenue()) return () => {};
+  const vus = new Set(deja ? assetsForDirection(deja) : []);
+  const fichiers = ORDRE_PRELECTURE.flatMap((d) => assetsForDirection(d)).filter((f) => {
+    if (vus.has(f)) return false;
+    vus.add(f);
+    return true;
+  });
+  const poses: HTMLLinkElement[] = [];
+  let i = 0;
+  let timer = 0;
+  const poser = () => {
+    if (i >= fichiers.length) return;
+    const lien = document.createElement("link");
+    lien.rel = "prefetch";
+    lien.as = "fetch";
+    lien.href = fichiers[i];
+    i += 1;
+    document.head.appendChild(lien);
+    poses.push(lien);
+    timer = window.setTimeout(poser, DELAI_ENTRE_PRELECTURES_MS);
+  };
+  poser();
+  return () => {
+    window.clearTimeout(timer);
+    for (const l of poses) l.remove();
+  };
+}
 export function PreloadOnIntent() {
   const done = useRef(new Set<string>());
   const direction = useCurrentDirection();
@@ -133,6 +206,7 @@ export function PreloadOnIntent() {
   useEffect(() => {
     let timer = 0;
     let fait = false;
+    let arretPrelecture: (() => void) | undefined;
     /**
      * LE PRE-MONTAGE SE PAIE PENDANT QUE LA PORTE ATTEND (16/09).
      *
@@ -155,9 +229,14 @@ export function PreloadOnIntent() {
       if (fait) return;
       fait = true;
       const next = NEXT_DIRECTION[direction];
-      if (!next) return;
-      for (const path of assetsForDirection(next)) useGLTF.preload(path);
-      addIntent(next);
+      if (next) {
+        // La SUIVANTE se decode vraiment : c'est elle que la cloture de page
+        // vise, et son montage a besoin de ses modeles.
+        for (const path of assetsForDirection(next)) useGLTF.preload(path);
+        addIntent(next);
+      }
+      // Les autres ne font que descendre.
+      arretPrelecture = prelectureDouce(next);
     };
     window.addEventListener(PRET_EVENT, monter);
     const stop = whenRevealed(() => {
@@ -166,6 +245,7 @@ export function PreloadOnIntent() {
     return () => {
       window.removeEventListener(PRET_EVENT, monter);
       window.clearTimeout(timer);
+      arretPrelecture?.();
       stop();
     };
   }, [direction]);

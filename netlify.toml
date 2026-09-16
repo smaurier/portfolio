@@ -54,6 +54,34 @@
 # scripts en ligne et la scene charge des modeles et des polices du meme
 # domaine ; une CSP se pose avec un nonce, chantier a part. Ceux-ci ne
 # cassent rien et ferment les portes evidentes.
+# LE CACHE DES RESSOURCES LOURDES (16/09). Elles etaient servies en
+# `max-age=0`, donc revalidees a chaque usage, y compris a l'interieur d'une
+# meme visite : un modele deja telecharge repartait en aller-retour a chaque
+# navigation cardinale. C'est aussi ce qui rendait la prelecture douce a
+# moitie inutile (voir mount-for-direction.prelectureDouce).
+#
+# UNE JOURNEE, ET PAS `immutable`, parce que ces fichiers ne portent pas
+# d'empreinte dans leur nom : `xolotl.glb` reste `xolotl.glb` d'un deploiement
+# a l'autre. `immutable` figerait un modele remplace pour un an chez les
+# visiteurs revenus. Une journee de fraicheur et une semaine de
+# `stale-while-revalidate` donnent le gain sans le piege : un nouveau modele
+# arrive au plus tard le lendemain, et entre-temps le visiteur voit l'ancien
+# pendant que le nouveau descend en fond.
+[[headers]]
+  for = "/models/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/sky/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/env/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
 [[headers]]
   for = "/*"
   [headers.values]
