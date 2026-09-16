@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { defilementPage } from "@/lib/profondeur-page";
 
 /**
  * LA COLONNE DE BOUTONS S'EFFACE QUAND ON DESCEND (13/09, X3 de l'audit).
@@ -19,12 +20,18 @@ const SEUIL_PX = 12;
 export default function DockSentinel() {
   useEffect(() => {
     const root = document.documentElement;
-    let dernier = window.scrollY;
+    let dernier = defilementPage();
     let cache = false;
     let raf = 0;
     const lire = () => {
       raf = 0;
-      const y = window.scrollY;
+      // PAS `window.scrollY` ICI (16/09) : ce rappel tourne dans un
+      // `requestAnimationFrame`, donc avant que le navigateur ait refait sa
+      // mise en page, et la lecture directe l'y forcerait. Profil de Contact
+      // (Pixel 7, processeur divise par quatre) : ce seul ecouteur pesait
+      // 0,91 ms par image, sur un budget de 16,7. La valeur notee par
+      // l'ecouteur `scroll` est fraiche et gratuite.
+      const y = defilementPage();
       const delta = y - dernier;
       if (y < 40 || delta < -SEUIL_PX) {
         if (cache) { cache = false; root.removeAttribute("data-dock-hidden"); }

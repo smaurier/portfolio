@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { defilementPage } from "@/lib/profondeur-page";
 
 /**
  * LE BANDEAU SE FERME DES QU'ON DEFILE (14/09, retour Sylvain : « il y a
@@ -26,7 +27,10 @@ export default function DefilementSentinel() {
     let raf = 0;
     const lire = () => {
       raf = 0;
-      const doit = window.scrollY > SEUIL_PX;
+      // Comme dock-sentinel (16/09) : lire `window.scrollY` dans un
+      // `requestAnimationFrame` force le navigateur a refaire sa mise en
+      // page sur-le-champ. L'ecouteur `scroll` l'a deja notee.
+      const doit = defilementPage() > SEUIL_PX;
       if (doit === pose) return;
       pose = doit;
       if (doit) root.setAttribute("data-defile", "true");

@@ -108,6 +108,22 @@ function brancher(): LecteurProfondeur {
   return lecteur;
 }
 
+/**
+ * Le defilement courant, tel que l'ecouteur `scroll` l'a note.
+ *
+ * A preferer a `window.scrollY` PARTOUT dans une boucle d'animation ou un
+ * `requestAnimationFrame` : la lecture directe y force le navigateur a
+ * refaire sa mise en page sur-le-champ, alors qu'un ecouteur `scroll` la
+ * trouve deja a jour. Un rappel de `requestAnimationFrame` s'execute apres
+ * les ecouteurs `scroll` de la meme image : la valeur rendue ici est donc
+ * fraiche, jamais celle de l'image d'avant.
+ */
+export function defilementPage(): number {
+  if (typeof window === "undefined") return 0;
+  brancher();
+  return defilementNote;
+}
+
 /** La profondeur de page, sans forcer la mise en page a chaque image. */
 export function profondeurPage(): number {
   if (typeof document === "undefined" || typeof window === "undefined") return 1;
