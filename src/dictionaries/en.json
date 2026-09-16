@@ -680,11 +680,11 @@
   },
   "mentionsLegales": {
     "title": "Legal notices",
-    "intro": "Legal information for the nahual.fr site under French LCEN law of June 21, 2004.",
+    "intro": "Legal information for nahual.fr, under the French law of 21 June 2004 on confidence in the digital economy.",
     "sections": [
       {
         "title": "Publisher",
-        "text": "Nahual · Creative Studio. Sylvain Maurier, sole proprietor. SIRET: to be completed. Email: bonjour@nahual.fr. Phone: on request."
+        "text": "Sylvain Maurier. Contact: bonjour@nahual.fr.\n\nThis site is a personal portfolio: it presents work, it sells no product or service, and accepts no orders online. It is therefore published on a non-professional basis under article 6 III 2 of the French law of 21 June 2004. The publisher's identifying details are held by the host."
       },
       {
         "title": "Publication director",

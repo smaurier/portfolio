@@ -680,11 +680,11 @@
   },
   "mentionsLegales": {
     "title": "Mentions légales",
-    "intro": "Informations légales du site nahual.fr conformément à la loi LCEN du 21 juin 2004.",
+    "intro": "Informations légales du site nahual.fr, conformément à la loi pour la confiance dans l'économie numérique du 21 juin 2004.",
     "sections": [
       {
         "title": "Éditeur",
-        "text": "Nahual · Studio de création. Sylvain Maurier, entrepreneur individuel. SIRET : à compléter. Email : bonjour@nahual.fr. Téléphone : sur demande."
+        "text": "Sylvain Maurier. Contact : bonjour@nahual.fr.\n\nCe site est un portfolio personnel : il présente un travail, il ne commercialise ni produit ni prestation, et n'accepte aucune commande en ligne. Il est donc édité à titre non professionnel au sens de l'article 6 III 2 de la loi du 21 juin 2004. Les éléments d'identification de l'éditeur sont détenus par l'hébergeur."
       },
       {
         "title": "Directeur de la publication",
