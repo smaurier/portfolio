@@ -616,3 +616,37 @@ et lots : `docs/da/miroir-fumant.md`.
 3. A1 (S), N1 (S), C2 (S) : trois soirees courtes, chacune avec un choix de toi.
 4. P2 : les trois arbitrages de Contact, quand tu as vu la page.
 5. V1, C1, M1, I1 : les chantiers longs, apres le 23/10, dans cet ordre.
+
+---
+
+## 9. Les deux faces, a poids egal (16/09)
+
+Sylvain, le 16/09 : « l'amate comme l'obsidienne sont deux designs
+importants et si l'un est vu par defaut dans le code, il faut changer ca »,
+puis « backlog amate vs obsidienne = deux faces, meme poids ».
+
+**Ce qui est fait le 16/09** : la nuit n'est plus posee en dur. Elle
+l'etait a cinq endroits (script bloquant du layout, deux lectures du depot
+de theme, instantane serveur, page 404). Une seule regle desormais,
+`lib/theme.faceInitiale` : le choix memorise, sinon la preference systeme,
+et le silence donne le clair sans qu'on l'ecrive, parce que
+`prefers-color-scheme: light` matche aussi l'absence de preference.
+
+**Ce qui ne l'est pas, et c'est tout l'objet de cette entree.** Retirer le
+defaut du code ne met pas les deux faces a poids egal : ca ne fait que
+rendre visible l'ecart. L'amate est aujourd'hui la face pauvre, et on en a
+la preuve ecrite dans le depot.
+
+| # | Ce qu'on fait | Pourquoi | L'oracle | Effort | Decision |
+| --- | --- | --- | --- | --- | --- |
+| F1 | Le grain d'amate cuit pour les DEUX faces, ou pour aucune | `grain-amate` ne le cuit que « si la face claire est demandee » : la face claire paie un temps mort que la nuit ne paie pas, et la nuit n'a pas de matiere de papier | le meme compte de textures et le meme profil sur les deux faces | S | moi |
+| F2 | Les references de regression visuelle doublees : chaque page, chaque face | aujourd'hui les references ne connaissent qu'une face, donc l'autre peut casser sans que rien ne tombe | `regression-visuelle.spec.ts` couvre 2 x N vues | M | moi, puis ton oeil pour valider les references |
+| F3 | Un passage de l'audit RGAA sur la face claire | contrastes, focus, panneaux translucides : tout a ete regle sur la nuit. Les six blocs sous 4,5:1 du 10/09 avaient ete trouves sur la nuit seulement | `accessibilite-axe.spec.ts` vert sur les deux faces | M | moi |
+| F4 | Une revue de DA de la face claire, page par page | le monde a ete compose la nuit ; le reflet n'a jamais ete regarde comme une direction artistique a part entiere, seulement comme une ceremonie | ton verdict, page par page | M | Sylvain |
+| F5 | Trancher la face du silence : convention du web (clair) ou choix mythologique | Sylvain : « nous on pourrait choisir en fonction de notre mythologie. A reflechir. » Une ligne de `faceInitiale`, et ce ne sera toujours pas un defaut dans le code | la ligne, et la raison ecrite a cote | S | Sylvain |
+
+**Le risque en cours, a savoir avant de pousser sur `main`** : comme le
+silence donne le clair, la majorite des premieres visites arrive desormais
+sur l'amate, c'est-a-dire sur la face la moins travaillee. Pour un
+objectif ou la premiere impression est le moment note, F1 a F4 passent
+donc devant la generalisation de la dissolution.
