@@ -97,7 +97,12 @@ export const FOYER_TIMING = {
   /** Le relais : la flamme DOM s'efface pendant que les braises WebGL
    *  deviennent lisibles. Le raccord de medium se joue ici. */
   handoffDelay: 0.62,
-  handoffDuration: 0.7,
+  /* 0,7 -> 0,5 (16/09). La descente ayant ete raccourcie a 1,0 s, le relais
+     finissait APRES elle et la flamme DOM serait restee sur la scene : le
+     test l'a attrape. Son delai, lui, ne peut pas descendre, il doit venir
+     apres la levee de la flamme du foyer (0,18 + 0,4). C'est donc la duree
+     qui cede. */
+  handoffDuration: 0.5,
   /** La camera descend l'axe : grammaire jade (implosion axiale). */
   /* 0,3 -> 0,15 et 1,4 -> 1,0 (16/09, bornage du voile). La descente reste
      le geste d'arrivee, elle ne fait plus attendre : elle representait deux
