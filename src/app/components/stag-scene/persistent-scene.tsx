@@ -7,8 +7,7 @@ import { SONDE } from "@/lib/sonde";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { VSMShadowMap } from "three";
-import { setConsoleFunction } from "three/src/utils.js";
+import { setConsoleFunction, VSMShadowMap } from "three";
 import { deriveFogTint, readDirectionAccentColor, readDirectionColor } from "./direction-colors";
 import SceneContent from "./scene-content";
 import ShaderWarmup from "./shader-warmup";
@@ -78,6 +77,12 @@ const PostFX = dynamic(() => import("./post-fx"), { ssr: false });
  *    propres avertissements et ceux de React. Remplacer `console.warn`
  *    globalement pour taire deux lignes de bibliotheque etait un filet
  *    beaucoup trop large.
+ *
+ * ET LE PIEGE QUI M'A EU UNE FOIS : ce crochet se prend sur `"three"`, pas
+ * sur `"three/src/utils.js"`. Le paquet publie un build qui EMBARQUE
+ * `utils.js` : importer la source donne une deuxieme instance du module,
+ * avec son propre drapeau, que le `three` du site ne regarde jamais. Le
+ * filtre s'installait alors tres bien, dans le vide.
  *
  * Ce qui n'est pas dans la liste passe, tel quel, au bon niveau.
  */
