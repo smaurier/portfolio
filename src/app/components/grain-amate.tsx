@@ -5,6 +5,15 @@ import { bakeAmateGrainRows, bakeObsidianPolishRows, fadeToPaper, fadeToStone, r
 import { THEME_EVENT } from "@/lib/theme";
 import { SONDE } from "@/lib/sonde";
 
+/** Ce que `requestIdleCallback` annonce de repit restant. */
+type Repit = { timeRemaining: () => number };
+
+/** En dessous, on rend la main plutot que de risquer de deborder. */
+const REPIT_MINIMUM_MS = 12;
+
+/** Le delai de garde entre deux etapes de cuisson. */
+const PATIENCE_ENTRE_ETAPES_MS = 90;
+
 /**
  * LE GRAIN DU PAPIER (13/09, idee de Sylvain : « si le papier etait
  * important, on pourrait mettre un grain a l'image claire et donner la
@@ -56,8 +65,8 @@ export default function GrainAmate() {
      * reste le bon endroit, mais on ne l'attend pas indefiniment : deux
      * secondes pour la premiere etape, un quart de seconde ensuite.
      */
-    const auRepos = (fn: () => void, patience = 250) => {
-      const w = window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+    const auRepos = (fn: (reste?: Repit) => void, patience = 250) => {
+      const w = window as unknown as { requestIdleCallback?: (cb: (d: Repit) => void, o?: { timeout: number }) => number };
       if (typeof w.requestIdleCallback === "function") w.requestIdleCallback(fn, { timeout: patience });
       else window.setTimeout(fn, Math.min(patience, 120));
     };
@@ -103,7 +112,12 @@ export default function GrainAmate() {
     // plus riche. Chaque pixel ne dependant que de ses coordonnees, on le
     // cuit par tranches de lignes, et un test verifie que le decoupage rend
     // exactement la meme matiere, octet par octet.
-    const BANDES = 4;
+    // HUIT BANDES, PAS QUATRE (16/09). Ce qui gene le visiteur n'est pas la
+    // duree totale de la cuisson mais la plus LONGUE tache : une tache ne
+    // s'interrompt pas, donc 133 ms valent huit images perdues d'un coup.
+    // Mesure sur Contact (Pixel 7, processeur divise par quatre) : les
+    // quatre bandes d'amate coutaient 79, 97, 133 et 86 ms.
+    const BANDES = 8;
     const brut = new Uint8Array(TAILLE * TAILLE * 4);
     const brutPoli = new Uint8Array(TAILLE * TAILLE * 4);
     // LE PAPIER, en bandes, puis sa couture et sa seconde feuille.
@@ -111,12 +125,14 @@ export default function GrainAmate() {
       ...Array.from({ length: BANDES }, (_, b) => () => {
         bakeAmateGrainRows(brut, TAILLE, GRAINE, (b * TAILLE) / BANDES, ((b + 1) * TAILLE) / BANDES);
       }),
+      // La couture et la pose sont DEUX etapes (16/09) : ensemble elles
+      // faisaient 235 ms, la pire tache de la cuisson. Le commentaire
+      // d'avant disait que la couture « ne pese presque rien » ; les separer
+      // dit lequel des deux paie, et rend la main entre les deux.
       () => {
-        // La couture se ferme sur la tuile entiere : c'est un brassage de
-        // tableau, pas le generateur, et il ne pese presque rien.
         grain = rendreSansCouture(brut, TAILLE);
-        poser(VARIABLE, grain);
       },
+      () => poser(VARIABLE, grain as Uint8Array),
       // La seconde feuille : celle des panneaux et du bandeau, plus claire.
       () => poser(VARIABLE_DOUX, fadeToPaper(grain as Uint8Array, PART_DE_BLANC)),
     ];
@@ -161,7 +177,7 @@ export default function GrainAmate() {
       // l'attente entre deux temps morts, et ce n'est pas elle qui gene le
       // visiteur. Ce qui gene, c'est la plus longue tache.
       const durees: number[] = [];
-      const suivante = (i: number) => {
+      const suivante = (i: number, repit?: Repit) => {
         if (i >= etapes.length) {
           if (SONDE) {
             (window as unknown as { __nahualMatiere?: { ms: number; pire: number; durees: number[]; taille: number } }).__nahualMatiere = {
@@ -185,7 +201,29 @@ export default function GrainAmate() {
           // un papier uni, ce qui est exactement ce qu'elle etait avant.
           return;
         }
-        auRepos(() => suivante(i + 1));
+        // ON REMPLIT LE CRENEAU (16/09). Chaque etape attendait SON propre
+        // temps mort : vingt-deux etapes a un quart de seconde de patience,
+        // c'etait cinq secondes d'attente pure, et la matiere se posait a
+        // dix-sept secondes. Tant qu'il reste du repit annonce, on enchaine
+        // dans le meme creneau ; des qu'il n'y en a plus, on rend la main.
+        // Resultat : rapide quand la page ne fait rien, poli quand elle
+        // travaille, sans jamais allonger la plus longue tache.
+        if (repit && repit.timeRemaining() > REPIT_MINIMUM_MS) {
+          suivante(i + 1, repit);
+          return;
+        }
+        // PATIENCE COURTE ENTRE LES ETAPES (16/09). Une page qui rend une
+        // scene 3D n'est JAMAIS au repos : `requestIdleCallback` n'annonce
+        // aucun repit, donc c'est toujours le delai de garde qui decide.
+        // A un quart de seconde par etape, la matiere se posait a
+        // dix-sept secondes, et le visiteur traversait tout son premier
+        // defilement avec une tache de vingt a quatre-vingt-dix
+        // millisecondes toutes les quelques images. Concentre, le meme
+        // travail tient en deux secondes, pendant qu'il lit le haut de la
+        // page. Une gene breve et tot vaut mieux qu'une gene diffuse et
+        // longue : c'est le meme raisonnement qui avait fait passer la
+        // premiere patience de deux secondes a un quart (14/09).
+        auRepos((r) => suivante(i + 1, r), PATIENCE_ENTRE_ETAPES_MS);
       };
       suivante(0);
     };
