@@ -233,3 +233,56 @@ Consultees le 16/09/2026.
 - Unreal Engine, *Fading Between LODs* : https://couchlearn.com/fading-between-lods-in-unreal-engine-4/
 - Arm Developer, *Early-Z* : https://developer.arm.com/documentation/102224/0200/Early-Z
 - NVIDIA, *Implementing Stochastic LOD with Microsoft DXR* : https://developer.nvidia.com/blog/implementing-stochastic-lod-with-microsoft-dxr
+
+---
+
+## 7. Trois hypotheses eliminees, et le defaut est toujours la (16/09, soir)
+
+Ecrit pour que personne, moi compris, ne les re-essaie.
+
+Le defaut : au commit de la route, Sud vers Ouest, **+23 de luminance
+moyenne en une image**. Il survit a `approachTint`, `approachFog`,
+`approachRig`, au fondu d'arc et a la descente vers la nuit.
+
+### Ce qui est elimine, par la mesure et non par le raisonnement
+
+**1. « Arriver a la nuit cachera la bascule. »** Faux. Depuis la descente
+du 16/09 on arrive a `arc 0.00`, la nuit la plus noire de l'arc, et le
+saut fait toujours +22,2. `getRevealFloor(0)` met le brouillard au noir
+mais laisse l'ambiante a 0,30 : le monde qui arrive porte encore de la
+lumiere. J'avais annonce ce gain comme acquis avant de le mesurer ; il ne
+l'etait pas.
+
+**2. « La brume peut servir de rideau. »** Impossible par geometrie, pas
+par reglage. Notre brouillard commence a dix unites (« il ne touche jamais
+la scene proche », 20/08) et la camera orbite a une distance du meme
+ordre : le decor proche, qui est justement celui qui apparait, est DEDANS.
+Refermer le `far` ne le toucherait pas.
+
+**3. « Le monde s'allume en une image, donc il faut l'etaler. »** Le
+raisonnement etait bon, la cause non. Etalement ecrit, teste (neuf tests),
+branche sur les mailles du sous-arbre et non sur les enfants directs
+(chaque `MountForDirection` n'en a qu'un, et l'Ouest n'a qu'une instance
+pour tout son monde). Sonde a l'appui, il TOURNE : trente pieces et trois
+pieces levees au commit pour `cendre`. Et le saut reste a +23,3. Le code a
+ete retire plutot que garde : une machinerie qui ne deplace aucun chiffre
+est de la dette, pas une precaution.
+
+### Ce qu'on sait maintenant, et qui est etroit
+
+A l'image du saut, tout ce qu'on sait mesurer est continu : les lumieres
+BAISSENT, le brouillard, la camera, la vignette, le bloom, le plancher de
+revelation et l'arc ne bougent pas. Le compte d'objets ne change pas, et
+les objets ne deviennent pas visibles a cet instant, ce que l'etalement
+vient de prouver par l'absurde.
+
+Le niveau ne redescend pas non plus : 17, puis 41, puis 65. Ce n'est donc
+pas un eclair, c'est un CHANGEMENT DE NIVEAU qui arrive d'un coup. Le
+monde de l'Ouest a `arc 0` est simplement plus clair que celui du Sud a
+`arc 0`, et on passe de l'un a l'autre sans transition.
+
+La prochaine piste n'est donc ni la lumiere, ni la geometrie, ni la
+visibilite : c'est ce qui differe entre DEUX MONDES a arc egal. Materiaux
+propres a chaque direction, uniformes de revelation au curseur appliques
+par balayage cadence, ou simplement le fait que les deux decors coexistent
+pendant les 2 500 ms de linger. A mesurer, pas a supposer.
