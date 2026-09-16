@@ -286,3 +286,74 @@ visibilite : c'est ce qui differe entre DEUX MONDES a arc egal. Materiaux
 propres a chaque direction, uniformes de revelation au curseur appliques
 par balayage cadence, ou simplement le fait que les deux decors coexistent
 pendant les 2 500 ms de linger. A mesurer, pas a supposer.
+
+---
+
+## 8. La cause, enfin, et la methode qui l'a donnee (16/09, tard)
+
+### La methode, parce qu'elle vaut plus que le resultat
+
+Trois hypotheses fausses de suite avaient un point commun : **je choisissais
+d'avance quoi observer**, et la sonde ne pouvait donc rapporter que sur ce
+que j'avais deja soupconne. La quatrieme tentative ne choisit rien.
+
+`.scratch/transitions/diff-au-saut.mjs` prend, a chaque image, une
+EMPREINTE de tout ce qui peut changer un pixel : pour chaque objet de la
+scene, sa visibilite, son echelle, sa position ; pour chaque materiau, sa
+couleur, son emissive, son opacite, sa rugosite, son intensite d'enveloppe,
+son melange, sa version, et chacun de ses uniformes numeriques ou de
+couleur ; plus le brouillard, le fond, la camera, l'exposition, la couleur
+d'effacement, la densite de pixels et les classes du document. Elle garde
+l'empreinte precedente, et des que la luminance bouge d'un coup, elle diffe
+les deux et remonte l'ascendance des coupables.
+
+Verdict, en une passe : **zero objet apparu, zero disparu, rien de global
+change, et un seul champ coupable.**
+
+### La cause
+
+```
+SAUT : 17.7 -> 40.3  (22.6)
+VISIBILITE 0 -> 1  1443:Group
+   32 enfants, 42 mailles
+   1443:Group < 677:Group < 161:Scene
+   enfants : Group, Mesh, Mesh, Sprite, Sprite, Sprite, ...
+```
+
+Ce sont **les Cihuateteo**. `cihuateteo.tsx`, ligne 517 :
+
+```ts
+blendRef.current += ((west ? 1 : 0) - blendRef.current) * 0.05;
+const blend = blendRef.current;
+g.visible = blend > 0.01;
+if (!g.visible) return;
+```
+
+Le fondu existe, il est meme doux (0,05 par image), mais **il ne pilote
+rien d'autre que la porte**. Les trois porteuses, leurs quarante-deux
+mailles et leurs papillons apparaissent donc a pleine presence a l'instant
+ou `blend` franchit un centieme, une image apres le commit. Le reste du
+fondu ne sert a rien : il n'y a rien derriere la porte qui suive.
+
+C'est exactement le defaut que la section 0 nommait pour `year-stones`, en
+pire : la, la pierre rapetissait au moins. Ici, rien.
+
+### Ce qui a ete retire en chemin
+
+L'etalement du lever a ete reecrit une seconde fois, corrige de deux
+defauts reels (il tournait dans un `useEffect`, donc apres le rendu ; et
+son predicat etait inverse, il collectait les pieces DEJA cachees pour les
+cacher), et il ne deplace toujours pas le chiffre, pour une raison
+desormais evidente : le coupable n'est pas sous la bascule de
+`MountForDirection`, c'est un composant qui ouvre sa propre porte. Code
+retire une seconde fois. Il reviendra si un jour le defaut est la.
+
+### Ce que ca coute a decider
+
+La correction mecanique est ecrite et testee depuis ce soir :
+`attacherDissolution` (section 1.C), deja en place sur les pierres du Sud.
+Mais l'appliquer ici n'est pas une correction, c'est une decision de
+direction artistique, et elle touche une regle posee de longue date :
+**les Cihuateteo ne sont jamais dramatisees**. Comment trois femmes mortes
+en couches entrent-elles et sortent-elles du monde ? Ca ne se tranche pas
+dans un diff.
