@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { MIROIR_TIMING, codexDraw, miroirDuration, miroirPeakAt, nextTheme, parseStoredTheme, smokeAlpha, smokePhase } from "./theme";
+import {
+  faceInitiale, MIROIR_TIMING, codexDraw, miroirDuration, miroirPeakAt, nextTheme, parseStoredTheme, smokeAlpha, smokePhase } from "./theme";
 
 describe("le miroir fumant (13/09)", () => {
   it("deux faces, et la memoire ne lit que ces deux mots", () => {
@@ -96,5 +97,36 @@ describe("le trace du codex : la scene se dessine, puis se recolore", () => {
   it("le trace occupe le premier tiers de la ceremonie", () => {
     expect(T.trace / miroirDuration()).toBeGreaterThan(0.25);
     expect(T.trace / miroirDuration()).toBeLessThan(0.4);
+  });
+});
+
+describe("faceInitiale (la face du monde au premier paint)", () => {
+  // RENVERSEMENT DU 16/09, demande de Sylvain : « notre interface ne doit
+  // pas avoir de design par defaut, son design s'adapte aux preferences
+  // utilisateur ». Jusqu'ici la nuit etait posee en dur, « quelle que soit
+  // la preference systeme », a quatre endroits. L'amate et l'obsidienne
+  // sont deux faces egales : aucune des deux n'est le defaut de l'autre.
+  it("un choix memorise gagne toujours, contre la preference systeme", () => {
+    expect(faceInitiale("light", true)).toBe("light");
+    expect(faceInitiale("dark", false)).toBe("dark");
+  });
+
+  it("sans choix memorise, la preference systeme decide", () => {
+    expect(faceInitiale(null, true)).toBe("dark");
+    expect(faceInitiale(null, false)).toBe("light");
+  });
+
+  it("SANS PREFERENCE EXPRIMEE, c'est la face claire", () => {
+    // `prefers-color-scheme: light` matche aussi quand l'utilisateur n'a
+    // rien exprime (Media Queries niveau 5). Donc interroger la preference
+    // donne la regle de Sylvain sans rien coder de plus : « s'il n'y a pas
+    // de preference definie en general c'est blanc ».
+    expect(faceInitiale(null, false)).toBe("light");
+  });
+
+  it("une valeur de stockage abimee ne compte pas comme un choix", () => {
+    expect(faceInitiale("obsidienne", true)).toBe("dark");
+    expect(faceInitiale("", false)).toBe("light");
+    expect(faceInitiale(undefined, false)).toBe("light");
   });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { THEME_STORAGE_KEY, parseStoredTheme } from "@/lib/theme";
+import { THEME_STORAGE_KEY, faceInitiale } from "@/lib/theme";
 import { applyTheme } from "./theme-store";
 
 /**
@@ -17,13 +17,16 @@ import { applyTheme } from "./theme-store";
  */
 export default function NotFoundReveal() {
   useEffect(() => {
-    let theme: ReturnType<typeof parseStoredTheme> = null;
+    // 16/09 : la meme regle qu'ailleurs (lib/theme.faceInitiale), pas une
+    // face choisie d'avance. Une page d'erreur n'est pas un endroit ou
+    // imposer une face que le visiteur n'a pas demandee.
+    let stocke: string | null = null;
     try {
-      theme = parseStoredTheme(window.localStorage.getItem(THEME_STORAGE_KEY));
+      stocke = window.localStorage.getItem(THEME_STORAGE_KEY);
     } catch {
-      theme = null;
+      stocke = null;
     }
-    applyTheme(theme ?? "dark");
+    applyTheme(faceInitiale(stocke, window.matchMedia("(prefers-color-scheme: dark)").matches));
     const root = document.documentElement;
     root.setAttribute("data-loaded", "true");
     root.setAttribute("data-foyer", "done");

@@ -18,9 +18,26 @@
  * Etat de l'art retenu (2026) : la preference se persiste, se pose AVANT
  * le premier paint (script inline, pas d'eclair), `color-scheme` et
  * `theme-color` suivent, le mouvement reduit coupe la ceremonie.
- * Choix assume, documente : la nuit reste la face par defaut, quelle que
- * soit la preference systeme ; le site est une nuit, le miroir se
- * retourne a la main.
+ *
+ * RENVERSEMENT DU 16/09, par Sylvain. Le choix du 13/09 etait « la nuit
+ * reste la face par defaut, quelle que soit la preference systeme ». Il
+ * tombe : « notre interface ne doit pas avoir de design par defaut, son
+ * design s'adapte aux preferences utilisateur [...] l'amate comme
+ * l'obsidienne sont deux designs importants et si l'un est vu par defaut
+ * dans le code, il faut changer ca ».
+ *
+ * L'amate et l'obsidienne sont donc deux faces EGALES. Aucune n'est le
+ * defaut de l'autre : le visiteur decide, et s'il n'a rien decide, son
+ * systeme decide pour lui. Et ca suffit a couvrir le cas ou personne n'a
+ * rien exprime, parce que `prefers-color-scheme: light` matche aussi
+ * l'absence de preference (Media Queries niveau 5) : le blanc sort tout
+ * seul, sans qu'on ait a l'ecrire nulle part.
+ *
+ * CE QUI RESTE OUVERT : choisir la face de l'absence de preference pour
+ * une raison mythologique plutot que par convention du web. Sylvain :
+ * « nous on pourrait choisir en fonction de notre mythologie. A
+ * reflechir. » Le jour ou ce choix se prend, il se prend ICI, dans
+ * `faceInitiale`, et nulle part ailleurs.
  */
 export type Theme = "dark" | "light";
 
@@ -53,6 +70,20 @@ export type MiroirTiming = typeof MIROIR_TIMING;
 
 export function parseStoredTheme(raw: string | null | undefined): Theme | null {
   return raw === "light" || raw === "dark" ? raw : null;
+}
+
+
+/**
+ * La face du monde au tout premier paint, avant que quoi que ce soit ne
+ * soit dessine. Une seule regle, un seul endroit : le choix memorise
+ * l'emporte ; sinon la preference du systeme ; et l'absence de preference
+ * est deja portee par la preference elle-meme (voir l'en-tete).
+ *
+ * `systemePrefereLaNuit` est ce que repond
+ * `matchMedia("(prefers-color-scheme: dark)").matches`.
+ */
+export function faceInitiale(stocke: string | null | undefined, systemePrefereLaNuit: boolean): Theme {
+  return parseStoredTheme(stocke) ?? (systemePrefereLaNuit ? "dark" : "light");
 }
 
 export function nextTheme(theme: Theme): Theme {

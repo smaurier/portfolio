@@ -230,13 +230,18 @@ export default async function LocaleLayout({
             majoritairement sombre : Chrome/Safari appliquent la
             scrollbar sombre + form controls sombres AVANT que le CSS
             parse, evite le flash de scrollbar blanche sur fond noir. */}
-        <meta name="color-scheme" content="dark light" />
+        <meta name="color-scheme" content="light dark" />
         {/* LE MIROIR FUMANT (13/09) : la face du monde se pose sur <html>
-            AVANT le premier paint, sinon on verrait la nuit une image
-            avant le reflet. La nuit est la face par defaut, quelle que
-            soit la preference systeme (choix documente, lib/theme). */}
+            AVANT le premier paint, sinon on verrait une face une image
+            avant l'autre.
+            16/09 : elle suit desormais le visiteur et non un defaut. Le
+            choix memorise l'emporte ; sinon la preference systeme ; et
+            l'absence de preference donne le clair, parce que
+            `prefers-color-scheme: light` matche aussi le silence. Regle
+            unique dans lib/theme.faceInitiale, recopiee ici en une ligne
+            parce que ce script doit tenir avant tout module. */}
         <script dangerouslySetInnerHTML={{ __html: `
-          try{var th=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});document.documentElement.setAttribute("data-theme",th==="light"?"light":"dark");}catch(e){document.documentElement.setAttribute("data-theme","dark");}
+          try{var th=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});var n=th==="dark"||(th!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",n?"dark":"light");}catch(e){document.documentElement.setAttribute("data-theme","light");}
         ` }} />
         {/* JSON-LD structuré (28/08) : Person + WebSite + ProfessionalService.
             Injecté dans <head> plutôt que <body> pour être détecté par les
