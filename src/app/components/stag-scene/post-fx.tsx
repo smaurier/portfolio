@@ -248,6 +248,37 @@ export default function PostFX() {
         focusRange={DOF_FOCUS_RANGE}
         bokehScale={DOF_BASE_BOKEH}
       />
+      {/* CE QUE LA CHAINE D'EFFETS COUTE, ET LES DEUX IMPASSES (16/09).
+       *
+       * Mesure sur Projets, ecran de bureau a densite 2, en interceptant
+       * `createTexture` et en lisant le FORMAT INTERNE de chaque cible au
+       * contexte WebGL (les cibles sont en RGBA16F, donc huit octets le
+       * pixel et non quatre : les compter a quatre divise le total par deux) :
+       *
+       *   389 Mo de textures en tout, dont
+       *   79,2 Mo  les deux cibles masquee et lointaine de la profondeur de
+       *            champ, en PLEINE resolution
+       *   79,2 Mo  les deux tampons du composeur
+       *   39,6 Mo  la cible d'entree du bloom, en pleine resolution
+       *   39,6 Mo  la passe d'effets fusionnee
+       *   59,4 Mo  trois profondeurs 32 bits plein ecran
+       *
+       * DEUX IMPASSES ESSAYEES ET MESUREES, pour qu'on ne les refasse pas :
+       *
+       *  - `resolutionScale={0.5}` sur le Bloom : aucun gain. La source de
+       *    postprocessing le dit (BloomEffect.setSize) : cette echelle ne
+       *    touche que `renderTarget`, que `mipmapBlur` n'utilise meme pas,
+       *    tandis que `luminancePass.setSize(width, height)` recoit toujours
+       *    la taille de BASE.
+       *  - poser `luminancePass.resolution.scale` a la main par la ref :
+       *    aucun gain non plus, la cible reste a 2880 x 1800.
+       *
+       * LE SEUL VRAI LEVIER QUI RESTE est `frameBufferType` sur le
+       * composeur : en octet non signe plutot qu'en demi-flottant, tout ce
+       * qui precede est divise par deux, soit environ 120 Mo. Mais c'est la
+       * marge haute du bloom et la finesse des degrades de ciel qu'on
+       * echange, sur un site qui vit de ses ciels : c'est un arbitrage de
+       * direction artistique, pas une optimisation, et il n'est pas pris. */}
       <Bloom
         ref={bloomRef as never}
         intensity={BLOOM_BASE}
