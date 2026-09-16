@@ -296,19 +296,36 @@ export default function RevealLighting({
       <fog ref={fogRef} attach="fog" args={["#000000", 10, 34]} />
       <ambientLight ref={ambientRef} />
       {/* Ombres (05/09) : projetees au Sud seulement (castShadow pilote par
-       * useFrame), carte 2048, frustum ortho sur la scene proche (le cerf, la
-       * Piedra, les epines), biais pour eviter l'acne sur le low poly. */}
+       * useFrame), frustum ortho sur la scene proche (le cerf, la Piedra,
+       * les epines).
+       *
+       * CARTE 1024, ET VSM (16/09). Le type d'ombre est passe en VSM
+       * (persistent-scene) : il floute la carte par une passe separable, donc
+       * la resolution n'a plus a porter la douceur. 2048 en VSM aurait pris
+       * trois textures de 16 Mo ; 1024 en prend trois de 4, soit MOINS que
+       * les deux de 16 du PCF d'avant.
+       *
+       * `radius` et `blurSamples` sont la vraie commande de la douceur :
+       * c'est la largeur du flou, en texels de la carte, et le nombre
+       * d'echantillons de la passe.
+       *
+       * `bias` retombe a zero : en VSM la variance repond a l'acne toute
+       * seule, et un biais negatif y fabrique des FUITES DE LUMIERE au
+       * contact, ce qui est exactement le defaut qu'on ne veut pas sous un
+       * cerf pose au sol. `normalBias` reste, il ne fuit pas. */}
       <directionalLight
         ref={directionalRef}
         position={[4, 6, 4]}
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[1024, 1024]}
+        shadow-radius={3}
+        shadow-blurSamples={10}
         shadow-camera-near={0.5}
         shadow-camera-far={40}
         shadow-camera-left={-10}
         shadow-camera-right={10}
         shadow-camera-top={10}
         shadow-camera-bottom={-10}
-        shadow-bias={-0.0004}
+        shadow-bias={0}
         shadow-normalBias={0.03}
       />
       {/* Les lumieres persistantes (11/09) : le projecteur du serpent (Sud,

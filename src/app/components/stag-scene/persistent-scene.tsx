@@ -7,7 +7,8 @@ import { SONDE } from "@/lib/sonde";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { PCFShadowMap } from "three";
+import { VSMShadowMap } from "three";
+import { setConsoleFunction } from "three/src/utils.js";
 import { deriveFogTint, readDirectionAccentColor, readDirectionColor } from "./direction-colors";
 import SceneContent from "./scene-content";
 import ShaderWarmup from "./shader-warmup";
@@ -57,21 +58,47 @@ const PostFX = dynamic(() => import("./post-fx"), { ssr: false });
  * SceneRefsProvider, aussi monté au layout. Cohérent : tout ce qui
  * doit persister sur toute la session vit dans layout.
  */
-const LIBRARY_WARNINGS = ["THREE.Clock: This module has been deprecated", "warning X4122: sum of"];
+/**
+ * LES DEUX AVERTISSEMENTS QU'ON NE PEUT PAS CORRIGER, ET QU'ON TAIT.
+ *
+ * `THREE.Clock` est deprecie depuis three r183, mais c'est
+ * react-three-fiber qui en fabrique un, pas nous ; et `X4122` vient du
+ * compilateur de nuanceurs d'ANGLE, sur une somme de flottants. Aucun des
+ * deux ne nous dit quoi que ce soit d'actionnable, et tous deux se repetent.
+ *
+ * DEUX CORRECTIONS LE 16/09.
+ *
+ * 1. Le filtre ne s'installait qu'en DEVELOPPEMENT. Or c'est la console de
+ *    production qu'un jure ouvre : c'etait exactement l'inverse du besoin.
+ *    Verifie sur la production locale, chargement de Projets plus
+ *    defilement : l'avertissement de l'horloge sortait a chaque visite.
+ * 2. On n'ecrase plus `console.warn` du navigateur. three r185 expose son
+ *    propre crochet, `setConsoleFunction`, qui n'intercepte QUE ses
+ *    messages a lui : le reste de la console reste intact, y compris nos
+ *    propres avertissements et ceux de React. Remplacer `console.warn`
+ *    globalement pour taire deux lignes de bibliotheque etait un filet
+ *    beaucoup trop large.
+ *
+ * Ce qui n'est pas dans la liste passe, tel quel, au bon niveau.
+ */
+const LIBRARY_WARNINGS = ["Clock: This module has been deprecated", "warning X4122: sum of"];
 let warningFilterInstalled = false;
+
 function installLibraryWarningFilter(): void {
   if (warningFilterInstalled || typeof window === "undefined") return;
   warningFilterInstalled = true;
-  const original = console.warn;
-  console.warn = (...args: unknown[]) => {
-    const text = args.map((a) => (typeof a === "string" ? a : "")).join(" ");
-    if (LIBRARY_WARNINGS.some((w) => text.includes(w))) return;
-    original(...args);
-  };
+  setConsoleFunction((niveau: "log" | "warn" | "error", ...params: unknown[]) => {
+    const texte = params.map((a) => (typeof a === "string" ? a : "")).join(" ");
+    if (niveau === "warn" && LIBRARY_WARNINGS.some((w) => texte.includes(w))) return;
+    const sortie = niveau === "error" ? console.error : niveau === "warn" ? console.warn : console.log;
+    sortie(...params);
+  });
 }
+
 // Des le chargement du module (pas dans onCreated : react-three-fiber cree
-// son THREE.Clock a la creation du Canvas, avant onCreated).
-if (process.env.NODE_ENV !== "production") installLibraryWarningFilter();
+// son THREE.Clock a la creation du Canvas, avant onCreated), et en
+// production comme en developpement.
+installLibraryWarningFilter();
 
 export default function PersistentScene() {
   const refs = useSceneRefs();
@@ -180,17 +207,27 @@ export default function PersistentScene() {
         // activee au niveau du Canvas, la directionnelle ne projette qu'au
         // Sud (reveal-lighting), les autres pages restent sans ombre.
         //
-        // LE TYPE EST DIT (16/09), et c'est une correction d'honnetete, pas
-        // de rendu. `shadows` tout court laisse react-three-fiber demander
-        // `PCFSoftShadowMap`, que three a DEPRECIE en r185 : il le remplace
-        // en silence par `PCFShadowMap` et previent a chaque passe d'ombre.
-        // On dessinait donc deja du PCF, en croyant demander du PCF doux, et
-        // la console de production repetait l'avertissement -- celui-la
-        // n'etait pas dans le filtre de `LIBRARY_WARNINGS`. Le dire
-        // explicitement ne change PAS un pixel : c'est ce que three faisait.
-        // Si l'on veut de vraies ombres douces un jour, c'est `variance`
-        // (VSM) qu'il faudra demander, et ce sera un choix de rendu.
-        shadows={{ type: PCFShadowMap }}
+        // VSM, ET A MOITIE DE CARTE (16/09).
+        //
+        // `shadows` tout court laissait react-three-fiber demander
+        // `PCFSoftShadowMap`, que three a DEPRECIE en r185 : il le
+        // remplacait en silence par `PCFShadowMap`. On dessinait donc du PCF
+        // dur en croyant demander du doux, depuis la montee en r185.
+        //
+        // VSM floute vraiment, par une passe de flou separable sur la carte.
+        // Il coute TROIS textures par lumiere la ou PCF en prend deux : la
+        // carte en RG demi-flottant, sa texture de profondeur, et la cible de
+        // la passe de flou. A 2048 il aurait donc triple l'empreinte. Mais
+        // comme il floute par construction, il n'a pas besoin de 2048 : a
+        // 1024 (voir reveal-lighting) il donne un bord plus doux POUR MOINS
+        // CHER que le PCF d'avant.
+        //
+        // Le piege a surveiller, et c'est dans la source de three
+        // (WebGLShadowMap, r185) : en VSM, les objets qui RECOIVENT l'ombre
+        // sont rendus dans la carte eux aussi, pas seulement ceux qui la
+        // projettent. La passe d'ombre grossit donc, et c'est mesure plus bas
+        // dans le message du commit.
+        shadows={{ type: VSMShadowMap }}
         // Photo (05/09, controles de scene) : canvas.toBlob a besoin que le
         // tampon soit conserve apres la composition.
         gl={{ preserveDrawingBuffer: true }}
