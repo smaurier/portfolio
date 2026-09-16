@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { Color, DoubleSide, Euler, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from "three";
 import { cempasuchilFlowers, CEMPASUCHIL_COUNT } from "@/lib/cempasuchil-path";
 import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
-import { makeCempasuchilGeometry } from "@/lib/cempasuchil-geometry";
+import { CEMPASUCHIL_SPEC, makeCempasuchilGeometry } from "@/lib/cempasuchil-geometry";
 import { profondeurPage } from "@/lib/profondeur-page";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
@@ -61,7 +61,17 @@ export default function CempasuchilPath() {
   // boule de petales de lib/cempasuchil-geometry, couleurs par vertex
   // (coeur sombre, bouts clairs, calice vert). Une seule variante suffit,
   // le cap et l'echelle par instance cassent deja la repetition.
-  const geometry = useMemo(() => makeCempasuchilGeometry(7), []);
+  // LE COMPTE DE LIGULES SUIT LE PALIER DE QUALITE (16/09), exactement comme
+  // les brins d'herbe et les meches des porteuses. La fleur refaite coute
+  // quatre triangles par segment et par ligule au lieu de deux : a 150
+  // ligules, les soixante-douze fleurs pesaient 137 000 triangles sur les
+  // 236 000 de la page. Le telephone en pose 84, ou la plus grosse fleur ne
+  // fait de toute facon qu'une fraction des 112 pixels du bureau.
+  const ligules = sceneRefs?.perfProfile.cempasuchilPetals ?? CEMPASUCHIL_SPEC.petals;
+  const geometry = useMemo(
+    () => makeCempasuchilGeometry(7, { ...CEMPASUCHIL_SPEC, petals: ligules }),
+    [ligules],
+  );
   const material = useMemo(
     () =>
       new MeshStandardMaterial({

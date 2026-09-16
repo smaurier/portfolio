@@ -47,6 +47,8 @@ export type PerfProfile = {
   skirtStrips: number;
   clothFar: number;
   simEveryOtherFrame: boolean;
+  /** Ligules d'une cempasuchil, au Nord (16/09). */
+  cempasuchilPetals: number;
 };
 
 /**
@@ -71,5 +73,6 @@ export function getPerfProfile(viewportWidth: number, eco = false): PerfProfile 
     skirtStrips: q.skirtStrips,
     clothFar: q.clothFar,
     simEveryOtherFrame: q.simEveryOtherFrame,
+    cempasuchilPetals: q.cempasuchilPetals,
   };
 }
