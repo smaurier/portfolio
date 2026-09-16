@@ -7,6 +7,7 @@ import { SONDE } from "@/lib/sonde";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
+import { PCFShadowMap } from "three";
 import { deriveFogTint, readDirectionAccentColor, readDirectionColor } from "./direction-colors";
 import SceneContent from "./scene-content";
 import ShaderWarmup from "./shader-warmup";
@@ -178,7 +179,18 @@ export default function PersistentScene() {
         // Ombres (05/09, Sud : « un jeu d'ombres delicats ») : shadow map
         // activee au niveau du Canvas, la directionnelle ne projette qu'au
         // Sud (reveal-lighting), les autres pages restent sans ombre.
-        shadows
+        //
+        // LE TYPE EST DIT (16/09), et c'est une correction d'honnetete, pas
+        // de rendu. `shadows` tout court laisse react-three-fiber demander
+        // `PCFSoftShadowMap`, que three a DEPRECIE en r185 : il le remplace
+        // en silence par `PCFShadowMap` et previent a chaque passe d'ombre.
+        // On dessinait donc deja du PCF, en croyant demander du PCF doux, et
+        // la console de production repetait l'avertissement -- celui-la
+        // n'etait pas dans le filtre de `LIBRARY_WARNINGS`. Le dire
+        // explicitement ne change PAS un pixel : c'est ce que three faisait.
+        // Si l'on veut de vraies ombres douces un jour, c'est `variance`
+        // (VSM) qu'il faudra demander, et ce sera un choix de rendu.
+        shadows={{ type: PCFShadowMap }}
         // Photo (05/09, controles de scene) : canvas.toBlob a besoin que le
         // tampon soit conserve apres la composition.
         gl={{ preserveDrawingBuffer: true }}
