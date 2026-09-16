@@ -730,3 +730,56 @@ technique, mais c'est la que sont les points.
 Et une chose qui ne se mesure pas mais qui bloque tout : **trente-trois
 commits attendent sur `dev`**, dont tout ce qui precede. Ce qui les retient
 est la relecture des textes publics.
+
+## 16/09 au soir : les transitions, et un clignotement au noir
+
+Sylvain : « je trouve les transitions assez perfectibles pour l'instant, tant
+esthetiquement que mythologiquement qu'au niveau perf ». On peut chercher la
+part de ce jugement qui ne demande aucun gout : le jure regarde les
+PASSAGES entre etats, et un defaut que tout le monde voit coute plus cher
+qu'une finesse que personne ne remarque (moyenne tronquee).
+
+### L'instrument
+
+On echantillonne la TOILE elle-meme, reduite a 48 x 30 vrais pixels, toutes
+les trente millisecondes pendant le passage, en relevant au meme instant
+l'etat de la scene : intensites des lumieres, couleur et portee du
+brouillard, chemin courant. Une premiere version comparait des octets JPEG,
+ce qui ne veut rien dire. Sonde : `.scratch/transitions/`.
+
+### Ce qu'il trouve
+
+Sur les cinq passages de l'anneau, deux sont propres (Est vers Sud et Ouest
+vers Nord descendent en quatre a six images), et DEUX ont un defaut objectif.
+
+**Nord vers Centre : un clignotement au noir.** Luminance moyenne
+32, 32, 32, 30, puis **12**, puis 71. Une image presque eteinte entre deux
+etats lumineux.
+
+**Sud vers Ouest : un saut.** 20, 20, puis **72** d'un coup, sans fondu.
+
+### La cause du clignotement, a l'image pres
+
+    330 ms  lum 31 | /fr/memoire | ambiante 0,67 | dir. 1,49 | brouillard 482a71
+    360 ms  lum 15 | /fr         | ambiante 0,30 | dir. 0,45 | brouillard 000000
+    390 ms  lum 61 | /fr         | ambiante 0,73 | dir. 1,63 | brouillard 00905a
+
+Le brouillard passe du violet du Nord au NOIR PUR, puis au vert de jade. Or
+`getFogColor` interpole depuis le noir vers la teinte de la direction,
+proportionnellement a `getRevealFloor(progress)`, et `getRevealFloor(0)`
+vaut zero : **a l'avancement zero, l'arc est noir par construction**, c'est
+la nuit du debut.
+
+Et a la navigation, `scene-refs-context` remet le defilement a zero avant
+que la position ne soit restauree. Il existe donc UNE IMAGE rendue a
+l'avancement zero, entre deux etats lumineux. Ce n'est pas un choix de
+direction artistique, c'est une fenetre d'une image ou l'etat de la scene
+n'est pas encore celui de la page ou l'on arrive.
+
+### Ce que ca ouvre
+
+La correction touche la choregraphie de navigation : tenir l'avancement
+precedent tant que le nouveau n'est pas connu, ou passer le remplacement
+sous le rideau de la transition cardinale, qui existe deja. C'est le meme
+chantier que la reprise esthetique et mythologique des passages, et il se
+decide avec Sylvain.
