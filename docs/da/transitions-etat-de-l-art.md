@@ -365,3 +365,64 @@ Consultees le 16/09/2026.
 - MDN, *Perceived performance* : https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Performance/Perceived_performance
 - Deque University, *2.3.3 Animations from Interactions* : https://dequeuniversity.com/resources/wcag2.1/2.3.3-animations-from-interactions
 - Awwwards, *Evaluation System* : https://www.awwwards.com/about-evaluation/
+
+---
+
+## 9. Ce que la correction a donne, et ce qu'elle a revele (16/09, soir)
+
+Les deux correctifs de la section 6 sont faits, avec leurs oracles. L'un
+des deux diagnostics etait juste mais incomplet, et c'est la mesure qui
+l'a dit.
+
+### Ce qui est acquis
+
+| | avant | apres |
+| --- | --- | --- |
+| Nord vers Centre, creux | une image a 12 contre 30 et 71 | **plus aucun creux** |
+| Nord vers Centre, plus grand pas | 0,65 de l'ecart | 0,36 |
+| Sud vers Ouest, plus grand pas | 0,93 de l'ecart | 0,49 |
+
+Trois choses basculaient d'un coup au commit, pas deux.
+
+1. **Le defilement**, corrige par `scroll: false`. Le creux a disparu, et
+   c'est verifie par la sonde, pas deduit.
+2. **La teinte du brouillard**, corrigee par `approachTint`. Diagnostic de
+   la section 6, exact.
+3. **L'arc lui-meme**, que la section 6 n'avait pas vu. Chaque direction
+   lit le meme defilement a sa facon : l'Ouest inverse l'arc, le Nord
+   descend le Mictlan. Cette lecture suivait la ROUTE, donc elle basculait,
+   pendant que la portee du brouillard, le rig de lumiere, la teinte et
+   meme l'heure traversaient tous proprement. C'etait le terme dominant :
+   a lui seul il valait plus que la teinte. D'ou `lib/arc-fondu`, et
+   `arc-store` pour qu'il n'y ait qu'une lecture de l'arc par image au lieu
+   de trois qui divergent.
+
+### Ce qui reste, et son nom
+
+Une marche subsiste, deux fois plus petite. La sonde la cerne exactement :
+a l'image du saut, **les lumieres baissent**, le brouillard, la camera, le
+plancher de revelation, la vignette et le bloom sont tous continus, et le
+nombre d'objets visibles ne bouge pas. Rien de ce qui s'anime n'explique
+le saut.
+
+Ce qui bouge, c'est l'image suivante : **le decor propre a la direction
+quittee sort et celui de la nouvelle entre en une seule image.** Les
+cranes et les porteuses d'annee du Sud disparaissent, les pieces de
+l'Ouest apparaissent, d'un bloc. Les ambiances, elles, fondent deja depuis
+longtemps ; le decor non.
+
+C'est exactement la loi commune de la section 2, au dernier etage : un
+etat qui s'installe par morceaux. Et c'est un chantier a part, parce qu'il
+porte une question de direction artistique que la mecanique ne tranche
+pas : **comment le monde d'une direction s'en va-t-il ?** Il s'efface, il
+se replie, il se disperse, il reste et se laisse recouvrir. Ce n'est pas
+la meme mythologie a chaque fois.
+
+### La lecon de methode
+
+La section 6 tenait un diagnostic exact et se croyait complete. Elle ne
+l'etait pas : le terme dominant etait ailleurs, et aucune relecture de code
+ne l'aurait donne, parce qu'il fallait voir que les lumieres BAISSENT
+pendant que l'image s'eclaircit pour cesser de chercher du cote de la
+lumiere. C'est la troisieme fois ce mois-ci qu'une cause plausible et bien
+argumentee se revele minoritaire devant la mesure.
