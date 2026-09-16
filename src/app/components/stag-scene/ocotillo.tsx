@@ -4,6 +4,7 @@ import { useMemo, useRef } from "react";
 import type { Group as GroupType, Object3D } from "three";
 import { useFrame } from "@react-three/fiber";
 import { freezeDecor } from "@/lib/freeze-decor";
+import { mergeByMaterial } from "@/lib/merge-meshes";
 import { useFigeUneFois } from "./use-fige-une-fois";
 import { useLibereAuDemontage } from "./use-libere";
 import { useGLTF } from "@react-three/drei";
@@ -32,7 +33,19 @@ function OcotilloFlower({ x, y, z }: { x: number; y: number; z: number }) {
   // mesurable de façon fiable qu'une fois réellement attaché au graphe de
   // scène (plusieurs clones du même GLB caché par useGLTF).
   const { scene } = useGLTF(FLOWER_MODEL_PATH);
-  const clone = useMemo(() => scene.clone(true), [scene]);
+  const clone = useMemo(() => {
+    // FUSIONNER LA SOURCE AVANT DE CLONER (16/09), exactement comme la
+    // flore de fond. `vine-flower.glb` porte TROIS maillages qui partagent
+    // un seul materiau ("red") : une corolle de 840 triangles, puis 192 et
+    // 128. La scene en compte vingt-huit exemplaires, donc 84 appels de
+    // dessin la ou vingt-huit suffisent, a triangles et pixels identiques.
+    // Sur la source plutot que sur le clone parce que les geometries sont
+    // partagees entre clones : fusionner un clone disposerait celles des
+    // autres. La fonction est idempotente, le deuxieme appel ne trouve
+    // plus rien. Sans danger : ce modele n'est charge que par ce fichier.
+    mergeByMaterial(scene);
+    return scene.clone(true);
+  }, [scene]);
   const normalizedRef = useRef(false);
 
   useFrame(() => {

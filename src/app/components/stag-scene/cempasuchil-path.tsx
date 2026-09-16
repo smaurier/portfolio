@@ -6,6 +6,7 @@ import { Color, DoubleSide, Euler, InstancedMesh, Matrix4, MeshStandardMaterial,
 import { cempasuchilFlowers, CEMPASUCHIL_COUNT } from "@/lib/cempasuchil-path";
 import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
 import { makeCempasuchilGeometry } from "@/lib/cempasuchil-geometry";
+import { profondeurPage } from "@/lib/profondeur-page";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -126,9 +127,7 @@ export default function CempasuchilPath() {
     const fade = fadeRef.current;
     mesh.visible = fade > 0.01;
     if (!mesh.visible) return;
-    const doc = typeof document !== "undefined" ? document.documentElement : null;
-    const denom = doc ? doc.scrollHeight - window.innerHeight : 0;
-    const depth = denom > 0 ? Math.min(1, window.scrollY / denom) : 1;
+    const depth = profondeurPage();
     const t = reduced ? 0 : state.clock.elapsedTime;
     const dt = Math.min(delta, 1 / 30);
     const flowers = cempasuchilFlowers(depth, t);

@@ -22,6 +22,7 @@ import { clone as cloneSkinnedScene } from "three/examples/jsm/utils/SkeletonUti
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 import { strippedWarmth } from "@/lib/direction-arc";
+import { profondeurPage } from "@/lib/profondeur-page";
 import { TEZCATL_EXTENT, tezcatlStore } from "./tezcatl-store";
 import { useLibereToutAuDemontage } from "./use-libere";
 
@@ -274,10 +275,7 @@ export default function StagMirror() {
   useFrame((state) => {
     // Gate de scroll : profondeur de page 0..1, le Mictlan se revele
     // en descendant. Lecture directe (pas de listener) : trois nombres
-    // par frame, negligeable.
-    const doc = typeof document !== "undefined" ? document.documentElement : null;
-    const denom = doc ? doc.scrollHeight - window.innerHeight : 0;
-    const depth = denom > 0 ? Math.min(1, window.scrollY / denom) : 1;
+    const depth = profondeurPage();
     const gate = SCROLL_GATE_FLOOR + (1 - SCROLL_GATE_FLOOR) * depth;
     const target = direction === "obsidienne" ? MIRROR_OPACITY * gate : 0;
     const reduced = sceneRefs?.reducedMotionRef.current;

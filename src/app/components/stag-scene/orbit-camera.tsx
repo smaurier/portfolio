@@ -149,6 +149,27 @@ export default function OrbitCamera({
   // L'heure de Tenochtitlan (05/09) : la camera orbite lentement autour du
   // cerf tant que le mode est actif (angle cumule, qui revient a zero en
   // douceur quand on en sort).
+  // LA LARGEUR NE SE LIT PLUS PAR IMAGE (16/09). `window.innerWidth` est une
+  // lecture qui depend de la mise en page : demandee dans une boucle
+  // d'animation, elle force le navigateur a la recalculer sur-le-champ.
+  // L'ancien commentaire disait « recalcule chaque frame (cheap) » ; le
+  // profil dit l'inverse. Sur Contact (Pixel 7, processeur divise par
+  // quatre), cette boucle pesait 1,76 ms par image, premier poste du site
+  // devant les matrices de three. On la lit au montage et au
+  // redimensionnement, ce qui reagit aussi bien et ne coute rien.
+  const largeurRef = useRef(typeof window === "undefined" ? 1024 : window.innerWidth);
+  useEffect(() => {
+    const relire = () => {
+      largeurRef.current = window.innerWidth;
+    };
+    relire();
+    window.addEventListener("resize", relire, { passive: true });
+    window.addEventListener("orientationchange", relire, { passive: true });
+    return () => {
+      window.removeEventListener("resize", relire);
+      window.removeEventListener("orientationchange", relire);
+    };
+  }, []);
   const contemplationSpinRef = useRef(0);
   const lastFrameRef = useRef(0);
 
@@ -233,7 +254,7 @@ export default function OrbitCamera({
     // <768px, augmente radius + height pour garder cerf entier dans
     // le cadre malgre FOV plus large. Recalcule chaque frame (cheap)
     // pour reagir au resize.
-    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const isMobile = largeurRef.current < 768;
     // Blend Nord crossfadé (même cadence que fog/rig/grade).
     const northTarget = direction === "obsidienne" ? 1 : 0;
     northBlendRef.current += (northTarget - northBlendRef.current) * 0.06;

@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { Color, DoubleSide, Euler, InstancedMesh, Matrix4, MeshPhysicalMaterial, MeshStandardMaterial, Quaternion, Vector3 } from "three";
 import { ARROW_MATERIAL, ARROW_SPEC, makeArrowGeometry } from "@/lib/arrow-geometry";
 import { arrowVolley } from "@/lib/obsidian-wind";
+import { profondeurPage } from "@/lib/profondeur-page";
 import { getMictlanSky } from "./mictlan-sky";
 import { WATER_LEVEL, tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -85,10 +86,7 @@ export default function ObsidianArrows() {
     timeRef.current += dt;
     const t = timeRef.current;
 
-    // Profondeur de page (meme lecture que l'eau et le reflet).
-    const doc = typeof document !== "undefined" ? document.documentElement : null;
-    const denom = doc ? doc.scrollHeight - window.innerHeight : 0;
-    const depth = denom > 0 ? Math.min(1, window.scrollY / denom) : 1;
+    const depth = profondeurPage();
 
     // Nouvelle volee ? (id stable : lancee une seule fois)
     const volley = arrowVolley(depth, t);

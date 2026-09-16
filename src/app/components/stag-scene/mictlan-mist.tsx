@@ -6,6 +6,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Color, DoubleSide, ShaderMaterial, type Mesh } from "three";
 import { mistEmitters } from "@/lib/mictlan-mist";
 import { smokeGate } from "@/lib/tezcatl-fluid";
+import { profondeurPage } from "@/lib/profondeur-page";
 import { TezcatlFluidSim } from "./mictlan-fluid-sim";
 import { TEZCATL_EXTENT, WATER_LEVEL } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -132,9 +133,7 @@ export default function MictlanMist() {
 
   useFrame((_state, delta) => {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
-    const doc = typeof document !== "undefined" ? document.documentElement : null;
-    const denom = doc ? doc.scrollHeight - window.innerHeight : 0;
-    const depth = denom > 0 ? Math.min(1, window.scrollY / denom) : 1;
+    const depth = profondeurPage();
     const target = smokeGate({ direction, scrollDepth: depth, reducedMotion: reduced }) * MIST_OPACITY;
     opacityRef.current = reduced ? target : opacityRef.current + (target - opacityRef.current) * 0.05;
     // Cache par le garde-fou de direction : pas un pas, pas de compilation.

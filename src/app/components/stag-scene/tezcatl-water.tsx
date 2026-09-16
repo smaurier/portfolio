@@ -6,6 +6,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Color, DoubleSide, Matrix4, MeshPhysicalMaterial, PerspectiveCamera, Plane, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderTarget, type Camera, type Mesh, type Object3D, type WebGLRenderer } from "three";
 import { getMictlanSky } from "./mictlan-sky";
 import { hoofDrop, pointerSplat, smokeGate, worldToSimUv, type SimUv } from "@/lib/tezcatl-fluid";
+import { profondeurPage } from "@/lib/profondeur-page";
 import { TezcatlRippleSim, type RippleHull, type RippleDrop } from "./tezcatl-ripple-sim";
 import { TEZCATL_EXTENT, WATER_LEVEL, ZERO_TEXTURE, tezcatlStore } from "./tezcatl-store";
 import { useCurrentDirection } from "./use-current-direction";
@@ -412,9 +413,7 @@ export default function TezcatlWater() {
 
   useFrame((state, delta) => {
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
-    const doc = typeof document !== "undefined" ? document.documentElement : null;
-    const denom = doc ? doc.scrollHeight - window.innerHeight : 0;
-    const depth = denom > 0 ? Math.min(1, window.scrollY / denom) : 1;
+    const depth = profondeurPage();
     const target = smokeGate({ direction, scrollDepth: depth, reducedMotion: reduced }) * WATER_OPACITY;
     opacityRef.current = reduced ? target : opacityRef.current + (target - opacityRef.current) * 0.05;
     // Cache par le garde-fou de direction : pas un pas de simulateur, donc
