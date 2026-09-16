@@ -10,6 +10,7 @@ import { createTurquoiseMaterial, createXiuhcoatlUniforms } from "./xiuhcoatl-ma
 import { getMictlanSky } from "./mictlan-sky";
 import { xiuhcoatlStore } from "./xiuhcoatl-store";
 import { useCurrentDirection } from "./use-current-direction";
+import { attacherDissolution, seuilDepart } from "@/lib/dissolution";
 import { terrainHeightWorld } from "./cardinal-orientation";
 import { getRevealFloor } from "@/lib/reveal-arc";
 import { useSceneRefs } from "./scene-refs-context";
@@ -85,6 +86,7 @@ export default function YearStones() {
   const { scene } = useGLTF(MODEL_PATH);
   const year = useMemo(() => aztecYear(), []);
   const uniforms = useMemo(() => createXiuhcoatlUniforms(), []);
+  const dissolutionPossible = sceneRefs?.perfProfile.departDissous ?? true;
   const material = useMemo(() => {
     const m = createTurquoiseMaterial(TURQUOISE.clone(), getMictlanSky(), uniforms) as MeshPhysicalMaterial;
     m.transparent = false;
@@ -97,6 +99,12 @@ export default function YearStones() {
     m.envMapIntensity = 0;
     return m;
   }, [uniforms]);
+  /**
+   * Le depart par dissolution (16/09, lib/dissolution). Le lisere prend le
+   * turquoise du Sud : le bord qui vient de ceder s'allume de la couleur de
+   * la direction qu'on quitte.
+   */
+  const depart = useMemo(() => attacherDissolution(material, TURQUOISE.clone()), [material]);
 
   // Le signe et les points : geometries du GLB, couchees a plat, a demi
   // enfouies (la pose est faite une fois, quand le GLB est la).
@@ -138,13 +146,47 @@ export default function YearStones() {
 
   useFrame((state) => {
     const south = direction === "turquoise";
-    blendRef.current += ((south ? 1 : 0) - blendRef.current) * 0.06;
+    const cible = south ? 1 : 0;
+    // Mouvement reduit (RGAA 13.6, meme convention que la portee du
+    // brouillard et le rig) : la pierre est la, ou elle n'est pas.
+    if (sceneRefs?.reducedMotionRef.current) blendRef.current = cible;
+    else blendRef.current += (cible - blendRef.current) * 0.06;
     const blend = blendRef.current;
     const g = groupRef.current;
     if (!g) return;
     g.visible = blend > 0.01;
-    if (!g.visible) return;
-    g.scale.setScalar(blend);
+    if (!g.visible) {
+      depart.activer(false);
+      return;
+    }
+    if (dissolutionPossible) {
+      /**
+       * LA PIERRE NE RAPETISSE PLUS, ELLE SE DISSOUT (16/09).
+       *
+       * Elle rapetissait jusqu'a zero, et une pierre qui rapetisse ne part
+       * pas : elle est supprimee. Mesure du 16/09 : le decor du Sud sortait
+       * en UNE image au commit de la route, et c'est ce qui restait de la
+       * marche de luminance apres que la lumiere, le brouillard et l'arc
+       * eurent tous ete rendus continus.
+       *
+       * LA VARIANTE SE CHAUFFE TOUTE SEULE, et c'est ce qui rend la chose
+       * sure. A l'arrivee au Sud, `blend` monte depuis zero, donc la
+       * dissolution est ACTIVE pendant que le sous-arbre est encore
+       * invisible derriere la chauffe des shaders (MountForDirection +
+       * shader-warmup) : le programme se compile la. Elle se desactive une
+       * fois la pierre entiere, dans un moment calme. Au depart, la
+       * reactiver retombe donc sur un programme deja en cache, et non sur
+       * une compilation en plein passage : exactement le defaut du 11/09
+       * qu'on ne veut pas reintroduire.
+       */
+      g.scale.setScalar(1);
+      depart.activer(blend < 0.999);
+      depart.seuil.value = seuilDepart(blend);
+    } else {
+      // Telephone et mode eco : le depart reste un deplacement (voir
+      // `departDissous`, lib/scene-controls).
+      g.scale.setScalar(blend);
+    }
     const fire = xiuhcoatlStore.strike.fire;
     const gate = xiuhcoatlStore.heatGate;
     // La nuit, comme le serpent (retour Sylvain « mieux integre dans la

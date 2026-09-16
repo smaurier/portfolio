@@ -51,6 +51,8 @@ export type PerfProfile = {
   cempasuchilPetals: number;
   /** Largeur maximale de la photographie de ciel une fois decodee (16/09). */
   cielLargeurMax: number;
+  /** Le decor d'une direction part-il en se dissolvant (16/09) ? */
+  departDissous: boolean;
 };
 
 /**
@@ -77,5 +79,6 @@ export function getPerfProfile(viewportWidth: number, eco = false): PerfProfile 
     simEveryOtherFrame: q.simEveryOtherFrame,
     cempasuchilPetals: q.cempasuchilPetals,
     cielLargeurMax: q.cielLargeurMax,
+    departDissous: q.departDissous,
   };
 }

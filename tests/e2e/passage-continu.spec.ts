@@ -68,6 +68,22 @@ const PART_MAX_PAR_IMAGE = 0.6;
  *  marche veuille dire quoi que ce soit (Est vers Sud est dans ce cas). */
 const ECART_SIGNIFICATIF = 12;
 
+/**
+ * LA NUIT, EXPLICITEMENT (16/09, et ca a failli nous avoir).
+ *
+ * Le meme jour, la face du monde a cesse d'etre la nuit par defaut pour
+ * suivre la preference du visiteur (lib/theme.faceInitiale). Playwright
+ * n'exprime aucune preference, donc il recevait desormais l'amate, ou la
+ * luminance moyenne tourne autour de 211 au lieu de 20. Les seuils de ce
+ * fichier sont calibres sur des mesures faites dans la nuit : sans cette
+ * ligne, ils compareraient deux mondes differents et passeraient au vert
+ * pour une raison qui n'a rien a voir avec ce qu'ils gardent.
+ *
+ * L'amate merite le meme oracle, mais comme une seconde execution, pas
+ * comme un accident (backlog SOTY, entree F2).
+ */
+test.use({ colorScheme: "dark" });
+
 const TRAJETS: { de: string; vers: string; quoi: string }[] = [
   { de: "fr/memoire", vers: "fr", quoi: "Nord vers Centre (le creux du 15/09)" },
   { de: "fr/projets", vers: "fr/contact", quoi: "Sud vers Ouest (la marche du 15/09)" },
