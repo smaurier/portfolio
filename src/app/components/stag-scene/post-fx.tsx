@@ -274,11 +274,22 @@ export default function PostFX() {
        *    aucun gain non plus, la cible reste a 2880 x 1800.
        *
        * LE SEUL VRAI LEVIER QUI RESTE est `frameBufferType` sur le
-       * composeur : en octet non signe plutot qu'en demi-flottant, tout ce
-       * qui precede est divise par deux, soit environ 120 Mo. Mais c'est la
-       * marge haute du bloom et la finesse des degrades de ciel qu'on
-       * echange, sur un site qui vit de ses ciels : c'est un arbitrage de
-       * direction artistique, pas une optimisation, et il n'est pas pris. */}
+       * composeur. Essaye et MESURE le 16/09, puis remis :
+       *
+       *   en octet non signe : 389,0 -> 266,9 Mo, soit 122 de moins
+       *   bandes de quantification : AUCUNE difference mesurable. Sur une
+       *     colonne de ciel de 160 pixels, au Nord (le degrade le plus
+       *     sombre, donc le pire cas) 25 niveaux distincts contre 27, pires
+       *     marches 6 contre 8 ; au Sud 21 contre 20, 3 contre 4.
+       *
+       * Ce n'est donc PAS la bande qui retient, c'est l'ecretage : en huit
+       * bits, une source plus lumineuse que 1 est coupee, et le bloom perd
+       * l'energie hors bande qui fait son halo. Or l'intensite du bloom et
+       * l'emissif des cempasuchil ont ete regles a la mesure (09/09), et la
+       * scene est trop evenementielle pour qu'on en tire deux captures
+       * comparables. On ne troque pas 122 Mo, sur un ecran de bureau qui n'a
+       * pas de probleme de memoire, contre un reglage de lumiere qu'on ne
+       * sait pas verifier. A rouvrir le jour ou l'on saura figer la scene. */}
       <Bloom
         ref={bloomRef as never}
         intensity={BLOOM_BASE}
