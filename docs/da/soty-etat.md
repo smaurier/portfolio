@@ -516,7 +516,7 @@ A refaire sur une machine froide, et surtout sur un vrai telephone.
 
 ## 16/09, le chantier memoire : compter ne dit rien, il faut peser
 
-La fuite graphique tra?nait depuis le 15/09 avec un diagnostic ecrit noir sur
+La fuite graphique trainait depuis le 15/09 avec un diagnostic ecrit noir sur
 blanc dans `fuite-gpu.spec.ts` : « environ trois textures par tour, de la
 taille des cibles de rendu des simulateurs du Nord ; les deux simulateurs
 liberent pourtant tout ce qu'ils allouent, verifie champ par champ : la
