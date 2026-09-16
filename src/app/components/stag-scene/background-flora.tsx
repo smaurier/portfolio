@@ -7,6 +7,7 @@ import { Box3, Vector3, type Object3D } from "three";
 import { generateRingPlacements, type FloraPlacement } from "@/lib/flora-placement";
 import { getTerrainHeight } from "@/lib/terrain-height";
 import { mergeByMaterial } from "@/lib/merge-meshes";
+import { elaguerDecor } from "@/lib/elaguer-decor";
 import { freezeDecor } from "@/lib/freeze-decor";
 
 /**
@@ -85,6 +86,12 @@ export function useNormalizedClone(path: string, targetHeight: number): Object3D
     // flore et par sud-spines, tous deux via cette fonction, et personne
     // ne rend la scene source elle-meme.
     mergeByMaterial(scene);
+    // Puis on retire ce que la fusion laisse derriere elle (16/09) : les
+    // groupes vides des feuilles retirees, et les chainons a un seul
+    // enfant. `updateMatrixWorld` descend tout le graphe a chaque image,
+    // visible ou non ; un groupe vide se paie donc pour toujours. Sur la
+    // source elle aussi, pour que tous les clones en profitent.
+    elaguerDecor(scene);
     const c = scene.clone(true);
     // Ombres (05/09) : la flore projette (visible au Sud seulement, la
     // directionnelle ne projette que la).

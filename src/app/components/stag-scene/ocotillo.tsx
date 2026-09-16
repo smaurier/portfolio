@@ -1,14 +1,13 @@
 "use client";
 
-import { useMemo, useRef } from "react";
-import type { Group as GroupType, Object3D } from "three";
-import { useFrame } from "@react-three/fiber";
-import { freezeDecor } from "@/lib/freeze-decor";
+import { useEffect, useMemo, useRef } from "react";
+import type { Group as GroupType, InstancedMesh as InstancedMeshType, Material, Mesh, Object3D } from "three";
 import { mergeByMaterial } from "@/lib/merge-meshes";
+import { elaguerDecor } from "@/lib/elaguer-decor";
 import { useFigeUneFois } from "./use-fige-une-fois";
-import { useLibereAuDemontage } from "./use-libere";
+import { useLibereToutAuDemontage } from "./use-libere";
 import { useGLTF } from "@react-three/drei";
-import { Box3, CatmullRomCurve3, TubeGeometry, Vector3 } from "three";
+import { Box3, BufferGeometry, CatmullRomCurve3, Matrix4, Quaternion, TubeGeometry, Vector3 } from "three";
 import {
   generateOcotilloCluster,
   generateOcotilloFlowerPlacements,
@@ -27,81 +26,112 @@ const FLOWER_MODEL_PATH = "/models/vine-flower.glb";
 // une petite grappe serrée en pointe, pas des fleurs individuelles espacées.
 const FLOWER_TARGET_SIZE = 0.05;
 
-function OcotilloFlower({ x, y, z }: { x: number; y: number; z: number }) {
-  // Même technique que VineFlower (vines.tsx) et FloraInstance
-  // (background-flora.tsx) : useFrame plutôt qu'useEffect, le clone n'est
-  // mesurable de façon fiable qu'une fois réellement attaché au graphe de
-  // scène (plusieurs clones du même GLB caché par useGLTF).
-  const { scene } = useGLTF(FLOWER_MODEL_PATH);
-  const clone = useMemo(() => {
-    // FUSIONNER LA SOURCE AVANT DE CLONER (16/09), exactement comme la
-    // flore de fond. `vine-flower.glb` porte TROIS maillages qui partagent
-    // un seul materiau ("red") : une corolle de 840 triangles, puis 192 et
-    // 128. La scene en compte vingt-huit exemplaires, donc 84 appels de
-    // dessin la ou vingt-huit suffisent, a triangles et pixels identiques.
-    // Sur la source plutot que sur le clone parce que les geometries sont
-    // partagees entre clones : fusionner un clone disposerait celles des
-    // autres. La fonction est idempotente, le deuxieme appel ne trouve
-    // plus rien. Sans danger : ce modele n'est charge que par ce fichier.
-    mergeByMaterial(scene);
-    return scene.clone(true);
-  }, [scene]);
-  const normalizedRef = useRef(false);
+type PieceFleur = { geometry: BufferGeometry; material: Material; pose: Matrix4 };
 
-  useFrame(() => {
-    if (normalizedRef.current) return;
-    const box = new Box3().setFromObject(clone);
-    const size = box.getSize(new Vector3());
-    if (size.y <= 0) return;
-    const scale = FLOWER_TARGET_SIZE / size.y;
-    const center = box.getCenter(new Vector3());
-    clone.scale.setScalar(scale);
-    clone.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
-    normalizedRef.current = true;
-    // Posee, donc figee, depuis le parent (meme raison que la flore de fond,
-    // voir lib/freeze-decor). Mesure du 11/09 sur Contact : les 28 fleurs
-    // des quatre hampes, 280 objets, etaient les derniers a se recomposer
-    // a chaque image pour rien.
-    freezeDecor(clone.parent ?? clone);
-  });
-
+/**
+ * LES FLEURS D'UN BOUQUET, EN UNE SEULE MAILLE (16/09).
+ *
+ * Chaque fleur etait un `scene.clone(true)` pose dans son propre groupe :
+ * vingt-huit fleurs dans la scene, donc vingt-huit appels de dessin et
+ * cinquante-six objets de plus dans le graphe, pour une geometrie et un
+ * materiau STRICTEMENT identiques. `three` sait dessiner ca en un appel.
+ *
+ * La normalisation (mise a l'echelle sur FLOWER_TARGET_SIZE et recentrage)
+ * se calcule desormais UNE FOIS sur le modele source au lieu d'une fois par
+ * clone : elle ne dependait que du modele, jamais du point de pose. Le
+ * `useFrame` d'attente n'a plus lieu d'etre, puisqu'on mesure une source
+ * deja chargee et non un clone qu'il fallait voir attache au graphe.
+ *
+ * `matrixAutoUpdate` a faux : les poses sont ecrites une fois. La sphere
+ * englobante est recalculee pour couvrir toutes les instances, sinon le
+ * culling jetterait le bouquet des que sa premiere fleur sort du cadre.
+ */
+function FleursInstanciees({ piece, points }: { piece: PieceFleur; points: Vector3[] }) {
+  const ref = useRef<InstancedMeshType>(null);
+  useEffect(() => {
+    const maille = ref.current;
+    if (!maille) return;
+    const pose = new Matrix4();
+    const translation = new Matrix4();
+    points.forEach((point, i) => {
+      translation.makeTranslation(point.x, point.y, point.z);
+      pose.multiplyMatrices(translation, piece.pose);
+      maille.setMatrixAt(i, pose);
+    });
+    maille.instanceMatrix.needsUpdate = true;
+    maille.computeBoundingSphere();
+    maille.matrixAutoUpdate = false;
+    maille.updateMatrix();
+  }, [piece, points]);
   return (
-    <group position={[x, y, z]}>
-      <primitive object={clone} />
-    </group>
+    <instancedMesh
+      ref={ref}
+      args={[piece.geometry, piece.material, Math.max(1, points.length)]}
+      raycast={() => null}
+    />
+  );
+}
+
+function OcotilloFleurs({ points }: { points: Vector3[] }) {
+  const { scene } = useGLTF(FLOWER_MODEL_PATH);
+  const pieces = useMemo<PieceFleur[]>(() => {
+    // Sur la SOURCE, et idempotent : `scene.clone(true)` partage les
+    // geometries, donc fusionner un clone disposerait celles des autres.
+    mergeByMaterial(scene);
+    elaguerDecor(scene);
+    scene.updateMatrixWorld(true);
+    const boite = new Box3().setFromObject(scene);
+    const taille = boite.getSize(new Vector3());
+    const echelle = taille.y > 0 ? FLOWER_TARGET_SIZE / taille.y : 1;
+    const centre = boite.getCenter(new Vector3());
+    const base = new Matrix4().compose(
+      new Vector3(-centre.x * echelle, -boite.min.y * echelle, -centre.z * echelle),
+      new Quaternion(),
+      new Vector3(echelle, echelle, echelle),
+    );
+    const versRacine = new Matrix4().copy(scene.matrixWorld).invert();
+    const out: PieceFleur[] = [];
+    scene.traverse((o) => {
+      const maille = o as Mesh;
+      if (!maille.isMesh || Array.isArray(maille.material)) return;
+      const locale = new Matrix4().multiplyMatrices(versRacine, maille.matrixWorld);
+      out.push({
+        geometry: maille.geometry as BufferGeometry,
+        material: maille.material as Material,
+        pose: new Matrix4().multiplyMatrices(base, locale),
+      });
+    });
+    return out;
+  }, [scene]);
+
+  if (points.length === 0) return null;
+  return (
+    <>
+      {pieces.map((piece, i) => (
+        <FleursInstanciees key={i} piece={piece} points={points} />
+      ))}
+    </>
   );
 }
 
 useGLTF.preload(FLOWER_MODEL_PATH);
 
-function OcotilloWand({ config }: { config: OcotilloWandConfig }) {
-  const { tubeGeometry, flowerPoints } = useMemo(() => {
-    const path = generateOcotilloWandPath({
-      height: config.height,
-      leanX: config.leanX,
-      leanZ: config.leanZ,
-      wobbleAmplitude: 0.025,
-      wobbleFrequency: 2.5,
-      segments: 20,
-      seed: config.seed,
-    });
-    const curve = new CatmullRomCurve3(path.map((p) => new Vector3(p.x, p.y, p.z)));
-    const tubeGeometry = new TubeGeometry(curve, 24, 0.012, 5, false);
-    const flowerPoints = generateOcotilloFlowerPlacements(2).map((f) => curve.getPointAt(f.t));
-    return { tubeGeometry, flowerPoints };
-  }, [config]);
-  useLibereAuDemontage(tubeGeometry);
-
-  return (
-    <>
-      <mesh geometry={tubeGeometry}>
-        <meshStandardMaterial color={WAND_COLOR} />
-      </mesh>
-      {flowerPoints.map((point, i) => (
-        <OcotilloFlower key={i} x={point.x} y={point.y} z={point.z} />
-      ))}
-    </>
-  );
+/** Une hampe : son tube, et les points ou ses fleurs se posent. */
+function construireHampe(config: OcotilloWandConfig) {
+  const path = generateOcotilloWandPath({
+    height: config.height,
+    leanX: config.leanX,
+    leanZ: config.leanZ,
+    wobbleAmplitude: 0.025,
+    wobbleFrequency: 2.5,
+    segments: 20,
+    seed: config.seed,
+  });
+  const curve = new CatmullRomCurve3(path.map((p) => new Vector3(p.x, p.y, p.z)));
+  return {
+    tubeGeometry: new TubeGeometry(curve, 24, 0.012, 5, false),
+    flowerPoints: generateOcotilloFlowerPlacements(2).map((f) => curve.getPointAt(f.t)),
+  };
 }
 
 function OcotilloCluster({
@@ -117,11 +147,21 @@ function OcotilloCluster({
   scale: number;
   seed: number;
 }) {
-  const wands = useMemo(() => generateOcotilloCluster({ wandCount: 7, seed }), [seed]);
+  // Les hampes et leurs points de fleurs sont calcules ICI, au niveau du
+  // bouquet (16/09), et non plus hampe par hampe : c'est ce qui permet de
+  // dessiner les quatorze fleurs du bouquet en UNE instance au lieu de
+  // quatorze mailles. La geometrie du tube reste une par hampe, elles sont
+  // toutes differentes.
+  const hampes = useMemo(
+    () => generateOcotilloCluster({ wandCount: 7, seed }).map(construireHampe),
+    [seed],
+  );
+  const pointsFleurs = useMemo(() => hampes.flatMap((h) => h.flowerPoints), [hampes]);
+  useLibereToutAuDemontage(hampes.map((h) => h.tubeGeometry));
   // Les HAMPES seulement (14/09, F1c) : elles sont posees une fois pour
   // toutes, et se recomposaient a chaque image pour rien. Pas le groupe du
-  // bouquet, qui reste a r3f, ni les fleurs, qui se normalisent a la
-  // premiere image et se figent elles-memes ensuite (voir OcotilloFlower).
+  // bouquet, qui reste a r3f, ni les fleurs, qui sont desormais une maille
+  // instanciee figee par FleursInstanciees.
   const bouquetRef = useRef<GroupType>(null);
   useFigeUneFois<GroupType>(bouquetRef, (racine) => racine.children.filter((c: Object3D) => c.type === "Mesh"));
   // Rayon de placement (6-9) au-delà de FLAT_RADIUS du terrain (4,
@@ -130,9 +170,12 @@ function OcotilloCluster({
   const terrainY = getTerrainHeight(x, z);
   return (
     <group ref={bouquetRef} position={[x, terrainY, z]} rotation={[0, rotationY, 0]} scale={scale}>
-      {wands.map((wand, i) => (
-        <OcotilloWand key={i} config={wand} />
+      {hampes.map((hampe, i) => (
+        <mesh key={i} geometry={hampe.tubeGeometry}>
+          <meshStandardMaterial color={WAND_COLOR} />
+        </mesh>
       ))}
+      <OcotilloFleurs points={pointsFleurs} />
     </group>
   );
 }
