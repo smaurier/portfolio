@@ -1,0 +1,367 @@
+# Les passages : etat de l'art, et ce qu'il dit de nous
+
+*16/09/2026. Ecrit apres le constat de Sylvain, « je trouve les
+transitions assez perfectibles pour l'instant tant esthetiquement que
+mythologiquement qu'au niveau perf ». Toutes les sources sont citees en
+fin de document, avec la date de consultation.*
+
+---
+
+## 0. Ce que ce document cherche
+
+Pas un catalogue d'effets. Les trois axes que Sylvain a nommes se
+trouvent, dans l'etat de l'art, sur trois plans differents :
+
+- le plan **technique** dit ce qu'on a le droit de montrer a l'ecran
+  pendant un passage (et surtout ce qu'on n'a pas le droit de montrer) ;
+- le plan **grammatical** dit ce qu'une transition SIGNIFIE, et c'est la
+  que se joue le mythologique ;
+- le plan **du tempo** dit combien de temps on a, et c'est la que se
+  joue la performance percue.
+
+Les trois sont separables. On peut corriger le premier sans rien
+decider sur les deux autres, ce qui tombe bien : nos deux defauts
+mesures sont sur le premier.
+
+---
+
+## 1. Les trois familles techniques
+
+### A. Le conteneur persistant et le gestionnaire de passage
+
+C'est la famille de Barba.js, Taxi.js et Swup, et c'est deja la notre.
+Le principe : **ce qui doit survivre au changement de page vit en
+dehors du conteneur qu'on echange.** Le tutoriel Codrops du 18/03/2026
+le montre explicitement pour une scene Three.js : la balise canvas est
+posee hors du conteneur Barba, avec le commentaire `<!-- Persists
+across pages -->`, et la classe Experience est un singleton cree une
+seule fois.
+
+Le cycle de Barba nomme les moments : `before`, `beforeLeave`, `leave`,
+`afterLeave`, `beforeEnter`, `enter`, `afterEnter`. Et la
+documentation pose la regle de sequencement qui nous interesse
+directement :
+
+> « The common/default behaviour is to start **leave** as soon as
+> possible. Then **enter** will be called when **leave** ends _AND_
+> next page is "available": fetched or cached. »
+
+En mode synchrone, c'est plus strict encore : « this mode will always
+wait for the next page to be "ready" (prefetched) in order to run both
+leave/enter transitions ».
+
+**Ce qu'il faut retenir : l'entree est GARDEE. Elle ne part pas a
+l'heure, elle part quand la destination existe.** Une transition n'est
+pas une animation qu'on lance, c'est une machine a etats avec une
+condition de passage.
+
+Le tutoriel Codrops ajoute la piece qui fait la difference sur un site
+3D : pendant que le DOM s'echange, **la camera, elle, ne s'arrete pas**.
+Le mouvement de camera dure deux secondes, en `expo.inOut`, et il
+chevauche l'echange. Le contenu sort en 0,8 s, le DOM bascule, le
+contenu entre. La couche 3D ne connait aucune discontinuite parce
+qu'elle n'est jamais interrompue : elle est le fil continu sous la
+coupe.
+
+### B. Le rendu composite
+
+Codrops, 23/02/2026. On ne rend plus la scene a l'ecran mais dans une
+texture (`WebGLRenderTarget`), et une passe finale melange deux
+textures dans un shader plein ecran. L'article cite Active Theory
+(Slosh Seltzer), Kenta Toshikura et Aircord comme praticiens, et donne
+la liste des problemes que ca resout : « Flash prevention during scene
+changes », « State continuity across page transitions », « Layered
+compositing of multiple 3D scenes ».
+
+La forme minimale du melange, chez Maxime Heckel :
+
+```glsl
+float noise = clamp(cnoise(vUv * 2.5) + uProgress * 2.0, 0.0, 1.0);
+vec4 color = mix(colorA, colorB, noise);
+```
+
+Le bruit fait que le passage n'est pas un fondu uniforme : la
+dissolution mord par plaques. C'est exactement la difference entre un
+fondu de logiciel de montage et un fondu qui a une matiere.
+
+**Le cout est reel et l'article ne le cache pas** : rendre les deux
+scenes a chaque image est inefficace. L'astuce citee, attribuee a
+Active Theory, est d'alterner les scenes image par image (A, puis B,
+puis A) pour ne pas payer les deux dans la meme image.
+
+Pour nous, cette famille est la reponse « propre » au saut Sud vers
+Ouest, et c'est aussi la plus chere : deux cibles de rendu en plus, sur
+une machine ou on vient de se battre pour ramener le tampon de 478 Mo a
+3,8. A garder en reserve, pas a ouvrir en premier.
+
+La collection **gl-transitions** est le vocabulaire etabli de cette
+famille : une `uniform float progress` de 0 a 1, deux textures `from` et
+`to`, et des dizaines de passages nommes (balayages directionnels,
+balayage d'horloge, iris, dissolutions). C'est la ou aller chercher une
+forme de passage plutot que l'inventer.
+
+### C. La View Transitions API
+
+Le modele, d'apres la documentation Chrome : le navigateur photographie
+l'ancien etat, **suspend le rendu**, lance ton rappel qui change le DOM,
+photographie le nouvel etat, puis anime entre les deux. « The DOM gets
+updated while rendering is suppressed. »
+
+C'est la seule des trois familles qui donne une **garantie du
+navigateur** qu'aucune image a moitie mise a jour n'atteint l'ecran.
+C'est enorme, et c'est precisement ce qui nous manque aujourd'hui.
+
+Et c'est aussi pourquoi on l'a deposee le 03/09 : elle photographie. Un
+canvas WebGL vivant devient un screenshot fige qui glisse en double, ce
+que le commentaire de `cardinal-transition-context.tsx` appelle « le
+hache ». La documentation Chrome ne traite pas le cas du canvas anime,
+ce qui n'est pas un oubli : le modele de l'API est incompatible avec
+une couche qui doit continuer de bouger pendant le passage.
+
+**Conclusion sur cette famille : la decision du 03/09 etait la bonne, et
+l'etat de l'art la confirme.** Mais on a jete la garantie avec l'API. La
+suite du document consiste largement a la reconstruire a la main.
+
+---
+
+## 2. La loi commune : jamais d'etat intermediaire a l'ecran
+
+Les trois familles disent la meme chose sous trois formes :
+
+| Famille | Comment l'etat intermediaire est rendu impossible |
+| --- | --- |
+| Gestionnaire de passage | `enter` ne part pas tant que la destination n'est pas disponible |
+| Rendu composite | Les deux etats existent en textures, on interpole entre eux, il n'y a pas de « pendant » |
+| View Transitions | Le navigateur suspend le rendu pendant la mutation |
+
+Aucune des trois ne laisse le nouvel etat s'installer par morceaux
+devant le visiteur. C'est LA loi de la famille, et nos deux defauts
+mesures sont tous les deux des violations de cette loi.
+
+---
+
+## 3. Le tempo
+
+Ce que dit la litterature de motion design consultee : rester sous
+300 ms pour une transition d'interface, sous 400 ms dans presque tous
+les cas, et reserver les moments longs aux rares endroits ou la
+recompense visuelle justifie l'attente. Un passage de 600 ms fait
+paraitre un site lent meme quand la page charge vite. Sur mobile, reduire
+encore de 20 a 30 %.
+
+Le second point, plus interessant pour nous : **une transition sert a
+masquer un chargement.** Le visiteur ne voit jamais d'etat vide, donc le
+temps de chargement percu baisse. Mais l'article pose aussitot la
+limite : « even a 300ms GPU-accelerated crossfade can feel slow if the
+new page hasn't loaded yet » : on transitionne alors vers un squelette.
+D'ou le prechargement, qu'on a mis en place le 16/09 sous forme de
+`rel="prefetch"` echelonne.
+
+**Notre tempo actuel, a comparer :** `NEPANTLA_TIMING` porte une duree
+de progression (le tour de camera complet, 2π) plus une sortie et une
+entree. Un tour de camera est un « moment long » assume, pas une
+transition d'interface. C'est defendable, mais ca veut dire que le
+budget de 300 ms ne s'applique pas a la camera : il s'applique a la
+reponse au clic. Ce que le visiteur juge, c'est le delai entre son clic
+et le premier signe que quelque chose se passe.
+
+---
+
+## 4. La grammaire : ce que le passage veut dire
+
+C'est l'axe mythologique, et il a deux corpus etablis.
+
+### Le cinema
+
+Les trois passages primaires sont la coupe, le fondu enchaine et le
+volet.
+
+- **La coupe** : le spectateur est instantanement deplace ailleurs. Pas
+  de temps ecoule signifie.
+- **Le fondu enchaine** : suggere le passage du TEMPS ou le changement
+  de LIEU, et peut indiquer un lien emotionnel ou thematique entre les
+  deux plans.
+- **Le volet** : remplace un plan en le balayant, sert surtout le
+  changement de lieu.
+- **Le raccord dans le mouvement (match cut)** : deux plans differents
+  joints sur une similitude visuelle, ce qui cree un lien THEMATIQUE
+  entre deux evenements separes.
+
+Le dernier est le plus riche pour nous. Un raccord se fait sur une forme
+qui persiste a travers la coupe. Or nous avons deja cette forme : **le
+cerf est l'axe du monde, et la camera fait un tour complet autour de
+lui.** Le commentaire de `lib/nepantla.ts` le dit deja : « le cerf est
+l'axe du monde, c'est le monde qui tourne autour de lui ». C'est un
+raccord dans le mouvement, et il est deja implemente. Ce qui manque,
+c'est que le reste de la scene ne trahisse pas ce raccord en clignotant.
+
+### Material Design 3
+
+Un second corpus, plus systematique, qui associe une forme de passage a
+une RELATION entre les deux ecrans :
+
+- **Container transform** : quand un element se transforme en un autre,
+  pour une relation de contenant a contenu. Le plus dramatique des
+  quatre, a reserver au bon contexte.
+- **Shared axis** : quand les deux ecrans ont une relation spatiale ou
+  de navigation, on partage une transformation sur un axe x, y ou z.
+- **Fade through** : quand les deux ecrans n'ont PAS de relation forte,
+  fondu sortant puis entrant, pour que l'utilisateur ne croie pas a un
+  lien qui n'existe pas.
+- **Fade** : entree ou sortie a l'interieur de l'ecran.
+
+**Et la, une bonne nouvelle : notre choix du 28/08 est deja correct
+selon cette grille.** Dans `lib/nepantla.ts`, le Centre (jade) ne
+glisse pas, il implose en echelle (0,92 en sortie, 1,06 en entree) :
+c'est un container transform, et le Centre EST le contenant des quatre
+directions. Les quatre directions cardinales, elles, glissent
+lateralement sur un axe oppose : c'est un shared axis, et les quatre
+sont bien des freres et soeurs sur l'anneau. Le commentaire du fichier
+appelle ca « un retour au foyer » contre « un voyage lateral ». La
+grammaire etablie dit la meme chose avec d'autres mots.
+
+**Ce qui n'est pas encore exploite** : le passage entre deux directions
+NON adjacentes (Est vers Ouest, par exemple) n'est pas le meme voyage
+que le passage entre deux voisines. Un anneau a une topologie, et le
+menu permet vingt passages la ou l'anneau n'en compte que cinq. C'est
+une decision de direction artistique, pas une correction.
+
+---
+
+## 5. Le mouvement reduit, qui est aussi une note de jury
+
+Le critere WCAG 2.3.3 (Animation from Interactions) est de niveau AAA,
+donc hors de l'exigence legale, mais la mecanique est celle qu'on
+applique deja : `@media (prefers-reduced-motion: reduce)`, et surtout
+un reglage DANS le site pour les visiteurs qui ne connaissent pas le
+reglage systeme. Le site doit rester lisible avec toutes les animations
+coupees.
+
+`cardinal-transition-context.tsx` honore les deux : `prefersReducedMotion()`
+remplace le glissement par un fondu court, et le mode recit court-circuite
+entierement la timeline. Le controle dans le site existe (scene-controls).
+C'est en place, et ca compte pour les 30 % d'Usability du bareme
+Awwwards, ou Design 40 et Usability 30 pesent 70 % a eux deux.
+
+**Une attribution que je retire.** J'avais note le 11/09 un protocole de
+juge (processeur divise par quatre, reseau Fast 3G, attention portee aux
+transitions entre etats) attribue a la page de Hon Tran sur les criteres
+Awwwards. En relisant cette page aujourd'hui, je n'y retrouve pas ces
+elements. Soit la page a change, soit j'ai sur-attribue. Je ne m'appuie
+donc plus dessus. Ce qui reste verifie sur awwwards.com/about-evaluation :
+Design 40, Usability 30, Creativity 20, Content 10, dix-huit jures au
+minimum, les trois notes les plus eloignees de la moyenne eliminees.
+
+---
+
+## 6. Ce que l'etat de l'art dit de nos deux defauts
+
+Rappel des mesures du 15/09 (echantillon du canvas en vrais pixels) :
+Est vers Sud et Ouest vers Nord descendent proprement en quatre a six
+images. Les deux autres non.
+
+### Defaut 1, le clignotement au noir de Nord vers Centre
+
+Mesure : luminance moyenne 32, 32, 32, 30, **12**, 71. Une seule image
+au noir, entre deux etats eclairés.
+
+Le relevé fin :
+
+```
+330 ms  lum 31 | /fr/memoire | ambiante 0,67 | dir. 1,49 | brouillard 482a71
+360 ms  lum 15 | /fr         | ambiante 0,30 | dir. 0,45 | brouillard 000000
+390 ms  lum 61 | /fr         | ambiante 0,73 | dir. 1,63 | brouillard 00905a
+```
+
+`getFogColor` interpole depuis le noir vers la teinte de la direction,
+proportionnellement a `getRevealFloor(progress)`, et `getRevealFloor(0)`
+vaut zero. A l'avancement zero, l'arc est noir par construction. Donc
+cette image est rendue a l'avancement zero, c'est-a-dire a un defilement
+de zero.
+
+**Correction d'attribution, faite aujourd'hui en relisant le code.**
+J'avais ecrit que `scene-refs-context.tsx` remet le defilement a zero a
+la navigation. C'est faux : son `window.scrollTo(0, 0)` est explicitement
+garde au montage initial de la session, le layout persistant faisant que
+ce montage n'a lieu qu'une fois. Le commentaire du fichier dit meme
+l'intention inverse, « l'utilisateur qui navigue en interne ne veut pas
+repartir de zero a chaque nav ».
+
+**La cause reelle, et elle est a une ligne de nous.** `CardinalLink`
+appelle `router.push(href)` sans options. Le comportement par defaut de
+l'App Router est de remonter en haut de page a la navigation. Lenis, lui,
+est monte une seule fois dans le layout et garde sa propre valeur de
+defilement, qu'il reecrit sur `window` a son tick suivant. Le scenario
+colle exactement a la mesure : le routeur remet a zero, une image est
+rendue a l'avancement zero donc au noir, Lenis reecrit sa valeur, et la
+scene se rallume a la profondeur conservee, cette fois aux couleurs du
+Centre.
+
+Le correctif candidat est `router.push(href, { scroll: false })`, ce qui
+rend au passage explicite l'intention deja ecrite dans
+`scene-refs-context.tsx`. **A confirmer par la sonde avant de le
+declarer corrige**, et c'est le genre de chose ou la sonde est le seul
+juge : le scenario est coherent, il n'est pas encore verifie.
+
+C'est aussi, dans le vocabulaire de la section 2, exactement la loi
+commune : on a laisse le nouvel etat s'installer par morceaux devant le
+visiteur.
+
+### Defaut 2, le saut de Sud vers Ouest
+
+Mesure : 20, 20, **72**. Pas de fondu du tout, une marche.
+
+Le mecanisme est visible dans `reveal-lighting.tsx` : la PORTEE du
+brouillard est lissee (`approachFog(fogRangeRef.current, target, 0.06)`,
+un rapprochement exponentiel), mais la TEINTE ne l'est pas. `getFogColor`
+recoit `fogTint`, qui est une propriete de la direction : elle bascule
+d'un coup au commit de la route. Est vers Sud et Ouest vers Nord passent
+inapercus parce que leur ecart de luminance est faible ; Sud (nuit
+turquoise, luminance 20) vers Ouest (crepuscule cendre, luminance 72) ne
+pardonne pas.
+
+**Le correctif est de traiter la teinte comme la portee** : la faire
+converger au lieu de la snapper, avec le meme respect du mouvement
+reduit (snap direct si `prefers-reduced-motion`, ce que le code fait
+deja pour la portee). C'est une correction mecanique, pas une decision
+esthetique, meme si la constante de convergence, elle, se regle a l'oeil.
+
+---
+
+## 7. Ce qui reste a decider ensemble
+
+Les deux correctifs ci-dessus ne demandent aucun gout : ils remettent le
+site dans la loi commune. Ce qui demande le tien :
+
+1. **La forme du passage.** Aujourd'hui le contenu glisse et la camera
+   fait un tour. L'etat de l'art propose au-dessus une matiere de
+   passage (un bruit qui mord, un volet d'horloge, un iris). Chez nous,
+   une matiere qui voudrait dire quelque chose serait la fumee du
+   miroir, le grain de l'amate, ou l'obsidienne. Ca se decide, et ca
+   coute une passe de rendu composite.
+2. **La topologie de l'anneau.** Cinq passages voisins, vingt passages
+   possibles. Est-ce que traverser l'anneau doit se sentir plus long que
+   le longer.
+3. **Le tempo du tour de camera** contre la regle des 400 ms. Notre tour
+   complet est un parti pris ; il faut juste que la REPONSE au clic,
+   elle, soit immediate.
+
+---
+
+## 8. Sources
+
+Consultees le 16/09/2026.
+
+- Codrops, *Composite Rendering: The Brilliance Behind Inspiring WebGL Transitions*, 23/02/2026 : https://tympanus.net/codrops/2026/02/23/composite-rendering-the-brilliance-behind-inspiring-webgl-transitions/
+- Codrops, *Building Seamless 3D Transitions with Webflow, GSAP, and Three.js*, 18/03/2026 : https://tympanus.net/codrops/2026/03/18/building-seamless-3d-transitions-with-webflow-gsap-and-three-js/
+- Maxime Heckel, *Beautiful and mind-bending effects with WebGL Render Targets* : https://blog.maximeheckel.com/posts/beautiful-and-mind-bending-effects-with-webgl-render-targets/
+- Barba.js, documentation des transitions : https://barba.js.org/docs/advanced/transitions/
+- gl-transitions, collection ouverte : https://github.com/gl-transitions/gl-transitions
+- Chrome for Developers, *Smooth transitions with the View Transition API* : https://developer.chrome.com/docs/web-platform/view-transitions
+- MDN, *View Transition API* : https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API
+- Material Design 3, *Applying transitions* : https://m3.material.io/styles/motion/transitions/applying-transitions
+- Wikipedia, *Film transition* et *Dissolve (filmmaking)* : https://en.wikipedia.org/wiki/Film_transition
+- Adobe, *Match cut* : https://www.adobe.com/creativecloud/video/post-production/cuts-in-film/match-cut.html
+- MDN, *Perceived performance* : https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Performance/Perceived_performance
+- Deque University, *2.3.3 Animations from Interactions* : https://dequeuniversity.com/resources/wcag2.1/2.3.3-animations-from-interactions
+- Awwwards, *Evaluation System* : https://www.awwwards.com/about-evaluation/
