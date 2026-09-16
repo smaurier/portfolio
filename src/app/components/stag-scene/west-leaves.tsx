@@ -71,6 +71,9 @@ export default function WestLeaves() {
   const sceneRefs = useSceneRefs();
   const blendRef = useRef(direction === "cendre" ? 1 : 0);
   const reducedRef = useRef(false);
+  // Les feuilles sur telephone : une image sur deux, temps accumule (16/09).
+  const accRef = useRef(0);
+  const pariteRef = useRef(false);
   useEffect(() => {
     reducedRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
@@ -111,6 +114,28 @@ export default function WestLeaves() {
     material.uniforms.uOpacity.value = 0.8 * blend;
     const t = state.clock.elapsedTime;
     const dt = Math.min(delta, 1 / 30);
+    /**
+     * UNE IMAGE SUR DEUX SUR TELEPHONE (16/09), comme le tissu des
+     * porteuses et pour la meme raison : le reglage `simEveryOtherFrame`
+     * existait sans que ce fichier le lise.
+     *
+     * Cette boucle etait a elle seule les DEUX premiers postes du site sur
+     * Contact (Pixel 7, processeur divise par quatre) : chacune des cent
+     * vingt feuilles demande le vent, qui somme ses bandes, puis la hauteur
+     * du terrain sous elle, qui la ramene dans le repere du decor tourne
+     * avant d'echantillonner. 0,84 ms par image pour le vent, 0,97 pour le
+     * terrain, sur un budget de 16,7.
+     *
+     * Le temps s'accumule, le pas joue le retard : une feuille garde sa
+     * vitesse de derive. On saute aussi l'ecriture du tampon, sinon on
+     * televerserait des positions inchangees.
+     */
+    const unSurDeux = sceneRefs?.perfProfile.simEveryOtherFrame ?? false;
+    accRef.current += dt;
+    const cePas = !unSurDeux || (pariteRef.current = !pariteRef.current);
+    if (!cePas) return;
+    const dtFeuille = Math.min(accRef.current, 1 / 15);
+    accRef.current = 0;
     const pos = geometry.attributes.position as BufferAttribute;
     const spin = geometry.attributes.aSpin as BufferAttribute;
     const spec = GRASS_WIND_BY_DIRECTION.cendre;
@@ -119,7 +144,7 @@ export default function WestLeaves() {
       const l = leaves[i];
       if (!reduced) {
         const w = windAt(l.x, l.z, t, spec);
-        stepLeaf(l, dt, { x: w.x * WIND_TO_SPEED, z: w.z * WIND_TO_SPEED }, t, terrainHeightWorld);
+        stepLeaf(l, dtFeuille, { x: w.x * WIND_TO_SPEED, z: w.z * WIND_TO_SPEED }, t, terrainHeightWorld);
       } else if (l.y === 0) {
         l.y = terrainHeightWorld(l.x, l.z);
       }
