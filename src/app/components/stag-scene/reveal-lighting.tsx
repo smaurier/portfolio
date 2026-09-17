@@ -29,6 +29,7 @@ import { approachReflet, refletFogColorFor, refletFogRange, refletK, refletLight
 import { apresMidiIci } from "@/lib/heure-du-lieu";
 import { refletStore } from "./reflet-store";
 import { poserArc } from "./arc-store";
+import { poserFondu } from "@/lib/presence-direction";
 import { getSceneControls } from "../scene-controls-store";
 
 /**
@@ -171,6 +172,10 @@ export default function RevealLighting({
     // plancher de revelation au curseur et la camera solaire relisaient
     // l'arc brut et sautaient au commit pendant que la lumiere traversait.
     poserArc(p, jour);
+    // Et l'etat du fondu lui-meme (17/09) : les composants qui multipliaient
+    // leur geste par un booleen de route y lisent desormais une PRESENCE, de
+    // sorte qu'un monde s'en aille au lieu d'etre eteint.
+    poserFondu(fonduRef.current.sortante, fonduRef.current.affichee, fonduRef.current.melange);
     const arrivalGlow = north?.arrivalGlow ?? 0;
     const blend = getRimColorBlend(p);
     // Crossfade du rig lumiere vers la direction courante (etage 2) :

@@ -419,7 +419,16 @@ export default function FrostWorld() {
       frostStore.state = createFrostState();
     }
     const target = east ? frostStore.state.frost : 0;
-    frostUniforms.uFrost.value += (target - frostUniforms.uFrost.value) * Math.min(1, dt * 6);
+    // UN FONDU NE RATTRAPE PAS LE TEMPS PERDU (17/09). `dt` est deja borne a
+    // un vingtieme plus haut, donc cet alpha pouvait valoir 0,3 : sur l'image
+    // du commit de route -- la plus longue de toute la visite -- le monde
+    // prenait trente pour cent de sa glace d'un coup. Or le givre est pose par
+    // `FrostPatch` sur TOUTE la scene : c'est l'ecran entier qui bascule.
+    // Borner l'alpha a ce qu'une image normale donnerait (1/60 x 6) rend le
+    // geste independant de la duree de l'image, comme les autres fondus du
+    // site, qui sont tous par image et non par seconde.
+    const alphaGel = Math.min(6 / 60, dt * 6);
+    frostUniforms.uFrost.value += (target - frostUniforms.uFrost.value) * alphaGel;
     frostUniforms.uFrostTime.value = state.clock.elapsedTime;
     // LE BALAI (09/09) : le front traverse le champ dans l'axe du soleil de
     // l'Est, du cote eclaire vers le cote encore dans l'ombre. Ce n'est pas

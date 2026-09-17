@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import { AdditiveBlending, Color, CylinderGeometry, Group, Mesh, MeshStandardMaterial, NormalBlending, Sprite, SpriteMaterial } from "three";
-import { brazierPositions, COPAL, copalIntensity, copalShows, puffPose } from "@/lib/copal";
+import { brazierPositions, COPAL, COPAL_DIRECTIONS, copalIntensity, puffPose } from "@/lib/copal";
+import { presenceParmi } from "@/lib/presence-direction";
 import { brazierGlow } from "@/lib/foyer";
 import { foyerStore } from "./foyer-store";
 import { persistentLights } from "./persistent-lights";
@@ -111,7 +112,15 @@ export default function CopalBraziers() {
     if (!root) return;
     const p = sceneRefs?.progressRef.current ?? 0;
     const frost = frostStore.active ? frostStore.state.frost : 0;
-    const intensity = copalShows(direction) ? copalIntensity(p, frost) : 0;
+    // LA PRESENCE, PLUS LE BOOLEEN (17/09). `copalShows(direction)` eteignait
+    // les cinq braseros EN UNE IMAGE au commit de la route : la sonde
+    // `diff-au-saut` les voyait passer de visible a invisible d'un bloc au
+    // passage Centre vers Est. Un monde qui s'eteint n'est pas un monde qui
+    // part. La presence traverse avec l'arc, la lumiere et la brume, au meme
+    // melange, donc l'offrande decroit au lieu de disparaitre -- et passer
+    // d'une direction qui porte le copal a une autre ne l'entame meme pas.
+    const presence = presenceParmi(COPAL_DIRECTIONS, direction);
+    const intensity = presence * copalIntensity(p, frost);
     root.visible = intensity > 0.01;
     const hearth = persistentLights.ember;
     if (hearth && direction === "jade") {
