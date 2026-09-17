@@ -157,7 +157,12 @@ export default function SunBeam() {
     if (!root || !beam || !spot) return;
     const east = direction === "dore";
     const target = east ? frostStore.beam : 0;
-    material.uniforms.uIntensity.value += (target * 0.9 - material.uniforms.uIntensity.value) * Math.min(1, delta * 1.5);
+    // Borne du 17/09 : un fondu ne rattrape pas le temps perdu. Avec le
+    // `delta` brut, l'image du commit de route -- la plus longue de la visite
+    // -- franchissait les trois quarts du fondu en UNE image, et la porte de visibilite juste
+    // dessous s'ouvrait d'un bloc. L'alpha ne depasse plus ce qu'une image
+    // normale donnerait ; comme tous les fondus du site, il est par image.
+    material.uniforms.uIntensity.value += (target * 0.9 - material.uniforms.uIntensity.value) * Math.min(1.5 / 60, delta * 1.5);
     const k = material.uniforms.uIntensity.value;
     root.visible = k > 0.005;
     if (!root.visible) {

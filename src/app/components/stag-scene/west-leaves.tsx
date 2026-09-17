@@ -107,7 +107,12 @@ export default function WestLeaves() {
   useFrame((state, delta) => {
     const pts = pointsRef.current;
     if (!pts) return;
-    blendRef.current += ((direction === "cendre" ? 1 : 0) - blendRef.current) * Math.min(1, delta * 2);
+    // Borne du 17/09 : un fondu ne rattrape pas le temps perdu. Avec le
+    // `delta` brut, l'image du commit de route -- la plus longue de la visite
+    // -- franchissait tout le fondu en UNE image, et la porte de visibilite juste
+    // dessous s'ouvrait d'un bloc. L'alpha ne depasse plus ce qu'une image
+    // normale donnerait ; comme tous les fondus du site, il est par image.
+    blendRef.current += ((direction === "cendre" ? 1 : 0) - blendRef.current) * Math.min(2 / 60, delta * 2);
     const blend = blendRef.current;
     pts.visible = blend > 0.01;
     if (!pts.visible) return;
