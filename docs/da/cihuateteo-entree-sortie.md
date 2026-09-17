@@ -176,6 +176,12 @@ Peu, et c'est le signe que la decision est juste.
   presence est celle de l'arc, tout de suite.
 - L'oracle existe : `passage-continu`, Sud vers Ouest. Le plus grand pas
   par image doit tomber de 0,49 vers la cible de 0,35.
+  **Suite, 17/09** : fait, mais le gain n'est pas venu de la. Leur groupe
+  a bien disparu du diff et le pop de quarante-deux mailles n'existe plus,
+  or la marche n'a pas bouge : elles n'etaient pas le terme dominant. Le
+  ciel l'etait (`transitions-etat-de-l-art.md`, section 10). La decision de
+  ce document reste juste sur ses propres termes, cosmogoniques et de
+  performance ; elle n'etait simplement pas la correction de la marche.
 
 ---
 

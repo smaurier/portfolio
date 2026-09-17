@@ -426,3 +426,82 @@ ne l'aurait donne, parce qu'il fallait voir que les lumieres BAISSENT
 pendant que l'image s'eclaircit pour cesser de chercher du cote de la
 lumiere. C'est la troisieme fois ce mois-ci qu'une cause plausible et bien
 argumentee se revele minoritaire devant la mesure.
+
+---
+
+## 10. Le ciel, et ce que la sonde n'avait pas dit (17/09)
+
+La section 9 nommait ce qui restait : « le decor propre a la direction
+quittee sort et celui de la nouvelle entre en une seule image ». C'etait
+une hypothese, pas une mesure, et elle etait fausse. Le 16/09 au soir a
+ajoute une seconde attribution fausse, les Cihuateteo. Les deux avaient la
+meme cause de methode.
+
+### La cause de methode, d'abord
+
+`diff-au-saut` remonte l'ascendance des objets **qui changent de
+visibilite**, et imprime le reste des champs modifies en dessous. Les deux
+fois, le coupable a ete pris dans la premiere liste sans lire la seconde
+jusqu'au bout. Or le terme dominant etait dans la seconde, les deux fois.
+
+Une sonde met en avant ce que son auteur a decide de mettre en avant. Sa
+sortie complete, elle, ne decide rien : c'est elle qu'il faut lire.
+
+### La cause
+
+`sud-sky.tsx` et `sud-sky-bodies.tsx` lisaient `dayAtArc(direction, p)` en
+direct, avec la direction de la ROUTE. C'est le defaut que `lib/arc-fondu`
+corrige depuis le 16/09, et `arc-store` expose `lireArcJour` pour ca. Cinq
+machineries etaient passees au depot ; le dome et les astres etaient restes
+dehors, et le dome est la plus grande surface de l'ecran.
+
+Au saut : `uDay` de 0,000 a 0,583 en une image, `uSkyOffset` de -0,333 a
+0,001, `uDuskColor` de 000000 a 6a2e4f, et le soleil qui se teleporte
+d'un sprite a l'autre. Les lumieres, le brouillard et la vignette, eux,
+traversaient deja proprement.
+
+### La regression, que le seuil a laissee passer
+
+| | plus grand pas |
+| --- | --- |
+| 15/09, avant tout | 0,93 |
+| 16/09, apres scroll + teinte + fondu d'arc | 0,49 |
+| 17/09, apres « on arrive en haut de l'arc » | **0,58 / 0,61** |
+| 17/09, apres le ciel par le depot | **0,092 / 0,092 / 0,100** |
+
+Arriver toujours en haut de l'arc (8066788) a fait REMONTER la marche, et
+le seuil valait 0,6 : l'oracle n'a pas rougi, il a frole, et le commit est
+parti au vert. La decision reste bonne ; c'est sa consequence qui ne
+l'etait pas, parce qu'elle rend l'ecart d'arc maximal au commit, donc elle
+rend les lecteurs restes en direct beaucoup plus visibles. **Un seuil pose
+au ras de la mesure du jour ne garde rien : il attend la regression
+suivante pour devenir faux.** Ramene a 0,15, soit la mesure plus la moitie.
+
+### Ce qui reste, mesure et non suppose
+
+Sonde `diff-au-saut` apres correction : 4,0 points de luminance au lieu de
+26,2, et plus aucun uniforme du ciel dans le diff. Restent trois choses,
+aucune dominante :
+
+1. **La camera se deplace encore de cinq unites dans l'image du commit**,
+   ce que le commit du 16/09 affirme ne pas faire (« une descente, pas une
+   remise a zero »). A verifier : soit la glissade de Lenis n'est pas aussi
+   continue qu'annonce, soit la camera a un ancrage propre a la direction.
+2. **Un `Points` persistant entre a 0,06 d'alpha** (enfant direct de la
+   scene). C'est le meme objet que le 16/09 designait comme coupable ; il
+   ne l'etait pas, et a cet alpha il ne l'est toujours pas.
+3. **Une paire mesh/points change de couleur d'un bloc**, `uColor` de
+   0f6bb8 a d76464 et `uAccentColor` de ffb400 a 4ade80 : du bleu au rouge
+   en une image. Un `look` de direction remplace, pas fondu. Le ciel avait
+   le meme defaut sur `uTint`, `uSkyOffset` et `uDuskColor` ; ceux-la ne
+   paraissent plus au saut, mais le motif est le meme et il vaut d'etre
+   cherche partout : **un fondu qui ne pilote qu'une porte n'est pas un
+   fondu.**
+
+### Une note d'outillage
+
+Les sondes de `.scratch` prennent des routes en argument. Sous Git Bash,
+`/fr/projets` est converti en `C:/Program Files/Git/fr/projets` avant
+d'atteindre node, et la sonde interroge alors une URL qui n'existe pas :
+elle expire sur `data-loaded`, ce qui ressemble a une panne du site. Les
+passer sans barre de tete (`fr/projets`), ou lancer depuis PowerShell.
