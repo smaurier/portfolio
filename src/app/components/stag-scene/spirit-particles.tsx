@@ -16,6 +16,8 @@ import { getRimColorBlend } from "@/lib/reveal-arc";
 import { CARDINAL_VECTORS, useCardinalTransition } from "./cardinal-transition-context";
 import { useFigeUneFois } from "./use-fige-une-fois";
 import { useLibereAuDemontage } from "./use-libere";
+import { TRAVERSEE_ALPHA } from "@/lib/arc-fondu";
+import { useSceneRefs } from "./scene-refs-context";
 
 /**
  * Pétales de cempasúchil qui accompagnent le cerf (26/08, Phase 3
@@ -73,6 +75,7 @@ export default function SpiritParticles({
   useFigeUneFois(pointsRef);
   const materialRef = useRef<ShaderMaterial>(null);
 
+  const sceneRefs = useSceneRefs();
   const { geometry, uniforms } = useMemo(() => {
     const geo = new BufferGeometry();
     const positions = new Float32Array(PETAL_COUNT * 3);
@@ -130,8 +133,26 @@ export default function SpiritParticles({
         uWindStrength: { value: 0 },
       },
     };
-  }, [climaxRimColor, climaxAccentColor]);
+    // NI LA GEOMETRIE NI LES COULEURS EN DEPENDANCE (17/09). Ce memo
+    // rendait la geometrie ET les uniformes, avec les deux couleurs en
+    // dependances : changer de direction reallouait donc les quatre
+    // attributs des petales et les renvoyait au GPU, en plein passage,
+    // quand la machine paie deja la chauffe et le commit de la route. La
+    // geometrie ne lit aucune couleur, elle n'avait aucune raison d'en
+    // dependre. Les couleurs, elles, sont desormais approchees par image
+    // plus bas : le memo ne pose que leur valeur de depart.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- valeur de depart seulement : la suite est approchee par image.
+  }, []);
   useLibereAuDemontage(geometry);
+
+  // LA CIBLE, ET NON LA VALEUR. `persistent-scene` pose la palette sur
+  // l'heure atmospherique, qui marche par directions intermediaires
+  // pendant un passage ; son commentaire dit que « les enfants lissent
+  // deja ces couleurs via leurs useFrame ». Celui-ci ne le faisait pas :
+  // il reconstruisait l'uniforme, donc la couleur sautait du bleu au rouge
+  // en une image (sonde `diff-au-saut`, 17/09).
+  const cibleColor = useMemo(() => new Color(climaxRimColor), [climaxRimColor]);
+  const cibleAccent = useMemo(() => new Color(climaxAccentColor), [climaxAccentColor]);
 
   const transition = useCardinalTransition();
   const windScratch = useMemo(() => new Vector3(), []);
@@ -145,6 +166,14 @@ export default function SpiritParticles({
     const pulse = 0.65 + 0.35 * Math.pow(Math.sin(state.clock.elapsedTime * Math.PI * 0.25), 4);
     const intensite = blend * pulse;
     uniforms.uIntensity.value = intensite;
+    // MEME ALPHA que le fondu d'arc et les traversees de reveal-lighting :
+    // un etage qui se poserait apres les autres ferait un second mouvement
+    // la ou on en veut un seul.
+    // Mouvement reduit : la teinte est celle de l'arc tout de suite, comme
+    // les autres traversees. La convention du site, pas une exception ici.
+    const alpha = sceneRefs?.reducedMotionRef.current ? 1 : TRAVERSEE_ALPHA;
+    (uniforms.uColor.value as Color).lerp(cibleColor, alpha);
+    (uniforms.uAccentColor.value as Color).lerp(cibleAccent, alpha);
     // Meme motif que sun-beam et foyer-column (16/09) : hors fenetre d'arc,
     // des points additifs a alpha nul se paient quand meme au fragment.
     if (pointsRef.current) pointsRef.current.visible = intensite > 0.002;

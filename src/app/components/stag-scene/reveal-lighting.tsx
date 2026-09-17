@@ -17,7 +17,7 @@ import { remapNorthArc } from "@/lib/direction-arc";
 import { remapWestArc, westFogTint } from "@/lib/ouest-arc";
 import { eastFogTint } from "@/lib/est-arc";
 import { sunInTheWest } from "@/lib/arc-day";
-import { avancerFonduArc, fonduArcInitial, jourDuFondu, pDuFondu, type FonduArc } from "@/lib/arc-fondu";
+import { TRAVERSEE_ALPHA, avancerFonduArc, fonduArcInitial, jourDuFondu, pDuFondu, type FonduArc } from "@/lib/arc-fondu";
 import { frostStore } from "./frost-store";
 import { approachFog, approachTint, getFogRange, type FogRange, type FogTint } from "@/lib/direction-fog";
 import { approachRig, getLightRig, rigAtArc, type LightRig } from "@/lib/direction-light";
@@ -164,7 +164,7 @@ export default function RevealLighting({
     // luminance en une image. On n'easy pas le defilement, seulement la
     // BASCULE d'un arc a l'autre : une fois posee, la lecture suit la
     // molette sans retard.
-    fonduRef.current = avancerFonduArc(fonduRef.current, direction, sceneRefs?.reducedMotionRef.current ? 1 : 0.06);
+    fonduRef.current = avancerFonduArc(fonduRef.current, direction, sceneRefs?.reducedMotionRef.current ? 1 : TRAVERSEE_ALPHA);
     const p = pDuFondu(fonduRef.current, rawP);
     const jour = jourDuFondu(fonduRef.current, rawP);
     // Depose pour les autres lecteurs de l'arc (arc-store) : sans ca, le
@@ -193,13 +193,13 @@ export default function RevealLighting({
     }
     lightRigRef.current = sceneRefs?.reducedMotionRef.current
       ? { ...rigTarget }
-      : approachRig(lightRigRef.current, rigTarget, 0.06);
+      : approachRig(lightRigRef.current, rigTarget, TRAVERSEE_ALPHA);
     const rig = lightRigRef.current;
     // La part de reflet : snap sous mouvement reduit (la fumee ne joue pas),
     // sinon la meme cadence que le rig, sous la fumee qui couvre l'ecran.
     refletStore.k = sceneRefs?.reducedMotionRef.current
       ? refletK(theme)
-      : approachReflet(refletStore.k, refletK(theme), 0.06);
+      : approachReflet(refletStore.k, refletK(theme), TRAVERSEE_ALPHA);
     const reflet = refletLight(refletStore.k);
     // LE CIEL VIDE (13/09) : la ou rien n'est dessine, la chaine d'effets
     // sort un noir OPAQUE (mesure : alpha 255 dans le ciel, quel que soit
@@ -309,7 +309,7 @@ export default function RevealLighting({
       const teintePrecedente = fogTintRef.current;
       fogTintRef.current =
         teintePrecedente && !sceneRefs?.reducedMotionRef.current
-          ? approachTint(teintePrecedente, cibleTeinte, 0.06)
+          ? approachTint(teintePrecedente, cibleTeinte, TRAVERSEE_ALPHA)
           : { ...cibleTeinte };
       const fogHex = getFogColor(p, fogTintRef.current);
       if (refletStore.k > 0) {
@@ -325,7 +325,7 @@ export default function RevealLighting({
       const target = getFogRange(hour);
       fogRangeRef.current = sceneRefs?.reducedMotionRef.current
         ? { ...target }
-        : approachFog(fogRangeRef.current, target, 0.06);
+        : approachFog(fogRangeRef.current, target, TRAVERSEE_ALPHA);
       // Dans le miroir, le monde se dissout plus pres (un dessin sur amate).
       const range = refletFogRange(fogRangeRef.current, refletStore.k);
       fogRef.current.near = range.near;

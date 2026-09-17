@@ -34,6 +34,20 @@ import { dayAtArc, lightPAtArc } from "./arc-day";
  * qu'elles arrivent ensemble : un etage qui se poserait apres les autres
  * ferait un second mouvement la ou on en veut un seul.
  */
+/**
+ * L'ALPHA DE TOUTES LES TRAVERSEES (17/09).
+ *
+ * Trois modules juraient deja « MEME ALPHA que les autres » en commentaire,
+ * et l'ecrivaient chacun en clair : `reveal-lighting` cinq fois, ce module
+ * une, `direction-fog` dans sa documentation. Un chiffre recopie ne garde
+ * pas une convention, il l'affirme. Les traversees qui doivent arriver
+ * ensemble le lisent maintenant ici -- un etage qui se poserait apres les
+ * autres ferait un second mouvement la ou on en veut un seul.
+ *
+ * ~800 ms de fondu a soixante images par seconde.
+ */
+export const TRAVERSEE_ALPHA = 0.06;
+
 export type FonduArc = {
   /** L'arc qu'on quitte, nul au repos. */
   sortante: DirectionKey | null;

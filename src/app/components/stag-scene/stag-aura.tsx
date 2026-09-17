@@ -5,6 +5,8 @@ import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BackSide, Color, type Mesh, type ShaderMaterial } from "three";
 import { getRimColorBlend } from "@/lib/reveal-arc";
+import { TRAVERSEE_ALPHA } from "@/lib/arc-fondu";
+import { useSceneRefs } from "./scene-refs-context";
 
 /**
  * Halo diffus autour du cerf (26/08, cf memory project-nahual-da :
@@ -43,13 +45,21 @@ export default function StagAura({
   const materialRef = useRef<ShaderMaterial>(null);
   const meshRef = useRef<Mesh>(null);
 
+  // LA COULEUR EST APPROCHEE, PAS RECONSTRUITE (17/09). Le memo dependait
+  // de `climaxRimColor`, donc le halo changeait de teinte en une image au
+  // commit de la route, alors que `persistent-scene` fait deja traverser la
+  // palette par l'heure atmospherique et compte sur ses enfants pour la
+  // lisser. Le memo ne pose plus que la valeur de depart.
+  const sceneRefs = useSceneRefs();
   const uniforms = useMemo(
     () => ({
       uColor: { value: new Color(climaxRimColor) },
       uIntensity: { value: 0 },
     }),
-    [climaxRimColor],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- valeur de depart seulement : la suite est approchee par image.
+    [],
   );
+  const cibleColor = useMemo(() => new Color(climaxRimColor), [climaxRimColor]);
 
   useFrame((state) => {
     if (!materialRef.current) return;
@@ -58,6 +68,11 @@ export default function StagAura({
     const pulse = 0.65 + 0.35 * Math.pow(Math.sin(state.clock.elapsedTime * Math.PI * 0.25), 4);
     const intensite = blend * pulse;
     uniforms.uIntensity.value = intensite;
+    // Meme alpha que le fondu d'arc, pour arriver avec les autres etages.
+    // Mouvement reduit : la teinte est celle de l'arc tout de suite, comme
+    // les autres traversees. La convention du site, pas une exception ici.
+    const alpha = sceneRefs?.reducedMotionRef.current ? 1 : TRAVERSEE_ALPHA;
+    (uniforms.uColor.value as Color).lerp(cibleColor, alpha);
     // ETEINDRE PLUTOT QUE DESSINER DU NOIR (16/09). Hors de la fenetre
     // d'arc, `blend` vaut zero : le halo est invisible, mais la sphere
     // continue d'etre dessinee en additif, sans ecriture de profondeur, sur
