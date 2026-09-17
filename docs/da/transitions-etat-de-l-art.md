@@ -635,3 +635,85 @@ et ils ne coutent pas la meme chose a verifier.
    deja ce que font les porteuses depuis le 16/09. Mais ca depend du `far`
    du brouillard, qui varie par direction : ailleurs qu'a l'Ouest, le decor
    resterait visible en s'eloignant au lieu d'etre mange.
+
+---
+
+## 13. Centre vers Est : une fausse piste, puis la cause (17/09)
+
+Le plus gros saut de l'anneau tombe de **25,6 a 9,8 / 10,8 / 9,6**.
+
+### La fausse piste, parce qu'elle a coute une demi-heure
+
+La decision du 17/09 etant « le depart par le deplacement, partout », j'ai
+ecrit le geste au seul endroit qui commande les cinq directions :
+`MountForDirection`. Le monde qui part s'enfonce sous la terre, celui qui
+arrive en sort, le sol fait le masque, une ecriture de matrice. Mecanique
+juste, tests verts.
+
+**Mesure : le chiffre n'a pas bouge d'un dixieme.** Les mondes n'attendent
+pas la porte du montage, ils ouvrent la leur -- `frost-world` fait
+`root.visible = frost > 0.01`, `copal-braziers` fait
+`root.visible = intensity > 0.01`. Code retire, comme l'etalement du lever
+l'avait ete deux fois le 16/09. Il reviendra si un jour le defaut est la.
+
+### La methode qui a donne la cause
+
+Ne plus nommer un coupable, mais demander a l'image **ou** elle change. Une
+grille de quatre sur trois, avant et apres le saut :
+
+```
+  haut       6.0     9.8     9.3     6.5
+  milieu    33.5    42.1    38.4    37.1
+  bas       24.3    35.3    36.0    24.4
+```
+
+Rien en haut. Donc pas le ciel, que je m'appretais a accuser une seconde
+fois dans la journee. Tout au milieu et en bas : le monde, le sol.
+
+### La cause
+
+```ts
+frostUniforms.uFrost.value += (cible - valeur) * Math.min(1, dt * 6);
+```
+
+`dt` est borne a un vingtieme de seconde plus haut, donc cet alpha vaut
+**0,3** des que l'image est lente -- et l'image du commit de route est la
+plus longue de toute la visite. Le monde prenait trente pour cent de sa
+glace d'un coup. Et comme `FrostPatch` pose le givre sur TOUTE la scene,
+c'est l'ecran entier qui basculait.
+
+**Un fondu qui rattrape le temps perdu n'est pas un fondu : c'est une
+bascule qui attendait une image lente.** C'est la quatrieme fois ce mois-ci
+qu'un geste pilote par le temps reel se fait enjamber (cf les quatre lecons
+de la nuit du 09/09, `plan-execution.md`), mais les trois premieres fois le
+geste etait *saute* ; ici il est *avale*, ce qui est la meme cause vue de
+l'autre cote.
+
+Deux autres fondus avaient le meme defaut **sans aucune borne** (`delta`
+brut) : les feuilles de l'Ouest franchissaient tout leur fondu en une
+image, le puits de lumiere de l'Est les trois quarts, et tous deux ouvrent
+une porte de visibilite juste en dessous. Corriges par la meme regle, parce
+qu'une regle qu'on n'applique qu'a l'endroit ou la mesure a mordu n'est pas
+une regle.
+
+### Le troisieme booleen de route en deux jours
+
+`copal-braziers` : `copalShows(direction) ? copalIntensity(...) : 0`. Les
+cinq braseros s'eteignaient en une image, comme le ciel le matin meme et
+les Cihuateteo la veille. `lib/presence-direction` depose l'etat du fondu
+d'arc et repond « a quel point cette direction est-elle presente », au meme
+melange que l'arc, la lumiere, la brume et la teinte. Les braseros ont
+disparu de la liste des coupables.
+
+⚠️ Et le test a corrige le code : au milieu d'une traversee entre deux
+directions qui portent toutes deux le copal, leurs presences valent 0,4 et
+0,6 ; prendre le maximum le faisait faiblir alors qu'il brule des deux
+cotes. C'est la somme.
+
+### Ce que ca laisse
+
+Le saut restant vaut dix points sur un ecart total de cinquante. Le geste
+du deplacement, lui, reste une question de direction artistique et non une
+correction de defaut : les mondes traversent maintenant. S'il doit
+s'enfoncer, ce sera parce qu'on veut le voir partir, pas parce qu'il
+commute.
