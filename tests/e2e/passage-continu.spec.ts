@@ -248,3 +248,69 @@ test("un passage cardinal ramene en haut de l'arc", async ({ page }) => {
   expect(page.url()).toContain("/fr/contact");
   expect(await page.evaluate(() => window.scrollY)).toBeLessThan(2);
 });
+
+/**
+ * ET IL Y RESTE (17/09).
+ *
+ * Le test ci-dessus regarde le defilement QUATRE SECONDES apres le clic,
+ * quand le filet de `garantirLeHaut` a deja tout remis en ordre. Entre les
+ * deux, la sonde `.scratch/transitions/glissade.mjs` mesure ceci, trois
+ * passes identiques : la descente atteint zero AVANT le commit, proprement ;
+ * puis, 250 ms apres le commit, le defilement saute de 0 a 506 px et la
+ * camera avec lui, de dix-huit unites ; il y reste plus d'une seconde, et
+ * le filet le ramene ensuite. Le visiteur arrive en haut, se fait jeter a
+ * 14 % de l'arc, puis rappeler. L'invariant tenait a l'arrivee et a la fin,
+ * jamais au milieu.
+ *
+ * LA CAUSE, trouvee sans supposer : au moment du saut, aucun appel
+ * JavaScript de defilement n'est passe, et le focus vient de sauter de
+ * `body` a un `h1`. C'est `route-announcer`, qui deplace le focus vers le
+ * titre de la nouvelle page 250 ms apres le commit -- geste juste, exige
+ * par RGAA 12.8 pour une application d'une seule page -- mais le faisait
+ * avec `preventScroll: false`, donc le navigateur amenait le titre a
+ * l'ecran de lui-meme.
+ */
+test("le haut de l'arc tient pendant tout le passage, pas seulement a la fin", async ({ page }) => {
+  test.setTimeout(150_000);
+
+  await page.goto("/fr/projets?shaders-prod&veille=off");
+  await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 90_000 });
+  await page.evaluate(() => window.scrollTo(0, window.innerHeight * 1.2));
+  await page.waitForTimeout(1200);
+
+  await page.locator('a[href="/fr/contact"]').first().hover({ force: true });
+  await page.waitForTimeout(2500);
+
+  // On echantillonne par image, sans jamais lire la mise en page depuis la
+  // boucle (oracle `lectures-de-mise-en-page`).
+  await page.evaluate(() => {
+    const w = window as unknown as { __suivi: { y: number; chemin: string }[]; __stop: boolean };
+    w.__suivi = [];
+    w.__stop = false;
+    const tick = () => {
+      if (w.__stop) return;
+      w.__suivi.push({ y: window.scrollY, chemin: location.pathname });
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  await page.evaluate(() => {
+    const l = [...document.querySelectorAll("a")].find((a) => a.getAttribute("href") === "/fr/contact");
+    if (l instanceof HTMLElement) l.click();
+  });
+  await page.waitForTimeout(4500);
+  const suivi = await page.evaluate(() => {
+    const w = window as unknown as { __suivi: { y: number; chemin: string }[]; __stop: boolean };
+    w.__stop = true;
+    return w.__suivi;
+  });
+
+  const commit = suivi.findIndex((p) => p.chemin === "/fr/contact");
+  expect(commit, "le commit de route n'a pas ete vu").toBeGreaterThan(0);
+  // Une fois le haut atteint apres le commit, on n'en repart plus.
+  const apres = suivi.slice(commit);
+  const premierHaut = apres.findIndex((p) => p.y < 2);
+  expect(premierHaut, "le haut de l'arc n'est jamais atteint apres le commit").toBeGreaterThanOrEqual(0);
+  const pire = Math.max(...apres.slice(premierHaut).map((p) => p.y));
+  expect(pire, `le defilement repart a ${Math.round(pire)} px apres etre arrive en haut`).toBeLessThan(40);
+});

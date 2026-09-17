@@ -65,7 +65,21 @@ export default function RouteAnnouncer() {
       const focusTarget = h1 ?? main;
       if (focusTarget) {
         focusTarget.setAttribute("tabindex", "-1");
-        focusTarget.focus({ preventScroll: false });
+        // SANS DEFILER (17/09). `preventScroll: false` laissait le
+        // navigateur amener le titre a l'ecran de lui-meme, et sur les
+        // pages de scene le h1 vit dans un conteneur haut : mesure, passage
+        // Projets vers Contact, trois passes identiques -- 250 ms apres le
+        // commit, le defilement sautait de 0 a 506 px et la camera de dix-
+        // huit unites, avant que le filet de `garantirLeHaut` ne le ramene
+        // une seconde plus tard. Le visiteur arrivait en haut de l'arc, se
+        // faisait jeter a 14 % de l'arc, puis rappeler.
+        //
+        // Ca ne retire rien a RGAA 12.8 : le focus va toujours au titre de
+        // la nouvelle page, et c'est cela que la regle demande. Le titre est
+        // deja a l'ecran quand on arrive, puisque le calque de scene est
+        // pose par-dessus la fenetre ; le defilement du navigateur ne le
+        // rendait pas visible, il deplaçait le monde.
+        focusTarget.focus({ preventScroll: true });
       }
     }, 250);
     return () => window.clearTimeout(timer);
