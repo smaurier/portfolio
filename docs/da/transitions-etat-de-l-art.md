@@ -575,3 +575,63 @@ Le saut de luminance restant vaut 4,2 points, et ce qui le porte est
 desormais le decor lui-meme : un groupe GLB entier qui entre et sort en une
 image. C'est le chantier nomme en fin de section 9, et il demande une
 decision de direction artistique par point cardinal, pas une mesure de plus.
+
+---
+
+## 12. L'anneau entier, mesure (17/09)
+
+Les sections 9 a 11 n'ont regarde que deux passages, parce que ce sont les
+deux que l'oracle garde. Voici les cinq, meme sonde, meme recette.
+
+| passage | saut de luminance |
+| --- | --- |
+| **Centre vers Est** | **25,6** |
+| Ouest vers Nord | -4,6 |
+| Nord vers Centre | +4,5 |
+| Sud vers Ouest | 3,9 |
+| Est vers Sud | 3,3 |
+
+**Le plus gros saut de l'anneau vaut six fois celui qu'on vient de
+corriger, et personne ne l'avait vu, parce que l'oracle ne garde que
+Nord vers Centre et Sud vers Ouest.** Un oracle ne protege que ce qu'il
+regarde ; choisir deux trajets sur cinq, c'etait choisir de ne pas voir les
+trois autres. A reprendre quand le chantier ci-dessous sera fait, et pas
+avant : poser un seuil sur un defaut connu ne le corrige pas.
+
+### Ce que son diff dit, et c'est le chantier nomme
+
+```
+VISIBILITE 1 -> 0  313:Group    5 enfants, 5 mailles     (le monde du Centre)
+VISIBILITE 0 -> 1  503:Group   10 enfants, 11 mailles    (le monde de l'Est)
+```
+
+Rien ne part, rien n'arrive : **ca commute**. C'est exactement la question
+laissee ouverte en fin de section 9, « comment le monde d'une direction
+s'en va-t-il », et la mesure dit maintenant ou elle coute le plus cher.
+
+**Le point d'etranglement est unique**, et c'est une bonne nouvelle :
+`MountForDirection` rend `<group visible={visible}>`, et c'est cette seule
+ligne qui commute pour les cinq directions. La regle generale se posera
+donc a un seul endroit.
+
+### La decision arbitree, et celle qui reste
+
+Sylvain a tranche la famille le 17/09 : **le depart par le DEPLACEMENT
+partout** (famille F de `dispersion-etat-de-l-art.md` : les objets s'en
+vont au lieu d'etre supprimes, une ecriture de matrice, cout quasi nul, et
+les 2 500 ms de linger de `MountForDirection` sont deja la), **et la
+dissolution au bruit gardee en reserve pour un seul moment**, sans quoi
+elle devient un peage a chaque navigation.
+
+Reste ouvert, et c'est a lui : **dans quelle direction**. Deux candidats,
+et ils ne coutent pas la meme chose a verifier.
+
+1. **Il s'enfonce, et l'autre monte.** Le sol fait le masque, donc ni brume
+   ni transparence ni tri. Une seule ecriture de matrice sur le groupe
+   racine. Et ca dit quelque chose de juste : un monde rentre sous la
+   terre. A verifier a l'oeil : au ras de l'horizon, des objets peuvent se
+   voir traverser le sol.
+2. **Il recule vers son point cardinal.** Symetrique a l'arrivee, et c'est
+   deja ce que font les porteuses depuis le 16/09. Mais ca depend du `far`
+   du brouillard, qui varie par direction : ailleurs qu'a l'Ouest, le decor
+   resterait visible en s'eloignant au lieu d'etre mange.
