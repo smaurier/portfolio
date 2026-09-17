@@ -15,7 +15,18 @@ import { test, expect, devices } from "@playwright/test";
  *  - sous mouvement reduit, pas de fumee, la face change tout de suite ;
  *  - au clavier, le disque se prend et se presse.
  */
-test.use({ ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } });
+/**
+ * LA NUIT, EXPLICITEMENT (17/09, meme piege que passage-continu la veille).
+ *
+ * Depuis `cb384c5`, la face par defaut n'est plus la nuit : elle suit la
+ * preference du visiteur (`lib/theme.faceInitiale`). Playwright n'en exprime
+ * aucune, donc ce fichier recevait l'amate et attendait l'obsidienne. Quatre
+ * tests de deux fichiers sont restes rouges depuis ce soir-la, sans que
+ * personne les relance. Les tests de la face claire, eux, posent
+ * `nahual-theme` en localStorage, qui prime sur la preference : ils ne
+ * bougent pas.
+ */
+test.use({ ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 }, colorScheme: "dark" });
 
 function luminance(rgb: string): number {
   const m = rgb.match(/\d+(\.\d+)?/g)?.map(Number) ?? [0, 0, 0];
@@ -101,7 +112,9 @@ for (const chemin of ["fr", "fr/services", "fr/projets", "fr/contact", "fr/memoi
 
 test("mouvement reduit : pas de fumee, la face change tout de suite", async ({ browser }) => {
   test.setTimeout(150_000);
-  const ctx = await browser.newContext({ ...devices["Desktop Chrome"], reducedMotion: "reduce", viewport: { width: 1280, height: 800 } });
+  // Contexte monte a la main : le `test.use` du fichier ne l'atteint pas,
+  // la nuit se redemande ici.
+  const ctx = await browser.newContext({ ...devices["Desktop Chrome"], reducedMotion: "reduce", viewport: { width: 1280, height: 800 }, colorScheme: "dark" });
   const page = await ctx.newPage();
   await page.goto("/fr?shaders-prod");
   await attendre(page);
@@ -124,8 +137,17 @@ test("la 404 sort du voile et prend la face memorisee", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("data-loaded", "true", { timeout: 10_000 });
   await expect(page.locator("[data-veil]")).toBeHidden({ timeout: 10_000 });
   await expect(page.locator("main[data-not-found] h1").first()).toBeVisible();
-  const fond = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(luminance(fond), "la 404 est sur le papier").toBeGreaterThan(0.7);
+  // ATTENDRE LA PEINTURE, PAS LA SUPPOSER (17/09). La lecture suivait
+  // immediatement l'apparition du titre et tombait sur `rgba(0, 0, 0, 0)`,
+  // que `luminance` rend a zero : le test echouait sur un fond transparent
+  // et non sur un fond sombre. Mesure a froid : la 404 est bien sur le
+  // papier, preference systeme claire ou sombre, une fois peinte.
+  await expect
+    .poll(async () => luminance(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)), {
+      timeout: 10_000,
+      message: "la 404 est sur le papier",
+    })
+    .toBeGreaterThan(0.7);
 });
 
 test("l'eclat designe le disque a la premiere visite, et seulement a elle", async ({ page }) => {

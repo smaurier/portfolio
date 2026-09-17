@@ -12,7 +12,18 @@ import { test, expect, devices } from "@playwright/test";
  * Le decodage se fait dans la page (Image + canvas 2D) : aucune
  * dependance de plus pour lire un PNG.
  */
-test.use({ ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } });
+/**
+ * LA NUIT, EXPLICITEMENT (17/09, meme piege que passage-continu la veille).
+ *
+ * Depuis `cb384c5`, la face par defaut n'est plus la nuit : elle suit la
+ * preference du visiteur (`lib/theme.faceInitiale`). Playwright n'en exprime
+ * aucune, donc ce fichier recevait l'amate et attendait l'obsidienne. Quatre
+ * tests de deux fichiers sont restes rouges depuis ce soir-la, sans que
+ * personne les relance. Les tests de la face claire, eux, posent
+ * `nahual-theme` en localStorage, qui prime sur la preference : ils ne
+ * bougent pas.
+ */
+test.use({ ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 }, colorScheme: "dark" });
 
 const ZONE = { x: 660, y: 130, width: 560, height: 520 };
 
