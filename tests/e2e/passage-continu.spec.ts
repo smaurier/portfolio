@@ -42,27 +42,35 @@ const FACTEUR_CREUX = 0.6;
  * bascule seche en franchit 1,0 ; le fondu vise, qui dure une seconde, en
  * franchit quelques centiemes.
  *
- * LE SEUIL EST A 0,6 ET PAS A 0,35, ET C'EST UN AVEU. Mesures du 16/09,
- * avant puis apres les trois corrections (scroll, teinte, fondu d'arc) :
+ * LE SEUIL EST A 0,15, ET IL NE GARDE PLUS UN AVEU (17/09).
  *
- *   Sud vers Ouest    0,93  ->  0,49
- *   Nord vers Centre  0,65  ->  0,36
+ * Mesures successives du trajet Sud vers Ouest, toutes sur trois passes :
  *
- * Il reste donc une marche, et elle a un nom. Sonde `qui-apparait` :
- * a l'image du saut, les lumieres BAISSENT, le brouillard, la camera, le
- * plancher de revelation, la vignette et le bloom sont tous continus, et
- * le nombre d'objets visibles ne bouge pas. Ce qui bouge, c'est l'image
- * suivante : le decor propre a la direction quittee sort et celui de la
- * nouvelle entre EN UNE SEULE IMAGE (les cranes et les porteuses d'annee
- * du Sud, puis les pieces de l'Ouest). Les ambiances, elles, fondent
- * deja. C'est un chantier a part, avec une vraie question de direction
- * artistique derriere : comment le monde d'une direction s'en va-t-il.
+ *   15/09, avant tout                            0,93
+ *   16/09, apres scroll + teinte + fondu d'arc   0,49
+ *   17/09, apres « on arrive en haut de l'arc »  0,58  0,61   <- regression
+ *   17/09, apres le ciel par le depot            0,092 0,092 0,100
  *
- * Le seuil garde donc ce qui est acquis (il retombe au rouge si l'une des
- * trois corrections saute) sans pretendre que le passage est fini. Quand
- * le decor traversera a son tour, le ramener a 0,35.
+ * LA REGRESSION, PARCE QU'ELLE SE LIT MAL AUTREMENT. Arriver en haut de
+ * l'arc (16/09, 8066788) a fait REMONTER la marche de 0,49 a 0,59, et le
+ * seuil valait 0,6 : l'oracle n'a pas rougi, il a frole. La cause n'etait
+ * pas la descente, elle etait bonne ; c'est que l'ecart d'arc au commit
+ * est devenu maximal, et que deux lecteurs de l'arc n'etaient pas passes
+ * par le fondu. Un seuil pose au ras de la mesure du jour ne garde rien :
+ * il attend la regression suivante pour devenir faux.
+ *
+ * CE QUI RESTE, ET POURQUOI CE N'EST PLUS LA MEME CHOSE. Sonde
+ * `diff-au-saut` apres correction : 4,0 points de luminance au lieu de
+ * 26,2, et plus aucun uniforme du ciel dans le diff. Restent la camera
+ * qui se deplace encore de cinq unites dans l'image du commit, un
+ * `Points` qui entre a 0,06 d'alpha, et une paire mesh/points qui change
+ * de couleur d'un bloc (bleu vers rouge). Trois chantiers nommes, aucun
+ * dominant.
+ *
+ * Le seuil garde donc 0,10 avec une marge de moitie : il rougit si l'une
+ * des corrections saute, sans rougir pour le bruit de chauffe.
  */
-const PART_MAX_PAR_IMAGE = 0.6;
+const PART_MAX_PAR_IMAGE = 0.15;
 
 /** En dessous, l'ecart entre les deux pages est trop faible pour que la
  *  marche veuille dire quoi que ce soit (Est vers Sud est dans ce cas). */

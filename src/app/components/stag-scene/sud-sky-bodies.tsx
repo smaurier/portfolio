@@ -7,8 +7,9 @@ import { AdditiveBlending, CanvasTexture, Color, Group, NormalBlending, Sprite, 
 import { INK_BODIES, bodiesInInk } from "@/lib/reflet";
 import { apresMidiIci } from "@/lib/heure-du-lieu";
 import { refletStore } from "./reflet-store";
+import { lireArcJour } from "./arc-store";
 import { moonDirection, sunDirection } from "@/lib/direction-light";
-import { dayAtArc, sunInTheWest } from "@/lib/arc-day";
+import { sunInTheWest } from "@/lib/arc-day";
 import { remapWestArc } from "@/lib/ouest-arc";
 import { isEveningStar, isMorningStar } from "@/lib/venus";
 import { eastSunDirection, morningStarDirection } from "@/lib/est-arc";
@@ -132,7 +133,9 @@ export default function SudSkyBodies() {
     g.visible = blend > 0.01;
     if (!g.visible) return;
     g.position.copy(state.camera.position);
-    const day = dayAtArc(direction, sceneRefs?.progressRef.current ?? 0);
+    // Meme depot que le dome (17/09) : les astres et le ciel qui les porte
+    // doivent lire la meme heure, sinon le soleil se couche avant son ciel.
+    const day = lireArcJour(direction, sceneRefs?.progressRef.current ?? 0);
     // LES ASTRES DANS LE MIROIR (13/09, lot 3) : additifs la nuit, ils
     // disparaitraient sur le papier. A mi-reflet (sous la fumee) ils
     // passent en fusion normale et deviennent des disques d'encre : soleil

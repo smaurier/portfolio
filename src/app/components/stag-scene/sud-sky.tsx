@@ -7,12 +7,12 @@ import { BackSide, Color, LinearFilter, RepeatWrapping, ShaderMaterial, SRGBColo
 import { useCurrentDirection } from "./use-current-direction";
 import { REFLET_PAPER, refletSkyMix } from "@/lib/reflet";
 import { refletStore } from "./reflet-store";
+import { lireArcJour } from "./arc-store";
 import { useSceneRefs } from "./scene-refs-context";
 import { horizonLuminance, skyDaylight, zenithInto, zenithSpread, ZENITH_SPREAD_DAY } from "@/lib/sky-zenith";
 import { skyPhotoNeeded, type SkyPhotoDirection } from "@/lib/sky-photo";
 import { whenRevealed } from "@/lib/apres-le-voile";
 import { getRevealFloor } from "@/lib/reveal-arc";
-import { dayAtArc } from "@/lib/arc-day";
 import { remapWestArc } from "@/lib/ouest-arc";
 import { dawnAtArc, eastDay } from "@/lib/est-arc";
 import type { DirectionKey } from "./direction-colors";
@@ -378,7 +378,10 @@ export default function SudSky() {
     }
     // Le jour (la photo) apparait avec le soleil, pas avant : la nuit reste
     // le degrade noir des 400 etoiles. A l'Ouest, le jour de l'arc inverse.
-    const day = dayAtArc(direction, sceneRefs?.progressRef.current ?? 0);
+    // PAR LE DEPOT, PAS EN DIRECT (17/09) : `dayAtArc(direction, ...)` prend
+    // la direction de la ROUTE, qui bascule d'un coup au commit. Le dome est
+    // la plus grande surface de l'ecran, donc c'etait la marche qu'on voyait.
+    const day = lireArcJour(direction, sceneRefs?.progressRef.current ?? 0);
     const d = Math.min(1, Math.max(0, (day - 0.3) / 0.45));
     material.uniforms.uDay.value = d * d * (3 - 2 * d);
     material.uniforms.uDusk.value = direction === "cendre" ? remapWestArc(pNow).dusk : direction === "dore" ? dawnAtArc(pNow) : 0;
