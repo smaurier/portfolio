@@ -505,3 +505,73 @@ Les sondes de `.scratch` prennent des routes en argument. Sous Git Bash,
 d'atteindre node, et la sonde interroge alors une URL qui n'existe pas :
 elle expire sur `data-loaded`, ce qui ressemble a une panne du site. Les
 passer sans barre de tete (`fr/projets`), ou lancer depuis PowerShell.
+
+---
+
+## 11. Le focus deplaçait le monde (17/09)
+
+La section 10 laissait trois termes. Deux tombent ici, et le troisieme
+n'en etait pas un.
+
+### Ce que la camera faisait vraiment
+
+Non pas « cinq unites au commit », mais **dix-huit unites 250 ms APRES le
+commit**, et le defilement avec elle. Sonde `.scratch/transitions/glissade.mjs`,
+Projets vers Contact, trois passes identiques :
+
+| | |
+| --- | --- |
+| la descente vers la nuit | atteint zero AVANT le commit, proprement |
+| a t + 250 ms | le defilement saute de 0 a **506 px**, la camera de **18,9 unites** |
+| pendant une seconde | il y reste |
+| ensuite | le filet de `garantirLeHaut` le ramene a zero |
+
+Le visiteur arrivait en haut de l'arc, se faisait jeter a 14 % de l'arc,
+puis rappeler. L'invariant de Sylvain tenait a l'arrivee et a la fin,
+jamais au milieu -- et l'oracle, qui mesurait quatre secondes apres le
+clic, etait vert pendant que le defaut se jouait.
+
+### La methode, encore elle
+
+Trois hypotheses etaient disponibles et plausibles : la glissade de Lenis
+qui s'interrompt, la hauteur de page qui change au commit, la restauration
+de defilement de l'historique. Aucune n'a ete testee en premier.
+
+Une sonde a note **tout appel JavaScript capable de defiler** --
+`scrollTo`, `scrollBy`, `scrollIntoView`, l'ecriture de `scrollTop` -- avec
+sa pile. Verdict : **rien** dans les 150 ms qui precedent le saut. Ce
+n'etait donc pas le site, c'etait le navigateur. La sonde suivante a ajoute
+`document.activeElement` a chaque image : il saute de `body` a un `h1`
+exactement a cette image.
+
+`route-announcer`, minuterie de 250 ms, exactement le delai mesure.
+
+### Ce qui etait juste, et ce qui ne l'etait pas
+
+Le geste reste : RGAA 12.8 demande que le focus aille au titre de la
+nouvelle page dans une application d'une seule page, sans quoi
+l'utilisateur clavier doit reparcourir tout l'en-tete avant d'atteindre le
+contenu. Ce qui etait faux, c'est `preventScroll: false`. Sur les pages de
+scene le h1 vit dans un conteneur haut : le navigateur amenait sa position
+de DOCUMENT a l'ecran. Il ne rendait rien visible -- le titre est deja la,
+le calque de scene est pose par-dessus la fenetre -- il deplaçait le monde.
+
+**Un geste d'accessibilite qui deplace la page n'est pas forcement un geste
+d'accessibilite.** Ici il en devenait le contraire : il annulait la seule
+chose que la navigation promettait au visiteur.
+
+### Les trois termes de la section 10, apres
+
+1. **La camera** : plus grand pas de 4,31 unites au lieu de 18,9, et il
+   tombe a l'image du commit, la ou le monde change, et non 250 ms plus
+   tard.
+2. **Le `Points` a 0,06 d'alpha** : ce n'etait pas un defaut. Sa porte
+   `visible` suit son propre fondu d'opacite ; il entre a quatre centiemes
+   parce qu'il commence a se fondre, pas parce qu'il surgit.
+3. **La paire mesh/points qui changeait de couleur d'un bloc** : corrigee
+   (`stag-aura`, `spirit-particles`), avec l'oracle `couleur-qui-traverse`.
+
+Le saut de luminance restant vaut 4,2 points, et ce qui le porte est
+desormais le decor lui-meme : un groupe GLB entier qui entre et sort en une
+image. C'est le chantier nomme en fin de section 9, et il demande une
+decision de direction artistique par point cardinal, pas une mesure de plus.
