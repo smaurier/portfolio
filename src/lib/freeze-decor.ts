@@ -39,3 +39,51 @@ export function freezeDecor(root: Object3D): number {
   });
   return n;
 }
+
+/**
+ * LE DECOR QUI DORT (17/09).
+ *
+ * `MountForDirection` monte la direction suivante AVANT qu'on y aille, et la
+ * garde invisible le temps de la chauffe (11/09, puis 16/09 qui a avance ce
+ * montage pendant que le voile est encore leve). Un sous-arbre invisible
+ * n'est pas gratuit pour autant : `updateMatrixWorld` le parcourt comme les
+ * autres, et chacun de ses objets recompose sa matrice a chaque image. Pour
+ * personne.
+ *
+ * Mesure du 17/09, sonde `.scratch/transitions/figeables-nommes.mjs`, regles
+ * de l'oracle `decor-fige` : Contact 41 dormants pour 13 eveilles, accueil
+ * 18 pour 14, Projets 7 pour 21. Le depassement du budget etait donc en
+ * entier du decor que personne ne regarde.
+ *
+ * CE QU'ON N'ENDORT PAS : ce qui dormait deja. Le sol et la flore sont figes
+ * pour de bon depuis le 10/09 ; si on les endormait avec les autres, le
+ * reveil les rendrait a `matrixAutoUpdate`, et ce gain-la disparaitrait en
+ * silence, sans qu'aucun oracle ne le dise. On ne rend donc que ce qu'on a
+ * pris.
+ *
+ * Appeler plusieurs fois est prevu et necessaire : un modele charge en
+ * retard (Suspense) monte dans un sous-arbre deja endormi, et il faut
+ * l'endormir a son tour sans compter deux fois ses voisins.
+ */
+export function endormirDecor(racine: Object3D): Object3D[] {
+  racine.updateMatrixWorld(true);
+  const pris: Object3D[] = [];
+  racine.traverse((o) => {
+    if (!o.matrixAutoUpdate) return;
+    o.matrixAutoUpdate = false;
+    pris.push(o);
+  });
+  return pris;
+}
+
+/**
+ * Le reveil. On recompose la pose tout de suite : une boucle d'animation a
+ * pu ecrire dans `position` pendant le sommeil sans que rien ne la compose,
+ * et sans ce geste le premier rendu visible montrerait la pose d'avant.
+ */
+export function reveillerDecor(endormis: Object3D[]): void {
+  for (const o of endormis) {
+    o.matrixAutoUpdate = true;
+    o.updateMatrix();
+  }
+}

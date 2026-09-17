@@ -48,6 +48,22 @@ test.use({ ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } 
 // Releve du 14/09 apres F1c, trois reprises chacune : 27 a l'accueil, 20 a
 // 21 a Contact, moins a Projets. Le plafond laisse une marge de trois, pas
 // davantage : au-dela, c'est qu'un composant est arrive sans etre fige.
+//
+// ET LE CLIQUET A SERVI (17/09). Il est passe au rouge sans qu'une ligne de
+// decor ait change : 32 a l'accueil, 54 a Contact. La cause n'etait pas un
+// composant non fige mais le PRE-MONTAGE avance du 16/09 (`04ca94a`), qui
+// monte la direction suivante pendant que le voile est encore leve. Sonde
+// `.scratch/transitions/figeables-nommes.mjs`, memes regles que cet oracle,
+// avec en plus la visibilite des ancetres : Contact 41 dormants pour 13
+// eveilles, accueil 18 pour 14, Projets 7 pour 21. Le depassement etait
+// donc en entier du decor invisible que personne ne regardait, et qui
+// recomposait sa matrice a chaque image quand meme -- `updateMatrixWorld`
+// ne saute pas les branches invisibles.
+//
+// `MountForDirection` endort desormais son sous-arbre tant qu'il est
+// invisible (`lib/freeze-decor.endormirDecor`), et ne rend au reveil que ce
+// qu'il a pris. Releve apres : 27, 20, 27. Exactement la ligne de base du
+// 14/09, donc le plafond ne bouge pas.
 const BUDGET = 30;
 
 for (const chemin of ["fr", "fr/contact", "fr/projets"]) {

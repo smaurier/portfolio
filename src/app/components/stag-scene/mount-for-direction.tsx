@@ -1,6 +1,9 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { useFrame } from "@react-three/fiber";
+import type { Group, Object3D } from "three";
+import { endormirDecor, reveillerDecor } from "@/lib/freeze-decor";
 import { useGLTF, useProgress } from "@react-three/drei";
 import { assetsForDirection } from "@/lib/direction-assets";
 import type { DirectionKey } from "./direction-colors";
@@ -104,6 +107,46 @@ export default function MountForDirection({
   // Intentionne seulement : monte, jamais visible.
   const visible = wanted ? warm || lateShowFor === direction : lingering;
 
+  /**
+   * LE SOMMEIL DU DECOR PRE-MONTE (17/09).
+   *
+   * Ce sous-arbre est monte avant qu'on y aille et reste invisible le temps
+   * de la chauffe. `updateMatrixWorld` le parcourt quand meme : chacun de
+   * ses objets recomposait sa matrice a chaque image, pour personne. Mesure,
+   * regles de l'oracle `decor-fige` : Contact 41 dormants pour 13 eveilles.
+   *
+   * POURQUOI UNE VISITE PERIODIQUE ET PAS UN SEUL EFFET : les modeles
+   * arrivent par Suspense, donc apres. Un enfant monte dans un sous-arbre
+   * deja endormi se reveillerait tout seul et on ne le reprendrait jamais.
+   * Une visite deux fois par seconde sur un sous-arbre dormant ne coute
+   * rien a cote de ce qu'elle evite -- et elle s'arrete des le reveil.
+   */
+  const groupRef = useRef<Group>(null);
+  const endormis = useRef<Object3D[]>([]);
+  const compteur = useRef(0);
+  useFrame(() => {
+    const g = groupRef.current;
+    if (!g) return;
+    if (visible) {
+      if (endormis.current.length) {
+        reveillerDecor(endormis.current);
+        endormis.current = [];
+      }
+      return;
+    }
+    compteur.current += 1;
+    if (compteur.current % 30 !== 1) return;
+    const pris = endormirDecor(g);
+    if (pris.length) endormis.current = endormis.current.concat(pris);
+  });
+  // Demonte pendant le sommeil : on rend leur autonomie aux objets, sans
+  // quoi un sous-arbre remonte plus tard hériterait d'un gel qu'il ne
+  // connaît pas.
+  useEffect(() => () => {
+    reveillerDecor(endormis.current);
+    endormis.current = [];
+  }, []);
+
   useEffect(() => {
     if (wanted) return;
     const timer = window.setTimeout(() => setLingering(false), linger);
@@ -112,7 +155,7 @@ export default function MountForDirection({
 
   return wanted || lingering || (intended && slot) ? (
     <MountVisibleContext.Provider value={visible}>
-      <group visible={visible}>{children}</group>
+      <group ref={groupRef} visible={visible}>{children}</group>
     </MountVisibleContext.Provider>
   ) : null;
 }
