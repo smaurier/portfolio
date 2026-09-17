@@ -47,8 +47,16 @@ export const CIHUATETEO = {
   landHeight: 0.02,
   bobAmplitude: 0.12,
   bobHz: 0.18,
-  /** Fenetre du crepuscule (0..1, cf ouest-arc dusk) sur laquelle elles descendent. */
-  descendStart: 0.25,
+  /** Fenetre du crepuscule (0..1, cf ouest-arc dusk) sur laquelle elles descendent.
+   *  Suit la venue (17/09) : elles ne peuvent pas se poser avant d'etre la,
+   *  sinon elles arriveraient en se posant deja et la releve au zenith ne se
+   *  lirait plus -- un oracle le garde, avec la tolerance d'un dixieme, le
+   *  temps que la derniere marche de la venue finisse pendant que la
+   *  descente commence. Deux autres oracles bornent l'autre cote : la pose
+   *  doit rester continue (pas plus de 1,4 unite par pas de mesure) et
+   *  l'opacite doit avoir commence a franchir a mi-crepuscule. La fenetre
+   *  est le seul endroit ou ces trois contraintes tiennent ensemble. */
+  descendStart: 0.48,
   descendEnd: 0.85,
   opacityEscort: 0.45,
   opacityCrossroads: 0.8,
@@ -61,8 +69,22 @@ export const CIHUATETEO = {
    * tout juste leur charge et ne sont pas encore la. A `venueEnd` elles
    * ont rejoint leur place et escortent pour de bon.
    */
-  venueStart: 0.04,
-  venueEnd: 0.3,
+  /**
+   * ARBITRAGE DE SYLVAIN, 17/09 : « au milieu, en courbe douce ». La
+   * fenetre valait 0,04 a 0,30, c'est-a-dire TOT : elles paraissaient des
+   * apres le zenith, et la releve -- les guerriers jusqu'au midi, elles
+   * ensuite -- ne se lisait plus, puisqu'on les voyait des l'arrivee.
+   *
+   * Tard n'etait pas mieux : la sonde de visite type (13/09) montre que peu
+   * de visiteurs descendent jusqu'au dernier tiers d'un arc, donc une venue
+   * tardive raterait la premiere regle de la doctrine de profondeur, etre
+   * vue sans qu'on la cherche.
+   *
+   * Au milieu : on arrive sans elles, elles paraissent quand le soleil a
+   * bien entame sa chute, elles sont entieres avant de se poser.
+   */
+  venueStart: 0.38,
+  venueEnd: 0.56,
   /**
    * De combien elles se tiennent en arriere quand elles ne sont pas
    * encore venues, en unites monde, le long de la direction du soleil.

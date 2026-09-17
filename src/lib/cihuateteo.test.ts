@@ -200,6 +200,20 @@ describe("presencePorteuses (la venue, 16/09)", () => {
     expect(presencePorteuses(1)).toBe(1);
   });
 
+  it("ARBITRAGE DU 17/09 : rien avant le milieu de la descente", () => {
+    // Sylvain, questions posees en un lot : « au milieu, en courbe douce ».
+    // Ni tot -- la releve au zenith ne se lirait plus, et le pop de
+    // quarante-deux mailles reviendrait par la fenetre. Ni tard -- la sonde
+    // de visite type (13/09) montre que peu de visiteurs descendent jusqu'au
+    // dernier tiers, donc la mecanique raterait la premiere regle de la
+    // doctrine de profondeur : etre vue sans qu'on la cherche.
+    expect(presencePorteuses(0.3)).toBe(0);
+    const milieu = presencePorteuses(0.5);
+    expect(milieu).toBeGreaterThan(0.1);
+    expect(milieu).toBeLessThan(0.9);
+    expect(presencePorteuses(0.7)).toBe(1);
+  });
+
   it("ne recule jamais quand le soleil tombe", () => {
     let precedent = -1;
     for (let d = 0; d <= 1.0001; d += 0.02) {
