@@ -2110,6 +2110,22 @@ html[data-theme="light"] [data-scene-overlay] [class*="chapter"]:not(p) {
   background: rgba(var(--panel-rgb), 0.82);
   padding: 18px 20px;
 }
+/* LE PANNEAU DE PAPIER NE MANGE PAS LA COLONNE SUR UN PETIT ECRAN (17/09).
+   Mesure, Galaxy S9+ (320 px de large), accueil, face claire : ces 20 px de
+   chaque cote reduisent la colonne du hero de 194 a 154 px, le titre passe
+   de deux lignes a trois, le bloc grandit de 153 px et, comme le hero est
+   ancre en bas, son sommet sort de la fenetre a y = -41. Le titre se
+   retrouve alors SOUS le bouton du menu (245 px2 de recouvrement, releve
+   par `controls-overlap`), et ses premieres lignes sont rognees.
+   Le meme seuil que le resserrement voisin de `scene-text-overlay` : sous
+   380 px, ce qui peut se resserrer se resserre, et le corps du texte ne
+   bouge pas. */
+@media (max-width: 380px) {
+  html[data-theme="light"] [data-scene-overlay] [class*="block"],
+  html[data-theme="light"] [data-scene-overlay] [class*="chapter"]:not(p) {
+    padding: 12px 10px;
+  }
+}
 html[data-theme="light"] .cantar,
 html[data-theme="light"] .seuilTete[data-seuil-tete="fixe"] {
   background: rgba(var(--panel-rgb), 0.86);
