@@ -775,9 +775,26 @@ decoupage ; le residu etait un seul monde, pas une topologie.
 ### Ce que ca laisse
 
 Dix-neuf passages sur vingt sous 5 points a l'image du commit. Le vingtieme,
-**Centre vers Est, reste a 7,1**, et son residu n'est pas attribue : le
-Centre n'a pas de photo de ciel, donc le look n'a rien a croiser, et ce
-n'est pas lui. A prendre a la sonde d'empreinte, sans supposer.
+**Centre vers Est, reste a 7,1**, et voici ce qui a ete elimine, dans
+l'ordre, par la mesure et non par le raisonnement :
+
+- **le look du ciel** : le Centre n'a pas de photo, il n'y a rien a croiser ;
+- **les coques de glace** : elles s'affichaient a pleine opacite derriere
+  une porte a un centieme de gel. Dosees par le gel (elles viennent et s'en
+  vont avec lui, ce qu'une glace fait) : juste sur ses propres termes, mais
+  7,2 / 7,1 apres, le chiffre n'a pas bouge d'un dixieme ;
+- **les astres** : leurs cinq opacites sont deja multipliees par le fondu de
+  leur groupe, ils ne surgissent pas.
+
+Les trois portes que l'empreinte voit s'ouvrir a cette image fondent donc
+toutes correctement. Ce qui reste ressemble a ce qu'il est probablement :
+**la somme de plusieurs fondus qui demarrent dans la meme image**, chacun a
+`TRAVERSEE_ALPHA` d'un ecart de 70 points -- le givre seul en fait 4. C'est
+le prix de la vitesse de traversee choisie, pas un defaut, et il tient dans
+son seuil (0,148 mesure pour 0,22). Pour aller plus bas il faudrait soit
+ralentir toutes les traversees, soit une sonde qui attribue la luminance
+objet par objet A L'IMAGE DU SAUT, ce qui n'existe pas encore. Note ici
+pour que personne ne recommence les trois eliminations.
 
 L'oracle `passage-continu` garde desormais les vingt trajets, chacun avec
 son seuil (table dans le fichier). Deux d'entre eux, Centre vers Sud et Sud

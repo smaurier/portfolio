@@ -151,6 +151,12 @@ const SWEEP_AXIS = (() => {
   return { x: x / l, z: z / l };
 })();
 
+/** L'opacite des coques de glace une fois le monde entierement gele : le cerf
+ *  est deja de verre (glassModifier), la coque n'est qu'un bord ; le disque
+ *  laisse lire les gravures de la Piedra dessous. */
+const OPACITE_COQUE = 0.3;
+const OPACITE_DISQUE = 0.2;
+
 export default function FrostWorld() {
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
@@ -160,14 +166,14 @@ export default function FrostWorld() {
 
   const iceMaterial = useMemo(() => {
     const m = makeIceMaterial(0.06);
-    m.opacity = 0.3; // le cerf lui-meme est de verre (glassModifier) : la coque n'est qu'un bord
+    m.opacity = OPACITE_COQUE; // le cerf lui-meme est de verre (glassModifier) : la coque n'est qu'un bord
     return m;
   }, []);
   // Un materiau a part pour les bois (maille statique) : partage avec les
   // mailles skinnees, three rechercherait le programme a chaque image.
   const iceMaterialStatic = useMemo(() => {
     const m = makeIceMaterial(0.06);
-    m.opacity = 0.3;
+    m.opacity = OPACITE_COQUE;
     return m;
   }, []);
   // Le cerf de VERRE (Sylvain, 06/09 : « le cerf glace doit etre translucide,
@@ -177,7 +183,7 @@ export default function FrostWorld() {
   // le givre generique pour passer par-dessus.
   const discMaterial = useMemo(() => {
     const m = makeIceMaterial(0);
-    m.opacity = 0.2; // les gravures de la Piedra se lisent sous la glace
+    m.opacity = OPACITE_DISQUE; // les gravures de la Piedra se lisent sous la glace
     return m;
   }, []);
 
@@ -557,6 +563,17 @@ export default function FrostWorld() {
     const exploding = since < 6 && !sceneRefs?.reducedMotionRef.current;
     root.visible = frost > 0.01 || exploding;
     if (!root.visible) return;
+    // LES COQUES VIENNENT AVEC LE GEL (18/09). La porte ci-dessus s'ouvre a un
+    // centieme de gel, mais les coques du cerf, des bois et du disque
+    // s'affichaient alors a leur pleine opacite : la porte suivait le gel,
+    // le contenu non. C'etait le dernier residu de l'anneau complet, Centre
+    // vers Est a 7,1 points de luminance a l'image du commit, et la sonde
+    // d'empreinte n'y voyait plus que trois portes qui s'ouvrent. Dosees par
+    // le gel, les coques arrivent au meme pas que lui -- et s'en vont avec
+    // lui au degel, ce qui est ce qu'une glace fait.
+    iceMaterial.opacity = OPACITE_COQUE * frost;
+    iceMaterialStatic.opacity = OPACITE_COQUE * frost;
+    discMaterial.opacity = OPACITE_DISQUE * frost;
 
     if (exploding) {
       // Les eclats.
