@@ -740,3 +740,47 @@ pose et non une lumiere, elle a son propre oracle
 (`tests/e2e/xolotl-cambrure.spec.ts`, qui passe), et la changer sans mesure
 serait toucher au ressenti d'une animation pour un defaut qu'on n'a pas vu.
 Elle est notee ici pour qu'on sache ou regarder si un jour elle claque.
+
+---
+
+## 14. Les vingt passages, pas les cinq (18/09)
+
+Sylvain a demande si les transitions etaient toutes faites. La reponse
+honnete etait non, et pour une raison que la journee avait deja nommee deux
+fois : **un oracle ne protege que ce qu'il regarde**, et l'oracle regardait
+l'anneau -- cinq passages entre voisins -- alors que l'en-tete permet d'aller
+de n'importe ou a n'importe ou. Vingt passages. Quinze jamais mesures.
+
+### La mesure, a la sonde de luminance
+
+Douze diagonales sur quinze etaient propres (sous 4 points). Les trois qui
+depassaient avaient le meme acteur, le monde de l'Est : Sud vers Est 12,9,
+Nord vers Est 8,3, Est vers Nord -8,2. L'anneau etait donc le bon
+decoupage ; le residu etait un seul monde, pas une topologie.
+
+### Deux causes, dans l'ordre ou la mesure les a donnees
+
+1. **Le givre courait plus vite que tout le monde.** Borne a 0,10 par image
+   le 17/09, il restait le seul fondu du site a ne pas aller a
+   `TRAVERSEE_ALPHA` ; sur un monde qui va de 12 a 82 de luminance, dix pour
+   cent en une image font huit a douze points. Aligne : Sud vers Est
+   12,9 -> 9,5, Nord vers Est 8,3 -> 4,9, Est vers Nord -8,2 -> 3,4.
+2. **Le look du ciel se remplacait d'un bloc.** La seconde discontinuite de
+   `sud-sky` vue le 17/09 et laissee pour apres : `SKY_LOOK[direction]`
+   (teinte, dosage, azimut du soleil, crepuscule, avant-jour) et la branche
+   `daylight` basculaient sur la route pendant que l'arc, lui, traversait.
+   `lib/sky-look-fondu` melange les deux looks au melange du fondu d'arc,
+   avec le plus court chemin pour l'azimut. Sud vers Est 9,5 -> 4,5.
+
+### Ce que ca laisse
+
+Dix-neuf passages sur vingt sous 5 points a l'image du commit. Le vingtieme,
+**Centre vers Est, reste a 7,1**, et son residu n'est pas attribue : le
+Centre n'a pas de photo de ciel, donc le look n'a rien a croiser, et ce
+n'est pas lui. A prendre a la sonde d'empreinte, sans supposer.
+
+L'oracle `passage-continu` garde desormais les vingt trajets, chacun avec
+son seuil (table dans le fichier). Deux d'entre eux, Centre vers Sud et Sud
+vers Centre, ont un ecart trop faible pour que la marche y veuille dire
+quoi que ce soit : ils y sont pour le creux, et pour le jour ou leur ecart
+grandirait.

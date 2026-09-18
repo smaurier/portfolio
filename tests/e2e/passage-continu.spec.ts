@@ -109,7 +109,7 @@ test.use({ colorScheme: "dark" });
  * 15/09 et qui, lui, ne varie pas du tout.
  */
 /**
- * L'ANNEAU ENTIER, ET UN SEUIL PAR TRAJET (18/09).
+ * L'ANNEAU ENTIER, ET UN SEUIL PAR TRAJET (18/09) -- puis LES VINGT, le meme jour.
  *
  * Deux trajets sur cinq etaient gardes, et c'est ainsi que le plus gros saut
  * de l'anneau a vecu sans etre vu : Centre vers Est franchissait 25,6 points
@@ -137,6 +137,48 @@ const TRAJETS: { de: string; vers: string; quoi: string; marche: boolean; seuil?
   { de: "fr", vers: "fr/services", quoi: "Centre vers Est (le plus gros de l'anneau)", marche: true, seuil: 0.22 },
   { de: "fr/services", vers: "fr/projets", quoi: "Est vers Sud", marche: true, seuil: 0.19 },
   { de: "fr/contact", vers: "fr/memoire", quoi: "Ouest vers Nord", marche: true, seuil: 0.25 },
+  /**
+   * LES QUINZE DIAGONALES (18/09). L'en-tete affiche les cinq directions sur
+   * chaque page, donc un visiteur va de n'importe ou a n'importe ou : vingt
+   * passages, et l'anneau n'en gardait que cinq. Mesure d'abord a la sonde
+   * de luminance : douze diagonales sur quinze etaient propres, les trois
+   * autres avaient le meme acteur (le monde de l'Est), corrige le jour meme
+   * (le givre au pas des autres, le look du ciel qui traverse). Puis deux
+   * passes de CETTE metrique, seuil = mesure haute plus la moitie :
+   *
+   *   Est vers Ouest    0,232  0,203  -> 0,35      Nord vers Sud     0,206  0,213  -> 0,32
+   *   Sud vers Nord     0,173  0,119  -> 0,26      Nord vers Ouest   0,106  0,112  -> 0,17
+   *   Ouest vers Est    0,104  0,092  -> 0,16      Nord vers Est     0,095  0,098  -> 0,15
+   *   Est vers Nord     0,086  0,090  -> 0,14      Centre vers Nord  0,071  0,067  -> 0,11
+   *   Sud vers Est      0,071  0,070  -> 0,11      Centre vers Ouest 0,058  0,054  -> 0,10
+   *   Ouest vers Centre 0,067  0,065  -> 0,10      Est vers Centre   0,053  0,050  -> 0,09
+   *   Ouest vers Sud    0,060  0,055  -> 0,09
+   *
+   * Les deux ratios les plus hauts ne sont pas les pires passages : Est vers
+   * Ouest et Nord vers Sud ont un ECART TOTAL petit (30 et 19 points), donc
+   * un pas de quatre points y pese lourd en proportion. C'est la metrique
+   * qui est honnete, pas le passage qui est mauvais.
+   *
+   * Centre vers Sud et Sud vers Centre ont un ecart sous ECART_SIGNIFICATIF :
+   * la marche n'y veut rien dire, l'assertion s'y saute par construction.
+   * Ils restent dans la table pour le creux, et pour le jour ou leur ecart
+   * grandirait.
+   */
+  { de: "fr", vers: "fr/projets", quoi: "Centre vers Sud", marche: true, seuil: 0.15 },
+  { de: "fr", vers: "fr/contact", quoi: "Centre vers Ouest", marche: true, seuil: 0.1 },
+  { de: "fr", vers: "fr/memoire", quoi: "Centre vers Nord", marche: true, seuil: 0.11 },
+  { de: "fr/services", vers: "fr", quoi: "Est vers Centre", marche: true, seuil: 0.09 },
+  { de: "fr/services", vers: "fr/contact", quoi: "Est vers Ouest", marche: true, seuil: 0.35 },
+  { de: "fr/services", vers: "fr/memoire", quoi: "Est vers Nord", marche: true, seuil: 0.14 },
+  { de: "fr/projets", vers: "fr", quoi: "Sud vers Centre", marche: true, seuil: 0.15 },
+  { de: "fr/projets", vers: "fr/services", quoi: "Sud vers Est", marche: true, seuil: 0.11 },
+  { de: "fr/projets", vers: "fr/memoire", quoi: "Sud vers Nord", marche: true, seuil: 0.26 },
+  { de: "fr/contact", vers: "fr", quoi: "Ouest vers Centre", marche: true, seuil: 0.1 },
+  { de: "fr/contact", vers: "fr/services", quoi: "Ouest vers Est", marche: true, seuil: 0.16 },
+  { de: "fr/contact", vers: "fr/projets", quoi: "Ouest vers Sud", marche: true, seuil: 0.09 },
+  { de: "fr/memoire", vers: "fr/services", quoi: "Nord vers Est", marche: true, seuil: 0.15 },
+  { de: "fr/memoire", vers: "fr/projets", quoi: "Nord vers Sud", marche: true, seuil: 0.32 },
+  { de: "fr/memoire", vers: "fr/contact", quoi: "Nord vers Ouest", marche: true, seuil: 0.17 },
 ];
 
 type Releve = { lum: number; chemin: string };
