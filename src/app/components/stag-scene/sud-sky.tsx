@@ -8,6 +8,8 @@ import { useCurrentDirection } from "./use-current-direction";
 import { REFLET_PAPER, refletSkyMix } from "@/lib/reflet";
 import { refletStore } from "./reflet-store";
 import { lireArcJour } from "./arc-store";
+import { fonduStore, presenceDirection } from "@/lib/presence-direction";
+import { croiserLooks, lookCroiseVide, type SkyLook } from "@/lib/sky-look-fondu";
 import { useSceneRefs } from "./scene-refs-context";
 import { horizonLuminance, skyDaylight, zenithInto, zenithSpread, ZENITH_SPREAD_DAY } from "@/lib/sky-zenith";
 import { skyPhotoNeeded, type SkyPhotoDirection } from "@/lib/sky-photo";
@@ -163,7 +165,7 @@ const SKY_TINT_MIX = 0.65;
 // Le type est bati sur SKY_PHOTO_DIRECTIONS (lib/sky-photo) : la decision
 // d'AFFICHER et la decision de CHARGER ne peuvent plus divorcer. Ajouter une
 // direction ici sans l'ajouter la-bas, ou l'inverse, ne compile pas.
-const SKY_LOOK: Record<SkyPhotoDirection, { tint: Color; tintMix: number; sunAzimuthDeg: number; dusk: Color; night?: Color }> = {
+const SKY_LOOK: Record<SkyPhotoDirection, SkyLook> = {
   turquoise: { tint: SKY_TINT, tintMix: SKY_TINT_MIX, sunAzimuthDeg: 300, dusk: new Color("#000000") },
   cendre: { tint: new Color(1.0, 0.86, 0.8), tintMix: 0.55, sunAzimuthDeg: 60, dusk: new Color("#6a2e4f") },
   // L'Est (06/09) : l'aube, la photo tiree vers l'or, soleil face au regard
@@ -176,6 +178,10 @@ export default function SudSky() {
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   const blendRef = useRef(skyPhotoNeeded(direction) ? 1 : 0);
+  // Le look croise, reutilise d'une image a l'autre ; et l'avant-jour tire
+  // depuis l'horizon, pour qu'il vienne au lieu de s'allumer.
+  const lookCroise = useMemo(() => lookCroiseVide(), []);
+  const nuitEffective = useMemo(() => new Color(), []);
   const material = useMemo(
     () =>
       new ShaderMaterial({
@@ -317,8 +323,16 @@ export default function SudSky() {
 
   useFrame((state) => {
     const south = direction === "turquoise";
-    const look = skyPhotoNeeded(direction) ? SKY_LOOK[direction] : undefined;
-    blendRef.current += ((look ? 1 : 0) - blendRef.current) * 0.06;
+    // LE LOOK TRAVERSE (18/09, lib/sky-look-fondu). Il se lisait
+    // `SKY_LOOK[direction]` et se remplacait donc d'un bloc au commit : les
+    // trois passages de l'anneau complet qui depassaient encore etaient tous
+    // des arrivees a l'Est, et leur diff n'avait plus que lui. Il est
+    // maintenant melange au meme melange que l'arc, la lumiere et la brume.
+    const lookRoute = skyPhotoNeeded(direction) ? SKY_LOOK[direction] : undefined;
+    const enPassage = fonduStore.affichee === direction && fonduStore.sortante !== null;
+    const lookSortant = enPassage && fonduStore.sortante && skyPhotoNeeded(fonduStore.sortante) ? SKY_LOOK[fonduStore.sortante] : undefined;
+    const look = croiserLooks(lookSortant, lookRoute, enPassage ? fonduStore.melange : 1, lookCroise);
+    blendRef.current += ((lookRoute ? 1 : 0) - blendRef.current) * 0.06;
     const blend = blendRef.current;
     // Souffle chaud : monte avec le midi, Sud seulement, rien en reduced-motion.
     const reduced = sceneRefs?.reducedMotionRef.current ?? false;
@@ -362,9 +376,18 @@ export default function SudSky() {
     // l'avant-jour ne s'eteignait donc jamais. C'est l'arc de la page qui
     // le sait : eastDay vaut 0 tant que le monde est gele, 0,3 quand le
     // soleil parait, 1 a la fin.
-    const daylight = direction === "dore" ? eastDay(pNow) : skyDaylight(horizonLuminance(horizon));
-    zenithInto(material.uniforms.uZenith.value as Color, horizon, ZENITH_DEEP, look?.night ?? null, daylight);
-    material.uniforms.uZenithSpread.value = zenithSpread(Boolean(look?.night), daylight);
+    // ET LA PART DE JOUR AUSSI (18/09) : la branche sur `direction` etait
+    // une bascule de plus, `uZenith` passait de 150e12 a 1e3069 en une image.
+    // Les deux lectures sont calculees et melangees par la presence de l'Est.
+    const pDore = presenceDirection("dore", direction);
+    const jourHorizon = skyDaylight(horizonLuminance(horizon));
+    const daylight = pDore >= 1 ? eastDay(pNow) : pDore <= 0 ? jourHorizon : jourHorizon + (eastDay(pNow) - jourHorizon) * pDore;
+    // L'avant-jour vient depuis l'horizon (ce que `zenithInto` prend pour
+    // « pas de nuit ») au lieu de s'allumer : a poids nul c'est l'horizon.
+    const nuit = look?.night ? nuitEffective.copy(horizon).lerp(look.night, look.poidsNuit) : null;
+    zenithInto(material.uniforms.uZenith.value as Color, horizon, ZENITH_DEEP, nuit, daylight);
+    const etalSansNuit = zenithSpread(false, daylight);
+    material.uniforms.uZenithSpread.value = etalSansNuit + (zenithSpread(true, daylight) - etalSansNuit) * (look?.poidsNuit ?? 0);
     material.uniforms.uOpacity.value = blend;
     if (look) {
       (material.uniforms.uTint.value as Color).copy(look.tint);
@@ -384,7 +407,10 @@ export default function SudSky() {
     const day = lireArcJour(direction, sceneRefs?.progressRef.current ?? 0);
     const d = Math.min(1, Math.max(0, (day - 0.3) / 0.45));
     material.uniforms.uDay.value = d * d * (3 - 2 * d);
-    material.uniforms.uDusk.value = direction === "cendre" ? remapWestArc(pNow).dusk : direction === "dore" ? dawnAtArc(pNow) : 0;
+    // Meme traitement pour le crepuscule de l'Ouest et l'aube de l'Est : par
+    // la presence de chaque direction, plus par la route.
+    const pCendre = presenceDirection("cendre", direction);
+    material.uniforms.uDusk.value = (pCendre > 0 ? remapWestArc(pNow).dusk * pCendre : 0) + (pDore > 0 ? dawnAtArc(pNow) * pDore : 0);
     material.uniforms.uReflet.value = refletSkyMix(refletStore.k);
     // Le dome suit la camera : toujours centre sur elle.
     mesh.position.copy(state.camera.position);

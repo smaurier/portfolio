@@ -19,6 +19,7 @@ import { FROST_SWEEP_RANGE, applyFrost, frostStore, frostUniforms } from "./fros
 import { addShaderModifier } from "./shader-patch";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
+import { TRAVERSEE_ALPHA } from "@/lib/arc-fondu";
 
 /**
  * FrostWorld (06/09, Est / Tlahuizcalpan, etape A « le monde gele ») :
@@ -424,10 +425,19 @@ export default function FrostWorld() {
     // du commit de route -- la plus longue de toute la visite -- le monde
     // prenait trente pour cent de sa glace d'un coup. Or le givre est pose par
     // `FrostPatch` sur TOUTE la scene : c'est l'ecran entier qui bascule.
-    // Borner l'alpha a ce qu'une image normale donnerait (1/60 x 6) rend le
-    // geste independant de la duree de l'image, comme les autres fondus du
-    // site, qui sont tous par image et non par seconde.
-    const alphaGel = Math.min(6 / 60, dt * 6);
+    // Borner l'alpha a ce qu'une image normale donnerait rend le geste
+    // independant de la duree de l'image, comme les autres fondus du site,
+    // qui sont tous par image et non par seconde.
+    //
+    // ET AU MEME PAS QU'EUX (18/09). A 0,10 par image, le givre courait plus
+    // vite que toutes les autres traversees (TRAVERSEE_ALPHA, 0,06) ; sur un
+    // monde qui va de 12 a 82 de luminance, dix pour cent en une image font
+    // huit a douze points -- exactement les trois passages de l'anneau
+    // complet qui depassaient encore, tous des arrivees ou une sortie de
+    // l'Est (Sud vers Est 12,9, Nord vers Est 8,3, Est vers Nord -8,2). Le
+    // gel se pose desormais en une demi-seconde au lieu d'un tiers, et il
+    // arrive AVEC la lumiere, la brume et l'arc, au lieu de les devancer.
+    const alphaGel = Math.min(TRAVERSEE_ALPHA, dt * 60 * TRAVERSEE_ALPHA);
     frostUniforms.uFrost.value += (target - frostUniforms.uFrost.value) * alphaGel;
     frostUniforms.uFrostTime.value = state.clock.elapsedTime;
     // LE BALAI (09/09) : le front traverse le champ dans l'axe du soleil de
