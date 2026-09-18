@@ -58,3 +58,37 @@ export function eastMilpaPose(growth: number, frost: number, c = EAST_MILPA): Mi
     bend: c.frozenBend * f,
   };
 }
+
+/**
+ * LA COURBE, ET NON LA PERCHE (18/09).
+ *
+ * Retour de Sylvain, 07/09 : « je n'aime pas du tout comment il se
+ * dedresse, il devrait avoir une vraie courbe en se redressant, pas rester
+ * droit comme une perche de sauteur a la perche ».
+ *
+ * Il avait raison sur le fond ET sur le mot. La flexion etait ecrite
+ * `groupRef.rotation.set(...)` : le plant entier pivotait autour de sa base,
+ * donc une tige rigide qui bascule. Or le dieu qui gele ce monde s'appelle
+ * Itztlacoliuhqui, et son nom dit litteralement que « tout s'est courbe sous
+ * le froid » (Andrews 2003, cf docs/da/est-sources.md). Une perche qui
+ * s'incline contredit le nom de celui qui l'a couchee.
+ *
+ * L'ANGLE EST DONC UNE FONCTION DE LA HAUTEUR. A la base, rien : le plant
+ * est plante, il ne se deracine pas. Au sommet, toute la flexion. Entre les
+ * deux, un carre plutot qu'une droite, pour que la courbure parte de zero :
+ * une rampe lineaire ferait un coude au ras du sol, ce qui est un autre
+ * defaut, pas une courbe.
+ *
+ * `t` est la hauteur normalisee du sommet le long de la tige (0 a la base,
+ * 1 a la pointe) ; la rotation se fait autour de la base, donc la longueur
+ * de la tige est conservee -- elle se courbe, elle ne s'etire pas.
+ *
+ * ⚠️ CETTE FONCTION EST TRANSCRITE EN GLSL dans `milpa.tsx`
+ * (`uCourbe * t * t`), parce qu'un nuanceur ne peut pas appeler du
+ * TypeScript. C'est elle qui porte les tests ; les deux se citent pour que
+ * personne n'en change une sans l'autre.
+ */
+export function angleCourbure(t: number, bend: number): number {
+  const u = t < 0 ? 0 : t > 1 ? 1 : t;
+  return bend * u * u;
+}

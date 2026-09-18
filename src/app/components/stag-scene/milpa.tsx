@@ -1,12 +1,14 @@
+/* eslint-disable react-hooks/immutability -- pattern gamedev r3f useFrame : mutation d uniforms et de la pose des plants a 60 fps (meme precedent que sud-sky et spirit-particles). */
 "use client";
 
 import { useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useCurrentDirection } from "./use-current-direction";
 import { milpaPose, milpaRing } from "@/lib/milpa-frost";
+import { addShaderModifier } from "./shader-patch";
 import { frostAt, frostStore } from "./frost-store";
 import { useGLTF } from "@react-three/drei";
-import { Box3, Vector3, type Group } from "three";
+import { Box3, Vector3, type Group, type Material, type Mesh } from "three";
 import { getMilpaGrowth } from "@/lib/reveal-arc";
 
 const MODEL_PATH = "/models/corn.glb";
@@ -69,11 +71,43 @@ function MilpaStalk({
   east?: boolean;
 }) {
   const { scene } = useGLTF(MODEL_PATH);
-  const clone = useMemo(() => scene.clone(true), [scene]);
+  /**
+   * LA COURBURE EST DANS LE NUANCEUR (18/09), parce qu'une tige rigide ne
+   * peut pas se courber autrement : seuls ses sommets le peuvent. Chaque
+   * plant a donc SES materiaux -- `Object3D.clone` partage ceux du GLTF --
+   * et donc ses propres uniformes, puisque chacun lit le gel de sa position
+   * et se releve quand le front lui passe dessus.
+   *
+   * Les materiaux sont clones ICI, au montage : le balayage de `FrostPatch`
+   * les trouvera ensuite comme les autres, et la glace continuera de les
+   * atteindre. Les deux modificateurs vivent cote a cote sur le meme
+   * materiau, c'est ce pour quoi `addShaderModifier` est fait.
+   */
+  const clone = useMemo(() => {
+    const c = scene.clone(true);
+    c.traverse((o) => {
+      const m = (o as Mesh).material as Material | Material[] | undefined;
+      if (!m) return;
+      (o as Mesh).material = Array.isArray(m) ? m.map((x) => x.clone()) : m.clone();
+    });
+    return c;
+  }, [scene]);
   const groupRef = useRef<Group>(null);
   const normalizedRef = useRef(false);
   // L'azimut du plant : le sens dans lequel le gel l'a couche (vers l'exterieur).
   const bendAzimuth = useMemo(() => Math.atan2(x, z), [x, z]);
+  /** L'axe horizontal autour duquel la tige se courbe : perpendiculaire au
+   *  sens de la flexion, donc le meme que l'ancienne rotation de groupe. */
+  const courbe = useMemo(
+    () => ({
+      uCourbe: { value: 0 },
+      uAxe: { value: new Vector3(Math.cos(bendAzimuth), 0, -Math.sin(bendAzimuth)) },
+      uPivot: { value: new Vector3() },
+      uHaut: { value: 1 },
+    }),
+    [bendAzimuth],
+  );
+  const patchRef = useRef(false);
 
   useFrame(() => {
     // Recadrage par bounding box, une fois, dans useFrame plutôt
@@ -87,7 +121,19 @@ function MilpaStalk({
         const center = box.getCenter(new Vector3());
         clone.scale.setScalar(scale);
         clone.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+        // La courbure travaille dans l'espace du modele, pas dans le notre :
+        // sa hauteur brute et le point ou la tige sort de terre.
+        courbe.uHaut.value = size.y;
+        courbe.uPivot.value.set(center.x, box.min.y, center.z);
         normalizedRef.current = true;
+      }
+      if (!patchRef.current && normalizedRef.current) {
+        patchRef.current = true;
+        clone.traverse((o) => {
+          const m = (o as Mesh).material as Material | Material[] | undefined;
+          if (!m) return;
+          for (const mm of Array.isArray(m) ? m : [m]) attacherCourbure(mm, courbe);
+        });
       }
     }
 
@@ -111,8 +157,14 @@ function MilpaStalk({
       const frost = east && frostStore.active ? frostAt(x, z) : 0;
       const pose = milpaPose(scrollGrowth, frost, east);
       groupRef.current.scale.set(1, Math.max(0.001, pose.growth), 1);
-      // Couchee vers l'exterieur du cercle, chaque plant dans son sens.
-      groupRef.current.rotation.set(Math.cos(bendAzimuth) * pose.bend, 0, -Math.sin(bendAzimuth) * pose.bend);
+      // LA FLEXION N'EST PLUS UNE ROTATION DE GROUPE (18/09). Elle l'etait,
+      // et le plant basculait alors d'un bloc autour de sa base : une perche,
+      // exactement le mot de Sylvain. Elle passe maintenant par la courbure
+      // du nuanceur. On ECRIT quand meme la rotation neutre, parce que la
+      // scene persiste d'une page a l'autre et que la regle de ce fichier est
+      // de ne jamais se contenter de sauter le calcul.
+      groupRef.current.rotation.set(0, 0, 0);
+      courbe.uCourbe.value = pose.bend;
     }
   });
 
@@ -121,6 +173,66 @@ function MilpaStalk({
       <primitive object={clone} />
     </group>
   );
+}
+
+/**
+ * LA COURBURE, DANS LE NUANCEUR DE SOMMETS.
+ *
+ * L'angle croit avec la hauteur : rien a la base,
+ * toute la flexion a la pointe. La rotation se fait autour de la base, donc
+ * la tige garde sa longueur -- elle se courbe, elle ne s'etire pas. La
+ * normale tourne du meme angle, sinon la lumiere trahirait une tige droite
+ * sur une silhouette courbe.
+ *
+ * ⚠️ `uCourbe * t * t` ci-dessous EST la transcription de `angleCourbure`
+ * (lib/milpa-frost), qui porte les tests de la courbe : pas de coude au ras
+ * du sol, monotone, bornee. GLSL ne peut pas appeler la fonction ; changer
+ * l'une sans l'autre ferait mentir les tests, donc les deux se citent.
+ */
+function attacherCourbure(
+  materiau: Material,
+  u: { uCourbe: { value: number }; uAxe: { value: Vector3 }; uPivot: { value: Vector3 }; uHaut: { value: number } },
+): void {
+  addShaderModifier(materiau, (shader) => {
+    shader.uniforms.uCourbe = u.uCourbe;
+    shader.uniforms.uAxe = u.uAxe;
+    shader.uniforms.uPivot = u.uPivot;
+    shader.uniforms.uHaut = u.uHaut;
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        "#include <common>",
+        `#include <common>
+         uniform float uCourbe;
+         uniform vec3 uAxe;
+         uniform vec3 uPivot;
+         uniform float uHaut;
+         // Rodrigues : rotation d'un vecteur autour d'un axe unitaire.
+         vec3 tournerAutour(vec3 p, vec3 k, float a) {
+           float c = cos(a), s = sin(a);
+           return p * c + cross(k, p) * s + k * dot(k, p) * (1.0 - c);
+         }
+         float hauteurMilpa(float y) {
+           return clamp((y - uPivot.y) / max(uHaut, 0.0001), 0.0, 1.0);
+         }`,
+      )
+      .replace(
+        "#include <beginnormal_vertex>",
+        `#include <beginnormal_vertex>
+         if (abs(uCourbe) > 0.0001) {
+           float nT = hauteurMilpa(position.y);
+           objectNormal = tournerAutour(objectNormal, uAxe, uCourbe * nT * nT);
+         }`,
+      )
+      .replace(
+        "#include <begin_vertex>",
+        `#include <begin_vertex>
+         if (abs(uCourbe) > 0.0001) {
+           float cT = hauteurMilpa(transformed.y);
+           vec3 cRel = transformed - uPivot;
+           transformed = uPivot + tournerAutour(cRel, uAxe, uCourbe * cT * cT);
+         }`,
+      );
+  });
 }
 
 /**
