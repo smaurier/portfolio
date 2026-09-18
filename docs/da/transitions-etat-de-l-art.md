@@ -717,3 +717,26 @@ du deplacement, lui, reste une question de direction artistique et non une
 correction de defaut : les mondes traversent maintenant. S'il doit
 s'enfoncer, ce sera parce qu'on veut le voir partir, pas parce qu'il
 commute.
+
+### L'audit de la regle, pour ne pas la laisser aux trois endroits ou la mesure a mordu
+
+Tous les fondus pilotes par le temps reel, releves un par un, avec l'alpha
+maximal qu'une image lente peut leur faire prendre :
+
+| | borne du `dt` | alpha max | etat |
+| --- | --- | --- | --- |
+| `frost-world` (le givre) | 1/20 | **0,30** | corrige le 17/09 |
+| `west-leaves` (les feuilles) | aucune | **1,00** | corrige le 17/09 |
+| `sun-beam` (le puits de lumiere) | aucune | **0,75** | corrige le 17/09 |
+| `xolotl-companion` (la cambrure) | 1/20 | 0,30 | laisse tel quel |
+| `xiuhcoatl-companion` (le roulis) | 1/30 | 0,10 | sain |
+| `huitzilin` (les oiseaux) | 1/30 | 0,10 | sain |
+| `xiuhcoatl-wander` (l'errance) | 1/30 | 0,02 | sain |
+
+Les trois corriges pilotaient chacun une PORTE de visibilite ou un uniforme
+pose sur toute la scene : leur pas devenait une apparition. La cambrure du
+Xolotl peut encore prendre trente pour cent en une image, mais c'est une
+pose et non une lumiere, elle a son propre oracle
+(`tests/e2e/xolotl-cambrure.spec.ts`, qui passe), et la changer sans mesure
+serait toucher au ressenti d'une animation pour un defaut qu'on n'a pas vu.
+Elle est notee ici pour qu'on sache ou regarder si un jour elle claque.
