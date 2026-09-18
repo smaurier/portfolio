@@ -108,14 +108,40 @@ test.use({ colorScheme: "dark" });
  * Centre porte le creux, qui est le defaut qu'il a reellement montre le
  * 15/09 et qui, lui, ne varie pas du tout.
  */
-const TRAJETS: { de: string; vers: string; quoi: string; marche: boolean }[] = [
+/**
+ * L'ANNEAU ENTIER, ET UN SEUIL PAR TRAJET (18/09).
+ *
+ * Deux trajets sur cinq etaient gardes, et c'est ainsi que le plus gros saut
+ * de l'anneau a vecu sans etre vu : Centre vers Est franchissait 25,6 points
+ * de luminance, six fois Sud vers Ouest, et aucun oracle ne le regardait.
+ * **Un oracle ne protege que ce qu'il regarde.**
+ *
+ * Chaque trajet garde ce qu'IL mesure, avec une marge de moitie, parce
+ * qu'un seuil commun serait soit trop lache pour le meilleur, soit trop
+ * serre pour le pire. Trois passes chacun, apres les corrections du 17/09 :
+ *
+ *   Centre vers Est    0,148  0,151  0,144    -> seuil 0,22
+ *   Est vers Sud       0,121  0,127  0,122    -> seuil 0,19
+ *   Ouest vers Nord    0,168  0,124  0,118    -> seuil 0,25
+ *   Sud vers Ouest     0,092  0,092  0,100    -> seuil 0,15
+ *
+ * Ouest vers Nord est le seul a bouger, et toujours a la premiere passe :
+ * c'est la chauffe des nuanceurs, qui n'est pas deterministe. Son seuil
+ * prend la mesure HAUTE et non la moyenne, sans quoi il tomberait une fois
+ * sur trois -- et un oracle qui tombe une fois sur trois apprend a ignorer
+ * les rouges.
+ */
+const TRAJETS: { de: string; vers: string; quoi: string; marche: boolean; seuil?: number }[] = [
   { de: "fr/memoire", vers: "fr", quoi: "Nord vers Centre (le creux du 15/09)", marche: false },
   { de: "fr/projets", vers: "fr/contact", quoi: "Sud vers Ouest (la marche du 15/09)", marche: true },
+  { de: "fr", vers: "fr/services", quoi: "Centre vers Est (le plus gros de l'anneau)", marche: true, seuil: 0.22 },
+  { de: "fr/services", vers: "fr/projets", quoi: "Est vers Sud", marche: true, seuil: 0.19 },
+  { de: "fr/contact", vers: "fr/memoire", quoi: "Ouest vers Nord", marche: true, seuil: 0.25 },
 ];
 
 type Releve = { lum: number; chemin: string };
 
-for (const { de, vers, quoi, marche } of TRAJETS) {
+for (const { de, vers, quoi, marche, seuil } of TRAJETS) {
   test(`${quoi} : ${marche ? "ni creux ni marche" : "aucun creux"}`, async ({ page }) => {
     test.setTimeout(150_000);
 
@@ -211,7 +237,7 @@ for (const { de, vers, quoi, marche } of TRAJETS) {
       expect(
         plusGrandPas / ecart,
         `plus grand pas ${plusGrandPas.toFixed(1)} sur un ecart de ${ecart.toFixed(1)}, image ${ou} [${dessine(ou)}]`,
-      ).toBeLessThan(PART_MAX_PAR_IMAGE);
+      ).toBeLessThan(seuil ?? PART_MAX_PAR_IMAGE);
     }
   });
 }
