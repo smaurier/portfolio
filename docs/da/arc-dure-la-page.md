@@ -245,3 +245,60 @@ design en place, pour les passes suivantes :
 - Le scroll ralenti : ecarte (section 1, choix 6).
 - Chapitrer le texte de Memoire ou le couper : ecarte par le choix 4 ; le
   texte reste entier et continu.
+
+---
+
+## 10. Face a l'etat de l'art (18/09, sources en fin de section)
+
+Trois angles, et le design tient sur les trois -- avec une reserve qui
+merite d'etre ecrite.
+
+**1. Lier le progres au defilement de la page, c'est la norme, pas
+l'exception.** Le motif dominant des experiences narratives WebGL est un
+timeline dont la tete de lecture est *scrubbee* sur une DISTANCE de
+defilement, soit celle d'une section epinglee, soit celle du document
+entier (GSAP ScrollTrigger, `scrub` + `pin`, `end` calcule sur la hauteur
+reelle). Notre arc de deux fenetres fixes etait l'exception ; « l'arc dure
+la page » est la pratique courante. Deux points de cette pratique sont deja
+chez nous sous un autre nom : l'adoucissement (`scrub: 1`, l'animation
+rattrape le defilement avec un peu de retard) est notre `TRAVERSEE_ALPHA`
+par image ; et le rafraichissement des bornes quand la mise en page change
+(polices, images, conteneurs) est notre relecture de `maxScroll` a chaque
+evenement de defilement.
+
+**2. Ne pas toucher a la vitesse de la molette : la recherche est sans
+appel.** Nielsen Norman Group, tests utilisateurs : la plupart des
+participants sont au moins legerement desorientes par le scrolljacking, les
+visiteurs orientes tache s'irritent et decrochent ; les utilisateurs
+« s'attendent a defiler a un rythme constant, lie a la facon dont ils
+manipulent physiquement leur peripherique ». C'est exactement le choix 6, et
+il est confirme par la source la plus citee du domaine. Une reserve
+honnete : Lenis, que le site utilise, est deja une forme douce de
+modification du defilement (lissage), uniforme sur toutes les pages. Ce
+design ne l'aggrave pas ; il ne l'efface pas non plus.
+
+**3. La reserve : le scrollytelling redactionnel prefere des PALIERS a un
+continu.** The Pudding / scrollama, la reference des recits pilotes par le
+texte : un graphique colle, des *steps* dans le texte, et la regle « un pas,
+un changement visible » -- chaque station de lecture doit produire un
+changement que le lecteur voit sans le chercher. Notre choix 4 est le
+continu (la position dans le texte), pas les paliers (sa structure). Les
+deux ne s'excluent pas : la REGLE de ce design (l'arc dure la page) est
+compatible avec un remap du Nord qui contient des paliers -- les neuf
+niveaux du Mictlan comme neuf changements visibles le long d'un arc continu.
+Ce n'est pas dans ce design, c'est la question a poser a la forme du remap
+du Nord quand on le regardera, et la doctrine de profondeur (« vue sans
+qu'on la cherche ») penche du cote des paliers. Trois autres regles de
+cette pratique sont deja tenues par le site : le mouvement reduit livre une
+version statique ; le sens de chaque etape vit dans le texte du DOM pour les
+lecteurs d'ecran ; et on n'intercepte jamais la molette ni le toucher pour
+piloter la vitesse.
+
+### Sources
+
+- GSAP, *ScrollTrigger*, documentation : https://gsap.com/docs/v3/Plugins/ScrollTrigger/
+- greensock, *gsap-skills / scrolltrigger* : https://github.com/greensock/gsap-skills/blob/main/skills/gsap-scrolltrigger/SKILL.md
+- Nielsen Norman Group, *Scrolljacking 101* : https://www.nngroup.com/articles/scrolljacking-101/
+- Springer, *A Usability and Universal Design Investigation into Scrolljacking for Web Pages* : https://link.springer.com/chapter/10.1007/978-3-032-16454-4_6
+- The Pudding, *An Introduction to Scrollama.js* : https://pudding.cool/process/introducing-scrollama/
+- The Pudding, *How to implement scrollytelling with six different libraries* : https://pudding.cool/process/how-to-implement-scrollytelling/
