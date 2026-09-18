@@ -4,6 +4,9 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { useFrame } from "@react-three/fiber";
 import type { Group, Object3D } from "three";
 import { endormirDecor, reveillerDecor } from "@/lib/freeze-decor";
+import { TRAVERSEE_ALPHA } from "@/lib/arc-fondu";
+import { avancerPresenceMonde, enfoncementMonde, mondeSeDessine } from "@/lib/depart-du-monde";
+import { useSceneRefs } from "./scene-refs-context";
 import { useGLTF, useProgress } from "@react-three/drei";
 import { assetsForDirection } from "@/lib/direction-assets";
 import type { DirectionKey } from "./direction-colors";
@@ -59,6 +62,7 @@ export default function MountForDirection({
   children: ReactNode;
 }) {
   const direction = useCurrentDirection();
+  const sceneRefs = useSceneRefs();
   const wanted = Array.isArray(is) ? is.includes(direction) : is === direction;
   // L'intention (voir direction-intent) : monte invisible, pour charger et
   // compiler avant qu'on y aille.
@@ -124,16 +128,50 @@ export default function MountForDirection({
   const groupRef = useRef<Group>(null);
   const endormis = useRef<Object3D[]>([]);
   const compteur = useRef(0);
+  /**
+   * LE MONDE RENTRE SOUS LA TERRE (18/09, lib/depart-du-monde et
+   * docs/da/depart-vertical.md).
+   *
+   * `visible` cesse d'etre ce qu'on dessine pour devenir la CIBLE d'une
+   * presence : le monde de la direction sort de terre quand elle vient, y
+   * rentre quand elle part, et les 2 500 ms de linger ci-dessus lui en
+   * laissent le temps (un test le garde). Le geste est celui du soleil
+   * lui-meme, que la terre avale au crepuscule et rend a l'aube.
+   *
+   * CE QUI A CHANGE DEPUIS L'ESSAI DU 17/09, ou ce meme code ne deplacait
+   * pas le chiffre : les mondes ouvraient alors leur propre porte sur un
+   * booleen de route, donc ils commutaient sous le geste. Le givre ne
+   * rattrape plus le temps perdu et le copal suit une presence qui
+   * traverse ; le geste porte maintenant sur des mondes qui traversent.
+   *
+   * Tout se fait dans cette boucle et rien en etat React : une presence qui
+   * changerait a chaque image et traverserait le contexte ferait un rendu
+   * React par image, ce qui coute infiniment plus cher que le geste.
+   */
+  const presence = useRef(0);
   useFrame(() => {
     const g = groupRef.current;
     if (!g) return;
-    if (visible) {
+    const alpha = sceneRefs?.reducedMotionRef.current ? 1 : TRAVERSEE_ALPHA;
+    presence.current = avancerPresenceMonde(presence.current, visible ? 1 : 0, alpha);
+    const dessine = mondeSeDessine(presence.current);
+
+    if (dessine) {
+      // On rend d'abord au sous-arbre son autonomie : ecrire dans la
+      // position d'un objet fige ne le deplace pas (le piege est dans
+      // lib/freeze-decor), et c'est precisement ce qu'on va faire.
       if (endormis.current.length) {
         reveillerDecor(endormis.current);
         endormis.current = [];
       }
+      g.visible = true;
+      g.position.y = -enfoncementMonde(presence.current);
       return;
     }
+
+    // Entierement sous la terre : on ne le dessine pas, et on l'endort.
+    g.visible = false;
+    g.position.y = -enfoncementMonde(0);
     compteur.current += 1;
     if (compteur.current % 30 !== 1) return;
     const pris = endormirDecor(g);
