@@ -35,10 +35,12 @@ histoire.
 
 Les choix de Sylvain, dans l'ordre :
 
-1. Reussir le reequilibrage, c'est « tous » les criteres, mis en ordre par
-   la doctrine de profondeur : rendre visible ce qui existe, puis un moment
-   signature par direction, puis compter -- et degonfler l'Est est un
-   critere applique a chaque geste, pas une etape.
+1. Reussir le reequilibrage, c'est d'abord rendre visible ce qui existe,
+   puis un moment signature par direction ; degonfler l'Est est un critere
+   applique a chaque geste, pas une etape. **« Compter pareil » est retire
+   du cadrage le 19/09** : Sylvain en a doute, et l'etat de l'art tranche
+   (section 11). Le reequilibrage se fait par la profondeur et par le haut,
+   jamais par l'ajout.
 2. Commencer par le Nord, dont le probleme est de rythme, pas de gestes.
 3. Prendre le probleme a l'envers : ce n'est pas le texte qui doit se
    plier a l'arc, c'est **la scene qui suit le texte**.
@@ -278,17 +280,20 @@ modification du defilement (lissage), uniforme sur toutes les pages. Ce
 design ne l'aggrave pas ; il ne l'efface pas non plus.
 
 **3. La reserve : le scrollytelling redactionnel prefere des PALIERS a un
-continu.** The Pudding / scrollama, la reference des recits pilotes par le
+continu -- et un palier n'est pas un geste de plus.** The Pudding / scrollama, la reference des recits pilotes par le
 texte : un graphique colle, des *steps* dans le texte, et la regle « un pas,
 un changement visible » -- chaque station de lecture doit produire un
 changement que le lecteur voit sans le chercher. Notre choix 4 est le
 continu (la position dans le texte), pas les paliers (sa structure). Les
 deux ne s'excluent pas : la REGLE de ce design (l'arc dure la page) est
-compatible avec un remap du Nord qui contient des paliers -- les neuf
-niveaux du Mictlan comme neuf changements visibles le long d'un arc continu.
-Ce n'est pas dans ce design, c'est la question a poser a la forme du remap
-du Nord quand on le regardera, et la doctrine de profondeur (« vue sans
-qu'on la cherche ») penche du cote des paliers. Trois autres regles de
+compatible avec un remap du Nord qui contient des paliers. Mais un palier,
+ici, serait un ETAT des elements qui existent deja -- la brume qui
+s'epaissit, l'eau qui monte, la lumiere qui tombe d'un cran, le chien qui
+change de rive -- jamais un element de plus. Les neuf niveaux du Mictlan
+comme neuf etats d'une meme descente, pas neuf objets. Ce n'est pas dans ce
+design, c'est la question a poser a la forme du remap du Nord quand on le
+regardera, et la doctrine de profondeur (« vue sans qu'on la cherche »)
+penche du cote des paliers, a cette condition. Trois autres regles de
 cette pratique sont deja tenues par le site : le mouvement reduit livre une
 version statique ; le sens de chaque etape vit dans le texte du DOM pour les
 lecteurs d'ecran ; et on n'intercepte jamais la molette ni le toucher pour
@@ -302,3 +307,46 @@ piloter la vitesse.
 - Springer, *A Usability and Universal Design Investigation into Scrolljacking for Web Pages* : https://link.springer.com/chapter/10.1007/978-3-032-16454-4_6
 - The Pudding, *An Introduction to Scrollama.js* : https://pudding.cool/process/introducing-scrollama/
 - The Pudding, *How to implement scrollytelling with six different libraries* : https://pudding.cool/process/how-to-implement-scrollytelling/
+
+---
+
+## 11. Multiplier les gestes ? Non, et ce n'est pas un gout (19/09)
+
+Sylvain, a la relecture : « je me demande si c'est quelque chose de bon de
+multiplier les gestes ». Verifie contre l'etat de l'art, sur trois angles,
+et les trois repondent la meme chose.
+
+**La recherche.** Nielsen Norman Group, sur trente ans de psychologie de
+l'education et d'IHM : les animations decoratives augmentent l'effort
+cognitif et reduisent la memorisation ; un rythme plus lent aide la
+comprehension ; et surtout, *le pouvoir d'une animation a capter
+l'attention est diminue par la concurrence de toutes les autres*. C'est la
+phrase qui tranche : chaque geste ajoute rend les autres moins visibles.
+
+**Les principes.** Material Design : informatif, focalise, expressif -- et
+la retenue est le principe qui manque le plus souvent. Un bon mouvement
+repond a « pourquoi ca bouge ? ». Un geste qui n'a pas de reponse est un
+geste de trop.
+
+**Le jury.** La retenue est une competence 3D ; les studios qui gagnent
+utilisent le WebGL pour l'atmosphere et le cadre plutot que le spectacle ;
+design et usabilite pesent 70 % du score, la creativite 20 %, et la
+plupart des sites qui echouent ne manquent pas de creativite, ils ont tout
+mis dans le spectacle.
+
+**Ce que ca change au cadrage.** « Compter pareil » sort du reequilibrage
+(section 1, choix 1). Ce qui reste est ce que la doctrine de profondeur du
+13/09 disait deja : rendre visible ce qui existe, un moment signature par
+direction, et retirer a l'Est ce qui n'a pas de reponse a « pourquoi ca
+bouge ». Ce design-ci n'ajoute aucun geste ; il donne a une histoire qui
+existe la place de se lire.
+
+### Sources
+
+- Nielsen Norman Group, *Animation for Attention and Comprehension* : https://www.nngroup.com/articles/animation-usability/
+- Nielsen Norman Group, *The Role of Animation and Motion in UX* : https://www.nngroup.com/articles/animation-purpose-ux/
+- Material Design, *Understanding motion* : https://m2.material.io/design/motion/understanding-motion.html
+- Google Design, *Making motion meaningful* : https://design.google/library/making-motion-meaningful
+- Metabole, *Award-winning website: the anatomy of what the jury rewards* : https://metabole.studio/en/blog/awwwards-winning-website
+- Hon Tran, *Awwwards Judging Criteria: How Scoring Works (2026)* : https://www.hontran.dev/blog/awwwards-judging-criteria
+- Psychoactive Studios, *The best WebGL & interactive 3D agencies in 2026* : https://www.psychoactive.co.nz/content-hub/best-webgl-interactive-3d-agencies
