@@ -58,12 +58,32 @@ export type SceneControlsLabels = {
   tenochtitlanNight: string;
 };
 
-const LAST_VISIT_KEY = "nahual-last-visit";
+/**
+ * v2 LE 20/09, ET C'EST LE DESIGN « L'ARC DURE LA PAGE » QUI L'IMPOSE.
+ *
+ * `t` est une FRACTION DE L'ARC, et l'arc vient de changer de longueur. Un
+ * `t = 0,9` ecrit avant visait 1,8 fenetre ; relu apres, il renverrait le
+ * visiteur a 5,6 fenetres sur Memoire, tres loin sous l'endroit ou il
+ * s'etait arrete. Ca se reparerait tout seul a la visite suivante, mais la
+ * premiere serait fausse, et silencieuse.
+ *
+ * L'ancienne cle n'est ni lue ni migree : une position d'arc d'avant n'a pas
+ * de traduction dans l'apres.
+ */
+const LAST_VISIT_KEY = "nahual-last-visit-v2";
 
 function arcPixels(): number {
   // 08/09 : la longueur de l'arc vient de reveal-arc.ts, plus de copie
   // locale de la constante.
-  return arcScrollHeight(window.innerHeight);
+  //
+  // 20/09 : elle depend desormais de la page. Verifie ligne a ligne avant de
+  // toucher a ceci -- les quatre appelants (le lien `?t=`, la sauvegarde de
+  // visite, la contemplation, la copie du lien) sont tous pilotes par un
+  // evenement ou par un clic, et `startCinematic` capture la longueur AVANT
+  // sa boucle d'image, il ne la relit jamais dedans. Aucune lecture de mise
+  // en page n'entre dans une boucle par ce fichier.
+  const vh = window.innerHeight;
+  return arcScrollHeight(vh, document.documentElement.scrollHeight - vh);
 }
 
 function readLastVisit(): LastVisit | null {

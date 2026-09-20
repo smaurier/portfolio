@@ -801,3 +801,40 @@ son seuil (table dans le fichier). Deux d'entre eux, Centre vers Sud et Sud
 vers Centre, ont un ecart trop faible pour que la marche y veuille dire
 quoi que ce soit : ils y sont pour le creux, et pour le jour ou leur ecart
 grandirait.
+
+---
+
+## 13. Les longueurs d'arc apres « l'arc dure la page » (20/09)
+
+Consigne ici a la demande de la section 7 de `arc-dure-la-page.md` : ces deux
+chiffres sont des donnees d'entree pour les passes suivantes, pas des
+promesses gardees par un oracle. Mesures avec `.scratch/arc-mesures.mjs`,
+serveur neuf, page / arc / part de la page couverte, en fenetres.
+
+| page | bureau 1280 x 720 | Pixel 7 |
+| --- | --- | --- |
+| Centre `/fr` | 2,8 / **2,2** / 80 % | 3,2 / **2,7** / 83 % |
+| Est `/fr/services` | 3,9 / **3,4** / 86 % | 4,5 / **3,9** / 88 % |
+| Sud `/fr/projets` | 10,0 / **9,4** / 94 % | 10,4 / **9,9** / 95 % |
+| Ouest `/fr/contact` | 3,6 / **3,1** / 85 % | 4,1 / **3,5** / 86 % |
+| Nord `/fr/memoire` | 8,4 / **7,8** / 93 % | 9,8 / **9,3** / 94 % |
+
+**La frappe du serpent, donnee d'entree de la passe du Sud.** Elle tombe a
+**45,5 % de la page**, soit 4,5 fenetres sur bureau et 4,8 sur Pixel 7, et
+l'arc y vaut **0,48**. La fraction de page est identique sur les deux
+appareils. Le spec craignait qu'elle recule « vers 5 fenetres, la ou moins
+de gens vont » : elle recule, mais elle tombe au MILIEU de la page, pas dans
+le dernier tiers que la sonde de visite du 13/09 voyait deserte. Le probleme
+du Sud (ses signes qui ne portent pas : colibris minuscules, serpent present
+une fois sur trois) reste entier et garde sa passe ; sa position, elle, est
+moins mauvaise que redoute.
+
+**Pas de plafond telephone.** Le spec prevoyait des arcs « deux a trois fois
+plus longs en ecrans » sur telephone. Mesure : 9,9 contre 9,4 fenetres sur
+Projets, 9,3 contre 7,8 sur Memoire. Un plafond serait du code speculatif.
+La decision est prise sur le chiffre, comme annonce.
+
+**L'effet de bord a connaitre** : la part de page couverte par l'arc va de
+80 % (Centre) a 95 % (Sud), et cette part n'est PAS constante -- la fenetre
+de sortie est fixe a 0,55 fenetre, donc plus la page est longue, moins elle
+pese. C'est ce qui garde une sortie de meme duree partout.

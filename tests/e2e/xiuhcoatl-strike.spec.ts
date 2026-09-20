@@ -1,3 +1,4 @@
+import { defilerDansLArc } from "./arc";
 import { test, expect, type Page } from "@playwright/test";
 
 /**
@@ -85,9 +86,11 @@ test.describe("la frappe du xiuhcoatl", () => {
       requestAnimationFrame(tick);
     });
 
-    // Deux ecrans de scroll : l'arc depasse le seuil du climax (0,7) et le
-    // ciel arme la charge.
-    await page.evaluate(() => window.scrollTo({ top: window.innerHeight * 1.6, behavior: "instant" }));
+    // 80 % DE L'ARC : au-dela du seuil du climax (0,7), le ciel arme la
+    // charge. C'etait « 1,6 fenetre » jusqu'au 20/09 -- sur Projets, dont
+    // l'arc fait desormais 7,1 fenetres, 1,6 n'en represente plus que 22 %
+    // et la frappe ne partait pas. Ce test passait rouge de lui-meme.
+    await defilerDansLArc(page, 0.8);
 
     await page.waitForFunction(() => {
       const s = (window as unknown as { __nahualXiuhcoatl?: { strikeAt: number } }).__nahualXiuhcoatl;
@@ -161,7 +164,7 @@ test.describe("la frappe du xiuhcoatl", () => {
       requestAnimationFrame(tick);
     });
 
-    await page.evaluate(() => window.scrollTo({ top: window.innerHeight * 1.6, behavior: "instant" }));
+    await defilerDansLArc(page, 0.8);
     await page.waitForFunction(() => document.documentElement.dataset.strike === "1", null, {
       timeout: 30_000,
     });

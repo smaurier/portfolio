@@ -1,3 +1,4 @@
+import { longueurDeLArc } from "./arc";
 import { test, expect } from "@playwright/test";
 
 /**
@@ -45,8 +46,10 @@ test.describe("cloche du climax", () => {
       (window as unknown as { __oscCount: number }).__oscCount = 0;
     });
 
-    // Deux ecrans de scroll = l'arc complet, donc le climax est franchi.
-    const arc = await page.evaluate(() => window.innerHeight * 2);
+    // L'arc complet de CETTE page, donc le climax est franchi. C'etait
+    // « deux ecrans » jusqu'au 20/09, quand l'arc durait deux fenetres
+    // partout.
+    const arc = await longueurDeLArc(page);
     for (const f of [0.2, 0.5, 0.8, 1]) {
       await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), arc * f);
       await page.waitForTimeout(400);

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from "react";
-import { arcProgress, exitProgress } from "@/lib/reveal-arc";
+import { arcProgress, arcScrollHeight, exitProgress } from "@/lib/reveal-arc";
 import { getPerfProfile, type PerfProfile } from "@/lib/mobile-perf";
 import { getSceneControls, hydrateSceneControls, subscribeSceneControls } from "../scene-controls-store";
 import { shouldReduceMotion } from "@/lib/reduced-motion";
@@ -125,16 +125,36 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
     // reducedMotionRef repasse a faux et l'arc se remet a suivre le scroll.
     function handleScroll() {
       if (reducedMotionRef.current) return;
-      progressRef.current = arcProgress(window.scrollY, window.innerHeight);
-      exitRef.current = exitProgress(
-        window.scrollY,
-        window.innerHeight,
-        document.documentElement.scrollHeight - window.innerHeight,
-      );
+      // UNE SEULE LECTURE DE MISE EN PAGE POUR LES DEUX (20/09). L'arc et la
+      // sortie comptent desormais sur la meme page, donc ils lisent la meme
+      // valeur au meme endroit -- et il y en a moins qu'avant, pas plus.
+      // Gratuit ici : un ecouteur `scroll` s'execute quand la mise en page
+      // est deja a jour, contrairement a un rappel d'image (oracle
+      // `lectures-de-mise-en-page`, 16/09).
+      const vh = window.innerHeight;
+      const maxScroll = document.documentElement.scrollHeight - vh;
+      progressRef.current = arcProgress(window.scrollY, vh, maxScroll);
+      exitRef.current = exitProgress(window.scrollY, vh, maxScroll);
     }
 
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // SONDE DE L'ARC (20/09). L'oracle « l'arc finit ou la sortie
+    // commence » doit lire ce que le site TIENT, pas recalculer la regle de
+    // son cote : un oracle qui refait le calcul ne garde que lui-meme. Meme
+    // motif que __nahualFoyer / __nahualFrost / __nahualCihuateteo. On
+    // expose les refs, pas leurs valeurs, pour que la lecture soit vivante.
+    (window as unknown as { __nahualArc?: unknown }).__nahualArc = {
+      progress: progressRef,
+      exit: exitRef,
+      // La longueur de l'arc de CETTE page, calculee par la fonction du site
+      // et pas par une copie cote test : c'est ce qui permet aux sept
+      // rebasages du 20/09 de viser « 80 % de l'arc » au lieu de « 1,6
+      // fenetre ». Un test en pixels absolus est vert par accident sur une
+      // page et rouge sur une autre.
+      longueur: () => arcScrollHeight(window.innerHeight, document.documentElement.scrollHeight - window.innerHeight),
+    };
     return () => {
       window.removeEventListener("scroll", handleScroll);
       reducedMotionQuery.removeEventListener("change", relireMouvement);

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { defilerDansLArc, longueurDeLArc } from "./arc";
 
 /**
  * L'ACTE DE SORTIE (10/09, F2, lot 5 du panel du 08/09).
@@ -26,6 +27,14 @@ async function attendreScene(page: Page) {
   });
 }
 
+/** Le progres de l'acte de sortie, lu dans le site (sonde du 20/09). */
+async function sortie(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const s = (window as unknown as { __nahualArc?: { exit: { current: number } } }).__nahualArc;
+    return s ? s.exit.current : -1;
+  });
+}
+
 async function poseCamera(page: Page): Promise<Pose> {
   return page.evaluate(() => {
     const c = (window as unknown as { __nahualR3f?: { camera: { fov: number; position: { y: number } } } })
@@ -47,8 +56,9 @@ test.describe("l'acte de sortie", () => {
     await page.goto("/fr");
     await attendreScene(page);
 
-    // Fin de l'arc : deux hauteurs d'ecran, la ou le climax se pose.
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2));
+    // Fin de l'arc, la ou le climax se pose. C'etait « deux hauteurs
+    // d'ecran » jusqu'au 20/09 ; c'est desormais la longueur de la page.
+    await defilerDansLArc(page, 1);
     await page.waitForTimeout(1500);
     const auClimax = await poseCamera(page);
     expect(auClimax.fov, "la sonde ne lit pas la camera").toBeGreaterThan(0);
@@ -66,11 +76,16 @@ test.describe("l'acte de sortie", () => {
   test("sur l'accueil, l'arc occupe l'essentiel de la page", async ({ page }) => {
     await page.goto("/fr");
     await attendreScene(page);
-    const geo = await page.evaluate(() => {
+    // 20/09 : `(h * 2) / max` calculait la part de l'arc avec deux fenetres
+    // EN DUR. Le test serait reste vert en mesurant autre chose -- et il
+    // avait echappe a une recherche de `innerHeight * 2`, la hauteur passant
+    // par une variable locale. La longueur vient maintenant du site.
+    const arc = await longueurDeLArc(page);
+    const geo = await page.evaluate((a) => {
       const h = window.innerHeight;
       const max = document.documentElement.scrollHeight - h;
-      return { partDeLArc: (h * 2) / max, restant: (max - h * 2) / h };
-    });
+      return { partDeLArc: a / max, restant: (max - a) / h };
+    }, arc);
     // La mesure du defaut du 10/09 (l'arc finissait a 63,5 % du defilement,
     // 1,15 ecran de rab fige) transformee en garde. Vaut pour l'accueil,
     // qui n'a presque pas de texte : les pages a contenu sont bien plus
@@ -79,20 +94,32 @@ test.describe("l'acte de sortie", () => {
     expect(geo.restant, "il reste trop de defilement apres l'arc").toBeLessThan(0.8);
   });
 
-  test("SUR UNE PAGE LONGUE, rien ne bouge pendant qu'on lit encore", async ({ page }) => {
+  test("SUR UNE PAGE LONGUE, l'acte de sortie ne se joue pas pendant la lecture", async ({ page }) => {
     // Memoire offre plus du double du defilement de l'accueil : une sortie
     // calee sur la fin de l'arc s'y serait jouee au tiers de la page, camera
     // qui monte et cadre qui se ferme pendant la lecture.
+    //
+    // REECRIT LE 20/09, ET PAS REBASE. Ce test demandait « rien ne bouge
+    // entre 50 % et 80 % », en comparant la focale a 0,6 pres. Le design
+    // « l'arc dure la page » abolit cette premisse : l'arc court maintenant
+    // jusqu'a 93 % du defilement de Memoire, donc la camera bouge, et c'est
+    // le but. Ce qu'il protegeait n'a pas change pour autant -- son propre
+    // commentaire le dit, « camera qui monte et cadre qui se ferme pendant
+    // la lecture », c'est-a-dire l'ACTE DE SORTIE. On lit donc `exitRef`,
+    // la chose meme, au lieu de la focale, qui n'en etait que l'ombre.
     await page.goto("/fr/memoire");
     await attendreScene(page);
+
     await defiler(page, 0.5);
     const aMiPage = await poseCamera(page);
-    await defiler(page, 0.8);
-    const auxQuatreCinquiemes = await poseCamera(page);
     expect(aMiPage.fov, "la sonde ne lit pas la camera").toBeGreaterThan(0);
-    expect(Math.abs(auxQuatreCinquiemes.fov - aMiPage.fov), "le cadre se resserre trop tot").toBeLessThan(0.6);
+    expect(await sortie(page), "la sortie a commence a mi-page").toBe(0);
+
+    await defiler(page, 0.8);
+    expect(await sortie(page), "la sortie a commence aux quatre cinquiemes").toBe(0);
 
     await defiler(page, 1);
+    expect(await sortie(page), "la sortie ne s'est pas jouee en bas de page").toBeGreaterThan(0);
     const enBas = await poseCamera(page);
     expect(aMiPage.fov - enBas.fov, "l'acte de sortie ne se joue pas en bas de page").toBeGreaterThan(2);
   });

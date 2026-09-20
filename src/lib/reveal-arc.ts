@@ -273,25 +273,67 @@ export function getChapterOpacity(progress: number, chapterIdx: number): number 
 }
 
 /**
- * LA LONGUEUR DE L'ARC (08/09). Deux ecrans de scroll : au-dela,
- * `progress` vaut 1 et la scene tient sa pose finale. La valeur etait
- * DUPLIQUEE dans scene-refs-context.tsx et scene-controls.tsx, deux copies
- * qu'un seul reglage aurait fait diverger sans bruit. Elle vit ici, avec
- * les autres constantes de l'arc, et un troisieme consommateur est arrive
- * avec la cloche du climax (sound-design.tsx), qui doit lire exactement le
- * meme progres que la scene.
+ * LA LONGUEUR DE L'ARC (08/09, reecrit le 20/09). La valeur etait DUPLIQUEE
+ * dans scene-refs-context.tsx et scene-controls.tsx, deux copies qu'un seul
+ * reglage aurait fait diverger sans bruit. Elle vit ici, avec les autres
+ * constantes de l'arc.
+ *
+ * (Le troisieme consommateur, la cloche du climax dans sound-design.tsx, a
+ * cesse d'en etre un le 20/09 : il lit `progressRef` au lieu de recalculer.
+ * Deux appels de sa famille etaient dans des boucles, dont une boucle
+ * d'image -- voir le commentaire en tete de ce composant.)
+ *
+ * L'ARC DURE LA PAGE (20/09, spec `docs/da/arc-dure-la-page.md`).
+ *
+ * Deux fenetres n'est plus une longueur, c'est un PLANCHER -- d'ou le
+ * renommage depuis `ARC_SCROLL_VIEWPORTS`, pour que la constante dise ce
+ * qu'elle est devenue.
+ *
+ * Le defaut mesure le 18/09 : l'arc faisait deux fenetres sur toutes les
+ * pages, or Memoire porte trois fois plus de texte que les autres. L'arc y
+ * finissait a 26 % du defilement, et les trois quarts restants se lisaient
+ * sur une scene qui avait fini son histoire. Le choix de Sylvain, dans le
+ * brainstorm du 18/09 : ce n'est pas le texte qui doit se plier a l'arc,
+ * c'est la scene qui suit le texte -- par sa POSITION dans le texte, donc un
+ * arc continu etire, et pour tout le site, pas pour le Nord seul.
  */
-export const ARC_SCROLL_VIEWPORTS = 2;
+export const ARC_MIN_VIEWPORTS = 2;
 
-/** Hauteur de scroll que couvre l'arc, en pixels. */
-export function arcScrollHeight(viewportHeight: number): number {
+/**
+ * Hauteur de scroll que couvre l'arc, en pixels : toute la page, moins la
+ * fenetre de sortie, et jamais moins que le plancher.
+ *
+ * `maxScroll` est REQUIS et non optionnel, et c'est une decision : optionnel,
+ * un appelant oublie serait retombe en silence sur l'ancienne longueur, vert
+ * par accident. Requis, c'est `tsc` qui tient l'oracle a notre place.
+ *
+ * Une page non mesurable (`NaN`, infinie, pas encore mesuree) retombe sur le
+ * plancher : c'est exactement le comportement d'avant ce design, donc le cas
+ * degrade est le cas connu.
+ *
+ * (`EXIT_SCROLL_VIEWPORTS` est declare plus bas, avec l'acte de sortie qu'il
+ * decrit : la lecture se fait a l'appel, jamais a l'evaluation du module.)
+ */
+export function arcScrollHeight(viewportHeight: number, maxScroll: number): number {
   if (!Number.isFinite(viewportHeight) || viewportHeight <= 0) return 0;
-  return viewportHeight * ARC_SCROLL_VIEWPORTS;
+  const plancher = viewportHeight * ARC_MIN_VIEWPORTS;
+  if (!Number.isFinite(maxScroll)) return plancher;
+  return Math.max(plancher, maxScroll - viewportHeight * EXIT_SCROLL_VIEWPORTS);
 }
 
-/** Le progres de l'arc pour une position de scroll donnee, borne a [0, 1]. */
-export function arcProgress(scrollY: number, viewportHeight: number): number {
-  const height = arcScrollHeight(viewportHeight);
+/**
+ * Le progres de l'arc pour une position de scroll donnee, borne a [0, 1].
+ *
+ * L'INVARIANT QUE CA FABRIQUE : l'arc finit exactement la ou la sortie
+ * commence, sur toute page dont le defilement depasse deux fenetres. Le
+ * debut de la sortie est `max(arcScrollHeight, maxScroll - 0,55 vh)` et les
+ * deux termes sont la meme expression des deux cotes du seuil, donc les
+ * bornes coincident. Ce design ne deplace pas la sortie d'un pixel : il
+ * supprime la zone morte qui la precedait. Mesuree le 20/09 avant
+ * correction, elle valait 5,77 fenetres sur Memoire.
+ */
+export function arcProgress(scrollY: number, viewportHeight: number, maxScroll: number): number {
+  const height = arcScrollHeight(viewportHeight, maxScroll);
   if (height <= 0) return 0;
   if (!Number.isFinite(scrollY)) return 0;
   return clampProgress(scrollY / height);
@@ -339,7 +381,7 @@ export function exitProgress(scrollY: number, viewportHeight: number, maxScroll:
   if (!Number.isFinite(scrollY) || !Number.isFinite(maxScroll)) return 0;
   const fenetre = viewportHeight * EXIT_SCROLL_VIEWPORTS;
   if (fenetre <= 0) return 0;
-  const debut = Math.max(arcScrollHeight(viewportHeight), maxScroll - fenetre);
+  const debut = Math.max(arcScrollHeight(viewportHeight, maxScroll), maxScroll - fenetre);
   if (maxScroll <= debut) return 0;
   return clampProgress((scrollY - debut) / (maxScroll - debut));
 }

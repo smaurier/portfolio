@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHAPTER_COUNT, arcProgress, arcScrollHeight, getAmbientIntensity, getChapterOpacity, getDirectionalIntensity, getFogColor, getHeadTurnAmount, getIdleClipName, getIntroOpacity, getMilpaGrowth, getNavEmphasis, getRevealFloor, getRevealPhase } from "./reveal-arc";
+import { CHAPTER_COUNT, EXIT_SCROLL_VIEWPORTS, arcProgress, arcScrollHeight, exitProgress, getAmbientIntensity, getChapterOpacity, getDirectionalIntensity, getFogColor, getHeadTurnAmount, getIdleClipName, getIntroOpacity, getMilpaGrowth, getNavEmphasis, getRevealFloor, getRevealPhase } from "./reveal-arc";
 
 /** "#rrggbb" -> {r,g,b} pour comparer numériquement plutôt que sur une
  * chaîne exacte (fragile face à l'arrondi). */
@@ -239,27 +239,105 @@ describe("getMilpaGrowth", () => {
   });
 });
 
-describe("arcProgress : la longueur de l'arc, une seule source", () => {
-  it("vaut 0 en haut de page et 1 apres deux ecrans", () => {
-    expect(arcProgress(0, 800)).toBe(0);
-    expect(arcProgress(1600, 800)).toBe(1);
-    expect(arcProgress(800, 800)).toBeCloseTo(0.5, 5);
+/**
+ * L'ARC DURE LA PAGE (20/09, `docs/da/arc-dure-la-page.md`).
+ *
+ * L'arc faisait deux fenetres partout, quelle que soit la page. Sur Memoire,
+ * qui porte trois fois plus de texte que les autres, il finissait quand le
+ * visiteur avait lu un quart de la page : les trois quarts restants se
+ * lisaient sur une scene qui avait fini son histoire. La longueur de l'arc
+ * suit desormais la page, et les deux fenetres deviennent un PLANCHER.
+ */
+const H = 800; // une fenetre
+const PLANCHER = H * 2; // 1600
+const SORTIE = H * EXIT_SCROLL_VIEWPORTS; // 440
+
+describe("arcScrollHeight : l'arc dure la page, moins la sortie", () => {
+  it("sur une page longue, l'arc vaut la page moins la fenetre de sortie", () => {
+    expect(arcScrollHeight(H, 5000)).toBe(5000 - SORTIE);
+    expect(arcScrollHeight(H, 12_000)).toBe(12_000 - SORTIE);
   });
 
-  it("reste borne au-dela de l'arc : la scene tient sa pose finale", () => {
-    expect(arcProgress(5000, 800)).toBe(1);
-    expect(arcProgress(-100, 800)).toBe(0);
+  it("sur une page courte, c'est le plancher de deux fenetres qui tient", () => {
+    expect(arcScrollHeight(H, 1000)).toBe(PLANCHER);
+    expect(arcScrollHeight(H, 0)).toBe(PLANCHER);
+  });
+
+  it("reproduit la valeur d'AUJOURD'HUI au point de bascule", () => {
+    // 2,55 fenetres de defilement : la page ou les deux regles se croisent.
+    // En dessous, rien ne change pour personne.
+    expect(arcScrollHeight(H, H * 2.55)).toBeCloseTo(PLANCHER, 10);
+    expect(arcScrollHeight(H, H * 2.5)).toBe(PLANCHER);
+  });
+
+  it("une page non mesurable retombe sur le plancher, jamais sur NaN", () => {
+    expect(arcScrollHeight(H, Number.NaN)).toBe(PLANCHER);
+    expect(arcScrollHeight(H, Number.POSITIVE_INFINITY)).toBe(PLANCHER);
+    expect(arcScrollHeight(H, -500)).toBe(PLANCHER);
+    expect(arcScrollHeight(H, undefined as unknown as number)).toBe(PLANCHER);
   });
 
   it("ne divise jamais par zero avant la premiere mesure du viewport", () => {
-    expect(arcProgress(400, 0)).toBe(0);
-    expect(arcScrollHeight(0)).toBe(0);
-    expect(arcProgress(400, Number.NaN)).toBe(0);
+    expect(arcScrollHeight(0, 5000)).toBe(0);
+    expect(arcScrollHeight(Number.NaN, 5000)).toBe(0);
+  });
+});
+
+describe("arcProgress : une seule source de progres", () => {
+  it("vaut 0 en haut de page et 1 au bout de l'arc reel", () => {
+    expect(arcProgress(0, H, 5000)).toBe(0);
+    expect(arcProgress(5000 - SORTIE, H, 5000)).toBe(1);
+    expect(arcProgress((5000 - SORTIE) / 2, H, 5000)).toBeCloseTo(0.5, 5);
   });
 
-  it("la hauteur de l'arc suit le viewport", () => {
-    expect(arcScrollHeight(800)).toBe(1600);
-    expect(arcScrollHeight(412)).toBe(824);
+  it("sur une page courte, garde exactement le comportement d'avant", () => {
+    expect(arcProgress(PLANCHER, H, 1000)).toBe(1);
+    expect(arcProgress(H, H, 1000)).toBeCloseTo(0.5, 5);
+  });
+
+  it("reste borne : la scene tient sa pose finale sous le pied de page", () => {
+    expect(arcProgress(99_000, H, 5000)).toBe(1);
+    expect(arcProgress(-100, H, 5000)).toBe(0);
+  });
+
+  it("ne rend jamais NaN, quelle que soit la mesure manquante", () => {
+    expect(arcProgress(400, 0, 5000)).toBe(0);
+    expect(arcProgress(400, Number.NaN, 5000)).toBe(0);
+    expect(arcProgress(Number.NaN, H, 5000)).toBe(0);
+    expect(arcProgress(400, H, Number.NaN)).toBe(400 / PLANCHER);
+  });
+});
+
+describe("l'invariant : l'arc finit ou la sortie commence", () => {
+  // La seule promesse propre a ce design, et celle que l'oracle e2e
+  // `arc-et-sortie.spec.ts` va chercher dans le vrai site. Ici on la tient
+  // sur la formule, la ou elle se demontre au lieu de se mesurer.
+  it("sur toute page qui depasse le plancher, les deux bornes coincident", () => {
+    for (const max of [2100, 3000, 4466, 6046, 20_000]) {
+      const finDeLArc = arcScrollHeight(H, max);
+      expect(arcProgress(finDeLArc, H, max), `page de ${max}`).toBe(1);
+      expect(exitProgress(finDeLArc, H, max), `page de ${max}`).toBe(0);
+      expect(exitProgress(finDeLArc + 1, H, max), `page de ${max}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("sous le plancher, les deux bornes valent le plancher des deux cotes", () => {
+    const max = H * 2.2;
+    expect(arcScrollHeight(H, max)).toBe(PLANCHER);
+    expect(exitProgress(PLANCHER - 1, H, max)).toBe(0);
+  });
+
+  it("exitProgress ne change de valeur sur AUCUNE page", () => {
+    // Verifie a la main le 20/09 puis fige ici : le debut de la sortie est
+    // `max(arcScrollHeight, maxScroll - 0,55 vh)`, et les deux termes sont
+    // la meme expression des deux cotes du seuil. Ce design ne deplace donc
+    // pas la sortie d'un pixel -- il supprime ce qui la precedait.
+    for (const max of [1000, 2040, 3000, 6046]) {
+      const debutAttendu = Math.max(PLANCHER, max - SORTIE);
+      if (max <= debutAttendu) continue;
+      expect(exitProgress(debutAttendu, H, max), `page de ${max}`).toBe(0);
+      expect(exitProgress(max, H, max), `page de ${max}`).toBeCloseTo(1, 12);
+    }
   });
 });
 

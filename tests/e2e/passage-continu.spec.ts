@@ -1,3 +1,4 @@
+import { defilerDansLArc } from "./arc";
 import { test, expect } from "@playwright/test";
 
 /**
@@ -300,8 +301,10 @@ test("un passage cardinal ramene en haut de l'arc", async ({ page }) => {
   await page.goto("/fr/projets?shaders-prod&veille=off");
   await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 90_000 });
 
-  // A mi-arc : la ou l'ancien comportement laissait arriver le visiteur.
-  await page.evaluate(() => window.scrollTo(0, window.innerHeight * 1.2));
+  // A MI-ARC : la ou l'ancien comportement laissait arriver le visiteur.
+  // C'etait « 1,2 fenetre » jusqu'au 20/09. Le test serait reste vert (il ne
+  // demande que « plus de 200 px »), mais son commentaire aurait menti.
+  await defilerDansLArc(page, 0.5);
   await page.waitForTimeout(1200);
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(200);
 
@@ -343,7 +346,9 @@ test("le haut de l'arc tient pendant tout le passage, pas seulement a la fin", a
 
   await page.goto("/fr/projets?shaders-prod&veille=off");
   await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 90_000 });
-  await page.evaluate(() => window.scrollTo(0, window.innerHeight * 1.2));
+  // A mi-arc, comme le test precedent : « 1,2 fenetre » ne veut plus dire
+  // la moitie de l'histoire depuis le 20/09.
+  await defilerDansLArc(page, 0.5);
   await page.waitForTimeout(1200);
 
   await page.locator('a[href="/fr/contact"]').first().hover({ force: true });

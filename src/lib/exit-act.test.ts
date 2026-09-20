@@ -18,7 +18,7 @@ const LONGUE = 4466;
 describe("exitProgress (l'acte de sortie)", () => {
   it("ne commence jamais avant la fin de l'arc", () => {
     for (const max of [COURTE, LONGUE]) {
-      for (const s of [0, 200, 800, 1500, arcScrollHeight(H)]) {
+      for (const s of [0, 200, 800, 1500, arcScrollHeight(H, max)]) {
         expect(exitProgress(s, H, max), "a " + s + " sur " + max).toBe(0);
       }
     }
@@ -44,9 +44,9 @@ describe("exitProgress (l'acte de sortie)", () => {
   it("sur une page courte, il commence a la fin de l'arc et pas avant", () => {
     // Ici la fenetre nominale mordrait sur l'arc : elle est rognee, jamais
     // avancee. L'arc garde la priorite.
-    const court = arcScrollHeight(H) + 100;
-    expect(arcProgress(arcScrollHeight(H), H)).toBe(1);
-    expect(exitProgress(arcScrollHeight(H), H, court)).toBe(0);
+    const court = arcScrollHeight(H, 0) + 100;
+    expect(arcProgress(arcScrollHeight(H, court), H, court)).toBe(1);
+    expect(exitProgress(arcScrollHeight(H, court), H, court)).toBe(0);
     expect(exitProgress(court, H, court)).toBeCloseTo(1, 12);
   });
 

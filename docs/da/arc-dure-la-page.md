@@ -71,9 +71,17 @@ avec `ARC_MIN_VIEWPORTS = 2` (l'ancien `ARC_SCROLL_VIEWPORTS`, renomme pour
 dire ce qu'il est devenu : un plancher) et `EXIT_SCROLL_VIEWPORTS = 0,55`
 (inchange).
 
-**L'invariant que la regle fabrique** : sur toute page plus longue que le
-plancher, l'arc finit exactement la ou la sortie commence. Il n'y a plus de
-zone morte entre les deux.
+**L'invariant que la regle fabrique** : l'arc finit exactement la ou la
+sortie commence. Il n'y a plus de zone morte entre les deux.
+
+Verifie a la main le 20/09, et il est **plus large que ce que ce spec
+s'accordait** : il ne vaut pas seulement au-dessus du plancher, il vaut sur
+toute page dont le defilement depasse deux fenetres. Le debut de la sortie
+est `max(arcScrollHeight, maxScroll - 0,55 vh)` ; en dessous de 2,55
+fenetres c'est le plancher qui gagne des deux cotes, au-dessus c'est
+`maxScroll - 0,55 vh` des deux cotes. Les deux bornes sont la meme
+expression, donc elles coincident partout. Corollaire a garder en tete :
+`exitProgress` ne change de valeur sur **aucune** page, longue ou courte.
 
 `maxScroll` vaut `document.documentElement.scrollHeight - innerHeight`. Si
 elle est absente ou non finie, la longueur retombe sur le plancher : aucun
@@ -86,21 +94,62 @@ fait pas progresser l'arc (choix du 28/08). Il ne le fera toujours pas.
 
 ## 3. Ou ca se code
 
-Une seule source de progres, cinq lecteurs.
+Une seule source de progres, et **deux** lecteurs seulement -- la relecture
+du 20/09 en a retire un troisieme au lieu de le migrer.
 
-- **`lib/reveal-arc.ts`** : les trois fonctions ci-dessus. Le seul fichier
-  qui connait la regle.
-- **`scene-refs-context.tsx`**, `handleScroll` : ecrit `progressRef` avec la
-  nouvelle signature. Il lit deja `scrollHeight` a chaque evenement de
-  defilement pour la sortie ; l'arc lira la meme valeur au meme endroit.
-  C'est un gestionnaire de defilement, pas la boucle de rendu : l'oracle
-  `lectures-de-mise-en-page` (aucune lecture de mise en page dans la boucle)
-  reste vrai sans rien changer.
-- **`sound-design.tsx`** (trois appels a `arcProgress(scrollY, innerHeight)`)
-  et **`scene-controls.tsx`** (un appel a `arcScrollHeight`) : passent par la
-  meme fonction avec `maxScroll`. Sinon le son et l'arc ne compteraient plus
-  la meme chose, ce qui est exactement le defaut « trois lecteurs, trois
-  verites » corrige le 16/09 pour l'arc du jour.
+- **`src/lib/reveal-arc.ts`** : les trois fonctions ci-dessus. Le seul
+  fichier qui connait la regle. `maxScroll` y est un parametre **requis**,
+  pas optionnel : un parametre optionnel laisserait un appelant oublie
+  retomber en silence sur l'ancienne longueur, vert par accident. Requis,
+  c'est `tsc` qui tient l'oracle.
+- **`src/app/components/stag-scene/scene-refs-context.tsx`**, `handleScroll` :
+  ecrit `progressRef` avec la nouvelle signature. Il lit deja `scrollHeight`
+  a chaque evenement de defilement pour la sortie ; l'arc lira la meme
+  valeur au meme endroit. C'est un gestionnaire de defilement, pas la boucle
+  de rendu : l'oracle `lectures-de-mise-en-page` reste vrai sans rien
+  changer.
+- **`src/app/components/scene-controls.tsx`** : `arcPixels()` passe
+  `maxScroll`. Ses **quatre** consommateurs (le lien `?t=`, la sauvegarde de
+  visite, la contemplation, la copie du lien) sont tous pilotes par un
+  evenement ou par un clic, et `startCinematic` capture la longueur **avant**
+  sa boucle d'image (elle n'y est jamais relue) : aucune lecture de mise en
+  page n'entre dans une boucle par ce fichier. Verifie ligne a ligne le
+  20/09.
+
+**`sound-design.tsx` ne prend pas `maxScroll` : il cesse de calculer l'arc.**
+C'est la correction de fond du 20/09, et elle repare un defaut qui existait
+avant ce design. Ses trois appels a `arcProgress(scrollY, innerHeight)` ne
+sont pas de meme nature : celui du bourdon de chaleur du Sud est **dans un
+`requestAnimationFrame`**. Lui passer `maxScroll` aurait fait lire
+`document.documentElement.scrollHeight` soixante fois par seconde --
+exactement la lecture de mise en page que la passe du 16/09 a retiree de six
+endroits, et sur la page (Projets) dont l'arc grandit le plus.
+
+L'oracle `lectures-de-mise-en-page` ne l'aurait pas vu : il ne tourne que sur
+`/fr` et `/fr/contact`, et cette boucle est gardee par
+`!muted && soundDirection === "turquoise"` -- muette et hors direction dans
+les deux cas. Vert par accident. Le defaut etait deja la, d'ailleurs : cette
+boucle lit `scrollY` et `innerHeight` a chaque image depuis toujours.
+
+Les trois appels lisent donc **`progressRef`** via `useSceneRefs()`
+(`SoundDesign` est monte sous `SceneRefsProvider`, layout `[locale]` 366 →
+516). Zero calcul, zero lecture de mise en page, et la source unique est
+tenue plus fort qu'avec la meme fonction appelee trois fois.
+
+**Ce que ca change, et c'est l'arbitrage de Sylvain du 20/09 : sous mouvement
+reduit, le son gele avec la scene.** Aujourd'hui le bourdon du Sud chauffe
+jusqu'a midi pendant que l'image, elle, est figee sur la nuit de Coatepec :
+le son et l'image racontent deux choses differentes. Demain ils racontent la
+meme. Ce n'est pas une perte pour le visiteur en mouvement reduit :
+`remapSouthArc(0).day` vaut exactement 0, et le bourdon est concu inaudible
+la nuit (« la nuit il est inaudible ; a midi il chauffe »). Il n'est pas
+supprime, il est a sa valeur de nuit -- celle que l'image montre.
+
+Une consequence mineure, notee pour ne pas etre decouverte : les effets des
+enfants se jouent avant ceux du parent, donc l'ecouteur de defilement de
+`sound-design` est enregistre avant celui du fournisseur et lit un
+`progressRef` vieux d'un evenement. Sur un seuil franchi en dizaines
+d'evenements (la cloche du climax), c'est quelques pixels.
 - **Tout le reste** lit `progressRef` et ne change pas : `getRevealFloor`,
   `getMilpaGrowth`, les remaps par direction (`remapNorthArc`,
   `remapWestArc`, `sud-arc`, `est-arc`), le plancher de revelation, la
@@ -150,7 +199,9 @@ ligne, et ce sera une decision prise sur un chiffre.
 ## 5. Ce qui ne change pas
 
 - Le mouvement reduit : l'arc ne progresse pas (28/08), le mode recit
-  accessible reste l'alternative.
+  accessible reste l'alternative. Ce qui change, c'est que le **son** le
+  suit maintenant au lieu de continuer sans lui (section 3, arbitrage du
+  20/09).
 - L'arrivee en haut de l'arc a chaque navigation (16/09) : la descente
   glisse vers zero pendant le passage, `garantirLeHaut` en filet.
 - La sortie ancree au bas de la page (F2, 10/09) : meme fonction, meme
@@ -159,6 +210,28 @@ ligne, et ce sera une decision prise sur un chiffre.
 - La page qui change de hauteur apres coup (images, cartes) : `maxScroll`
   est relu a chaque evenement de defilement, comme pour la sortie
   aujourd'hui. Jamais perime, rien a observer.
+
+### Ce qui change et qu'il faut avoir dit (20/09)
+
+La fraction d'arc n'est pas qu'une valeur de calcul : `scene-controls`
+l'**ecrit quelque part** a deux endroits, et sa signification change sous
+les pieds de ce qui l'a ecrite.
+
+- **`?t=`, le lien de l'instant.** Un lien deja partage vise `t x 2
+  fenetres` ; apres, `t x 6,2` sur Memoire. Le lien ne montre plus le meme
+  moment. **Assume**, sur un raisonnement et non sur un fait verifie : un lien
+  de ce genre est une invitation a voir la page telle qu'elle est
+  aujourd'hui, pas une archive. Si des liens `?t=` ont ete diffuses quelque
+  part (Sylvain seul peut le dire), la question se repose : il faudrait
+  alors versionner le parametre, `?t2=`, et ignorer l'ancien.
+- **« Reprendre », `localStorage`.** `t = scrollY / arc` est ecrit a chaque
+  visite. Un visiteur qui revient apres la mise en ligne avec un `t = 0,9`
+  d'avant serait renvoye a `0,9 x 6,2 = 5,6` fenetres, tres loin sous
+  l'endroit ou il s'etait arrete. Ca se repare a la visite suivante, mais la
+  premiere est fausse, et silencieuse. **Corrige** : la cle passe a
+  `nahual-last-visit-v2`. Une ligne, et le cas n'existe plus. L'ancienne cle
+  n'est pas lue ni migree : une position d'arc d'avant n'a pas de traduction
+  dans l'apres.
 
 ---
 
@@ -193,11 +266,48 @@ et rouge sur une autre.
 | `accessibilite-axe.spec.ts` | 42 | `innerHeight * 2 * f` | `f` de l'arc reel |
 | `passage-continu.spec.ts` | 304, 346 | `innerHeight * 1.2` (« a mi-arc ») | la moitie de l'arc reel : le test ne demande que « plus de 200 px », il resterait vert, mais son commentaire mentirait |
 
-Dix autres tests scrollent en fraction de page (`scrollHeight - innerHeight`)
-et tiennent tels quels. Un seul demande une action : `regression-visuelle`,
-dont les captures de reference de Memoire et de Projets changent de plein
-droit (a une fraction de page donnee, la scene n'est plus dans le meme etat)
-et sont a regenerer **apres verification a l'oeil**, pas en aveugle.
+**Deux de plus, trouves le 20/09 en verifiant cette phrase au lieu de la
+croire** -- elle disait « dix autres tests scrollent en fraction de page et
+tiennent tels quels ». Les deux sont dans `acte-de-sortie.spec.ts`.
+
+| fichier | ligne | le defaut | demain |
+| --- | --- | --- | --- |
+| `acte-de-sortie.spec.ts` | 72 | `(h * 2) / max` : la part de l'arc calculee avec deux fenetres en dur. Echappe a une recherche de `innerHeight * 2`, la hauteur passant par une variable locale | la longueur reelle. Il **resterait vert en mesurant autre chose** |
+| `acte-de-sortie.spec.ts` | 86-97 | « SUR UNE PAGE LONGUE, rien ne bouge pendant qu'on lit encore » : compare la focale a 50 % et a 80 % de Memoire et la veut immobile a 0,6 pres. **Sa premisse est ce que ce design abolit** : il passera rouge, et il a raison | **reecrit, pas rebase**. Ce qu'il protege n'est pas « rien ne bouge », c'est « **l'acte de sortie** ne se joue pas pendant la lecture » (son propre commentaire le dit : « camera qui monte et cadre qui se ferme pendant la lecture »). Il lira `exitRef`, qui vaut 0 a 50 % et a 80 %, et plus de 0 en bas |
+
+Les huit autres scrollent en fraction de page et tiennent tels quels.
+Trois sont a surveiller au passage de la suite sans qu'on puisse le predire
+sur pieces : `decor-fige` (un budget d'objets qui recomposent leur matrice,
+echantillonne a 25/50/75/100 % -- un arc plus long veut dire du mouvement
+sur une plus grande part de ces points), `materiaux-stables` et
+`programmes-tardifs` (des compilations de nuanciers qui doivent s'etre
+tues en fin de page, or la fin de page voit desormais des etats nouveaux).
+Ce ne sont pas des rebasages prevus, ce sont des resultats a lire. **Les
+trois sont passes au vert le 20/09**, avec toute la suite.
+
+### `regression-visuelle` : l'action annoncee n'existe pas (20/09)
+
+Ce spec annoncait ici une action : ses captures de Memoire et de Projets
+« changent de plein droit » et sont a regenerer apres verification a l'oeil.
+**C'etait faux.**
+
+Cette suite tourne sous `reducedMotion: "reduce"`. Or sous mouvement reduit
+l'arc NE PROGRESSE PAS (choix du 28/08) : `handleScroll` sort avant d'ecrire
+`progressRef`. La scene y est figee au meme etat quelle que soit la
+position, et la longueur de l'arc n'a aucun effet sur ce qui est capture. Ce
+design ne touche pas une seule de ces images.
+
+Verifie plutot que raisonne : les dix captures echouent, **et elles
+echouent a l'identique sur la base sans ce design** -- 856 942 pixels de
+difference sur Memoire a 80 %, le meme nombre exact des deux cotes. Les
+references etaient **deja perimees avant ce travail**, pour une cause qui
+lui est anterieure. 93 % des pixels : ce n'est pas un glissement, c'est une
+autre image (piste la plus probable, des references enregistrees en
+production quand la suite tourne en developpement).
+
+**Elles ne sont donc pas regenerees ici.** Les regenerer sous couvert de ce
+design benirait en silence une difference dont personne ne connait la cause.
+Point ouvert, separe, a instruire pour lui-meme.
 
 ### Un oracle nouveau : l'arc finit ou la sortie commence
 
@@ -220,20 +330,61 @@ design en place, pour les passes suivantes :
    si un plafond en fenetres est necessaire, et ce sera decide sur ce
    chiffre.
 
+### Les deux chiffres, mesures le 20/09 (`.scratch/arc-mesures.mjs`)
+
+Page / arc / part de la page couverte, en fenetres :
+
+| page | bureau 1280 x 720 | Pixel 7 |
+| --- | --- | --- |
+| Centre `/fr` | 2,8 / **2,2** / 80 % | 3,2 / **2,7** / 83 % |
+| Est `/fr/services` | 3,9 / **3,4** / 86 % | 4,5 / **3,9** / 88 % |
+| Sud `/fr/projets` | 10,0 / **9,4** / 94 % | 10,4 / **9,9** / 95 % |
+| Ouest `/fr/contact` | 3,6 / **3,1** / 85 % | 4,1 / **3,5** / 86 % |
+| Nord `/fr/memoire` | 8,4 / **7,8** / 93 % | 9,8 / **9,3** / 94 % |
+
+**1. La frappe du serpent tombe a 45,5 % de la page**, soit 4,5 fenetres sur
+bureau et 4,8 sur Pixel 7 -- et l'arc y vaut **0,48**, pas 0,7. La fraction
+de page est la MEME sur les deux appareils. La section 4 disait « la frappe
+recule vers 5 fenetres, la ou moins de gens vont » : elle recule bien, mais
+elle tombe **au milieu de la page**, pas dans le dernier tiers que la sonde
+de visite du 13/09 voyait deserte. Le probleme du Sud reste entier ; il est
+moins grave que redoute. C'est la donnee d'entree de sa passe.
+
+**2. Pas de plafond telephone, et c'est decide sur le chiffre.** La section 4
+prevoyait « deux a trois fois plus long en ecrans » sur telephone. Mesure :
+9,9 contre 9,4 fenetres sur Projets, 9,3 contre 7,8 sur Memoire. Les pages y
+sont un peu plus longues, pas deux a trois fois. Un plafond serait du code
+speculatif -- exactement ce que la section 4 refusait d'ecrire d'avance.
+
+**Un effet de bord, note pour ne pas etre decouvert** : la part de page
+couverte par l'arc va de 80 % (Centre) a 95 % (Sud). Elle n'est pas
+constante parce que la fenetre de sortie, elle, est fixe a 0,55 fenetre :
+plus la page est longue, moins cette fenetre pese. C'est ce qui garde une
+sortie de meme duree partout.
+
 ---
 
 ## 8. Ordre de livraison
 
-1. Les trois fonctions et leurs tests unitaires (rouge d'abord : les tests
+1. **L'oracle nouveau d'abord, et vu rouge.** Corrige le 20/09 : il etait
+   en 4, avec un « si l'ordre le permet » -- et l'ordre le permet, il lit
+   `progressRef` et `exitRef`, il ne depend pas de la formule. Ecrit et joue
+   sur la construction actuelle, il doit echouer sur Memoire (l'arc y finit
+   a 26 %, la sortie a 100 %). Un test qu'on n'a jamais vu echouer ne garde
+   rien.
+2. Les trois fonctions et leurs tests unitaires (rouge d'abord : les tests
    de la page longue echouent sur la formule actuelle).
-2. `scene-refs-context`, `sound-design`, `scene-controls` : la nouvelle
-   signature, tsc propre.
-3. L'aide de test `positionDansArc` et les sept rebasages ; la suite
+3. `scene-refs-context` et `scene-controls` : la nouvelle signature, `tsc`
+   propre -- c'est lui qui prouve qu'aucun appelant n'a ete oublie, puisque
+   `maxScroll` est requis. `sound-design` : les trois calculs remplaces par
+   `progressRef`. `LAST_VISIT_KEY` en v2.
+4. L'aide de test `positionDansArc` et les sept rebasages ; la suite
    `passage-continu` (vingt-deux tests) et `xiuhcoatl-strike` au vert.
-4. L'oracle nouveau, rouge sur la formule actuelle pour une page longue
-   (verifie avant d'ecrire la formule si l'ordre le permet), vert apres.
-5. `regression-visuelle` : captures regenerees apres verification a l'oeil
-   sur Memoire et Projets.
+5. ~~`regression-visuelle` : captures regenerees apres verification a
+   l'oeil.~~ **Sans objet, mesure le 20/09** (section 6) : cette suite tourne
+   sous mouvement reduit, ou l'arc ne progresse pas, donc ce design ne
+   deplace aucun pixel. Ses dix captures echouent a l'identique avec et sans
+   lui : elles etaient deja perimees. Point ouvert separe.
 6. Les deux mesures de la section 7, consignees.
 7. La suite complete (117 tests au 18/09) au vert avant de pousser.
 

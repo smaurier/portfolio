@@ -1,3 +1,4 @@
+import { defilerDansLArc } from "./arc";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
@@ -39,7 +40,8 @@ for (const chemin of PAGES) {
     await ouvrir(page, chemin);
     const rapports: string[] = [];
     for (const fraction of [0, 0.6]) {
-      await page.evaluate((f) => window.scrollTo(0, window.innerHeight * 2 * f), fraction);
+      // 20/09 : une fraction de l'arc REEL, plus de « deux fenetres fois f ».
+      await defilerDansLArc(page, fraction);
       await page.waitForTimeout(1200);
       const resultats = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"])

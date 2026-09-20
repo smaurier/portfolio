@@ -13,7 +13,8 @@ import { VEILLE_EVENT, noteVeille } from "@/lib/veille";
 import type { DirectionKey } from "./stag-scene/direction-colors";
 import { frostStore } from "./stag-scene/frost-store";
 import { armChime, stepChime } from "@/lib/climax-chime";
-import { arcProgress, getNavEmphasis } from "@/lib/reveal-arc";
+import { getNavEmphasis } from "@/lib/reveal-arc";
+import { useSceneRefs } from "./stag-scene/scene-refs-context";
 import { dayAtArc } from "@/lib/arc-day";
 import { copalIntensity } from "@/lib/copal";
 import { xiuhcoatlStore } from "./stag-scene/xiuhcoatl-store";
@@ -50,6 +51,34 @@ const CHIME_FREQ: Record<string, number[]> = {
 };
 
 export default function SoundDesign({ label }: { label: { on: string; off: string; volume: string; landmark: string } }) {
+  /**
+   * LE SON NE CALCULE PLUS L'ARC, IL LE LIT (20/09, arbitrage de Sylvain).
+   *
+   * Trois endroits appelaient `arcProgress(scrollY, innerHeight)`. Ils
+   * n'etaient pas de meme nature : celui du bourdon de chaleur du Sud est
+   * DANS un `requestAnimationFrame`. Lui donner la nouvelle signature aurait
+   * fait lire `document.documentElement.scrollHeight` soixante fois par
+   * seconde, exactement la lecture de mise en page que la passe du 16/09 a
+   * retiree de six endroits -- et sur Projets, la page dont l'arc grandit le
+   * plus. L'oracle `lectures-de-mise-en-page` ne l'aurait pas vu : il ne
+   * tourne que sur l'accueil et Contact, quand cette boucle est gardee par
+   * `!muted && soundDirection === "turquoise"`. Vert par accident.
+   *
+   * Lire `progressRef` supprime le calcul ET la lecture (celle de `scrollY`
+   * et `innerHeight`, qui datait d'avant et n'avait jamais ete vue non plus).
+   *
+   * CE QUE CA CHANGE : sous mouvement reduit, le son GELE AVEC LA SCENE.
+   * Avant, le bourdon chauffait jusqu'a midi pendant que l'image restait
+   * figee sur la nuit de Coatepec -- le son et l'image racontaient deux
+   * choses. Ce n'est pas une perte : `remapSouthArc(0).day` vaut 0, et ce
+   * bourdon est concu inaudible la nuit. Il n'est pas supprime, il est a la
+   * valeur que l'image montre.
+   *
+   * Le ref est stable pour la vie du fournisseur (`useRef` dans
+   * `SceneRefsProvider`), donc le mettre en dependance ne relance aucun
+   * effet -- un effet audio relance, c'est un bourdon coupe et recree.
+   */
+  const progressRef = useSceneRefs()?.progressRef;
   const [muted, setMuted] = useState(true);
   // Volume (05/09, controles de scene) : un vrai reglage, 0..1, persiste.
   const [volume, setVolume] = useState(0.5);
@@ -800,14 +829,14 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     // Le volume suit le jour : lu au defilement, lisse par la rampe.
     let raf = 0;
     const suivre = () => {
-      const day = dayAtArc("turquoise", arcProgress(window.scrollY, window.innerHeight));
+      const day = dayAtArc("turquoise", progressRef?.current ?? 0);
       const cible = 0.07 * day * day;
       gain.gain.setTargetAtTime(cible, ctx.currentTime, 0.6);
       raf = window.requestAnimationFrame(suivre);
     };
     raf = window.requestAnimationFrame(suivre);
     return () => window.cancelAnimationFrame(raf);
-  }, [muted, soundDirection]);
+  }, [muted, soundDirection, progressRef]);
 
   // LE TONNERRE SEC DE LA FRAPPE (11/09). Le compteur strikeHit du store
   // avance quand le serpent touche l'anneau : un coup court, bruit
@@ -984,7 +1013,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     const crepite = () => {
       const c = ctxRef.current;
       const m = masterGainRef.current;
-      const offrande = copalIntensity(arcProgress(window.scrollY, window.innerHeight), 0);
+      const offrande = copalIntensity(progressRef?.current ?? 0, 0);
       if (c && m) {
         gain.gain.setTargetAtTime(0.05 * offrande, c.currentTime, 0.8);
         const now = c.currentTime;
@@ -1013,7 +1042,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     };
     timer = window.setTimeout(crepite, 400);
     return () => window.clearTimeout(timer);
-  }, [muted, soundDirection]);
+  }, [muted, soundDirection, progressRef]);
 
   /**
    * LA CLOCHE DU CLIMAX (08/09). Jusqu'ici l'accord cardinal ne sonnait
@@ -1035,7 +1064,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
     if (muted || typeof window === "undefined") return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
 
-    const emphasisNow = () => getNavEmphasis(arcProgress(window.scrollY, window.innerHeight));
+    const emphasisNow = () => getNavEmphasis(progressRef?.current ?? 0);
     let state = armChime(emphasisNow());
 
     function onScroll() {
@@ -1046,7 +1075,7 @@ export default function SoundDesign({ label }: { label: { on: string; off: strin
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [muted, direction, playChime]);
+  }, [muted, direction, playChime, progressRef]);
 
   // LE CHOIX DU VOILE (11/09). Deux boutons pendant l'attente ; celui qui
   // choisit le son declenche ici, dans son clic, la creation du contexte :
