@@ -39,6 +39,30 @@ test.skip(!process.env.VISUEL, "regression visuelle sur demande seulement (VISUE
  * Le sombre est la signature du site ; c'est lui qu'on garde en reference.
  * Le clair merite les siennes le jour ou on les enregistrera : ce serait
  * `colorScheme: "light"` et un second jeu de noms.
+ *
+ * ET LES TROIS QUI RESTAIENT : LES REFERENCES DATENT D'AVANT LE MOUVEMENT
+ * REDUIT. Le theme epingle, sept captures sur dix repassaient au vert. Les
+ * trois autres -- l'Est a 35 et 80 %, le Sud a 35 % -- montraient une scene
+ * en plein jour la ou le site en rend une noire. Ni le code (l'ecart est
+ * deja la au commit qui etait en place a la capture, verifie par dichotomie
+ * sur 96 commits), ni dev contre production (memes ratios a trente pixels
+ * pres). L'horloge du depot a donne la reponse :
+ *
+ *   15:24-15:28  les references sont capturees
+ *   15:32        ce fichier est commite, avec `test.use({ reducedMotion })`
+ *   15:34        a69be96 le passe en `contextOptions` -- "le build
+ *                type-checke les tests"
+ *
+ * La premiere forme ne s'appliquait pas. Les references ont donc ete prises
+ * SANS mouvement reduit, arc suivant le defilement, Est et Sud eclaires a
+ * 35 et 80 % de la page. Deux minutes plus tard le test s'est mis a figer
+ * l'arc a 0 -- ou l'Est et le Sud sont la nuit (`eastDay(0)` et
+ * `remapSouthArc(0).day` valent zero, l'Ouest et le Centre non) -- sans que
+ * personne reprenne les captures. Neuf jours invisibles : cette suite ne
+ * tourne qu'a la demande, et la derive de theme noyait le reste.
+ *
+ * Les trois sont regenerees le 20/09 sur cette explication-la, pas sur un
+ * `--update-snapshots` a l'aveugle.
  */
 test.use({
   contextOptions: { reducedMotion: "reduce", colorScheme: "dark" },
