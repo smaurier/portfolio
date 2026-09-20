@@ -64,7 +64,7 @@ const TOLERANCE_GEO = 3;
 const TOLERANCE_TEX = 4;
 
 test("deux tours du site n'ajoutent plus rien au processeur graphique", async ({ page }) => {
-  test.setTimeout(300_000);
+  test.setTimeout(420_000);
   await page.goto("/fr?shaders-prod&veille=off");
   await page.waitForFunction(
     () => document.documentElement.dataset.loaded === "true" && !!(window as unknown as { __nahualR3f?: unknown }).__nahualR3f,
@@ -90,27 +90,61 @@ test("deux tours du site n'ajoutent plus rien au processeur graphique", async ({
     }
   };
 
-  // Trois tours de mise en route : le premier charge les cinq mondes, et le
-  // serveur de developpement met plus longtemps que la production a se
-  // poser (mesure du 15/09 : palier atteint au deuxieme tour en production,
-  // au troisieme en developpement). On compare donc ce qui suit le palier.
-  await tour();
-  await tour();
-  await tour();
-  const apresTrois = await lire();
-  await tour();
-  await tour();
-  const apresCinq = await lire();
+  /**
+   * LE PALIER EST MESURE, PLUS PARIE (20/09).
+   *
+   * Ce test attendait TROIS tours, puis comparait. Trois venait d'une mesure
+   * du 15/09 (« palier atteint au deuxieme tour en production, au troisieme
+   * en developpement ») -- juste ce jour-la, sur une machine au repos.
+   *
+   * Le 20/09, il est tombe DEUX FOIS en fin de suite de vingt-quatre
+   * minutes, et jamais sur la meme assertion : geometries +18 la premiere
+   * fois, textures +8 la seconde. Une fuite ne change pas de nature d'une
+   * passe a l'autre ; un palier pas encore atteint, si. Isole, avec ou sans
+   * les changements du jour, il passait. Le defaut n'etait donc pas dans le
+   * site, il etait dans le nombre trois.
+   *
+   * On tourne maintenant JUSQU'A ce que le compte se pose, et on compare
+   * ensuite. L'oracle n'en perd rien : une vraie fuite ne se pose jamais, le
+   * plafond de tours est atteint, et la comparaison echoue en le disant.
+   *
+   * Le palier se juge sur les GEOMETRIES seules : les textures montent d'une
+   * par tour par construction (mesure du 16/09, ci-dessus), donc elles ne
+   * peuvent pas servir a decider que plus rien ne bouge.
+   */
+  const MAX_TOURS = 10;
+  let precedent = await lire();
+  let tours = 0;
+  let pose = false;
+  while (tours < MAX_TOURS) {
+    await tour();
+    tours += 1;
+    const maintenant = await lire();
+    if (maintenant.geometries === precedent.geometries) {
+      precedent = maintenant;
+      pose = true;
+      break;
+    }
+    precedent = maintenant;
+  }
 
-  const geo = apresCinq.geometries - apresTrois.geometries;
-  const tex = apresCinq.textures - apresTrois.textures;
+  const auPalier = precedent;
+  await tour();
+  await tour();
+  const apresDeux = await lire();
+
+  const geo = apresDeux.geometries - auPalier.geometries;
+  const tex = apresDeux.textures - auPalier.textures;
+  const ou = pose
+    ? `palier atteint au tour ${tours}`
+    : `AUCUN palier en ${MAX_TOURS} tours -- c'est la signature d'une fuite`;
 
   expect(
     geo,
-    `geometries : ${apresTrois.geometries} au troisieme tour, ${apresCinq.geometries} au cinquieme (+${geo})`,
+    `geometries : ${auPalier.geometries} au palier, ${apresDeux.geometries} deux tours plus tard (+${geo}) ; ${ou}`,
   ).toBeLessThanOrEqual(TOLERANCE_GEO);
   expect(
     tex,
-    `textures : ${apresTrois.textures} au troisieme tour, ${apresCinq.textures} au cinquieme (+${tex})`,
+    `textures : ${auPalier.textures} au palier, ${apresDeux.textures} deux tours plus tard (+${tex}) ; ${ou}`,
   ).toBeLessThanOrEqual(TOLERANCE_TEX);
 });

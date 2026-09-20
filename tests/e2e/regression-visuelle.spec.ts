@@ -25,7 +25,25 @@ import { test, expect } from "@playwright/test";
  *   VISUEL=1 pnpm exec playwright test tests/e2e/regression-visuelle.spec.ts --update-snapshots
  */
 test.skip(!process.env.VISUEL, "regression visuelle sur demande seulement (VISUEL=1) : bruit de 2 a 13 % mesure le 11/09");
-test.use({ contextOptions: { reducedMotion: "reduce" }, viewport: { width: 1280, height: 720 } });
+/**
+ * LE THEME EST EPINGLE (20/09), ET C'EST UN DEFAUT DE TEST CORRIGE.
+ *
+ * Les dix captures echouaient a 93 % des pixels. La cause n'etait ni le
+ * site ni le design de l'arc : **la reference est en thEme sombre et la
+ * suite photographiait le thEme CLAIR**. Le miroir fumant est arrive le
+ * 13/09, deux jours apres les references du 11/09, et Playwright ouvre ses
+ * pages en `prefers-color-scheme: light` par defaut. Une variable de premier
+ * ordre n'etait epinglee nulle part -- et comme cette suite ne tourne qu'a
+ * la demande (VISUEL=1), personne ne l'a vu pendant une semaine.
+ *
+ * Le sombre est la signature du site ; c'est lui qu'on garde en reference.
+ * Le clair merite les siennes le jour ou on les enregistrera : ce serait
+ * `colorScheme: "light"` et un second jeu de noms.
+ */
+test.use({
+  contextOptions: { reducedMotion: "reduce", colorScheme: "dark" },
+  viewport: { width: 1280, height: 720 },
+});
 
 const PAGES = ["fr", "fr/services", "fr/projets", "fr/contact", "fr/memoire"];
 const ETAPES = [0.35, 0.8];
