@@ -6,6 +6,17 @@
  * rien qui puisse casser a la prochaine version de eslint-config-next.
  */
 
+/** Tout le code du site ; ni les tests, ni les sondes de .scratch, ni scripts/. */
+const SRC = ["src/**/*.{ts,tsx}"];
+
+/**
+ * Les lectures synchrones du GPU (MDN, WebGL best practices) : chacune vide
+ * le pipeline et bloque le fil principal jusqu'a ce que le GPU rattrape.
+ * La liste est DUPLIQUEE dans tests/harnais/lints.test.ts a dessein : le
+ * test est l'oracle independant, il ne prouve pas ce que ce module dit.
+ */
+export const LECTURES_GPU = ["getError", "readPixels", "getParameter", "getProgramParameter", "checkFramebufferStatus", "getBufferSubData"];
+
 export const harnais = [
   {
     // Loi 1 : lib/ est pure et testee a l'unite ; les composants rendent.
@@ -29,19 +40,17 @@ export const harnais = [
     },
   },
   {
-    // Pilier 2 : une lecture synchrone du GPU vide le pipeline et bloque le
-    // fil principal jusqu'a ce que le GPU rattrape (MDN, WebGL best
-    // practices). Verifie le 21/09 : src/ n'en contenait aucune ; la
-    // chauffe lit COMPLETION_STATUS_KHR par program.isReady() de three,
+    // Lecture GPU synchrone : verifie le 21/09, src/ n'en contenait aucune ;
+    // la chauffe lit COMPLETION_STATUS_KHR par program.isReady() de three,
     // que cette regle ne voit pas. Les tests et .scratch en ont besoin
     // pour mesurer : ils ne sont pas sous src/.
-    files: ["src/**/*.{ts,tsx}"],
+    files: SRC,
     rules: {
       "no-restricted-properties": [
         "error",
-        ...["getError", "readPixels", "getParameter", "getProgramParameter", "checkFramebufferStatus", "getBufferSubData"].map((property) => ({
+        ...LECTURES_GPU.map((property) => ({
           property,
-          message: `${property}() lit le GPU de facon synchrone et bloque le pipeline (docs/harnais.md, pilier 2). Mesure dans tests/ ou .scratch/, jamais dans le site.`,
+          message: `${property}() lit le GPU de facon synchrone et bloque le pipeline (docs/harnais.md, pilier 2). En production : program.isReady() de three (COMPLETION_STATUS_KHR) pour les programmes, renderer.capabilities pour les constantes, fenceSync et un PIXEL_PACK_BUFFER pour les pixels. Mesure dans tests/ ou .scratch/, jamais dans le site.`,
         })),
       ],
     },

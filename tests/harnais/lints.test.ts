@@ -62,6 +62,16 @@ describe("pilier 2 : aucune lecture synchrone du GPU en production", () => {
 
   it("laisse les sondes de tests et de .scratch tranquilles", async () => {
     const extrait = `export function sonde(gl: WebGL2RenderingContext) { return gl.getError(); }\n`;
-    expect(await regles(extrait, "tests/e2e/essai-harnais.ts")).not.toContain("no-restricted-properties");
+    // toEqual([]) comme pour la loi 1 : un chemin ignore rendrait aussi un
+    // tableau sans la regle, et le temoin serait vert sans avoir ete linte.
+    expect(await regles(extrait, "tests/e2e/essai-harnais.ts")).toEqual([]);
+  });
+
+  it("ne confond pas un `get` legitime avec une lecture du GPU", async () => {
+    // Le temoin est SOUS src/ : il prouve que la regle discrimine, pas
+    // seulement qu'elle est bornee a un dossier. Le jour ou quelqu'un
+    // ajouterait `get` a la liste, c'est ce test qui tomberait.
+    const extrait = `export function instant(q: string) { return new URLSearchParams(q).get("t"); }\n`;
+    expect(await regles(extrait, "src/app/components/stag-scene/essai-harnais.ts")).toEqual([]);
   });
 });
