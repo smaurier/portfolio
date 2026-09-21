@@ -28,4 +28,22 @@ export const harnais = [
       ],
     },
   },
+  {
+    // Pilier 2 : une lecture synchrone du GPU vide le pipeline et bloque le
+    // fil principal jusqu'a ce que le GPU rattrape (MDN, WebGL best
+    // practices). Verifie le 21/09 : src/ n'en contenait aucune ; la
+    // chauffe lit COMPLETION_STATUS_KHR par program.isReady() de three,
+    // que cette regle ne voit pas. Les tests et .scratch en ont besoin
+    // pour mesurer : ils ne sont pas sous src/.
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-properties": [
+        "error",
+        ...["getError", "readPixels", "getParameter", "getProgramParameter", "checkFramebufferStatus", "getBufferSubData"].map((property) => ({
+          property,
+          message: `${property}() lit le GPU de facon synchrone et bloque le pipeline (docs/harnais.md, pilier 2). Mesure dans tests/ ou .scratch/, jamais dans le site.`,
+        })),
+      ],
+    },
+  },
 ];

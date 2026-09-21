@@ -49,3 +49,19 @@ export const m: Metadata = generateMetadata as unknown as Metadata;
     expect(await regles(relatif, "src/lib/essai-harnais.ts")).toContain("no-restricted-imports");
   });
 });
+
+describe("pilier 2 : aucune lecture synchrone du GPU en production", () => {
+  const cas = ["getError", "readPixels", "getParameter", "getProgramParameter", "checkFramebufferStatus", "getBufferSubData"];
+
+  for (const nom of cas) {
+    it(`refuse ${nom}() dans src/`, async () => {
+      const extrait = `export function sonde(gl: WebGL2RenderingContext) { return gl.${nom}(); }\n`;
+      expect(await regles(extrait, "src/app/components/stag-scene/essai-harnais.ts")).toContain("no-restricted-properties");
+    });
+  }
+
+  it("laisse les sondes de tests et de .scratch tranquilles", async () => {
+    const extrait = `export function sonde(gl: WebGL2RenderingContext) { return gl.getError(); }\n`;
+    expect(await regles(extrait, "tests/e2e/essai-harnais.ts")).not.toContain("no-restricted-properties");
+  });
+});
