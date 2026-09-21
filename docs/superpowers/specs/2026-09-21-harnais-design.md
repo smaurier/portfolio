@@ -79,12 +79,39 @@ l'attente (production locale, bureau, `dpr` 1, du premier octet a
 | pire intervalle | 500 ms |
 
 Le voile devrait ne rien couter au fil principal : ses rotations sont en
-`transform`. Or il est **repeint a chaque image** — un noeud du DOM l'est
-117 fois, un autre 65, puis un groupe de cinq a 31 fois chacun. L'oeil
-avait raison : ce n'est pas compose, c'est redessine, et des que le
-script charge, le dessin attend. C'est le **premier rouge nomme** du
-harnais, avant meme qu'il existe, et l'oracle de peinture du pilier 2 est
-celui qui le gardera ferme.
+`transform`. Or il est **repeint a chaque image**. Les noeuds repeints,
+nommes par `DOM.describeNode` dans la meme session (deux passes
+identiques) :
+
+| repeints | noeud |
+| --- | --- |
+| 114 | `#document` — la page entiere |
+| 64 | `<p class="translation">` — la traduction de la phrase |
+| 37 | `<p class="logoSignature">` |
+| 31, 31, 31, ... | chaque `<span class="char">` — les lettres |
+
+**Ce ne sont pas les zones qui tournent.** C'est la revelation lettre par
+lettre : `phraseCharReveal` et `translationCharReveal` animent
+**`text-shadow`** (l'aberration chromatique rouge / cyan qui se resout, la
+« signature glitch dimensionnel » du 31/08) et **`filter: blur()`** sur
+chaque caractere, en cascade (`--char-index` x 45 ms puis x 11 ms). Ce sont
+deux proprietes de *peinture*, pas de composition : quatre-vingts spans
+repeints pendant deux secondes, et le document avec eux. Quand le script
+charge et bloque le fil principal (617 a 767 ms d'un coup), ces peintures
+attendent, les tuiles de la page ne se rafraichissent plus, et la rotation
+— qui, elle, est bien composee — **parait** saccader. L'oeil avait raison
+sur l'effet et le spec avait tort sur la cause : l'hypothese des calques
+masques est retiree.
+
+**La direction de reparation qui garde l'effet** (le plan la detaillera,
+la loi « rien ne disparait » l'exige) : le meme regard — deux copies du
+texte, chaude et froide, decalees par `transform: translateX(±3px)` et
+fondues par `opacity`, toutes deux composees — au lieu d'une ombre
+portee ; et le flou qui se resout par le fondu d'une copie pre-floutee
+plutot que par `filter` anime. Meme image a l'arrivee, zero peinture en
+route. C'est le **premier rouge nomme** du harnais, avant meme qu'il
+existe, et l'oracle de peinture du pilier 2 est celui qui le gardera
+ferme.
 
 ---
 
@@ -389,20 +416,19 @@ assure la transition vers le 3D, et il est la premiere chose qu'un jure
 voit : il entre dans le harnais comme un objet nomme, pas comme un moment
 parmi dix-sept.
 
-**Ce qu'on sait.** La rotation des trois zones est en `transform`, donc
-censee vivre sur le compositeur, hors du fil principal. Mais les trois
-zones sont **masquees et decoupees** (`clip-path` pour le coeur, `mask`
-radial pour la bague et la couronne). Un calque masque qui tourne peut etre
-re-rasterise a chaque image au lieu d'etre compose : la 2D saccade alors
-des que le fil principal est occupe a charger — et il l'est, 617 a 767 ms
-d'un coup pendant l'attente.
+**Ce qu'on sait, mesure le jour meme** (section 0) : la rotation des
+trois zones est bien composee. Ce qui repeint la page a chaque image,
+c'est la revelation du texte — `text-shadow` et `filter: blur()` animes
+sur chaque lettre. Le spec a d'abord soupconne les calques masques ; la
+trace, avec les noeuds nommes, a tranche autrement. C'est la demonstration
+en grandeur reelle de la regle du pilier 1 : un rouge n'est jamais nu, il
+nomme.
 
-**L'hypothese est testable, et c'est le premier oracle du harnais qui la
-teste** : pendant l'attente, la trace ne doit contenir aucun evenement de
-peinture ni de rasterisation attribuable au voile (pilier 2, « la 2D du
-voile »). S'il y en a, la trace nomme le calque. Une sonde
-(`.scratch/voile-peinture.mjs`) le mesure des le jour du design ; son
-resultat est consigne en section 0.
+**L'oracle qui gardera ca ferme** : pendant l'attente, la trace ne doit
+contenir aucun evenement de peinture ni de rasterisation attribuable au
+voile (pilier 2, « la 2D du voile »). Il est rouge le jour du design, avec
+ses noeuds nommes ; la sonde `.scratch/voile-peinture.mjs` est son
+prototype et devient son aide.
 
 **Ce que le harnais garde pour le voile, nommement** : l'attente et
 l'ouverture comme deux moments de la barre (section 2) ; l'oracle de
