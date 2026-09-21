@@ -62,6 +62,30 @@ Et sous mouvement reduit, mesure du 20/09 sur les references de la
 regression visuelle : l'Est a 61 % et le Sud a 57 % de pixels quasi noirs
 dans la bande de scene, contre 0 % a l'Ouest (`docs/da/pose-au-repos.md`).
 
+### La 2D du voile est repeinte, pas composee (trace du 21/09)
+
+Sylvain, sur la production : « il saccade enormement ». Trace CDP de
+l'attente (production locale, bureau, `dpr` 1, du premier octet a
+`data-loaded`, `.scratch/voile-peinture.mjs`) :
+
+| pendant l'attente (~4 s) | |
+| --- | --- |
+| peintures (`Paint`) | **504** |
+| rasterisations (`RasterTask`) | **2 608** |
+| mises en page (`Layout` / `UpdateLayoutTree`) | 125 / 282 |
+| images presentees | 259 |
+| dont en retard (> 16,7 ms) | **134, soit 52 %** |
+| images perdues | 37 |
+| pire intervalle | 500 ms |
+
+Le voile devrait ne rien couter au fil principal : ses rotations sont en
+`transform`. Or il est **repeint a chaque image** — un noeud du DOM l'est
+117 fois, un autre 65, puis un groupe de cinq a 31 fois chacun. L'oeil
+avait raison : ce n'est pas compose, c'est redessine, et des que le
+script charge, le dessin attend. C'est le **premier rouge nomme** du
+harnais, avant meme qu'il existe, et l'oracle de peinture du pilier 2 est
+celui qui le gardera ferme.
+
 ---
 
 ## 1. Ou ca vit
@@ -356,10 +380,65 @@ telephone a chaque jalon.
 
 ---
 
+## 6 bis. Le voile, objet a part entiere du harnais
+
+Sylvain, 21/09, sur la version en production : **« il saccade
+enormement »**. C'est l'observation d'un oeil sur la vraie machine, et elle
+pese plus que les emulations de la section 0. Le voile est en 2D, il
+assure la transition vers le 3D, et il est la premiere chose qu'un jure
+voit : il entre dans le harnais comme un objet nomme, pas comme un moment
+parmi dix-sept.
+
+**Ce qu'on sait.** La rotation des trois zones est en `transform`, donc
+censee vivre sur le compositeur, hors du fil principal. Mais les trois
+zones sont **masquees et decoupees** (`clip-path` pour le coeur, `mask`
+radial pour la bague et la couronne). Un calque masque qui tourne peut etre
+re-rasterise a chaque image au lieu d'etre compose : la 2D saccade alors
+des que le fil principal est occupe a charger — et il l'est, 617 a 767 ms
+d'un coup pendant l'attente.
+
+**L'hypothese est testable, et c'est le premier oracle du harnais qui la
+teste** : pendant l'attente, la trace ne doit contenir aucun evenement de
+peinture ni de rasterisation attribuable au voile (pilier 2, « la 2D du
+voile »). S'il y en a, la trace nomme le calque. Une sonde
+(`.scratch/voile-peinture.mjs`) le mesure des le jour du design ; son
+resultat est consigne en section 0.
+
+**Ce que le harnais garde pour le voile, nommement** : l'attente et
+l'ouverture comme deux moments de la barre (section 2) ; l'oracle de
+peinture (pilier 2) ; « rien ne pop » et « rien ne manque a l'arrivee »
+(la definition du fini, ligne 5) ; et la regle que le raccord 2D vers 3D
+(les points qui rejoignent la boussole, le point central dans les braises)
+se verifie sur le comportement, comme les tests du voile reecrits le 12/09.
+
+**Sa reparation reste la premiere demande** qui traversera le harnais
+entier — mais elle part avec une hypothese nommee et un oracle qui la
+tranche, au lieu d'une chasse.
+
+---
+
+## 6 ter. L'infrastructure : cinq chantiers, a traiter
+
+Ajoutes a la demande de Sylvain le 21/09. Ce ne sont pas des regles, ce
+sont des moyens ; chacun a une premiere marche concrete, et deux
+demandent du materiel.
+
+| chantier | ce que c'est | premiere marche | materiel |
+| --- | --- | --- | --- |
+| 1. Une machine de mesure fixe | la barre tourne sur le PC de dev, qui fait autre chose ; le bruit est traite, pas supprime | la barre refuse de conclure si l'auto-test est bruyant (section 2) ; puis un profil `perf` qui tue tout serveur et process `next` avant de mesurer ; puis une machine dediee (un vieux portable suffit) | oui, a terme |
+| 2. Un vrai telephone | l'emulation /4 est un proxy ; rien n'a ete vu sur un vrai appareil | Chrome sur Android par `adb` et le port de debogage distant : la meme suite `perf-telephone` se lance sur un vrai Pixel ; rituel a chaque jalon, chiffres dans `soty-etat.md` | un telephone Android, meme prete |
+| 3. Une chaine d'actifs | Draco / meshopt et KTX2 comme etapes de build, pas comme regles a la main | `scripts/optimise-models.mjs` existe ; y ajouter KTX2 pour les textures embarquees et une verification des plafonds (l'oracle des textures) dans la meme passe | non |
+| 4. Le decoupage du travail lourd | la chauffe etale les nuanciers sur plusieurs images ; rien ne le fait pour le decodage, l'envoi des textures, la construction des geometries | un ordonnanceur unique `lib/ordonnanceur.ts` (pur, teste) : une file de taches a budget par image, que la chauffe utilise en premier ; c'est le mecanisme qui reparera l'attente du voile | non |
+| 5. Les captures GPU | quand la barre dit « GPU » sans dire quoi | rituel dans `docs/harnais.md` : une capture Spector.js sur le moment rouge, lue avant toute correction ; rien a installer dans le site | non |
+
+---
+
 ## 7. Ce que ce design ne livre pas
 
-- La reparation du voile (l'attente a 617 ms, l'ouverture sur telephone) :
-  la premiere demande qui traversera le harnais entier.
+- La reparation du voile (section 6 bis) : la premiere demande qui
+  traversera le harnais entier.
+- Les chantiers 1 et 2 de l'infrastructure au-dela de leur premiere marche
+  logicielle : ils demandent du materiel.
 - La pose au repos (`docs/da/pose-au-repos.md`) : rouverte quand les
   quarante court-circuits seront devenus une regle.
 - La passe du Sud : le brainstorm du 21/09 a etabli la priorite (les
@@ -392,6 +471,14 @@ Pour `close-the-books`, quand le plan sera execute :
     (script `prepare`) et refusent, respectivement, un commit qui casse
     `tsc`/`eslint`/`pnpm test` et une poussee sur `main` qui recule sur la
     barre.
+13. L'oracle de peinture du voile a tourne sur la production et son
+    resultat est consigne : soit il est vert et l'hypothese des calques
+    masques tombe, soit il est rouge et il nomme le calque.
+14. Les cinq chantiers d'infrastructure ont chacun leur premiere marche
+    livree : l'auto-test bruyant refuse de conclure (1) ; `perf-telephone`
+    sait viser un appareil `adb` (2) ; l'optimisation des modeles verifie
+    les plafonds de textures (3) ; `lib/ordonnanceur.ts` existe, est teste,
+    et la chauffe passe par lui (4) ; le rituel Spector.js est ecrit (5).
 8. Les quatre oracles nouveaux du pilier 2 (textures, profil telephone, 2D
    du voile, zero erreur) sont verts ou rouges pour une raison nommee,
    jamais sautes.
