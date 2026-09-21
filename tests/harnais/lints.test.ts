@@ -35,6 +35,17 @@ export const d: DirectionKey = "jade";
   });
 
   it("l'autorise depuis un composant", async () => {
-    expect(await regles(extrait, "src/app/components/essai-harnais.tsx")).not.toContain("no-restricted-imports");
+    // `toEqual([])` et non `not.toContain` : un chemin ignore ou une erreur
+    // d'analyse rendraient aussi un tableau sans la regle, et le temoin
+    // serait vert sans avoir ete linte.
+    expect(await regles(extrait, "src/app/components/essai-harnais.tsx")).toEqual([]);
+  });
+
+  it("refuse aussi un import relatif d'une page ou d'un layout", async () => {
+    const relatif = `import type { Metadata } from "next";
+import { generateMetadata } from "../app/[locale]/[slug]/page";
+export const m: Metadata = generateMetadata as unknown as Metadata;
+`;
+    expect(await regles(relatif, "src/lib/essai-harnais.ts")).toContain("no-restricted-imports");
   });
 });

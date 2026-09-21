@@ -1,3 +1,5 @@
+import type { DirectionKey } from "./direction";
+
 /**
  * Nepantla (nahuatl : « l'entre-deux ») : le passage entre deux
  * directions cardinales. Chantier transitions 03/09 : le monde 3D
@@ -14,7 +16,9 @@
  * au foyer : implosion d'echelle, pas de glissement.
  */
 
-export type NepantlaDirection = "jade" | "dore" | "turquoise" | "cendre" | "obsidienne";
+// Troisieme copie du meme type, trouvee a la relecture du 21/09 : c'est un
+// alias de lib/direction.ts, la seule source (loi 2 du harnais).
+export type NepantlaDirection = DirectionKey;
 
 /** Offset en fractions de viewport (x * innerWidth, y * innerHeight)
  *  + facteur d'echelle. scale === 1 pour les glissements. */

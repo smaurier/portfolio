@@ -11,6 +11,8 @@ export const harnais = [
     // Loi 1 : lib/ est pure et testee a l'unite ; les composants rendent.
     // Trouve le 21/09 : vingt et un fichiers de lib/ importaient un type
     // depuis un composant. Le sens est inverse ; le type descend dans lib/.
+    // Le motif **/app/** couvre aussi les pages et les layouts, par alias
+    // ou par chemin relatif.
     files: ["src/lib/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
@@ -18,7 +20,7 @@ export const harnais = [
         {
           patterns: [
             {
-              group: ["@/app/**", "**/app/components/**"],
+              group: ["@/app/**", "**/app/**"],
               message: "lib/ est pure : elle n'importe jamais un composant ni une page (docs/harnais.md, loi 1). Le type ou la constante descend dans lib/.",
             },
           ],
