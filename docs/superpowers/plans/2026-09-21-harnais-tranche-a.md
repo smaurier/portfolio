@@ -444,15 +444,38 @@ Expected: `2 failed | 11 passed` (les deux « refuse »).
 
 - [ ] **Step 3 : la regle, avec ses selecteurs**
 
-Dans `eslint/harnais.mjs`, ajouter en tete du fichier (avant `export const harnais`) :
+**Relecture de qualite des taches 1-2 (21/09)** : `eslint/harnais.mjs` doit
+rester une liste lisible de lois ; la lecture des JSON des cliquets va dans
+son propre module. Creer `eslint/cliquets.mjs` :
 
 ```js
+/**
+ * LES CLIQUETS, COTE ESLINT : lire les lignes de base.
+ *
+ * Deux JSON versionnes sous scripts/, generes par scripts/harnais-baseline.mjs
+ * et gardes par tests/harnais/cliquets.test.ts. Ce module ne fait que les
+ * lire, pour que eslint/harnais.mjs reste une liste de lois sans E/S.
+ */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ICI = dirname(fileURLToPath(import.meta.url));
-const lireCliquet = (nom) => JSON.parse(readFileSync(join(ICI, "..", "scripts", nom), "utf8"));
+const lire = (nom) => JSON.parse(readFileSync(join(ICI, "..", "scripts", nom), "utf8"));
+
+/** Les fichiers du premier jour, geles a leur compte de violations de la boucle. */
+export const cliquetBoucle = lire("lint-baseline.json");
+/** Les fichiers au-dessus du plafond de lignes, geles a leur taille. */
+export const cliquetLignes = lire("lines-baseline.json");
+```
+
+`scripts/lines-baseline.json` n'existe pas encore a cette etape : creer aussi
+ce fichier avec `{}` (la tache 5 le remplit).
+
+Dans `eslint/harnais.mjs`, ajouter en tete du fichier (avant `export const harnais`) :
+
+```js
+import { cliquetBoucle, cliquetLignes } from "./cliquets.mjs";
 
 /** Ce qui ne se cree pas a chaque image : les objets three qui allouent. */
 const OBJETS_THREE = "Vector2|Vector3|Vector4|Quaternion|Matrix3|Matrix4|Color|Euler|Box3|Sphere|Plane|Ray|Raycaster|Object3D";
@@ -472,8 +495,6 @@ export const REGLES_BOUCLE = [
   },
 ];
 
-/** Les fichiers du premier jour, geles a leur compte de violations. */
-const cliquetBoucle = lireCliquet("lint-baseline.json");
 ```
 
 puis ajouter a `harnais`, apres le bloc GPU :
@@ -496,7 +517,8 @@ puis ajouter a `harnais`, apres le bloc GPU :
   })),
 ```
 
-Creer `scripts/lint-baseline.json` avec un objet vide pour l'instant :
+Creer `scripts/lint-baseline.json` avec un objet vide pour l'instant (et
+`scripts/lines-baseline.json` de meme, si la tache l'a saute) :
 
 ```json
 {}
@@ -639,7 +661,7 @@ Expected: `2 passed` (le cliquet des lignes lit le JSON ecrit a l'etape 5 ; il n
 - [ ] **Step 7 : commit**
 
 ```bash
-git add eslint/harnais.mjs tests/harnais scripts/harnais-baseline.mjs scripts/lint-baseline.json scripts/lines-baseline.json package.json
+git add eslint/harnais.mjs eslint/cliquets.mjs tests/harnais scripts/harnais-baseline.mjs scripts/lint-baseline.json scripts/lines-baseline.json package.json
 git commit -F - <<'EOF'
 chore(harnais): rien d'alloue dans useFrame, pas de setState dans la boucle, et le cliquet du premier jour
 
@@ -691,11 +713,10 @@ Expected: `1 failed | 14 passed`.
 
 - [ ] **Step 3 : la regle et ses derogations generees**
 
-Dans `eslint/harnais.mjs`, sous `const cliquetBoucle = ...`, ajouter :
+Dans `eslint/harnais.mjs`, sous l'import de `./cliquets.mjs` (qui fournit
+deja `cliquetLignes`), ajouter :
 
 ```js
-/** Les fichiers au-dessus du plafond le jour de la regle, geles a leur taille. */
-const cliquetLignes = lireCliquet("lines-baseline.json");
 export const PLAFOND_LIGNES = 400;
 ```
 
@@ -941,7 +962,7 @@ des extraits dans `tests/harnais/lints.test.ts`.
 
 | regle | mecanisme | preuve |
 | --- | --- | --- |
-| `lib/` n'importe jamais un composant ni une page | `no-restricted-imports` sous `src/lib/**` | 21/09 : vingt et un fichiers de `lib/` importaient `DirectionKey` depuis un composant. Le type vit dans `lib/direction.ts`. |
+| `lib/` n'importe jamais un composant ni une page (`@/app/**` et `**/app/**`, par alias ou chemin relatif) | `no-restricted-imports` sous `src/lib/**` | 21/09 : vingt et un fichiers de `lib/` importaient `DirectionKey` depuis un composant. Le type vit dans `lib/direction.ts`. **Limite connue** : la regle ne voit pas un `import()` dynamique ; dans une lib pure il n'y en a pas, et la relecture le garde. |
 | aucune lecture synchrone du GPU sous `src/` (`getError`, `readPixels`, `getParameter`, `getProgramParameter`, `checkFramebufferStatus`, `getBufferSubData`) | `no-restricted-properties` | MDN, WebGL best practices : ces appels vident le pipeline. `src/` n'en avait aucun ; les sondes de `tests/` et `.scratch/` en ont besoin et ne sont pas sous `src/`. |
 | rien d'alloue dans `useFrame` (objets three) | `no-restricted-syntax`, selecteur sur le rappel | R3F, performance pitfalls : une allocation par image nourrit le ramasse-miettes. Le motif du depot est `scratch`, cree une fois dehors. |
 | pas de `setState` pilote par la boucle | `no-restricted-syntax`, identifiant nu `set[A-Z]...` dans `useFrame` | R3F : React ne re-rend pas a 60 images par seconde ; la boucle ecrit dans des refs. |
@@ -982,7 +1003,7 @@ constater qu'un fichier a maigri.
 | Quarante composants court-circuitent `reducedMotionRef` chacun a sa facon | loi 2 | a fait echouer la pose au repos (`docs/da/pose-au-repos.md`) ; une regle a la place de quarante la rouvrira | 21/09 |
 | Dix-huit fichiers au-dessus de 400 lignes, le plus gros a 1322 (`xolotl-companion.tsx`) | lisibilite | geles par le cliquet | 21/09 |
 | « Mode recit » et « mouvement reduit » sont deux mecanismes pour une idee | loi 2 | a unifier | 21/09 |
-| ~~`DirectionKey` et `CardinalDirection` vivaient dans des composants~~ | loi 1 | corrige le 21/09, tranche A | — |
+| ~~`DirectionKey` et `CardinalDirection` vivaient dans des composants, et une troisieme copie (`NepantlaDirection`) dans `lib/nepantla.ts`~~ | lois 1 et 2 | corrige le 21/09, tranche A : une seule source, `lib/direction.ts` | — |
 
 ---
 
