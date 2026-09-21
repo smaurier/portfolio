@@ -1,5 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ESLint } from "eslint";
+
+// Le premier lintText charge toute la configuration (eslint-config-next,
+// l'analyseur TypeScript) : 3,5 s seul, davantage quand vitest fait tourner
+// plusieurs fichiers en parallele. Les 5 s par defaut ont expire deux fois
+// le 21/09. Un delai large ici ne cache rien : ces tests ne mesurent pas un
+// temps, ils verifient qu'une regle existe.
+vi.setConfig({ testTimeout: 30_000 });
 
 /**
  * LES REGLES DU HARNAIS, PROUVEES SUR DES EXTRAITS (tranche A).
