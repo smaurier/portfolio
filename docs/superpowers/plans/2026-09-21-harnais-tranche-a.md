@@ -36,17 +36,17 @@ pnpm exec eslint . 2>&1 | tail -2   # 0 errors (1 warning pre-existant dans test
 | `src/app/components/stag-scene/direction-colors.ts:13` | re-exporte `DirectionKey` depuis `lib` | 2 |
 | `src/app/components/stag-scene/cardinal-transition-context.tsx:35` | re-exporte `CardinalDirection` depuis `lib` | 2 |
 | 21 fichiers `src/lib/*.ts` | leur import de type change de chemin | 2 |
-| `eslint/harnais.mjs` | **cree** — les regles du pilier 2 et la generation des derogations depuis les cliquets | 1, 3, 4, 5, 6 |
+| `eslint/harnais.mjs` | **cree** — les regles du pilier 2 et la generation des derogations depuis les cliquets | 1, 3, 4, 5 |
 | `eslint.config.mjs` | importe `harnais` | 1 |
-| `tests/harnais/lints.test.ts` | **cree** — chaque regle prouvee rouge puis verte par l'API ESLint sur un extrait | 1, 3, 4, 5, 6 |
-| `scripts/harnais-baseline.mjs` | **cree** — genere les deux cliquets | 4, 6 |
+| `tests/harnais/lints.test.ts` | **cree** — chaque regle prouvee rouge puis verte par l'API ESLint sur un extrait | 1, 3, 4, 5 |
+| `scripts/harnais-baseline.mjs` | **cree** — genere les deux cliquets | 4, 5 |
 | `scripts/lint-baseline.json` | **cree** — violations `useFrame` du premier jour, par fichier | 4 |
-| `scripts/lines-baseline.json` | **cree** — fichiers au-dessus de 400 lignes, geles a leur taille | 6 |
-| `tests/harnais/cliquets.test.ts` | **cree** — les cliquets ne reculent pas et ne trainent pas | 4, 6 |
-| `scripts/hooks/pre-commit`, `scripts/hooks/pre-push` | **crees** | 7 |
-| `package.json` | scripts `prepare`, `harnais:baseline` | 6, 7 |
-| `docs/harnais.md` | **cree** — la reference, tranche A | 8 |
-| `CLAUDE.md` | section « Le harnais » | 8 |
+| `scripts/lines-baseline.json` | **cree** — fichiers au-dessus de 400 lignes, geles a leur taille | 4, 5 |
+| `tests/harnais/cliquets.test.ts` | **cree** — les cliquets ne reculent pas et ne trainent pas | 4, 5 |
+| `scripts/hooks/pre-commit`, `scripts/hooks/pre-push` | **crees** | 6 |
+| `package.json` | scripts `prepare`, `harnais:baseline` | 4, 6 |
+| `docs/harnais.md` | **cree** — la reference, tranche A | 7 |
+| `CLAUDE.md` | section « Le harnais » | 7 |
 
 ---
 
@@ -160,7 +160,7 @@ Run: `pnpm exec vitest run tests/harnais/lints.test.ts`
 Expected: `2 passed`.
 
 Run: `pnpm exec eslint src/lib 2>&1 | grep -c "no-restricted-imports"`
-Expected: `21` — les vingt et un fichiers du premier jour. C'est le rouge attendu ; la tache 2 le ferme. **Ne pas commiter entre les deux** : un commit avec le lint rouge casserait le hook de la tache 7 le jour ou il sera installe.
+Expected: `21` — les vingt et un fichiers du premier jour. C'est le rouge attendu ; la tache 2 le ferme. **Ne pas commiter entre les deux** : un commit avec le lint rouge casserait le hook de la tache 6 le jour ou il sera installe.
 
 ---
 
@@ -765,7 +765,7 @@ secondes, mais sur tout le depot) et la barre de perf (minutes, tranche C)
 vont dans `pre-push`, parce que ce depot commite vingt a cinquante fois par
 jour et pousse `main` au plus une fois. Le spec disait « les tests bloquent
 tout commit » : ils bloquent toute poussee, ce qui est le meme filet pour
-`main` et un filet plus leger pour `dev`. La tache 8 le note dans le spec.
+`main` et un filet plus leger pour `dev`. La tache 8 le note dans le spec (la cloture).
 
 - [ ] **Step 1 : les deux scripts**
 
