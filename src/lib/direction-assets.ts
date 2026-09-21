@@ -1,4 +1,4 @@
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 /**
  * Quels MODELES appartiennent a quelle direction (08/09). Mesure du meme

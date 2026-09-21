@@ -1,4 +1,4 @@
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 /**
  * QUI A BESOIN DE LA PHOTOGRAPHIE DE CIEL (10/09).

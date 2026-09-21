@@ -1,4 +1,4 @@
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 /**
  * Orientation cardinale des scenes (05/09, idee de Sylvain : « au sud

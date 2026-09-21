@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DECOR_COMPASS, orientationAngle, rotateY, stepAngle, toDecorLocal } from "./cardinal-orientation";
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 /** La camera de tete de page regarde vers -z. */
 const GAZE = { x: 0, z: -1 };

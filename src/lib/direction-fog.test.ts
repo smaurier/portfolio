@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { approachFog, approachTint, DIRECTION_FOG_RANGE, FOG_TINT_OVERRIDE, getFogRange, getFogTint } from "./direction-fog";
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 const DIRECTIONS = Object.keys(DIRECTION_FOG_RANGE) as DirectionKey[];
 

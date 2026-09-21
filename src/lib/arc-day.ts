@@ -1,4 +1,4 @@
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 import { getRevealFloor } from "./reveal-arc";
 import { remapWestArc } from "./ouest-arc";
 import { eastDay } from "./est-arc";

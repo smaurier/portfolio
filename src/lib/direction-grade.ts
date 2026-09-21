@@ -1,4 +1,4 @@
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 /**
  * Grade PostFX par direction (01/09, etage 3 du sprint identites de

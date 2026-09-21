@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NEPANTLA_TIMING, enterOffset, exitOffset } from "@/lib/nepantla";
 import { descendreVersLaNuit, garantirLeHaut, type ContexteDescente } from "@/lib/descente-nepantla";
+import type { CardinalDirection } from "@/lib/direction";
 import { moteurDefilement } from "../smooth-scroll";
 import { SHADERS_WARM_EVENT, WARMUP_FALLBACK_MS, getWarmDirection } from "./shader-warmup";
 
@@ -32,7 +33,8 @@ import { SHADERS_WARM_EVENT, WARMUP_FALLBACK_MS, getWarmDirection } from "./shad
  * Refs et pas state pour progress : useFrame tire a ~60fps.
  */
 
-export type CardinalDirection = "jade" | "dore" | "turquoise" | "cendre" | "obsidienne";
+// Meme type que DirectionKey, sous son nom historique ; source lib/direction.ts.
+export type { CardinalDirection };
 
 // Vecteur cardinal en repère monde (X droite, Y haut, Z arrière).
 // Le head-look du cerf pointe vers cerf.position + vector * dist.

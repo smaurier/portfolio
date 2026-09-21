@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { approachGrade, DIRECTION_GRADE, getGradeRig, NEUTRAL_GRADE } from "./direction-grade";
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 const DIRECTIONS = Object.keys(DIRECTION_GRADE) as DirectionKey[];
 

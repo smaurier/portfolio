@@ -1,4 +1,4 @@
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 /**
  * LES COUPES SON DU VOYAGE CARDINAL (11/09, C2 du backlog, choix de

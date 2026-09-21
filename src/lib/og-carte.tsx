@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { CSSProperties, ReactElement } from "react";
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 /**
  * LA CARTE DE PARTAGE (13/09). Une seule carte, deux routes : l'accueil

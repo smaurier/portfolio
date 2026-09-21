@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { approachRig, DIRECTION_LIGHT_RIG, getLightRig, moonDirection, NEUTRAL_RIG, rigAtArc, sunDirection, sunUp } from "./direction-light";
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 import { getOrbitCameraPosition } from "./camera-path";
 import { getRevealFloor } from "./reveal-arc";
 

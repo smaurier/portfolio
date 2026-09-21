@@ -1,6 +1,7 @@
 "use client";
 
 import type { ColorRgb } from "@/lib/reveal-arc";
+import type { DirectionKey } from "@/lib/direction";
 
 /**
  * Les 5 directions du Codex Nahual (section 03, cf memory
@@ -10,7 +11,9 @@ import type { ColorRgb } from "@/lib/reveal-arc";
  * nav ("chemins révélés"). La home = jade (centre) ; les pages écho
  * passent leur direction.
  */
-export type DirectionKey = "jade" | "dore" | "turquoise" | "cendre" | "obsidienne";
+// Re-exporte pour les composants qui l'importent d'ici depuis le 25/08 ;
+// la source est lib/direction.ts (21/09, loi 1 du harnais).
+export type { DirectionKey };
 
 const CSS_VAR_BY_DIRECTION: Record<DirectionKey, string> = {
   jade: "--jade-bg",

@@ -115,7 +115,7 @@ export function refletStarOpacity(k: number): number {
  * recit. Chaque monde garde son arc et son heure ; ce qui change, c'est
  * la matiere : le papier a la place de la nuit.
  */
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 /** Part de papier dans le brouillard, PAR direction. L'Ouest et l'Est
  * gardent plus de leur teinte (crepuscule abricot puis mauve, aube rouge

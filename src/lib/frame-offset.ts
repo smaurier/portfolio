@@ -1,5 +1,5 @@
 import type { PerspectiveCamera } from "three";
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 /**
  * LE CADRE DECALE (10/09, arbitrage de Sylvain sur le rapport contenu /

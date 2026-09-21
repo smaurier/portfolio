@@ -1,4 +1,4 @@
-import type { DirectionKey } from "@/app/components/stag-scene/direction-colors";
+import type { DirectionKey } from "@/lib/direction";
 
 /**
  * Le COPAL (07/09, Sylvain : les lianes fleuries sont retirees, « j'aimerais

@@ -21,7 +21,7 @@
  * « tu » que la strophe 183, non citee, nomme ; citee seule, elle ne nomme
  * personne : c'est une citation, pas une representation).
  */
-import type { CardinalDirection } from "@/app/components/stag-scene/cardinal-transition-context";
+import type { CardinalDirection } from "@/lib/direction";
 
 export const CANTARES_EDITION_URL = "https://historicas.unam.mx/publicaciones/publicadigital/libros/cantares/";
 
