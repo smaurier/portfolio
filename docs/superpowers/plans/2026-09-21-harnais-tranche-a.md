@@ -827,6 +827,26 @@ done
 exit 0
 ```
 
+- [ ] **Step 1 bis : `.scratch/` sort du lint**
+
+Relecture de la tache 3 : `.scratch/` est gitignore mais `eslint .` le
+linte (une config plate n'ignore pas les dossiers a point), et quatre des
+cinq avertissements du depot en viennent. Un hook qui lint des fichiers
+que git ne suit pas n'a pas de sens. Dans `eslint.config.mjs`, la ligne
+
+```js
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+```
+
+devient
+
+```js
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", ".scratch/**"]),
+```
+
+Run: `pnpm exec eslint . 2>&1 | tail -2`
+Expected: une seule ligne d'avertissement restante (`tests/e2e/veille.spec.ts`, pre-existante), zero erreur.
+
 - [ ] **Step 2 : `prepare`, et les droits d'execution dans l'index**
 
 Dans `package.json`, bloc `scripts`, ajouter :
@@ -872,7 +892,7 @@ Expected: `git status --short` ne montre que les fichiers de cette tache.
 - [ ] **Step 4 : commit (le hook s'applique a lui-meme)**
 
 ```bash
-git add scripts/hooks package.json
+git add scripts/hooks package.json eslint.config.mjs
 git commit -F - <<'EOF'
 chore(harnais): hooks pre-commit et pre-push, installes par prepare
 
@@ -963,7 +983,7 @@ des extraits dans `tests/harnais/lints.test.ts`.
 | regle | mecanisme | preuve |
 | --- | --- | --- |
 | `lib/` n'importe jamais un composant ni une page (`@/app/**` et `**/app/**`, par alias ou chemin relatif) | `no-restricted-imports` sous `src/lib/**` | 21/09 : vingt et un fichiers de `lib/` importaient `DirectionKey` depuis un composant. Le type vit dans `lib/direction.ts`. **Limite connue** : la regle ne voit pas un `import()` dynamique ; dans une lib pure il n'y en a pas, et la relecture le garde. |
-| aucune lecture synchrone du GPU sous `src/` (`getError`, `readPixels`, `getParameter`, `getProgramParameter`, `checkFramebufferStatus`, `getBufferSubData`) | `no-restricted-properties` | MDN, WebGL best practices : ces appels vident le pipeline. `src/` n'en avait aucun ; les sondes de `tests/` et `.scratch/` en ont besoin et ne sont pas sous `src/`. |
+| aucune lecture synchrone du GPU sous `src/` (`getError`, `readPixels`, `getParameter`, `getProgramParameter`, `checkFramebufferStatus`, `getBufferSubData`), sur n'importe quel objet | `no-restricted-properties` | MDN, WebGL best practices : ces appels vident le pipeline. `src/` n'en avait aucun ; les sondes de `tests/` et `.scratch/` en ont besoin et ne sont pas sous `src/`. Sans restriction d'objet a dessein : les contextes du depot s'appellent `g`, `ctx` ou `gl.getContext()`. **Limite connue** : la liste du design fixe six noms ; `finish`, `getShaderParameter`, `getProgramInfoLog`, `getShaderInfoLog`, `clientWaitSync`, `getSyncParameter`, `getUniform` sont aussi synchrones et passent aujourd'hui — a amender dans le design (tache 8). |
 | rien d'alloue dans `useFrame` (objets three) | `no-restricted-syntax`, selecteur sur le rappel | R3F, performance pitfalls : une allocation par image nourrit le ramasse-miettes. Le motif du depot est `scratch`, cree une fois dehors. |
 | pas de `setState` pilote par la boucle | `no-restricted-syntax`, identifiant nu `set[A-Z]...` dans `useFrame` | R3F : React ne re-rend pas a 60 images par seconde ; la boucle ecrit dans des refs. |
 | plafond de 400 lignes par fichier | `max-lines`, lignes brutes | un fichier qu'on ne tient pas en tete d'un coup se modifie mal. |
@@ -1101,6 +1121,15 @@ Dans le spec, section 8, marquer ce que cette tranche livre :
 - critere 2 : `CLAUDE.md`, section « Le harnais », six lignes — **fait** ;
 - critere 7 : cinq lints, aucun import inverse, `max-lines` en cliquet — **fait** ;
 - critere 12 : hooks installes par `prepare` — **fait, avec une precision** : les tests unitaires bloquent la poussee, pas le commit (vingt a cinquante commits par jour, huit secondes chacun ; le filet est le meme pour `main`).
+
+Et un **amendement du design**, trouve par la relecture de la tache 3 : la
+liste des lectures GPU synchrones (section 3 du spec) fixe six noms, or
+`finish`, `getShaderParameter`, `getProgramInfoLog`, `getShaderInfoLog`,
+`clientWaitSync`, `getSyncParameter` et `getUniform` sont aussi
+synchrones. Ajouter au spec, dans la ligne de cette regle : « liste
+ouverte ; `finish` en premier candidat ; toute extension passe par le
+test des extraits ». L'extension elle-meme est une tache de la tranche C
+(un nom ajoute = un extrait rouge puis vert).
 
 Remplacer dans la section 6 du spec (« Ce qui bloque quoi ») la phrase
 `tsc`, `eslint` et `pnpm test` bloquent tout commit` par :
