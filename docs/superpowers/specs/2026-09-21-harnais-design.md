@@ -74,7 +74,9 @@ dans la bande de scene, contre 0 % a l'Ouest (`docs/da/pose-au-repos.md`).
 | `tests/perf/` | les tests de la barre (un par moment) et leurs aides, montees depuis `.scratch`. |
 | `tests/e2e/` | les oracles de cause, a cote des six existants, meme style : ils comptent, ils ne chronometrent pas. |
 | `eslint.config.*` | les regles de code qui se lintent (section 3). |
-| `scripts/perf-baseline.json` | les cliquets : le meilleur resultat connu par moment et par projet, avec la cible a cote. Versionne. |
+| `scripts/perf-baseline.json` | les cliquets : le meilleur resultat connu par moment et par projet, avec la cible a cote, et le `dpr` auquel il a ete mesure. Versionne. |
+| `scripts/lines-baseline.json` | le cliquet des tailles de fichier : chaque fichier au-dessus du plafond, gele a sa taille du jour ; la config ESLint en genere ses derogations. Versionne. |
+| `scripts/hooks/` | `pre-commit` (`tsc`, `eslint`, `pnpm test`) et `pre-push` (`pnpm run perf` quand la ref poussee est `main`), installes par le script `prepare` via `git config core.hooksPath`. **Il n'existait aucun hook git dans le depot** : sans eux, « bloque tout commit » serait une regle sans mecanisme. |
 
 **Comment ca tourne.** La suite de 24 minutes reste ce qu'elle est (serveur
 de developpement, comportement). La barre est une **seconde suite**, courte,
@@ -91,9 +93,11 @@ regarde sans qu'il bloque quelque chose.
 ### Ce qui est mesure
 
 Les **images presentees**, pas la cadence du script. Le tracage Chromium
-(CDP `Tracing`, categories de trame `disabled-by-default-devtools.timeline.frame`)
-donne chaque image dessinee et chaque image perdue par le compositeur, avec
-son instant. C'est ce qui voit la 2D du voile, animee en CSS sur le fil du
+(session CDP ouverte par `context.newCDPSession(page)`, `Tracing.start`
+avec les categories de trame `disabled-by-default-devtools.timeline.frame` ;
+Playwright 1.62 n'expose pas de raccourci `startTracing`, verifie) donne
+chaque image dessinee et chaque image perdue par le compositeur, avec son
+instant. C'est ce qui voit la 2D du voile, animee en CSS sur le fil du
 compositeur, que `requestAnimationFrame` ne voit pas.
 
 Par moment, le rapport porte :
@@ -121,8 +125,8 @@ Dix-sept mesures par projet.
 
 | projet | conditions | cible |
 | --- | --- | --- |
-| `perf-bureau` | production, sans bridage, 1280 x 800, `dpr` 2 (le cout reel de l'oeil) | **aucune image au-dela de 16,7 ms** |
-| `perf-telephone` | Pixel 7 emule, processeur /4 ; reseau lent (Fast 3G) sur le seul moment du voile | aucune image au-dela de 33 ms, p5 >= 45 ; resserree passe apres passe |
+| `perf-bureau` | production, sans bridage, 1280 x 800, au `dpr` **de la machine de mesure** (variable `PERF_DPR`, ecrit dans la ligne de base : comparer deux `dpr` n'a pas de sens ; le site plafonne a 2 sur bureau) | **aucune image au-dela de 16,7 ms** |
+| `perf-telephone` | Pixel 7 emule, processeur /4 ; reseau lent (Fast 3G, par `Network.emulateNetworkConditions`) sur le seul moment du voile ; **pas de temps GPU rapporte** : c'est le GPU du PC qui rend, le chiffre ne dirait rien du telephone | aucune image au-dela de 33 ms, p5 >= 45 ; resserree passe apres passe |
 
 ### Le cliquet
 
@@ -147,8 +151,12 @@ passe a l'autre. Donc :
 - trois passes, la **mediane** par metrique ;
 - des metriques de **compte** (images au-dela du budget) avant les durees ;
 - **un auto-test de mesure** : la suite commence par mesurer un moment
-  connu pour etre fige (la scene sous mouvement reduit, immobile) et refuse
-  de conclure si elle y trouve des images longues. Une barre qui ne sait
+  connu pour presenter des images en continu sans aucun travail de script
+  — **la rotation CSS de la Piedra du voile**, pure animation de
+  compositeur — et refuse de conclure si elle y trouve des images longues.
+  (Premiere version de cette ligne : « la scene sous mouvement reduit,
+  immobile ». Faux : en frameloop `demand`, une scene immobile ne presente
+  AUCUNE image, l'auto-test aurait ete vert a vide.) Une barre qui ne sait
   pas quand elle ne peut pas mesurer ment.
 
 ### Un rouge n'est jamais nu
@@ -178,9 +186,9 @@ entre dans `docs/harnais.md` avec sa preuve.
 | --- | --- | --- |
 | Rien d'alloue dans `useFrame` : `new Vector3 / Quaternion / Matrix4 / Color / Euler` dans un rappel `useFrame` | `no-restricted-syntax`, selecteur sur le rappel | aucune |
 | Pas de `setState` pilote par la boucle | `no-restricted-syntax`, heuristique `set[A-Z]...(` dans `useFrame`, en avertissement | aucune |
-| Aucune lecture synchrone du GPU en production : `getError`, `readPixels`, `getParameter`, `getProgramParameter`, `checkFramebufferStatus`, `getBufferSubData` sous `src/` | `no-restricted-properties` | **`COMPLETION_STATUS_KHR`**, la lecture non bloquante que la chauffe utilise et que MDN recommande |
-| `lib/` n'importe jamais un composant | `no-restricted-imports` sous `src/lib/**` | aucune. Trouve des le premier jour : `arc-day.ts` importe `DirectionKey` depuis `components/stag-scene/direction-colors` ; le type descend dans `lib/` |
-| Plafond de lignes par fichier, en **cliquet** | `max-lines` : 400 pour les nouveaux ; les gros existants geles a leur taille | `sound-design.tsx` (> 1100), gele |
+| Aucune lecture synchrone du GPU en production : `getError`, `readPixels`, `getParameter`, `getProgramParameter`, `checkFramebufferStatus`, `getBufferSubData` sous `src/` | `no-restricted-properties` | aucune, verifie : **`src/` ne contient aujourd'hui aucun de ces appels**. La chauffe lit `COMPLETION_STATUS_KHR` a travers `program.isReady()` de three, pas en direct ; la regle ne la touche pas. (Premiere version : une exception nommee. Inutile.) |
+| `lib/` n'importe jamais un composant | `no-restricted-imports` sous `src/lib/**` | aucune. Trouve des le premier jour, et pas ou je croyais : **vingt et un fichiers** de `lib/` importent un type depuis un composant (`DirectionKey` depuis `direction-colors`, `CardinalDirection` depuis `cardinal-transition-context`). Les deux types descendent dans `lib/direction.ts` ; les composants les re-exportent. Rouge le premier jour, vert dans le meme plan |
+| Plafond de lignes par fichier, en **cliquet** | `max-lines` a 400 ; pour chaque fichier au-dessus, une derogation generee depuis `scripts/lines-baseline.json` a sa taille du jour — il ne peut plus grossir, il peut maigrir, et le fichier de base se regenere quand il maigrit | `sound-design.tsx` (> 1100) et les autres au-dessus de 400, geles |
 
 ### Ce qui se compte par un oracle
 
@@ -190,11 +198,19 @@ en page, decor fige, chauffe qui se tait, fuite GPU (palier mesure depuis le
 
 Nouveaux :
 - **textures** : aucune au-dela de 2048 px hors une liste de heros nommes ;
-  KTX2 au-dela d'un poids ; un test sur les fichiers de `public/`, sans
-  navigateur ;
-- **profil telephone** : `dpr` plafonne a 2 (`DESKTOP_DPR_CAP` existe),
-  au plus trois lumieres a ombre, post-traitement a demi-resolution ; tests
-  unitaires sur les constantes de profil ;
+  KTX2 au-dela d'un poids ; un test sur les fichiers, sans navigateur —
+  **y compris les images embarquees dans les `.glb`** (le JSON glTF liste
+  ses `images`, l'en-tete de chacune donne sa taille). Verifie le 21/09 :
+  `public/` ne contient que **sept** images libres, aucune au-dessus des
+  plafonds ; presque toute la matiere du site vit dans les modeles. Un
+  oracle qui ne lirait que `public/*.png` garderait un vide ;
+- **profil telephone** : sur les constantes qui existent (`mobile-perf.ts` :
+  `dprCap` 1,5 telephone / 2 bureau, `postFx` coupe sur telephone,
+  `shadows`), un test unitaire ; et **au plus trois lumieres a ombre par
+  direction**, comptees dans la scene montee (`castShadow` sur
+  `__nahualR3f.scene`), un oracle e2e. (Premiere version : « post-traitement
+  a demi-resolution ». Aucune constante ne le porte aujourd'hui : c'etait une
+  regle sans mecanisme, elle passe en relecture) ;
 - **la 2D du voile** : aucun evenement de mise en page ni de peinture
   pendant l'attente, lu dans la trace de la barre. Si le squelette n'anime
   que `transform` et `opacity`, la trace est vide de « Rendering » ; sinon
@@ -233,7 +249,7 @@ ca coute, et une date. Au premier jour :
 | dette | viole | cout |
 | --- | --- | --- |
 | Quarante composants court-circuitent `reducedMotionRef` chacun a sa facon | loi 2 | c'est ce qui a fait echouer la pose au repos (`docs/da/pose-au-repos.md`) ; une regle a la place de quarante la rouvrira proprement |
-| `DirectionKey` vit dans un composant | loi 1 | un import inverse dans `lib/` |
+| `DirectionKey` et `CardinalDirection` vivent dans des composants | loi 1 | **vingt et un** fichiers de `lib/` importent a l'envers ; corrige par le plan (les types descendent dans `lib/direction.ts`) |
 | Deux fichiers de plus de mille lignes | lisibilite | geles par le cliquet |
 | « Mode recit » et « mouvement reduit » sont deux mecanismes pour une idee | loi 2 | a unifier |
 
@@ -261,7 +277,8 @@ ce que chacune impose.
    scene limitee par le GPU. Donc **le temps GPU est mesure**
    (`EXT_disjoint_timer_query_webgl2` quand il est present ; sinon
    l'epreuve de la demi-resolution : si le fps double, c'est le GPU) et
-   ecrit dans chaque rapport.
+   ecrit dans chaque rapport **du projet bureau** — sur le projet telephone
+   c'est le GPU du PC qui rend, le chiffre serait un mensonge.
 3. **Ce qui coute, c'est l'etat, pas les triangles.** Donc plafond d'appels,
    plus **un plafond de programmes distincts par page** et un budget de
    liaisons de textures, lus dans `renderer.info`.
@@ -277,10 +294,12 @@ ce que chacune impose.
    structure changee a chaque image.
 7. **Le materiel varie de un a quatre, et le telephone est une autre
    machine** (GPU a tuiles : surdessin, post-traitement plein cadre, bande
-   passante). Donc **un budget de surdessin** sur le profil telephone
-   (couches transparentes plein ecran comptees), et **une mesure sur un vrai
-   telephone a chaque jalon**, notee dans `soty-etat.md` : rien n'a encore
-   ete vu sur un vrai appareil.
+   passante). Donc **un budget de surdessin** sur le profil telephone,
+   defini pour etre compte : le nombre d'appels de rendu par image dont le
+   materiau est `transparent` (un compteur pose par `onBeforeRender`, lu
+   par la sonde), sous un plafond par page inscrit dans la ligne de base ;
+   et **une mesure sur un vrai telephone a chaque jalon**, notee dans
+   `soty-etat.md` : rien n'a encore ete vu sur un vrai appareil.
 
 Et deux bases transversales :
 
@@ -321,9 +340,12 @@ Valable pour toute demande, une ligne de CSS comme une nouvelle direction :
 
 ### Ce qui bloque quoi
 
-`pnpm test` et `eslint` bloquent tout commit. La barre bloque `main`
-seulement ; `dev` reste libre. L'exception de securite de `CLAUDE.md` vaut
-ici aussi : un correctif de faille n'attend pas une barre.
+`tsc`, `eslint` et `pnpm test` bloquent tout commit — par le hook
+`pre-commit` de `scripts/hooks/`, pas par une consigne. La barre bloque
+`main` seulement — par le hook `pre-push`, qui lance `pnpm run perf`
+quand la ref poussee est `main` ; `dev` reste libre. L'exception de
+securite de `CLAUDE.md` vaut ici aussi : un correctif de faille n'attend
+pas une barre (`git push --no-verify`, dit dans le message de commit).
 
 ### Le harnais s'entretient par ses propres regles
 
@@ -363,8 +385,13 @@ Pour `close-the-books`, quand le plan sera execute :
 5. `scripts/perf-baseline.json` existe, initialise sur l'etat mesure, cible
    a cote de chaque moment ; un moment pire que son meilleur connu est rouge.
 6. Un moment rouge imprime les fonctions de sa pire image.
-7. Les cinq lints du pilier 2 sont en place ; `arc-day.ts` n'importe plus un
-   composant ; `max-lines` est en cliquet.
+7. Les cinq lints du pilier 2 sont en place ; **aucun** fichier de `lib/`
+   n'importe plus un composant (vingt et un le premier jour) ; `max-lines`
+   est en cliquet, derogations generees depuis `scripts/lines-baseline.json`.
+12. Les hooks `pre-commit` et `pre-push` sont installes par `pnpm install`
+    (script `prepare`) et refusent, respectivement, un commit qui casse
+    `tsc`/`eslint`/`pnpm test` et une poussee sur `main` qui recule sur la
+    barre.
 8. Les quatre oracles nouveaux du pilier 2 (textures, profil telephone, 2D
    du voile, zero erreur) sont verts ou rouges pour une raison nommee,
    jamais sautes.
