@@ -1,0 +1,20 @@
+{
+  "src/app/[locale]/[slug]/page.tsx": 636,
+  "src/app/[locale]/layout.tsx": 562,
+  "src/app/components/scene-controls.tsx": 463,
+  "src/app/components/sound-design.tsx": 1146,
+  "src/app/components/stag-scene/cihuateteo.tsx": 821,
+  "src/app/components/stag-scene/frost-world.tsx": 651,
+  "src/app/components/stag-scene/grass.tsx": 414,
+  "src/app/components/stag-scene/mictlan-fluid-sim.ts": 458,
+  "src/app/components/stag-scene/orbit-camera.tsx": 512,
+  "src/app/components/stag-scene/reveal-lighting.tsx": 411,
+  "src/app/components/stag-scene/shader-warmup.tsx": 511,
+  "src/app/components/stag-scene/stag-model.tsx": 474,
+  "src/app/components/stag-scene/sud-sky.tsx": 425,
+  "src/app/components/stag-scene/tezcatl-water.tsx": 566,
+  "src/app/components/stag-scene/xiuhcoatl-companion.tsx": 445,
+  "src/app/components/stag-scene/xolotl-companion.tsx": 1323,
+  "src/lib/amate-texture.test.ts": 471,
+  "src/lib/reveal-arc.test.ts": 410
+}

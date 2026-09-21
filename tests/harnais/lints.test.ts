@@ -75,3 +75,63 @@ describe("pilier 2 : aucune lecture synchrone du GPU en production", () => {
     expect(await regles(extrait, "src/app/components/stag-scene/essai-harnais.ts")).toEqual([]);
   });
 });
+
+describe("pilier 2 : la boucle d'image", () => {
+  const CHEMIN = "src/app/components/stag-scene/essai-harnais.tsx";
+
+  it("refuse une allocation three dans useFrame", async () => {
+    const extrait = `import { useFrame } from "@react-three/fiber";
+import { Vector3 } from "three";
+export function Essai() {
+  useFrame(() => {
+    const v = new Vector3();
+    v.set(0, 0, 0);
+  });
+  return null;
+}
+`;
+    expect(await regles(extrait, CHEMIN)).toContain("no-restricted-syntax");
+  });
+
+  it("accepte l'objet de travail cree dehors et reutilise dedans", async () => {
+    const extrait = `import { useFrame } from "@react-three/fiber";
+import { Vector3 } from "three";
+const scratch = new Vector3();
+export function Essai() {
+  useFrame(() => {
+    scratch.set(0, 0, 0);
+  });
+  return null;
+}
+`;
+    expect(await regles(extrait, CHEMIN)).toEqual([]);
+  });
+
+  it("refuse un setState appele depuis useFrame", async () => {
+    const extrait = `import { useState } from "react";
+import { useFrame } from "@react-three/fiber";
+export function Essai() {
+  const [, setNiveau] = useState(0);
+  useFrame(() => {
+    setNiveau(1);
+  });
+  return null;
+}
+`;
+    expect(await regles(extrait, CHEMIN)).toContain("no-restricted-syntax");
+  });
+
+  it("ne confond pas une methode three avec un setState", async () => {
+    const extrait = `import { useFrame } from "@react-three/fiber";
+import { Vector3 } from "three";
+const scratch = new Vector3();
+export function Essai() {
+  useFrame(() => {
+    scratch.setScalar(1);
+  });
+  return null;
+}
+`;
+    expect(await regles(extrait, CHEMIN)).toEqual([]);
+  });
+});
