@@ -982,7 +982,7 @@ Reprise dans `CLAUDE.md`, relue a chaque session.
 
 | quoi | mecanisme | contournement |
 | --- | --- | --- |
-| les types et le lint bloquent tout commit | `scripts/hooks/pre-commit` | `git commit --no-verify`, dit dans le message, pour une faille de securite seulement |
+| les types et le lint bloquent tout commit | `scripts/hooks/pre-commit` (`eslint --cache`, le cache sous `node_modules/.cache/eslint/` : vingt secondes a froid, un hook a vingt secondes se contourne) | `git commit --no-verify`, dit dans le message, pour une faille de securite seulement |
 | les tests unitaires bloquent toute poussee | `scripts/hooks/pre-push` | idem |
 | la barre de performance bloque `main` | `scripts/hooks/pre-push`, `pnpm run perf` *(tranche B)* | idem |
 
@@ -1016,8 +1016,9 @@ Deux listes versionnees, lues par la config et gardees par
   milpa 3, frost-world 2, xiuhcoatl-companion 1, grass 1,
   huitzilin-birds 1).
 - `scripts/lines-baseline.json` : les fichiers au-dessus de 400 lignes,
-  geles a leur taille, comptee comme `max-lines` et `wc -l` la comptent
-  (`scripts/compter-lignes.mjs`). Dix-huit fichiers le 22/09, le plus gros
+  geles a leur taille, comptee comme `max-lines` la compte
+  (`scripts/compter-lignes.mjs` ; egal a `wc -l` sur un fichier termine
+  par un retour a la ligne, ce que sont tous les fichiers du depot). Dix-huit fichiers le 22/09, le plus gros
   a 1322 (`xolotl-companion.tsx`).
 
 **C'est un cliquet, pas un plafond.** Un fichier gele ne peut ni faire
