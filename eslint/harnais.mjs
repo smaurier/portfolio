@@ -16,7 +16,7 @@ const SRC = ["src/**/*.{ts,tsx}"];
  * La liste est DUPLIQUEE dans tests/harnais/lints.test.ts a dessein : le
  * test est l'oracle independant, il ne prouve pas ce que ce module dit.
  */
-export const LECTURES_GPU = ["getError", "readPixels", "getParameter", "getProgramParameter", "checkFramebufferStatus", "getBufferSubData"];
+const LECTURES_GPU = ["getError", "readPixels", "getParameter", "getProgramParameter", "checkFramebufferStatus", "getBufferSubData"];
 
 /** Ce qui ne se cree pas a chaque image : les objets three qui allouent. */
 const OBJETS_THREE = "Vector2|Vector3|Vector4|Quaternion|Matrix3|Matrix4|Color|Euler|Box3|Sphere|Plane|Ray|Raycaster|Object3D";
@@ -29,8 +29,8 @@ const OBJETS_THREE = "Vector2|Vector3|Vector4|Quaternion|Matrix3|Matrix4|Color|E
  * aide a un argument nommee setFoo, un setter renomme (const [, maj] =
  * useState()), dispatch de useReducer.
  */
-export const SELECTEUR_ALLOCATION = `CallExpression[callee.name='useFrame'] NewExpression[callee.name=/^(${OBJETS_THREE})$/]`;
-export const SELECTEUR_SET_STATE = "CallExpression[callee.name='useFrame'] CallExpression[callee.type='Identifier'][callee.name=/^set[A-Z]/][arguments.length=1]";
+const SELECTEUR_ALLOCATION = `CallExpression[callee.name='useFrame'] NewExpression[callee.name=/^(${OBJETS_THREE})$/]`;
+const SELECTEUR_SET_STATE = "CallExpression[callee.name='useFrame'] CallExpression[callee.type='Identifier'][callee.name=/^set[A-Z]/][arguments.length=1]";
 
 /**
  * Les deux regles de la boucle d'image, partagees par la config et par le
@@ -48,7 +48,7 @@ export const REGLES_BOUCLE = [
   },
 ];
 
-/** Le plafond partage par la regle max-lines (tache 5), le generateur et le test. */
+/** Le plafond partage par la regle max-lines, le generateur et le test. */
 export const PLAFOND_LIGNES = 400;
 
 /**
@@ -122,7 +122,7 @@ export const harnais = [
     },
   })),
   {
-    // Pilier 3 : un fichier qu'on ne tient pas en tete d'un coup est un
+    // Pilier 2, au service de la lisibilite (loi 3) : un fichier qu'on ne tient pas en tete d'un coup est un
     // fichier qu'on modifie mal. Lignes brutes, comme wc -l sur un fichier
     // termine par un retour a la ligne et comme le compteur du harnais
     // (scripts/compter-lignes.mjs) : la ligne vide apres le dernier retour

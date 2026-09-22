@@ -127,7 +127,7 @@ ferme.
 | `eslint.config.*` | les regles de code qui se lintent (section 3). |
 | `scripts/perf-baseline.json` | les cliquets : le meilleur resultat connu par moment et par projet, avec la cible a cote, et le `dpr` auquel il a ete mesure. Versionne. |
 | `scripts/lines-baseline.json` | le cliquet des tailles de fichier : chaque fichier au-dessus du plafond, gele a sa taille du jour ; la config ESLint en genere ses derogations. Versionne. |
-| `scripts/hooks/` | `pre-commit` (`tsc`, `eslint`, `pnpm test`) et `pre-push` (`pnpm run perf` quand la ref poussee est `main`), installes par le script `prepare` via `git config core.hooksPath`. **Il n'existait aucun hook git dans le depot** : sans eux, « bloque tout commit » serait une regle sans mecanisme. |
+| `scripts/hooks/` | `pre-commit` (`tsc`, `eslint --cache`) et `pre-push` (`pnpm test`, puis `pnpm run --if-present perf` quand la ref poussee est `main`), installes par le script `prepare` via `git config core.hooksPath`. **Il n'existait aucun hook git dans le depot** : sans eux, « bloque tout commit » serait une regle sans mecanisme. |
 
 **Comment ca tourne.** La suite de 24 minutes reste ce qu'elle est (serveur
 de developpement, comportement). La barre est une **seconde suite**, courte,

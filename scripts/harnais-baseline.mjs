@@ -28,7 +28,7 @@ const eslint = new ESLint({
   // Force la regle en erreur partout : on compte sans les derogations.
   overrideConfig: [CONFIG_BOUCLE],
 });
-const resultats = await eslint.lintFiles(["src/**/*.{ts,tsx}"]);
+const resultats = await eslint.lintFiles(CONFIG_BOUCLE.files);
 
 const boucle = {};
 const lignes = {};

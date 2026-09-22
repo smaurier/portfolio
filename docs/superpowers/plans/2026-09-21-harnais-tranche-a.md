@@ -57,7 +57,7 @@ pnpm exec eslint . 2>&1 | tail -2   # 0 errors (1 warning pre-existant dans test
 - Modify: `eslint.config.mjs`
 - Create: `tests/harnais/lints.test.ts`
 
-- [ ] **Step 1 : ecrire le test qui prouve la regle sur un extrait**
+- [x] **Step 1 : ecrire le test qui prouve la regle sur un extrait**
 
 `tests/harnais/lints.test.ts` :
 
@@ -97,12 +97,12 @@ export const d: DirectionKey = "jade";
 });
 ```
 
-- [ ] **Step 2 : le voir rouge**
+- [x] **Step 2 : le voir rouge**
 
 Run: `pnpm exec vitest run tests/harnais/lints.test.ts`
 Expected: `1 failed | 1 passed` — le premier test echoue avec `expected [] to include 'no-restricted-imports'`.
 
-- [ ] **Step 3 : ecrire la regle**
+- [x] **Step 3 : ecrire la regle**
 
 `eslint/harnais.mjs` :
 
@@ -154,7 +154,7 @@ const eslintConfig = defineConfig([
 export default eslintConfig;
 ```
 
-- [ ] **Step 4 : le voir vert sur l'extrait, et rouge sur le depot**
+- [x] **Step 4 : le voir vert sur l'extrait, et rouge sur le depot**
 
 Run: `pnpm exec vitest run tests/harnais/lints.test.ts`
 Expected: `2 passed`.
@@ -172,7 +172,7 @@ Expected: `21` — les vingt et un fichiers du premier jour. C'est le rouge atte
 - Modify: `src/app/components/stag-scene/cardinal-transition-context.tsx:35`
 - Modify: les 21 fichiers de `src/lib/` listes par `pnpm exec eslint src/lib`
 
-- [ ] **Step 1 : creer la seule source**
+- [x] **Step 1 : creer la seule source**
 
 `src/lib/direction.ts` :
 
@@ -198,7 +198,7 @@ export type DirectionKey = "jade" | "dore" | "turquoise" | "cendre" | "obsidienn
 export type CardinalDirection = DirectionKey;
 ```
 
-- [ ] **Step 2 : les composants re-exportent**
+- [x] **Step 2 : les composants re-exportent**
 
 Dans `src/app/components/stag-scene/direction-colors.ts`, remplacer la ligne 13 :
 
@@ -231,7 +231,7 @@ export type { CardinalDirection };
 
 Attention : si le fichier a deja un bloc d'imports en tete, placer la ligne `import type` avec les autres imports (ESLint `import/first`), et garder le `export type { ... }` a la place de l'ancienne ligne.
 
-- [ ] **Step 3 : deplacer les vingt et un imports d'un coup**
+- [x] **Step 3 : deplacer les vingt et un imports d'un coup**
 
 Run (Git Bash) :
 
@@ -243,12 +243,12 @@ grep -rn "app/components" src/lib/*.ts
 
 Expected de la derniere commande : aucune ligne.
 
-- [ ] **Step 4 : verifier types, lint, tests**
+- [x] **Step 4 : verifier types, lint, tests**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec eslint src && pnpm test 2>&1 | tail -3`
 Expected: `tsc` muet, `eslint` muet, `1032 passed` (les tests de lib qui importaient le type passent par le nouveau chemin).
 
-- [ ] **Step 5 : commit**
+- [x] **Step 5 : commit**
 
 ```bash
 git add -A
@@ -275,7 +275,7 @@ EOF
 - Modify: `eslint/harnais.mjs`
 - Modify: `tests/harnais/lints.test.ts`
 
-- [ ] **Step 1 : le test**
+- [x] **Step 1 : le test**
 
 Ajouter a `tests/harnais/lints.test.ts` :
 
@@ -297,12 +297,12 @@ describe("pilier 2 : aucune lecture synchrone du GPU en production", () => {
 });
 ```
 
-- [ ] **Step 2 : rouge**
+- [x] **Step 2 : rouge**
 
 Run: `pnpm exec vitest run tests/harnais/lints.test.ts`
 Expected: `6 failed | 3 passed`.
 
-- [ ] **Step 3 : la regle**
+- [x] **Step 3 : la regle**
 
 Ajouter a `harnais` dans `eslint/harnais.mjs`, apres le premier bloc :
 
@@ -327,12 +327,12 @@ Ajouter a `harnais` dans `eslint/harnais.mjs`, apres le premier bloc :
   },
 ```
 
-- [ ] **Step 4 : vert, et le depot reste vert**
+- [x] **Step 4 : vert, et le depot reste vert**
 
 Run: `pnpm exec vitest run tests/harnais/lints.test.ts && pnpm exec eslint src 2>&1 | tail -1`
 Expected: `9 passed` ; `eslint src` muet.
 
-- [ ] **Step 5 : commit**
+- [x] **Step 5 : commit**
 
 ```bash
 git add eslint/harnais.mjs tests/harnais/lints.test.ts
@@ -371,7 +371,7 @@ par regle et par fichier : les fichiers du cliquet passent en `warn`,
 tous les autres restent en `error`. C'est ainsi que le spec « `setState`
 en avertissement » se realise : par la derogation, pas par la severite.
 
-- [ ] **Step 1 : le test des deux regles**
+- [x] **Step 1 : le test des deux regles**
 
 Ajouter a `tests/harnais/lints.test.ts` :
 
@@ -437,12 +437,12 @@ export function Essai() {
 });
 ```
 
-- [ ] **Step 2 : rouge**
+- [x] **Step 2 : rouge**
 
 Run: `pnpm exec vitest run tests/harnais/lints.test.ts`
 Expected: `2 failed | 11 passed` (les deux « refuse »).
 
-- [ ] **Step 3 : la regle, avec ses selecteurs**
+- [x] **Step 3 : la regle, avec ses selecteurs**
 
 **Relecture de qualite des taches 1-2 (21/09)** : `eslint/harnais.mjs` doit
 rester une liste lisible de lois ; la lecture des JSON des cliquets va dans
@@ -528,7 +528,7 @@ Le selecteur `callee.type='Identifier'` est ce qui distingue `setNiveau(1)`
 (un identifiant nu, un setter React) de `scratch.setScalar(1)` (un membre,
 une methode three) : le quatrieme test le garde.
 
-- [ ] **Step 4 : vert sur les extraits ; compter le rouge du depot**
+- [x] **Step 4 : vert sur les extraits ; compter le rouge du depot**
 
 Run: `pnpm exec vitest run tests/harnais/lints.test.ts`
 Expected: `13 passed`.
@@ -536,7 +536,7 @@ Expected: `13 passed`.
 Run: `pnpm exec eslint src -f unix 2>&1 | grep "no-restricted-syntax" | cut -d: -f1 | sort | uniq -c | sort -rn`
 Expected: la liste des fichiers du premier jour avec leur compte (peut etre vide). **Noter ce que ca donne** : c'est le premier point zero de ce cliquet, et il va dans le message de commit.
 
-- [ ] **Step 5 : le generateur des cliquets**
+- [x] **Step 5 : le generateur des cliquets**
 
 `scripts/harnais-baseline.mjs` :
 
@@ -596,7 +596,7 @@ Dans `package.json`, ajouter au bloc `scripts` :
 Run: `pnpm run harnais:baseline && cat scripts/lint-baseline.json`
 Expected: le meme decompte qu'a l'etape 4, trie ; `scripts/lines-baseline.json` est aussi ecrit (la tache 6 l'utilise). Puis `pnpm exec eslint src 2>&1 | tail -1` : plus d'erreur, seulement des avertissements dans les fichiers geles.
 
-- [ ] **Step 6 : le test qui interdit de reculer**
+- [x] **Step 6 : le test qui interdit de reculer**
 
 `tests/harnais/cliquets.test.ts` :
 
@@ -658,7 +658,7 @@ describe("le cliquet des tailles de fichier", () => {
 Run: `pnpm exec vitest run tests/harnais/cliquets.test.ts`
 Expected: `2 passed` (le cliquet des lignes lit le JSON ecrit a l'etape 5 ; il n'est pas encore branche dans ESLint, c'est la tache 6).
 
-- [ ] **Step 7 : commit**
+- [x] **Step 7 : commit**
 
 ```bash
 git add eslint/harnais.mjs eslint/cliquets.mjs tests/harnais scripts/harnais-baseline.mjs scripts/lint-baseline.json scripts/lines-baseline.json package.json
@@ -697,7 +697,7 @@ avec le bon compte, et le test des cliquets qui garde deja les tailles. Il
 ne reste qu'a brancher la regle et ses derogations dans ESLint, et a le
 prouver sur des extraits.
 
-- [ ] **Step 1 : le test**
+- [x] **Step 1 : le test**
 
 Ajouter a `tests/harnais/lints.test.ts` :
 
@@ -720,12 +720,12 @@ describe("pilier 2 : le plafond de lignes", () => {
 });
 ```
 
-- [ ] **Step 2 : rouge**
+- [x] **Step 2 : rouge**
 
 Run: `pnpm exec vitest run tests/harnais/lints.test.ts`
 Expected: `1 failed | 16 passed` (le premier ; le second est deja vert, la regle n'existe pas).
 
-- [ ] **Step 3 : la regle et ses derogations generees**
+- [x] **Step 3 : la regle et ses derogations generees**
 
 Dans `eslint/harnais.mjs`, importer `cliquetLignes` depuis `./cliquets.mjs`
 (a cote de `cliquetBoucle` et `motifFichier`), et ajouter a `harnais`, en
@@ -754,7 +754,7 @@ fin de tableau :
   })),
 ```
 
-- [ ] **Step 4 : vert partout, y compris les deux chemins a crochets**
+- [x] **Step 4 : vert partout, y compris les deux chemins a crochets**
 
 Run: `pnpm exec vitest run tests/harnais && pnpm exec eslint src 2>&1 | tail -1`
 Expected: `25 passed` ; `eslint src` sans erreur — en particulier
@@ -768,7 +768,7 @@ Verifier a l'oeil que le cliquet correspond au fichier :
 Run: `wc -l src/app/components/sound-design.tsx && grep sound-design scripts/lines-baseline.json`
 Expected: **le meme nombre des deux cotes**.
 
-- [ ] **Step 5 : commit**
+- [x] **Step 5 : commit**
 
 ```bash
 git add eslint/harnais.mjs tests/harnais/lints.test.ts
@@ -804,7 +804,7 @@ jour et pousse `main` au plus une fois. Le spec disait « les tests bloquent
 tout commit » : ils bloquent toute poussee, ce qui est le meme filet pour
 `main` et un filet plus leger pour `dev`. La tache 8 le note dans le spec (la cloture).
 
-- [ ] **Step 1 : les deux scripts**
+- [x] **Step 1 : les deux scripts**
 
 `scripts/hooks/pre-commit` :
 
@@ -843,7 +843,7 @@ done
 exit 0
 ```
 
-- [ ] **Step 1 bis : `.scratch/` sort du lint**
+- [x] **Step 1 bis : `.scratch/` sort du lint**
 
 Relecture de la tache 3 : `.scratch/` est gitignore mais `eslint .` le
 linte (une config plate n'ignore pas les dossiers a point), et quatre des
@@ -863,7 +863,7 @@ devient
 Run: `pnpm exec eslint . 2>&1 | tail -2`
 Expected: une seule ligne d'avertissement restante (`tests/e2e/veille.spec.ts`, pre-existante), zero erreur.
 
-- [ ] **Step 2 : `prepare`, et les droits d'execution dans l'index**
+- [x] **Step 2 : `prepare`, et les droits d'execution dans l'index**
 
 Dans `package.json`, bloc `scripts`, ajouter :
 
@@ -885,7 +885,7 @@ Note Windows : git lance les hooks avec son propre `sh` ; le shebang et
 les fins de ligne LF suffisent. Verifier `file scripts/hooks/pre-commit`
 ne dit pas `CRLF`.
 
-- [ ] **Step 3 : les voir refuser, puis accepter**
+- [x] **Step 3 : les voir refuser, puis accepter**
 
 Un commit qui casse le lint doit etre refuse :
 
@@ -905,7 +905,7 @@ git rm -q --cached src/lib/essai-hook.ts && rm src/lib/essai-hook.ts && git stat
 
 Expected: `git status --short` ne montre que les fichiers de cette tache.
 
-- [ ] **Step 4 : commit (le hook s'applique a lui-meme)**
+- [x] **Step 4 : commit (le hook s'applique a lui-meme)**
 
 ```bash
 git add scripts/hooks package.json eslint.config.mjs
@@ -937,7 +937,7 @@ Expected: le hook `pre-commit` tourne (`harnais : tsc`, `harnais : eslint`) et l
 - Create: `docs/harnais.md`
 - Modify: `CLAUDE.md`
 
-- [ ] **Step 1 : la reference, tranche A**
+- [x] **Step 1 : la reference, tranche A**
 
 `docs/harnais.md` :
 
@@ -1093,7 +1093,7 @@ qui dit pourquoi.
 - web.dev, *Animations guide* : https://web.dev/articles/animations-guide
 ```
 
-- [ ] **Step 2 : la section de `CLAUDE.md`**
+- [x] **Step 2 : la section de `CLAUDE.md`**
 
 Ajouter a la fin de `CLAUDE.md` :
 
@@ -1126,7 +1126,7 @@ direction. La definition du fini :
    bouge.
 ```
 
-- [ ] **Step 3 : verifier que rien ne casse, et commit**
+- [x] **Step 3 : verifier que rien ne casse, et commit**
 
 Run: `pnpm exec eslint . 2>&1 | tail -1 && pnpm test 2>&1 | tail -2`
 Expected: pas d'erreur ; `1049 passed` (1032 + 17 tests du harnais).
@@ -1153,7 +1153,7 @@ EOF
 **Files:**
 - Modify: `docs/superpowers/specs/2026-09-21-harnais-design.md` (section 8)
 
-- [ ] **Step 1 : rapprocher contre les criteres du spec**
+- [x] **Step 1 : rapprocher contre les criteres du spec**
 
 Dans le spec, section 8, marquer ce que cette tranche livre :
 
@@ -1179,12 +1179,12 @@ Remplacer dans la section 6 du spec (« Ce qui bloque quoi ») la phrase
 (vingt a cinquante commits par jour, le filet est le meme pour `main`).
 ```
 
-- [ ] **Step 2 : la preuve complete, une derniere fois**
+- [x] **Step 2 : la preuve complete, une derniere fois**
 
 Run: `git status --short && pnpm exec tsc --noEmit && pnpm exec eslint . 2>&1 | tail -1 && pnpm test 2>&1 | tail -2 && git config core.hooksPath`
 Expected: arbre propre ; `tsc` muet ; eslint sans erreur ; `1049 passed` ; `scripts/hooks`.
 
-- [ ] **Step 3 : commit, et la memoire**
+- [x] **Step 3 : commit, et la memoire**
 
 ```bash
 git add docs/superpowers/specs/2026-09-21-harnais-design.md

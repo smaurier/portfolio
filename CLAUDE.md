@@ -73,5 +73,5 @@ direction. La definition du fini :
    d'acceptation coche avec sa preuve, la dette nouvelle inscrite, ce
    document mis a jour si une regle ou un mecanisme a bouge.
 
-Les hooks de `scripts/hooks/` le font respecter ; `--no-verify` pour une
+Les hooks de `scripts/hooks/` tiennent la ligne 3, et la 4 a partir de la tranche B ; les lignes 1, 2, 5 et 6 tiennent par la relecture ; `--no-verify` pour une
 faille de securite seulement, dit dans le message.

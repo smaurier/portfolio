@@ -6,7 +6,7 @@ reference : chaque regle y a un **mecanisme** (ce qui la fait respecter) et
 une **preuve** (la mesure du depot qui l'a justifiee). Une regle sans
 mecanisme n'entre pas ici.*
 
-Etat : **tranche A** (processus, hooks, lints, types) — design 21/09/2026, livree 22/09/2026.
+Etat : **tranche A** (processus, hooks, lints, types) : design 21/09/2026, livree 22/09/2026.
 Tranches suivantes : B la barre de performance, C les oracles de cause,
 D les bases du temps reel, E l'infrastructure.
 
@@ -49,7 +49,7 @@ Les hooks sont installes par `pnpm install` (`prepare` pose
 poste (`.gitattributes`). Mesure du 22/09 : le hook de commit prend 9 a
 12 s a chaud (tsc 4,7 s, eslint en cache 5,7 s), 20 s a froid ; le cache
 d'ESLint est cle par la config et la version d'ESLint, pas par le code
-des regles — apres une mise a jour d'`eslint-config-next` sans bump
+des regles ; apres une mise a jour d'`eslint-config-next` sans bump
 d'`eslint`, supprimer `node_modules/.cache/eslint/`. Les hooks verifient
 l'arbre de travail, pas l'index : avec `git add -p`, un commit peut
 contenir ce que le hook n'a pas vu ; c'est le prix d'un hook sans mise en scene de l'index (pas de
@@ -73,7 +73,7 @@ tests unitaires de `lib/` compris.
 | regle | mecanisme | preuve |
 | --- | --- | --- |
 | `lib/` n'importe jamais un composant ni une page (`@/app/**` et `**/app/**`, par alias ou chemin relatif) | `no-restricted-imports` sous `src/lib/**` | 21/09 : vingt et un fichiers de `lib/` importaient `DirectionKey` depuis un composant. Le type vit dans `lib/direction.ts`. **Limite connue** : la regle ne voit pas un `import()` dynamique ; dans une lib pure il n'y en a pas, et la relecture le garde. |
-| aucune lecture synchrone du GPU sous `src/` (`getError`, `readPixels`, `getParameter`, `getProgramParameter`, `checkFramebufferStatus`, `getBufferSubData`), sur n'importe quel objet | `no-restricted-properties` | MDN, WebGL best practices : ces appels vident le pipeline. `src/` n'en avait aucun ; les sondes de `tests/` (hors `src/`) et de `.scratch/` (ignore par ESLint) en ont besoin. Sans restriction d'objet a dessein : les contextes du depot s'appellent `g`, `ctx` ou `gl.getContext()`. **Limite connue** : la liste du design fixe six noms ; `finish`, `getShaderParameter`, `getProgramInfoLog`, `getShaderInfoLog`, `clientWaitSync`, `getSyncParameter`, `getUniform` sont aussi synchrones et passent aujourd'hui — Amende dans le design le 22/09 : liste ouverte, `finish` premier candidat, toute extension passe par le test des extraits (un nom ajoute = un extrait rouge puis vert), tranche C. |
+| aucune lecture synchrone du GPU sous `src/` (`getError`, `readPixels`, `getParameter`, `getProgramParameter`, `checkFramebufferStatus`, `getBufferSubData`), sur n'importe quel objet | `no-restricted-properties` | MDN, WebGL best practices : ces appels vident le pipeline. `src/` n'en avait aucun ; les sondes de `tests/` (hors `src/`) et de `.scratch/` (ignore par ESLint) en ont besoin. Sans restriction d'objet a dessein : les contextes du depot s'appellent `g`, `ctx` ou `gl.getContext()`. **Limite connue** : la liste du design fixe six noms ; `finish`, `getShaderParameter`, `getProgramInfoLog`, `getShaderInfoLog`, `clientWaitSync`, `getSyncParameter`, `getUniform` sont aussi synchrones et passent aujourd'hui ; Amende dans le design le 22/09 : liste ouverte, `finish` premier candidat, toute extension passe par le test des extraits (un nom ajoute = un extrait rouge puis vert), tranche C. |
 | rien d'alloue dans `useFrame` (objets three : `Vector2/3/4`, `Quaternion`, `Matrix3/4`, `Color`, `Euler`, `Box3`, `Sphere`, `Plane`, `Ray`, `Raycaster`, `Object3D`) | `no-restricted-syntax`, selecteur sur le rappel, a toute profondeur | R3F, performance pitfalls : une allocation par image nourrit le ramasse-miettes. Le motif du depot est `scratch`, cree une fois dehors. **Angles morts connus** : `useFrame(tick)` avec `tick` declare ailleurs, `.clone()` (alloue autant que `new`), `new Float32Array` par image. La relecture les garde. |
 | pas de `setState` pilote par la boucle | `no-restricted-syntax`, identifiant nu `set[A-Z]...` **a un seul argument** dans `useFrame` | R3F : React ne re-rend pas a 60 images par seconde ; la boucle ecrit dans des refs. C'est la **loi de la frontiere** : React possede la structure de la scene (monter, demonter, rare), la boucle possede les valeurs (refs) ; enoncee en tranche D (bases du temps reel), le lint en garde deja la moitie. Un setter React prend un argument ; les aides `setXxx(uniforms, valeur)` du depot en prennent deux ou trois (22/09 : 16 des 28 hits du premier jour etaient de celles-la). **Angles morts** : une aide a un argument nommee `setFoo`, un setter renomme, `dispatch` de `useReducer`. |
 | plafond de 400 lignes par fichier | `max-lines`, lignes brutes | un fichier qu'on ne tient pas en tete d'un coup se modifie mal. |
@@ -101,7 +101,7 @@ pire (rien ne recule) ni faire mieux sans que la ligne de base l'inscrive :
 passerait sans bruit. A zero, ou sous 400, le fichier sort. Les chemins a
 crochets (`src/app/[locale]/...`) sont echappes avant d'etre donnes a
 ESLint, sinon minimatch y lit une classe de caracteres et la derogation
-ne s'applique pas — le test le prouve.
+ne s'applique pas ; le test le prouve.
 
 `pnpm run lint` sort en 0 avec des avertissements : les derogations sont
 invisibles a la ligne de commande, c'est `tests/harnais/cliquets.test.ts`
