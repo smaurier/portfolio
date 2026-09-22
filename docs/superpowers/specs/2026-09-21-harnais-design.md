@@ -113,6 +113,14 @@ route. C'est le **premier rouge nomme** du harnais, avant meme qu'il
 existe, et l'oracle de peinture du pilier 2 est celui qui le gardera
 ferme.
 
+**Ferme le 22/09** (`docs/superpowers/specs/2026-09-22-voile-2d-composee-design.md`) :
+l'oracle `tests/e2e/voile-peinture.spec.ts` a ete ecrit et vu rouge
+(31 peintures par lettre, une toutes les 16 ms), la revelation a ete
+composee (copies en pseudo-elements, `will-change`, la signature et le
+pouls des points cardinaux avec), et l'oracle est vert : six peintures
+par lettre, groupees a la naissance des calques et a l'arrivee de la
+police. La premiere demande a traverser le harnais entier.
+
 ---
 
 ## 1. Ou ca vit

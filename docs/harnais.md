@@ -108,6 +108,21 @@ invisibles a la ligne de commande, c'est `tests/harnais/cliquets.test.ts`
 qui les garde. Consequence : une violation nouvelle dans un fichier gele
 passe le commit (avertissement) et tombe a la poussee.
 
+### Les oracles de cause
+
+Ils comptent, ils ne chronometrent pas. Les six qui existaient avant le
+harnais (plafond d'appels de rendu, programmes tardifs, lectures de mise
+en page, decor fige, chauffe qui se tait, fuite GPU) seront rattaches ici
+en tranche C. Le premier ne du harnais :
+
+| oracle | ce qu'il garde | preuve |
+| --- | --- | --- |
+| `tests/e2e/voile-peinture.spec.ts` | pendant l'attente du voile, aucun noeud du voile n'est peint plus de six fois (une fois par calque, deux avec la police) ; plafond total en cliquet | 22/09 : la revelation du texte animait `text-shadow` et `filter: blur()` par lettre, deux proprietes de peinture ; 31 peintures par lettre, 64 pour la traduction, une toutes les 16 ms. Composee (copies en pseudo-elements, `will-change`), six par lettre, groupees en deux instants. Un rouge imprime les noeuds et leurs instants. |
+
+**La regle qu'il porte** : la 2D du voile n'anime que `transform` et
+`opacity`. Le nom d'une animation est une interface (`reveal-trigger`
+ecoute `animationend` par nom) ; on ne le renomme pas.
+
 ### Ce qui se relit
 
 Pas de mecanisme automatique ; a verifier a la relecture, avec la preuve

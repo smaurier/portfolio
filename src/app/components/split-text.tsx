@@ -107,6 +107,10 @@ export default function SplitText({ text, className, charStyle, ariaLabel }: Pro
                   key={i}
                   className="char"
                   aria-hidden="true"
+                  // data-char : la lettre relue par les pseudo-elements du voile
+                  // (content: attr(data-char)), qui fabriquent l'aberration
+                  // chromatique sans text-shadow -- donc sans repeindre (22/09).
+                  data-char={ch}
                   style={style}
                 >
                   {ch}

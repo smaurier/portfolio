@@ -161,8 +161,12 @@
 :global(html[data-hearth="lit"]) .phrase :global(.space) {
   animation: none;
   opacity: 1;
-  text-shadow: none;
-  filter: none;
+}
+
+/* Foyer allume : pas de revelation, donc pas de copies non plus. */
+:global(html[data-hearth="lit"]) .phrase :global(.char)::before,
+:global(html[data-hearth="lit"]) .phrase :global(.char)::after {
+  content: none;
 }
 
 .stage {
@@ -301,22 +305,48 @@
   z-index: 1;
 }
 
-/* Reveal char-by-char (31/08). SplitText SSR pose --char-index par span
-   (.char pour lettres, .space pour espaces). Stagger via animation-delay
-   proportionnel a l'index. Aberration chromatique (text-shadow rouge/
-   cyan offset) qui se resout — signature glitch dimensionnel Awwwards.
-   Animation forward + fill mode `both` : chaque char part invisible et
-   RESTE dans l'etat final (opacity 1 + shadow residuelle discrete). */
+/* Reveal char-by-char (31/08), COMPOSE depuis le 22/09. SplitText SSR pose
+   --char-index et data-char par span (.char pour lettres, .space pour
+   espaces). Stagger via animation-delay proportionnel a l'index.
+
+   L'aberration chromatique (la signature glitch dimensionnel) etait faite
+   en text-shadow, et le flou qui se resout en filter: blur() -- deux
+   proprietes de PEINTURE : chaque image repeignait quatre-vingts spans et
+   le document avec eux, et des que le script bloquait le fil principal,
+   la Piedra, composee et innocente, paraissait saccader (oracle
+   tests/e2e/voile-peinture.spec.ts : 301 peintures attribuees au voile
+   pendant l'attente, le 22/09, avant ceci).
+
+   Le meme regard est fabrique avec ce que le compositeur tient seul : la
+   lettre s'affiche par opacity ; deux copies de la lettre en
+   pseudo-elements (chaude a gauche, PRE-floutee ; froide a droite, nette)
+   glissent par transform et s'effacent par opacity. Le flou est statique
+   sur la copie chaude : peint une fois, il ne coute plus rien. L'opacite
+   du span couvre ses copies (effet de groupe), donc a 0 % rien ne se voit,
+   comme avant. Meme image a l'arrivee : le residu 0.18 de la phrase est
+   garde. Regle du harnais, pilier 2 : la 2D du voile n'anime que
+   transform et opacity. */
+.phrase :global(.char),
+.phrase :global(.space),
+.translation :global(.char),
+.translation :global(.space) {
+  display: inline-block;
+  position: relative;
+  /* Un calque par lettre : sans lui, Chrome joue l'opacite sur le fil
+     principal et repeint le span a chaque image (oracle du 22/09 : trente
+     peintures par lettre, copies ou pas). Des calques minuscules, un par
+     glyphe, et le compositeur tient tout seul. */
+  will-change: opacity;
+}
+
 .phrase :global(.char),
 .phrase :global(.space) {
-  display: inline-block;
   animation: phraseCharReveal 700ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
   animation-delay: calc(var(--char-index) * 45ms);
 }
 
 .translation :global(.char),
 .translation :global(.space) {
-  display: inline-block;
   animation: translationCharReveal 550ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
   /* Demarre apres la phrase (env. 1800ms pour ~20 chars a 45ms + 700ms
      de fade) + stagger plus rapide (20ms) et moins d'aberration. */
@@ -328,39 +358,114 @@
   animation-delay: calc(700ms + var(--char-index) * 11ms);
 }
 
+/* Les deux copies : la meme lettre (data-char), superposee au span. Le
+   delai est herite du span, donc de --char-index. */
+.phrase :global(.char)::before,
+.phrase :global(.char)::after,
+.translation :global(.char)::before,
+.translation :global(.char)::after {
+  content: attr(data-char);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+  animation-fill-mode: both;
+  animation-delay: inherit;
+  /* Leur propre calque aussi : c'est ce qui rend transform et opacity
+     gratuits, et le flou statique de la copie chaude applique par le GPU. */
+  will-change: transform, opacity;
+}
+
+.phrase :global(.char)::before {
+  color: rgb(var(--aberration-warm-rgb));
+  filter: blur(1px);
+  animation-name: copieChaudePhrase;
+  animation-duration: 700ms;
+}
+
+.phrase :global(.char)::after {
+  color: rgb(var(--aberration-cool-rgb));
+  animation-name: copieFroidePhrase;
+  animation-duration: 700ms;
+}
+
+.translation :global(.char)::before {
+  color: rgb(var(--aberration-warm-rgb));
+  filter: blur(0.5px);
+  animation-name: copieChaudeTraduction;
+  animation-duration: 550ms;
+}
+
+.translation :global(.char)::after {
+  color: rgb(var(--aberration-cool-rgb));
+  animation-name: copieFroideTraduction;
+  animation-duration: 550ms;
+}
+
+/* Les NOMS sont ecoutes par reveal-trigger (animationend du dernier char
+   de la traduction pose data-reveal-done) : ne pas les renommer. */
 @keyframes phraseCharReveal {
   0% {
     opacity: 0;
-    text-shadow:
-      -3px 0 0 rgba(var(--aberration-warm-rgb), 0.8),
-      3px 0 0 rgba(var(--aberration-cool-rgb), 0.8);
-    filter: blur(1px);
   }
   60% {
     opacity: 1;
-    filter: blur(0);
   }
   100% {
     opacity: 1;
-    text-shadow:
-      -0.5px 0 0 rgba(var(--aberration-warm-rgb), 0.18),
-      0.5px 0 0 rgba(var(--aberration-cool-rgb), 0.18);
-    filter: blur(0);
   }
 }
 
 @keyframes translationCharReveal {
   0% {
     opacity: 0;
-    text-shadow:
-      -1.5px 0 0 rgba(var(--aberration-warm-rgb), 0.4),
-      1.5px 0 0 rgba(var(--aberration-cool-rgb), 0.4);
-    filter: blur(0.5px);
   }
   100% {
     opacity: 1;
-    text-shadow: none;
-    filter: blur(0);
+  }
+}
+
+@keyframes copieChaudePhrase {
+  0% {
+    opacity: 0.8;
+    transform: translateX(-3px);
+  }
+  100% {
+    opacity: 0.18;
+    transform: translateX(-0.5px);
+  }
+}
+
+@keyframes copieFroidePhrase {
+  0% {
+    opacity: 0.8;
+    transform: translateX(3px);
+  }
+  100% {
+    opacity: 0.18;
+    transform: translateX(0.5px);
+  }
+}
+
+@keyframes copieChaudeTraduction {
+  0% {
+    opacity: 0.4;
+    transform: translateX(-1.5px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+}
+
+@keyframes copieFroideTraduction {
+  0% {
+    opacity: 0.4;
+    transform: translateX(1.5px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(0);
   }
 }
 
@@ -371,8 +476,16 @@
   .translation :global(.space) {
     animation: none;
     opacity: 1;
-    text-shadow: none;
-    filter: none;
+  }
+
+  /* Pas de copies sous mouvement reduit : la scene statique est la lettre
+     seule, et les captures de la regression visuelle, prises dans ces
+     conditions, ne bougent pas d'un pixel. */
+  .phrase :global(.char)::before,
+  .phrase :global(.char)::after,
+  .translation :global(.char)::before,
+  .translation :global(.char)::after {
+    content: none;
   }
 }
 
@@ -419,7 +532,7 @@
   border-radius: 50%;
   background: currentColor;
   transform: translate(-50%, -50%) scale(0);
-  will-change: transform, opacity, box-shadow;
+  will-change: transform, opacity;
   box-shadow:
     0 0 8px 1px currentColor,
     0 0 20px 4px color-mix(in srgb, currentColor 60%, transparent);
@@ -467,16 +580,34 @@
    animations. Delays RELATIFS a 0 (le moment ou la regle prend effet
    = le moment ou l'attribut apparait). */
 .skeleton[data-reveal-done="true"] .dot {
-  animation:
-    dotBurst var(--burst-duration) cubic-bezier(0.34, 1.56, 0.64, 1) both,
-    dotPulse 2s ease-in-out infinite;
-  animation-delay:
-    var(--dot-offset, 0ms),
-    calc(var(--dot-offset, 0ms) + var(--burst-duration));
+  animation: dotBurst var(--burst-duration) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: var(--dot-offset, 0ms);
 }
 
 .skeleton[data-reveal-done="true"] .dotCenter {
-  animation-name: dotBurstCenter, dotPulse;
+  animation-name: dotBurstCenter;
+}
+
+/* LE POULS EST COMPOSE (22/09). Il animait box-shadow et brightness en
+   boucle de deux secondes : de la peinture continue jusqu'au retrait du
+   voile (oracle voile-peinture). La lueur forte vit maintenant dans un
+   pseudo-element STATIQUE, peint une fois ; seule son opacite respire,
+   sur son propre calque. Il suit la transform du point (il est dedans). */
+.dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow:
+    0 0 14px 2px currentColor,
+    0 0 34px 8px color-mix(in srgb, currentColor 80%, transparent);
+  will-change: opacity;
+}
+
+.skeleton[data-reveal-done="true"] .dot::after {
+  animation: dotPulse 2s ease-in-out infinite;
+  animation-delay: calc(var(--dot-offset, 0ms) + var(--burst-duration));
 }
 
 @keyframes dotBurst {
@@ -512,16 +643,10 @@
    etat final du burst pour ne pas fighter). */
 @keyframes dotPulse {
   0%, 100% {
-    box-shadow:
-      0 0 8px 1px currentColor,
-      0 0 20px 4px color-mix(in srgb, currentColor 60%, transparent);
-    filter: brightness(1);
+    opacity: 0;
   }
   50% {
-    box-shadow:
-      0 0 14px 2px currentColor,
-      0 0 34px 8px color-mix(in srgb, currentColor 80%, transparent);
-    filter: brightness(1.25);
+    opacity: 1;
   }
 }
 
@@ -678,7 +803,9 @@
 
 .logoSignature :global(.char) {
   display: inline-block;
+  position: relative;
   opacity: 0;
+  will-change: transform, opacity;
 }
 
 .skeleton[data-reveal-done="true"] .logoSignature :global(.char) {
@@ -689,20 +816,69 @@
   animation-delay: calc(860ms + var(--char-index) * 20ms);
 }
 
+/* Comme la phrase (22/09) : le span n'anime que opacity et transform ;
+   l'aberration et le flou vivent dans deux copies en pseudo-elements. */
 @keyframes logoCharReveal {
   0% {
     opacity: 0;
-    text-shadow:
-      -1.5px 0 0 rgba(var(--aberration-warm-rgb), 0.5),
-      1.5px 0 0 rgba(var(--aberration-cool-rgb), 0.5);
-    filter: blur(0.5px);
     transform: translateY(4px);
   }
   100% {
     opacity: 1;
-    text-shadow: none;
-    filter: none;
     transform: translateY(0);
+  }
+}
+
+.logoSignature :global(.char)::before,
+.logoSignature :global(.char)::after {
+  content: attr(data-char);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  animation-duration: 480ms;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+  animation-fill-mode: both;
+  animation-delay: inherit;
+  will-change: transform, opacity;
+}
+
+.logoSignature :global(.char)::before {
+  color: rgb(var(--aberration-warm-rgb));
+  filter: blur(0.5px);
+}
+
+.logoSignature :global(.char)::after {
+  color: rgb(var(--aberration-cool-rgb));
+}
+
+.skeleton[data-reveal-done="true"] .logoSignature :global(.char)::before {
+  animation-name: copieChaudeLogo;
+}
+
+.skeleton[data-reveal-done="true"] .logoSignature :global(.char)::after {
+  animation-name: copieFroideLogo;
+}
+
+@keyframes copieChaudeLogo {
+  0% {
+    opacity: 0.5;
+    transform: translateX(-1.5px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+}
+
+@keyframes copieFroideLogo {
+  0% {
+    opacity: 0.5;
+    transform: translateX(1.5px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(0);
   }
 }
 
@@ -711,9 +887,12 @@
   .logoSignature :global(.char) {
     animation: none;
     opacity: 1;
-    text-shadow: none;
-    filter: none;
     transform: none;
+  }
+
+  .logoSignature :global(.char)::before,
+  .logoSignature :global(.char)::after {
+    content: none;
   }
 }
 
