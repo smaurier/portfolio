@@ -56,21 +56,22 @@ Decide le 21/09/2026 : la base sur laquelle on itere sans la remettre en
 question. Valable pour TOUTE demande, une ligne de CSS comme une nouvelle
 direction. La definition du fini :
 
-1. **L'oracle d'abord, vu rouge.** Aucun correctif ni mecanique sans un test
-   qui echoue avant et passe apres.
+1. **L'oracle d'abord, vu rouge.** Aucun correctif ni mecanique sans un
+   test qui echoue avant et passe apres. Un test jamais vu rouge ne garde
+   rien.
 2. **Toute mecanique nait pure.** Une lib avec graine et progres en entree,
    testee a l'unite ; le composant qui la rend est mince.
-3. **Les regles de code passent** : `tsc`, `eslint`, `pnpm test`. Zero
-   erreur, zero avertissement nouveau. Les hooks de `scripts/hooks/` le
-   font respecter ; `--no-verify` pour une faille de securite seulement,
-   dit dans le message.
-4. **Rien n'a recule.** `pnpm run perf` au vert avant toute poussee sur
-   `main` (cliquet) ; un rouge sur la barre se ferme par un oracle de
-   cause, jamais par un seuil.
+3. **Les regles de code passent** : `tsc`, `eslint`, les tests unitaires.
+   Zero erreur, zero avertissement nouveau.
+4. **Rien n'a recule.** `perf-bureau` au vert (cliquet) avant toute
+   poussee sur `main` ; `perf-telephone` rapportee. Un rouge sur la barre
+   se ferme par un oracle de cause, jamais par un seuil. *(Tranche B.)*
 5. **Rien n'a disparu.** Aucun element de scene retire pour tenir une
    barre ; le mouvement reduit montre tout ; la premiere image apres le
    voile est complete.
 6. **La cloture rapproche.** `close-the-books` : chaque critere
-   d'acceptation coche avec sa preuve, la dette nouvelle inscrite dans
-   `docs/harnais.md`, qui est mis a jour si une regle ou un mecanisme a
-   bouge.
+   d'acceptation coche avec sa preuve, la dette nouvelle inscrite, ce
+   document mis a jour si une regle ou un mecanisme a bouge.
+
+Les hooks de `scripts/hooks/` le font respecter ; `--no-verify` pour une
+faille de securite seulement, dit dans le message.
