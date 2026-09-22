@@ -43,7 +43,14 @@ export function useLibereAuDemontage(ressource: Liberable | null | undefined): v
 }
 
 /** La meme chose pour une collection possedee par le composant : le cerf du
- *  miroir cuit une geometrie par maillage, et les rendait toutes. */
+ *  miroir cuit une geometrie par maillage, et les rendait toutes.
+ *
+ *  LE TABLEAU DOIT ETRE STABLE (`useMemo`), comme la ressource de la version
+ *  simple. L'effet se nettoie quand sa dependance change : un tableau
+ *  construit en ligne change a chaque rendu, et chaque rendu dispose alors
+ *  des ressources encore a l'ecran, que three renvoie au pilote a l'image
+ *  suivante (l'ocotillo, 22/09 : deux cents re-entrees par tour du site).
+ *  `fuite-gpu.spec.ts` compte ces re-entrees, et n'en tolere aucune. */
 export function useLibereToutAuDemontage(ressources: ReadonlyArray<Liberable | null | undefined>): void {
   useEffect(() => {
     return () => {

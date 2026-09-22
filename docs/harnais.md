@@ -113,11 +113,12 @@ passe le commit (avertissement) et tombe a la poussee.
 Ils comptent, ils ne chronometrent pas. Les six qui existaient avant le
 harnais (plafond d'appels de rendu, programmes tardifs, lectures de mise
 en page, decor fige, chauffe qui se tait, fuite GPU) seront rattaches ici
-en tranche C. Le premier ne du harnais :
+en tranche C. Les premiers nes du harnais :
 
 | oracle | ce qu'il garde | preuve |
 | --- | --- | --- |
 | `tests/e2e/voile-peinture.spec.ts` | pendant l'attente du voile, aucun noeud du voile n'est peint plus de six fois (une fois par calque, deux avec la police) ; plafond total en cliquet | 22/09 : la revelation du texte animait `text-shadow` et `filter: blur()` par lettre, deux proprietes de peinture ; 31 peintures par lettre, 64 pour la traduction, une toutes les 16 ms. Composee (copies en pseudo-elements, `will-change`), six par lettre, groupees en deux instants. Un rouge imprime les noeuds et leurs instants. |
+| `tests/e2e/fuite-gpu.spec.ts` (oracle de cause ajoute au compte) | sur tout le parcours, aucune geometrie ne re-entre plus d'une fois dans le compte du moteur : re-entrer, c'est avoir ete disposee pendant qu'elle etait rendue, et renvoyee au pilote a l'image suivante. Une fois est toleree : le StrictMode de developpement joue chaque effet deux fois au montage. Le compteur se lit apres une image rendue. | 22/09 : le compte de geometries etait stable en moyenne et faux a tout instant. L'ocotillo passait a `useLibereToutAuDemontage` un tableau reconstruit a chaque rendu ; l'effet se nettoyait a chaque rendu et disposait les sept tubes d'un bouquet a l'ecran : 65 a 89 re-entrees par tube en six tours, 14 tubes. C'etait le rouge a vide du 20/09 (+18) et du 22/09 (+7 : un bouquet). Tableau memorise, zero re-entree. Un rouge imprime les geometries, leur materiau, et combien de fois. |
 
 **La regle qu'il porte** : la 2D du voile n'anime que `transform` et
 `opacity`. Le nom d'une animation est une interface (`reveal-trigger`

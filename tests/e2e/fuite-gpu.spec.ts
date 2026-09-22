@@ -73,8 +73,79 @@ test("deux tours du site n'ajoutent plus rien au processeur graphique", async ({
   );
   await page.waitForTimeout(6000);
 
+  /**
+   * L'ORACLE DE CAUSE (22/09) : AUCUNE GEOMETRIE NE RENTRE DEUX FOIS.
+   *
+   * Le compteur du moteur monte quand WebGLGeometries voit une geometrie
+   * pour la premiere fois -- a cet instant precis, three appelle
+   * `geometry.addEventListener("dispose", ...)` -- et redescend sur
+   * `dispose()`. Une geometrie disposee PUIS ENCORE RENDUE re-entre dans le
+   * compte : ses tampons sont renvoyes au pilote, et entre le dispose et le
+   * rendu suivant, le compteur ment de tout ce qu'elle pese.
+   *
+   * C'est ce que ce test lisait le 20/09 et le 22/09 (+18, puis +7, jamais
+   * la meme assertion) : l'ocotillo passait a `useLibereToutAuDemontage` un
+   * tableau reconstruit a chaque rendu, donc l'effet se nettoyait a chaque
+   * rendu et disposait les sept tubes d'un bouquet pendant qu'ils etaient a
+   * l'ecran. Deux cents re-entrees par tour, mesurees ; et sept, c'est un
+   * bouquet. Le compte etait stable en moyenne, et faux a tout instant.
+   *
+   * Le plafond est UN par geometrie, pas zero : en developpement, le
+   * StrictMode de React joue chaque effet deux fois au montage, donc chaque
+   * `useLibereAuDemontage` dispose une fois sa ressource juste apres sa
+   * naissance, et elle re-entre a l'image suivante. Une fois, au montage,
+   * en developpement seulement. Une deuxieme, c'est un dispose pendant la
+   * vie de l'objet, et c'est un defaut.
+   */
+  type FicheReentree = { type: string; sommets: number; materiau: string; porteurs: number; fois: number };
+  await page.evaluate(() => {
+    type Geometrie = {
+      isBufferGeometry?: boolean; uuid: string; type: string; __vue?: boolean;
+      attributes: { position?: { count: number } };
+    };
+    type Objet = { geometry?: Geometrie; material?: { type: string } | Array<{ type: string }> };
+    const w = window as unknown as {
+      __nahualR3f: { scene: { traverse: (f: (o: Objet) => void) => void } };
+      __reentrees: Map<string, FicheReentree>;
+    };
+    const { scene } = w.__nahualR3f;
+    w.__reentrees = new Map();
+    let temoin: Geometrie | null = null;
+    scene.traverse((o) => { if (!temoin && o.geometry) temoin = o.geometry; });
+    if (!temoin) throw new Error("aucune geometrie dans la scene chargee");
+    let proto: object | null = Object.getPrototypeOf(temoin);
+    while (proto && !Object.prototype.hasOwnProperty.call(proto, "addEventListener")) proto = Object.getPrototypeOf(proto);
+    if (!proto) throw new Error("EventDispatcher introuvable sous la geometrie");
+    const dispatcher = proto as { addEventListener: (this: Geometrie, type: string, fn: unknown) => void };
+    const original = dispatcher.addEventListener;
+    dispatcher.addEventListener = function (this: Geometrie, type: string, fn: unknown) {
+      if (type === "dispose" && this.isBufferGeometry) {
+        if (this.__vue) {
+          const fiche = w.__reentrees.get(this.uuid);
+          if (fiche) fiche.fois += 1;
+          else {
+            let porteurs = 0;
+            let materiau = "?";
+            scene.traverse((o) => {
+              if (o.geometry !== this) return;
+              porteurs += 1;
+              const m = Array.isArray(o.material) ? o.material[0] : o.material;
+              if (m) materiau = m.type;
+            });
+            w.__reentrees.set(this.uuid, { type: this.type, sommets: this.attributes.position?.count ?? 0, materiau, porteurs, fois: 1 });
+          }
+        }
+        this.__vue = true;
+      }
+      return original.call(this, type, fn);
+    };
+  });
+
+  /** Le compteur se lit APRES une image rendue : entre un `dispose()` et le
+   *  rendu qui suit, il ne compte pas ce qui est a l'ecran. */
   const lire = () =>
-    page.evaluate(() => {
+    page.evaluate(async () => {
+      await new Promise<void>((ok) => requestAnimationFrame(() => requestAnimationFrame(() => ok())));
       const w = window as unknown as { __nahualR3f: { gl: { info: { memory: { geometries: number; textures: number } } } } };
       return { geometries: w.__nahualR3f.gl.info.memory.geometries, textures: w.__nahualR3f.gl.info.memory.textures };
     });
@@ -138,6 +209,18 @@ test("deux tours du site n'ajoutent plus rien au processeur graphique", async ({
   const ou = pose
     ? `palier atteint au tour ${tours}`
     : `AUCUN palier en ${MAX_TOURS} tours -- c'est la signature d'une fuite`;
+
+  // La cause avant le compte : une geometrie qui re-entre plus d'une fois a
+  // ete disposee pendant qu'elle etait rendue. Le rouge dit lesquelles.
+  const reentrees = await page.evaluate(() =>
+    [...(window as unknown as { __reentrees: Map<string, FicheReentree> }).__reentrees.values()],
+  );
+  const fautives = reentrees.filter((f) => f.fois > 1).sort((a, b) => b.fois - a.fois);
+  const decrire = (f: FicheReentree) => `${f.type} ${f.sommets} sommets, ${f.materiau}, ${f.porteurs} maillage(s) : re-entree ${f.fois} fois`;
+  expect(
+    fautives.length,
+    `${fautives.length} geometrie(s) disposee(s) pendant qu'elles etaient rendues, sur ${tours + 2} tours :\n  ${fautives.slice(0, 12).map(decrire).join("\n  ")}`,
+  ).toBe(0);
 
   expect(
     geo,

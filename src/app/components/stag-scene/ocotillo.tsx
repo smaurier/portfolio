@@ -104,7 +104,14 @@ function OcotilloCluster({
     [seed],
   );
   const pointsFleurs = useMemo(() => hampes.flatMap((h) => h.flowerPoints), [hampes]);
-  useLibereToutAuDemontage(hampes.map((h) => h.tubeGeometry));
+  // Le tableau est MEMORISE (22/09) : construit en ligne, il changeait a
+  // chaque rendu, l'effet de liberation se nettoyait a chaque rendu, et les
+  // sept tubes etaient disposes pendant qu'ils etaient a l'ecran -- three
+  // les renvoyait au pilote a l'image suivante. Deux cents re-entrees par
+  // tour du site, et un compteur de geometries faux de sept a tout instant :
+  // c'etait l'instabilite de fuite-gpu.spec.ts.
+  const tubes = useMemo(() => hampes.map((h) => h.tubeGeometry), [hampes]);
+  useLibereToutAuDemontage(tubes);
   // Les HAMPES seulement (14/09, F1c) : elles sont posees une fois pour
   // toutes, et se recomposaient a chaque image pour rien. Pas le groupe du
   // bouquet, qui reste a r3f, ni les fleurs, qui sont desormais une maille
