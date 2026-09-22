@@ -134,4 +134,22 @@ export function Essai() {
 `;
     expect(await regles(extrait, CHEMIN)).toEqual([]);
   });
+
+  it("ne confond pas une aide setXxx(uniforms, valeur) avec un setter React", async () => {
+    // Un setter React prend UN argument ; les aides du depot qui ecrivent
+    // des uniforms en prennent deux ou trois. 16 des 28 hits du premier
+    // jour etaient de celles-la (relecture du 22/09).
+    const extrait = `import { useFrame } from "@react-three/fiber";
+type U = { uOpacite: { value: number } };
+function setOpacite(u: U, valeur: number) { u.uOpacite.value = valeur; }
+const uniforms: U = { uOpacite: { value: 1 } };
+export function Essai() {
+  useFrame(() => {
+    setOpacite(uniforms, 0.5);
+  });
+  return null;
+}
+`;
+    expect(await regles(extrait, CHEMIN)).toEqual([]);
+  });
 });

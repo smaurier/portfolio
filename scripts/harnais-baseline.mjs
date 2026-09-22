@@ -5,40 +5,44 @@
  *   scripts/lint-baseline.json   fichiers qui violaient les regles de la
  *                                boucle d'image le jour de leur arrivee,
  *                                avec leur compte ;
- *   scripts/lines-baseline.json  fichiers au-dessus de 400 lignes, geles
- *                                a leur taille.
+ *   scripts/lines-baseline.json  fichiers au-dessus de PLAFOND_LIGNES,
+ *                                geles a leur taille.
  *
- * Un cliquet ne redescend jamais : ce script ne s'execute que pour
- * CONSTATER qu'un fichier a maigri (il sort de la liste ou son compte
- * baisse). tests/harnais/cliquets.test.ts refuse tout le reste.
+ * C'est un CLIQUET, pas un plafond : chaque progres s'acquiert. Un fichier
+ * qui a maigri fait tomber tests/harnais/cliquets.test.ts jusqu'a ce qu'on
+ * relance ce script, qui inscrit le nouveau meilleur connu ; un fichier qui
+ * a grossi fait tomber le meme test, et rien ne l'en sort. Un fichier a
+ * zero (ou sous le plafond) sort de la liste.
  *
  * Usage : pnpm run harnais:baseline
  */
 import { ESLint } from "eslint";
 import { readFileSync, writeFileSync } from "node:fs";
-import { relative } from "node:path";
-import { REGLES_BOUCLE } from "../eslint/harnais.mjs";
-
-const PLAFOND_LIGNES = 400;
+import { join } from "node:path";
+import { CONFIG_BOUCLE, PLAFOND_LIGNES, compterBoucle } from "../eslint/harnais.mjs";
+import { RACINE, cheminPosix } from "../eslint/cliquets.mjs";
+import { compterLignes } from "./compter-lignes.mjs";
 
 const eslint = new ESLint({
-  cwd: process.cwd(),
-  // On force la regle en erreur partout pour compter sans les derogations.
-  overrideConfig: [{ files: ["src/**/*.{ts,tsx}"], rules: { "no-restricted-syntax": ["error", ...REGLES_BOUCLE] } }],
+  cwd: RACINE,
+  // Force la regle en erreur partout : on compte sans les derogations.
+  overrideConfig: [CONFIG_BOUCLE],
 });
 const resultats = await eslint.lintFiles(["src/**/*.{ts,tsx}"]);
 
 const boucle = {};
 const lignes = {};
 for (const r of resultats) {
-  const chemin = relative(process.cwd(), r.filePath).split("\\").join("/");
-  const n = r.messages.filter((m) => m.ruleId === "no-restricted-syntax").length;
+  const chemin = cheminPosix(r.filePath);
+  const n = compterBoucle(r);
   if (n > 0) boucle[chemin] = n;
-  const compte = readFileSync(r.filePath, "utf8").split("\n").length;
+  const compte = compterLignes(readFileSync(r.filePath, "utf8"));
   if (compte > PLAFOND_LIGNES) lignes[chemin] = compte;
 }
 
-const trier = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)));
-writeFileSync("scripts/lint-baseline.json", JSON.stringify(trier(boucle), null, 2) + "\n");
-writeFileSync("scripts/lines-baseline.json", JSON.stringify(trier(lignes), null, 2) + "\n");
+// Tri deterministe, independant de la locale du poste (Sylvain travaille
+// sur plusieurs machines : un localeCompare() ferait bouger le JSON).
+const trier = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+writeFileSync(join(RACINE, "scripts", "lint-baseline.json"), JSON.stringify(trier(boucle), null, 2) + "\n");
+writeFileSync(join(RACINE, "scripts", "lines-baseline.json"), JSON.stringify(trier(lignes), null, 2) + "\n");
 console.log(`boucle : ${Object.keys(boucle).length} fichier(s) geles ; lignes : ${Object.keys(lignes).length} fichier(s) au-dessus de ${PLAFOND_LIGNES}`);

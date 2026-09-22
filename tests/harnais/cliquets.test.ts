@@ -1,52 +1,79 @@
 import { describe, expect, it } from "vitest";
 import { ESLint } from "eslint";
-import { readFileSync } from "node:fs";
-import { relative } from "node:path";
-import { REGLES_BOUCLE } from "../../eslint/harnais.mjs";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { CONFIG_BOUCLE, PLAFOND_LIGNES, REGLES_BOUCLE, compterBoucle } from "../../eslint/harnais.mjs";
+import { RACINE, cheminPosix, cliquetBoucle, cliquetLignes, motifFichier } from "../../eslint/cliquets.mjs";
+import { compterLignes } from "../../scripts/compter-lignes.mjs";
 
 /**
- * LES CLIQUETS NE RECULENT PAS, ET NE TRAINENT PAS.
+ * LES CLIQUETS NE RECULENT PAS, ET CHAQUE PROGRES S'ACQUIERT.
  *
- * Un cliquet est une liste de fichiers geles a leur etat du jour ou la
- * regle est arrivee. Ce test garde deux choses :
- *   - aucun fichier gele ne fait pire que sa ligne de base ;
- *   - aucune ligne de base n'est perimee : un fichier qui a maigri sous le
- *     plafond doit sortir (`pnpm run harnais:baseline`), sinon la liste
- *     ment sur l'etat du depot.
+ * Un cliquet est une liste de fichiers geles a leur MEILLEUR etat connu.
+ * Ce test garde trois choses :
+ *   - aucun fichier gele ne fait pire que sa ligne de base (rien ne recule) ;
+ *   - aucun fichier gele ne fait mieux sans que la ligne de base l'ait
+ *     inscrit (`pnpm run harnais:baseline`) : un progres non acquis se
+ *     reperdrait sans bruit -- 9, puis 3, puis 9 passerait avec un plafond ;
+ *   - aucune ligne de base n'est perimee : un fichier disparu ou passe a
+ *     zero doit sortir.
  * Un fichier ABSENT de la liste est sous la regle pleine (erreur) : c'est
  * eslint lui-meme qui le garde, pas ce test.
  */
-const PLAFOND_LIGNES = 400;
-const lire = (nom: string): Record<string, number> => JSON.parse(readFileSync(`scripts/${nom}`, "utf8"));
+const REGENERER = "lance pnpm run harnais:baseline";
 
 describe("le cliquet de la boucle d'image", () => {
-  const base = lire("lint-baseline.json");
-
-  it("aucun fichier gele ne gagne de violation, et aucun n'est perime", async () => {
-    const fichiers = Object.keys(base);
+  it("chaque fichier gele est exactement a son meilleur connu", async () => {
+    const fichiers = Object.keys(cliquetBoucle);
     if (fichiers.length === 0) return;
-    const eslint = new ESLint({
-      cwd: process.cwd(),
-      overrideConfig: [{ files: ["src/**/*.{ts,tsx}"], rules: { "no-restricted-syntax": ["error", ...REGLES_BOUCLE] } }],
-    });
+    for (const f of fichiers) {
+      expect(existsSync(join(RACINE, f)), `${f} n'existe plus : il sort du cliquet, ${REGENERER}`).toBe(true);
+    }
+    const eslint = new ESLint({ cwd: RACINE, overrideConfig: [CONFIG_BOUCLE] });
     const resultats = await eslint.lintFiles(fichiers);
     for (const r of resultats) {
-      const chemin = relative(process.cwd(), r.filePath).split("\\").join("/");
-      const n = r.messages.filter((m) => m.ruleId === "no-restricted-syntax").length;
-      expect(n, `${chemin} : ${n} violation(s), ligne de base ${base[chemin]} -- le cliquet ne recule pas`).toBeLessThanOrEqual(base[chemin]);
-      expect(n, `${chemin} est a zero : il sort du cliquet, lance pnpm run harnais:baseline`).toBeGreaterThan(0);
+      const chemin = cheminPosix(r.filePath);
+      const n = compterBoucle(r);
+      const base = cliquetBoucle[chemin];
+      expect(n, `${chemin} : ${n} violation(s), meilleur connu ${base} -- le cliquet ne recule pas`).toBeLessThanOrEqual(base);
+      expect(n, `${chemin} : ${n} violation(s), meilleur connu ${base} -- un progres s'acquiert, ${REGENERER}`).toBeGreaterThanOrEqual(base);
     }
+  }, 60_000);
+
+  it("une derogation sur un chemin a crochets s'applique, grace a l'echappement", async () => {
+    // minimatch lit [locale] comme une classe de caracteres : sans
+    // echappement, la derogation ne s'applique pas et la regle reste en
+    // erreur sur ce fichier-la (relecture du 22/09).
+    const chemin = "src/app/[locale]/essai-harnais.tsx";
+    const extrait = `import { useFrame } from "@react-three/fiber";
+import { Vector3 } from "three";
+export function Essai() {
+  useFrame(() => {
+    const v = new Vector3();
+    v.set(0, 0, 0);
+  });
+  return null;
+}
+`;
+    const severite = async (motif: string) => {
+      const eslint = new ESLint({ cwd: RACINE, overrideConfig: [{ files: [motif], rules: { "no-restricted-syntax": ["warn", ...REGLES_BOUCLE] } }] });
+      const [r] = await eslint.lintText(extrait, { filePath: chemin });
+      return r.messages.find((m) => m.ruleId === "no-restricted-syntax")?.severity;
+    };
+    expect(motifFichier(chemin)).toBe("src/app/\\[locale\\]/essai-harnais.tsx");
+    expect(await severite(chemin), "sans echappement la derogation est ignoree").toBe(2);
+    expect(await severite(motifFichier(chemin)), "avec echappement elle s'applique").toBe(1);
   }, 60_000);
 });
 
 describe("le cliquet des tailles de fichier", () => {
-  const base = lire("lines-baseline.json");
-
-  it("aucun fichier gele ne grossit, et aucun n'est perime", () => {
-    for (const [chemin, plafond] of Object.entries(base)) {
-      const compte = readFileSync(chemin, "utf8").split("\n").length;
-      expect(compte, `${chemin} : ${compte} lignes, gele a ${plafond} -- le cliquet ne recule pas`).toBeLessThanOrEqual(plafond);
-      expect(compte, `${chemin} est passe sous ${PLAFOND_LIGNES} : il sort du cliquet, lance pnpm run harnais:baseline`).toBeGreaterThan(PLAFOND_LIGNES);
+  it("chaque fichier gele est exactement a sa taille connue", () => {
+    for (const [chemin, base] of Object.entries(cliquetLignes)) {
+      expect(existsSync(join(RACINE, chemin)), `${chemin} n'existe plus : il sort du cliquet, ${REGENERER}`).toBe(true);
+      const compte = compterLignes(readFileSync(join(RACINE, chemin), "utf8"));
+      expect(compte, `${chemin} : ${compte} lignes, meilleur connu ${base} -- le cliquet ne recule pas`).toBeLessThanOrEqual(base);
+      expect(compte, `${chemin} : ${compte} lignes, meilleur connu ${base} -- un progres s'acquiert, ${REGENERER}`).toBeGreaterThanOrEqual(base);
+      expect(compte, `${chemin} est passe sous ${PLAFOND_LIGNES} : il sort du cliquet, ${REGENERER}`).toBeGreaterThan(PLAFOND_LIGNES);
     }
   });
 });

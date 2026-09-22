@@ -5,7 +5,7 @@
  * contient que des regles du coeur d'ESLint : aucun plugin a installer,
  * rien qui puisse casser a la prochaine version de eslint-config-next.
  */
-import { cliquetBoucle } from "./cliquets.mjs";
+import { cliquetBoucle, motifFichier } from "./cliquets.mjs";
 
 /** Tout le code du site ; ni les tests, ni les sondes de .scratch, ni scripts/. */
 const SRC = ["src/**/*.{ts,tsx}"];
@@ -21,9 +21,16 @@ export const LECTURES_GPU = ["getError", "readPixels", "getParameter", "getProgr
 /** Ce qui ne se cree pas a chaque image : les objets three qui allouent. */
 const OBJETS_THREE = "Vector2|Vector3|Vector4|Quaternion|Matrix3|Matrix4|Color|Euler|Box3|Sphere|Plane|Ray|Raycaster|Object3D";
 
-/** Selecteurs AST (esquery) : ce qui est DANS un rappel useFrame. */
+/**
+ * Selecteurs AST (esquery) : ce qui est DANS un rappel useFrame.
+ * [arguments.length=1] : un setter React prend un argument ; les aides
+ * setXxx(uniforms, valeur) du depot en prennent deux ou trois (relecture
+ * du 22/09 : 16 des 28 hits du premier jour). Angles morts assumes : une
+ * aide a un argument nommee setFoo, un setter renomme (const [, maj] =
+ * useState()), dispatch de useReducer.
+ */
 export const SELECTEUR_ALLOCATION = `CallExpression[callee.name='useFrame'] NewExpression[callee.name=/^(${OBJETS_THREE})$/]`;
-export const SELECTEUR_SET_STATE = "CallExpression[callee.name='useFrame'] CallExpression[callee.type='Identifier'][callee.name=/^set[A-Z]/]";
+export const SELECTEUR_SET_STATE = "CallExpression[callee.name='useFrame'] CallExpression[callee.type='Identifier'][callee.name=/^set[A-Z]/][arguments.length=1]";
 
 /**
  * Les deux regles de la boucle d'image, partagees par la config et par le
@@ -40,6 +47,25 @@ export const REGLES_BOUCLE = [
     message: "Pas d'etat React pilote par la boucle : useFrame ecrit dans des refs, React ne re-rend pas a 60 images par seconde (docs/harnais.md, pilier 2, loi de la frontiere).",
   },
 ];
+
+/** Le plafond partage par la regle max-lines (tache 5), le generateur et le test. */
+export const PLAFOND_LIGNES = 400;
+
+/**
+ * Le bloc de la boucle d'image, nomme parce que trois lecteurs l'utilisent :
+ * la config (ici), le generateur des cliquets et le test des cliquets, qui
+ * tous deux le forcent en erreur partout pour compter sans les derogations.
+ * @type {import("eslint").Linter.Config}
+ */
+export const CONFIG_BOUCLE = {
+  files: SRC,
+  rules: {
+    "no-restricted-syntax": ["error", ...REGLES_BOUCLE],
+  },
+};
+
+/** Le nombre de violations de la boucle dans un resultat ESLint. */
+export const compterBoucle = (resultat) => resultat.messages.filter((m) => m.ruleId === "no-restricted-syntax").length;
 
 export const harnais = [
   {
@@ -79,15 +105,10 @@ export const harnais = [
       ],
     },
   },
-  {
-    // La boucle d'image : rien d'alloue, pas d'etat React pilote par elle.
-    // Le selecteur callee.type='Identifier' distingue un setter React nu
-    // (setNiveau(1)) d'une methode three (scratch.setScalar(1)).
-    files: SRC,
-    rules: {
-      "no-restricted-syntax": ["error", ...REGLES_BOUCLE],
-    },
-  },
+  // La boucle d'image : rien d'alloue, pas d'etat React pilote par elle.
+  // Le selecteur callee.type='Identifier' distingue un setter React nu
+  // (setNiveau(1)) d'une methode three (scratch.setScalar(1)).
+  CONFIG_BOUCLE,
   // Le cliquet : les fichiers qui violaient ces regles le jour ou elles sont
   // arrivees passent en avertissement, geles a leur compte
   // (scripts/lint-baseline.json). Ils ne peuvent plus en gagner
@@ -95,7 +116,7 @@ export const harnais = [
   // qu'une severite par regle et par fichier : c'est la derogation qui fait
   // le cliquet, pas la severite.
   ...Object.keys(cliquetBoucle).map((fichier) => ({
-    files: [fichier],
+    files: [motifFichier(fichier)],
     rules: {
       "no-restricted-syntax": ["warn", ...REGLES_BOUCLE],
     },
