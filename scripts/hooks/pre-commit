@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+# LE HARNAIS, PILIER 4 : rien ne se commite qui casse les types ou le lint.
+# Installe par `pnpm install` (script prepare -> core.hooksPath).
+# Pour un correctif de securite qui ne peut pas attendre : git commit --no-verify,
+# en le disant dans le message.
+set -e
+echo "harnais : tsc"
+pnpm exec tsc --noEmit
+echo "harnais : eslint"
+# --cache : eslint . prend une vingtaine de secondes a froid (analyse
+# TypeScript, regles next et react-hooks) ; un hook a vingt secondes se
+# contourne. Le cache vit sous node_modules, jamais dans le depot.
+pnpm exec eslint . --cache --cache-location node_modules/.cache/eslint/

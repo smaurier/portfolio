@@ -31,9 +31,14 @@ describe("le cliquet de la boucle d'image", () => {
     }
     const eslint = new ESLint({ cwd: RACINE, overrideConfig: [CONFIG_BOUCLE] });
     const resultats = await eslint.lintFiles(fichiers);
-    // Un fichier liste mais ignore par ESLint (globalIgnores) ne rendrait
-    // pas de resultat, et le cliquet le croirait tenu. Un resultat par fichier.
-    expect(resultats.length, "un fichier du cliquet n'a pas ete linte : est-il ignore par la config ?").toBe(fichiers.length);
+    // Un fichier liste mais ignore par ESLint (globalIgnores) rend quand
+    // meme un resultat, sans regle et avec un message « File ignored » ; le
+    // cliquet le croirait a zero et demanderait d'acquerir un progres qui
+    // n'existe pas. Un message sans regle, c'est un fichier pas linte.
+    for (const r of resultats) {
+      const horsRegle = r.messages.find((m) => m.ruleId === null);
+      expect(horsRegle, `${cheminPosix(r.filePath)} n'a pas ete linte : ${horsRegle?.message ?? ""}`).toBeUndefined();
+    }
     for (const r of resultats) {
       const chemin = cheminPosix(r.filePath);
       const n = compterBoucle(r);

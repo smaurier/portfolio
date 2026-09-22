@@ -7,7 +7,7 @@
  */
 import { cliquetBoucle, cliquetLignes, motifFichier } from "./cliquets.mjs";
 
-/** Tout le code du site ; ni les tests, ni les sondes de .scratch, ni scripts/. */
+/** Tout le code sous src/, tests unitaires de lib/ compris ; ni tests/, ni .scratch/, ni scripts/. */
 const SRC = ["src/**/*.{ts,tsx}"];
 
 /**
@@ -123,9 +123,10 @@ export const harnais = [
   })),
   {
     // Pilier 3 : un fichier qu'on ne tient pas en tete d'un coup est un
-    // fichier qu'on modifie mal. Lignes brutes, comme wc -l et comme le
-    // compteur du harnais (scripts/compter-lignes.mjs) : la ligne vide
-    // apres le dernier retour ne compte pas.
+    // fichier qu'on modifie mal. Lignes brutes, comme wc -l sur un fichier
+    // termine par un retour a la ligne et comme le compteur du harnais
+    // (scripts/compter-lignes.mjs) : la ligne vide apres le dernier retour
+    // ne compte pas.
     files: SRC,
     rules: {
       "max-lines": ["error", { max: PLAFOND_LIGNES, skipBlankLines: false, skipComments: false }],

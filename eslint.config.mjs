@@ -4,7 +4,7 @@ import { harnais } from "./eslint/harnais.mjs";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", ".scratch/**"]),
   ...harnais,
 ]);
 

@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+# LE HARNAIS, PILIER 4 : rien ne se pousse qui casse un test ; rien ne se
+# pousse sur main qui recule sur la barre de performance.
+# git passe sur stdin une ligne par ref : <ref locale> <sha> <ref distante> <sha>.
+set -e
+echo "harnais : tests unitaires"
+pnpm test
+while read -r ref_locale sha_local ref_distante sha_distant; do
+  case "$ref_distante" in
+    refs/heads/main)
+      echo "harnais : poussee sur main, la barre de performance doit etre verte"
+      # --if-present : la barre arrive avec la tranche B ; d'ici la, rien.
+      pnpm run --if-present perf
+      ;;
+  esac
+done
+exit 0
