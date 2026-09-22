@@ -236,10 +236,10 @@ entre dans `docs/harnais.md` avec sa preuve.
 | regle | mecanisme | exception |
 | --- | --- | --- |
 | Rien d'alloue dans `useFrame` : `new Vector3 / Quaternion / Matrix4 / Color / Euler` dans un rappel `useFrame` | `no-restricted-syntax`, selecteur sur le rappel | aucune |
-| Pas de `setState` pilote par la boucle | `no-restricted-syntax`, heuristique `set[A-Z]...(` dans `useFrame`, en avertissement | aucune |
-| Aucune lecture synchrone du GPU en production : `getError`, `readPixels`, `getParameter`, `getProgramParameter`, `checkFramebufferStatus`, `getBufferSubData` sous `src/` | `no-restricted-properties` | aucune, verifie : **`src/` ne contient aujourd'hui aucun de ces appels**. La chauffe lit `COMPLETION_STATUS_KHR` a travers `program.isReady()` de three, pas en direct ; la regle ne la touche pas. (Premiere version : une exception nommee. Inutile.) |
+| Pas de `setState` pilote par la boucle | `no-restricted-syntax`, identifiant nu `set[A-Z]...` **a un argument** dans `useFrame` (22/09 : un setter React prend un argument, les aides `setXxx(uniforms, valeur)` du depot en prennent deux ou trois — 16 des 28 hits du premier jour etaient de celles-la) ; en erreur, les fichiers du premier jour geles en avertissement par le cliquet | aucune |
+| Aucune lecture synchrone du GPU en production : `getError`, `readPixels`, `getParameter`, `getProgramParameter`, `checkFramebufferStatus`, `getBufferSubData` sous `src/`, sur n'importe quel objet | `no-restricted-properties` | aucune, verifie : **`src/` ne contient aujourd'hui aucun de ces appels**. La chauffe lit `COMPLETION_STATUS_KHR` a travers `program.isReady()` de three, pas en direct ; la regle ne la touche pas. (Premiere version : une exception nommee. Inutile.) **Amendement du 22/09 (relecture de la tache 3)** : la liste est **ouverte** — `finish`, `getShaderParameter`, `getProgramInfoLog`, `getShaderInfoLog`, `clientWaitSync`, `getSyncParameter`, `getUniform` sont aussi synchrones et passent aujourd'hui ; `finish` en premier candidat ; toute extension passe par le test des extraits (un nom ajoute = un extrait rouge puis vert), tranche C. |
 | `lib/` n'importe jamais un composant | `no-restricted-imports` sous `src/lib/**` | aucune. Trouve des le premier jour, et pas ou je croyais : **vingt et un fichiers** de `lib/` importent un type depuis un composant (`DirectionKey` depuis `direction-colors`, `CardinalDirection` depuis `cardinal-transition-context`). Les deux types descendent dans `lib/direction.ts` ; les composants les re-exportent. Rouge le premier jour, vert dans le meme plan |
-| Plafond de lignes par fichier, en **cliquet** | `max-lines` a 400 ; pour chaque fichier au-dessus, une derogation generee depuis `scripts/lines-baseline.json` a sa taille du jour — il ne peut plus grossir, il peut maigrir, et le fichier de base se regenere quand il maigrit | `sound-design.tsx` (> 1100) et les autres au-dessus de 400, geles |
+| Plafond de lignes par fichier, en **cliquet** | `max-lines` a 400, lignes comptees comme ESLint et `wc -l` les comptent (`scripts/compter-lignes.mjs`, mesure du 22/09) ; pour chaque fichier au-dessus, une derogation generee depuis `scripts/lines-baseline.json` a sa taille du jour, par un motif echappe (les chemins `src/app/[locale]/` seraient lus comme des classes de caracteres) — il ne peut plus grossir, et **chaque amaigrissement s'acquiert** par `pnpm run harnais:baseline` (un plafond laisserait 1322 puis 900 puis 1322 passer) | dix-huit fichiers, le plus gros `xolotl-companion.tsx` a 1322, geles |
 
 ### Ce qui se compte par un oracle
 
@@ -391,12 +391,16 @@ Valable pour toute demande, une ligne de CSS comme une nouvelle direction :
 
 ### Ce qui bloque quoi
 
-`tsc`, `eslint` et `pnpm test` bloquent tout commit — par le hook
-`pre-commit` de `scripts/hooks/`, pas par une consigne. La barre bloque
-`main` seulement — par le hook `pre-push`, qui lance `pnpm run perf`
-quand la ref poussee est `main` ; `dev` reste libre. L'exception de
-securite de `CLAUDE.md` vaut ici aussi : un correctif de faille n'attend
-pas une barre (`git push --no-verify`, dit dans le message de commit).
+`tsc` et `eslint` bloquent tout commit — par le hook `pre-commit` de
+`scripts/hooks/`, pas par une consigne ; `pnpm test` bloque toute poussee
+(tranche A, 22/09 : vingt a cinquante commits par jour, le filet est le
+meme pour `main`). La barre bloque `main` seulement — par le hook
+`pre-push`, qui lance `pnpm run perf` quand la ref poussee est `main` ;
+`dev` reste libre. Les hooks sont installes par `pnpm install` (`prepare`,
+qui sort en 0 sans `.git`) et restent en LF (`.gitattributes`).
+L'exception de securite de `CLAUDE.md` vaut ici aussi : un correctif de
+faille n'attend pas une barre (`--no-verify`, dit dans le message de
+commit).
 
 ### Le harnais s'entretient par ses propres regles
 
@@ -479,9 +483,11 @@ demandent du materiel.
 Pour `close-the-books`, quand le plan sera execute :
 
 1. `docs/harnais.md` existe ; chaque regle y a un mecanisme et une preuve ;
-   l'inventaire de dette a quatre lignes datees.
+   l'inventaire de dette a quatre lignes datees. — **Fait, tranche A
+   (`862af79`)** pour les regles et lois des piliers 2, 3 et 4 ; les
+   sections barre et oracles arrivent avec B et C.
 2. `CLAUDE.md` porte la section « Le harnais », six lignes, et renvoie a
-   `docs/harnais.md`.
+   `docs/harnais.md`. — **Fait, tranche A (`862af79`).**
 3. `pnpm run perf` lance `perf-bureau` et `perf-telephone` contre un serveur
    de production sur `:3100` ; dix-sept moments par projet ; chaque rapport
    porte compte, pire, repartition, budget reparti, temps GPU, `renderer.info`.
@@ -493,10 +499,16 @@ Pour `close-the-books`, quand le plan sera execute :
 7. Les cinq lints du pilier 2 sont en place ; **aucun** fichier de `lib/`
    n'importe plus un composant (vingt et un le premier jour) ; `max-lines`
    est en cliquet, derogations generees depuis `scripts/lines-baseline.json`.
+   — **Fait, tranche A** (`64dd51e` → `2dda2a7`) : chaque regle vue rouge
+   sur un extrait avant d'exister (`tests/harnais/lints.test.ts`, 18
+   extraits), les deux cliquets gardes par `tests/harnais/cliquets.test.ts`
+   ; point zero de la boucle : 12 violations dans 7 fichiers.
 12. Les hooks `pre-commit` et `pre-push` sont installes par `pnpm install`
     (script `prepare`) et refusent, respectivement, un commit qui casse
-    `tsc`/`eslint`/`pnpm test` et une poussee sur `main` qui recule sur la
-    barre.
+    `tsc`/`eslint` et une poussee qui casse `pnpm test` ou, sur `main`,
+    qui recule sur la barre. — **Fait, tranche A (`69fb9c3`, `a2f6552`)**,
+    avec la precision : les tests bloquent la poussee et non le commit.
+    Vus refuser a vide (commit fautif → code 1, aucun commit cree).
 13. L'oracle de peinture du voile a tourne sur la production et son
     resultat est consigne : soit il est vert et l'hypothese des calques
     masques tombe, soit il est rouge et il nomme le calque.
