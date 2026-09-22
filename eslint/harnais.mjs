@@ -5,7 +5,7 @@
  * contient que des regles du coeur d'ESLint : aucun plugin a installer,
  * rien qui puisse casser a la prochaine version de eslint-config-next.
  */
-import { cliquetBoucle, motifFichier } from "./cliquets.mjs";
+import { cliquetBoucle, cliquetLignes, motifFichier } from "./cliquets.mjs";
 
 /** Tout le code du site ; ni les tests, ni les sondes de .scratch, ni scripts/. */
 const SRC = ["src/**/*.{ts,tsx}"];
@@ -119,6 +119,28 @@ export const harnais = [
     files: [motifFichier(fichier)],
     rules: {
       "no-restricted-syntax": ["warn", ...REGLES_BOUCLE],
+    },
+  })),
+  {
+    // Pilier 3 : un fichier qu'on ne tient pas en tete d'un coup est un
+    // fichier qu'on modifie mal. Lignes brutes, comme wc -l et comme le
+    // compteur du harnais (scripts/compter-lignes.mjs) : la ligne vide
+    // apres le dernier retour ne compte pas.
+    files: SRC,
+    rules: {
+      "max-lines": ["error", { max: PLAFOND_LIGNES, skipBlankLines: false, skipComments: false }],
+    },
+  },
+  // Le cliquet des tailles : les fichiers au-dessus du plafond le jour de
+  // la regle sont geles a leur taille (scripts/lines-baseline.json) ; ils
+  // ne peuvent plus grossir, chaque amaigrissement s'acquiert
+  // (tests/harnais/cliquets.test.ts), et sous le plafond ils sortent. Les
+  // chemins passent par motifFichier : deux d'entre eux vivent sous
+  // src/app/[locale]/, que minimatch lirait comme une classe de caracteres.
+  ...Object.entries(cliquetLignes).map(([fichier, taille]) => ({
+    files: [motifFichier(fichier)],
+    rules: {
+      "max-lines": ["error", { max: taille, skipBlankLines: false, skipComments: false }],
     },
   })),
 ];

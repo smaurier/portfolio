@@ -153,3 +153,16 @@ export function Essai() {
     expect(await regles(extrait, CHEMIN)).toEqual([]);
   });
 });
+
+describe("pilier 2 : le plafond de lignes", () => {
+  it("refuse un fichier nouveau de plus de 400 lignes", async () => {
+    const extrait = Array.from({ length: 401 }, (_, i) => `export const ligne${i} = ${i};`).join("\n") + "\n";
+    expect(await regles(extrait, "src/lib/essai-harnais-long.ts")).toContain("max-lines");
+  });
+
+  it("accepte 400 lignes, retour final compris", async () => {
+    // 400 lignes + retour final = 400 pour max-lines (mesure du 22/09).
+    const extrait = Array.from({ length: 400 }, (_, i) => `export const ligne${i} = ${i};`).join("\n") + "\n";
+    expect(await regles(extrait, "src/lib/essai-harnais-long.ts")).toEqual([]);
+  });
+});

@@ -31,6 +31,9 @@ describe("le cliquet de la boucle d'image", () => {
     }
     const eslint = new ESLint({ cwd: RACINE, overrideConfig: [CONFIG_BOUCLE] });
     const resultats = await eslint.lintFiles(fichiers);
+    // Un fichier liste mais ignore par ESLint (globalIgnores) ne rendrait
+    // pas de resultat, et le cliquet le croirait tenu. Un resultat par fichier.
+    expect(resultats.length, "un fichier du cliquet n'a pas ete linte : est-il ignore par la config ?").toBe(fichiers.length);
     for (const r of resultats) {
       const chemin = cheminPosix(r.filePath);
       const n = compterBoucle(r);
