@@ -987,7 +987,17 @@ Reprise dans `CLAUDE.md`, relue a chaque session.
 | la barre de performance bloque `main` | `scripts/hooks/pre-push`, `pnpm run perf` *(tranche B)* | idem |
 
 Les hooks sont installes par `pnpm install` (`prepare` pose
-`core.hooksPath`). S'ils ne tournent pas : `pnpm run prepare`.
+`core.hooksPath`, et sort en 0 sans `.git` pour qu'une archive ou un
+`COPY` Docker s'installe quand meme). S'ils ne tournent pas :
+`pnpm run prepare`. Ils restent en LF quel que soit `core.autocrlf` du
+poste (`.gitattributes`). Mesure du 22/09 : le hook de commit prend 9 a
+12 s a chaud (tsc 4,7 s, eslint en cache 5,7 s), 20 s a froid ; le cache
+d'ESLint est cle par la config et la version d'ESLint, pas par le code
+des regles — apres une mise a jour d'`eslint-config-next` sans bump
+d'`eslint`, supprimer `node_modules/.cache/eslint/`. Les hooks verifient
+l'arbre de travail, pas l'index : avec `git add -p`, un commit peut
+contenir ce que le hook n'a pas vu ; c'est le prix des cliquets, qui ont
+besoin de l'arbre entier.
 
 ---
 
