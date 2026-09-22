@@ -10,4 +10,7 @@ echo "harnais : eslint"
 # --cache : eslint . prend une vingtaine de secondes a froid (analyse
 # TypeScript, regles next et react-hooks) ; un hook a vingt secondes se
 # contourne. Le cache vit sous node_modules, jamais dans le depot.
+# Le cache est cle par la config et la version d'ESLint, pas par le code
+# des regles : apres une mise a jour d'eslint-config-next sans bump
+# d'eslint, supprimer node_modules/.cache/eslint/.
 pnpm exec eslint . --cache --cache-location node_modules/.cache/eslint/

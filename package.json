@@ -11,7 +11,7 @@
     "test:e2e": "playwright test",
     "models": "node scripts/optimise-models.mjs",
     "harnais:baseline": "node scripts/harnais-baseline.mjs",
-    "prepare": "git config core.hooksPath scripts/hooks"
+    "prepare": "git config core.hooksPath scripts/hooks || exit 0"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

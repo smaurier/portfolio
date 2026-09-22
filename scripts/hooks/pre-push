@@ -3,9 +3,13 @@
 # pousse sur main qui recule sur la barre de performance.
 # git passe sur stdin une ligne par ref : <ref locale> <sha> <ref distante> <sha>.
 set -e
+# Les refs sont lues AVANT les tests : un processus enfant qui lirait
+# stdin (vitest ne le fait pas, verifie ; un autre pourrait) les
+# avalerait, et main ne serait plus jamais reconnue.
+refs=$(cat)
 echo "harnais : tests unitaires"
 pnpm test
-while read -r ref_locale sha_local ref_distante sha_distant; do
+printf '%s\n' "$refs" | while read -r ref_locale sha_local ref_distante sha_distant; do
   case "$ref_distante" in
     refs/heads/main)
       echo "harnais : poussee sur main, la barre de performance doit etre verte"
