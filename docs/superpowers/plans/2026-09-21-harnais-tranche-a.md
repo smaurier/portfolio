@@ -1022,8 +1022,8 @@ Deux listes versionnees, lues par la config et gardees par
 - `scripts/lint-baseline.json` : les fichiers qui violaient les regles de
   la boucle le jour de leur arrivee, geles a leur **meilleur compte connu**
   (en avertissement, les autres en erreur). Point zero du 22/09 : 12
-  violations dans 7 fichiers (xolotl-companion 3, background-flora 3,
-  milpa 3, frost-world 2, xiuhcoatl-companion 1, grass 1,
+  violations dans 7 fichiers (background-flora 3, milpa 3,
+  frost-world 2, xiuhcoatl-companion 1, xolotl-companion 1, grass 1,
   huitzilin-birds 1).
 - `scripts/lines-baseline.json` : les fichiers au-dessus de 400 lignes,
   geles a leur taille, comptee comme `max-lines` la compte
