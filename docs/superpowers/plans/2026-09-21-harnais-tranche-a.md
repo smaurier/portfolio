@@ -1000,8 +1000,8 @@ des extraits dans `tests/harnais/lints.test.ts`.
 | --- | --- | --- |
 | `lib/` n'importe jamais un composant ni une page (`@/app/**` et `**/app/**`, par alias ou chemin relatif) | `no-restricted-imports` sous `src/lib/**` | 21/09 : vingt et un fichiers de `lib/` importaient `DirectionKey` depuis un composant. Le type vit dans `lib/direction.ts`. **Limite connue** : la regle ne voit pas un `import()` dynamique ; dans une lib pure il n'y en a pas, et la relecture le garde. |
 | aucune lecture synchrone du GPU sous `src/` (`getError`, `readPixels`, `getParameter`, `getProgramParameter`, `checkFramebufferStatus`, `getBufferSubData`), sur n'importe quel objet | `no-restricted-properties` | MDN, WebGL best practices : ces appels vident le pipeline. `src/` n'en avait aucun ; les sondes de `tests/` et `.scratch/` en ont besoin et ne sont pas sous `src/`. Sans restriction d'objet a dessein : les contextes du depot s'appellent `g`, `ctx` ou `gl.getContext()`. **Limite connue** : la liste du design fixe six noms ; `finish`, `getShaderParameter`, `getProgramInfoLog`, `getShaderInfoLog`, `clientWaitSync`, `getSyncParameter`, `getUniform` sont aussi synchrones et passent aujourd'hui — a amender dans le design (tache 8). |
-| rien d'alloue dans `useFrame` (objets three) | `no-restricted-syntax`, selecteur sur le rappel | R3F, performance pitfalls : une allocation par image nourrit le ramasse-miettes. Le motif du depot est `scratch`, cree une fois dehors. |
-| pas de `setState` pilote par la boucle | `no-restricted-syntax`, identifiant nu `set[A-Z]...` dans `useFrame` | R3F : React ne re-rend pas a 60 images par seconde ; la boucle ecrit dans des refs. |
+| rien d'alloue dans `useFrame` (objets three : `Vector2/3/4`, `Quaternion`, `Matrix3/4`, `Color`, `Euler`, `Box3`, `Sphere`, `Plane`, `Ray`, `Raycaster`, `Object3D`) | `no-restricted-syntax`, selecteur sur le rappel, a toute profondeur | R3F, performance pitfalls : une allocation par image nourrit le ramasse-miettes. Le motif du depot est `scratch`, cree une fois dehors. **Angles morts connus** : `useFrame(tick)` avec `tick` declare ailleurs, `.clone()` (alloue autant que `new`), `new Float32Array` par image. La relecture les garde. |
+| pas de `setState` pilote par la boucle | `no-restricted-syntax`, identifiant nu `set[A-Z]...` **a un seul argument** dans `useFrame` | R3F : React ne re-rend pas a 60 images par seconde ; la boucle ecrit dans des refs. Un setter React prend un argument ; les aides `setXxx(uniforms, valeur)` du depot en prennent deux ou trois (22/09 : 16 des 28 hits du premier jour etaient de celles-la). **Angles morts** : une aide a un argument nommee `setFoo`, un setter renomme, `dispatch` de `useReducer`. |
 | plafond de 400 lignes par fichier | `max-lines`, lignes brutes | un fichier qu'on ne tient pas en tete d'un coup se modifie mal. |
 
 ### Les cliquets
@@ -1010,14 +1010,27 @@ Deux listes versionnees, lues par la config et gardees par
 `tests/harnais/cliquets.test.ts` :
 
 - `scripts/lint-baseline.json` : les fichiers qui violaient les regles de
-  la boucle le jour de leur arrivee, geles a leur compte (en
-  avertissement, les autres en erreur). Ils ne peuvent plus en gagner ; a
-  zero ils sortent.
+  la boucle le jour de leur arrivee, geles a leur **meilleur compte connu**
+  (en avertissement, les autres en erreur). Point zero du 22/09 : 12
+  violations dans 7 fichiers (xolotl-companion 3, background-flora 3,
+  milpa 3, frost-world 2, xiuhcoatl-companion 1, grass 1,
+  huitzilin-birds 1).
 - `scripts/lines-baseline.json` : les fichiers au-dessus de 400 lignes,
-  geles a leur taille. Ils ne peuvent plus grossir ; sous 400 ils sortent.
+  geles a leur taille, comptee comme `max-lines` et `wc -l` la comptent
+  (`scripts/compter-lignes.mjs`). Dix-huit fichiers le 22/09, le plus gros
+  a 1322 (`xolotl-companion.tsx`).
 
-Un cliquet ne redescend jamais. `pnpm run harnais:baseline` ne sert qu'a
-constater qu'un fichier a maigri.
+**C'est un cliquet, pas un plafond.** Un fichier gele ne peut ni faire
+pire (rien ne recule) ni faire mieux sans que la ligne de base l'inscrive :
+`pnpm run harnais:baseline` **acquiert** le progres, sinon 9 puis 3 puis 9
+passerait sans bruit. A zero, ou sous 400, le fichier sort. Les chemins a
+crochets (`src/app/[locale]/...`) sont echappes avant d'etre donnes a
+ESLint, sinon minimatch y lit une classe de caracteres et la derogation
+ne s'applique pas — le test le prouve.
+
+`pnpm run lint` sort en 0 avec des avertissements : les derogations sont
+invisibles a la ligne de commande, c'est `tests/harnais/cliquets.test.ts`
+qui les garde.
 
 ---
 
