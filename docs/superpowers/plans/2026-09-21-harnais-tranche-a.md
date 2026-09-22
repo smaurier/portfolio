@@ -685,105 +685,17 @@ EOF
 ### Task 5 : le plafond de lignes, en cliquet
 
 **Files:**
-- Create: `scripts/compter-lignes.mjs`
-- Create: `tests/harnais/compter-lignes.test.ts`
-- Modify: `scripts/harnais-baseline.mjs`
-- Modify: `tests/harnais/cliquets.test.ts`
-- Modify: `scripts/lines-baseline.json` (regenere)
 - Modify: `eslint/harnais.mjs`
 - Modify: `tests/harnais/lints.test.ts`
 
-**Mesure du 22/09, qui corrige la tache 4** : `max-lines` d'ESLint ne compte
-PAS la ligne vide apres le dernier retour a la ligne. Sonde : 400 lignes +
-retour final = 400 pour ESLint, 401 pour `split("
-").length` ; 401 +
-retour final = 401 pour ESLint, 402 pour `split`. Le generateur et le test
-des cliquets comptent donc une ligne de trop par rapport a ESLint. Rien ne
-bloque (le test est plus strict que la derogation, d'une ligne), mais un
-JSON qui ne lit pas comme `wc -l` se verifie mal a l'oeil. Un seul compteur,
-aux semantiques d'ESLint, partage par le generateur et le test.
-
-- [ ] **Step 0 : le compteur, prouve rouge puis vert sur les trois cas**
-
-`tests/harnais/compter-lignes.test.ts` :
-
-```ts
-import { describe, expect, it } from "vitest";
-import { compterLignes } from "../../scripts/compter-lignes.mjs";
-
-/**
- * LE COMPTE DE LIGNES DU HARNAIS EST CELUI D'ESLINT (mesure du 22/09).
- *
- * `max-lines` ne compte pas la ligne vide apres le dernier retour a la
- * ligne ; `wc -l` non plus ; `split("
-").length` si. Le generateur des
- * cliquets et le test qui les garde doivent compter comme la regle qu'ils
- * servent, sinon le JSON ne se lit pas a l'oeil et la derogation et le test
- * different d'une ligne.
- */
-describe("compterLignes", () => {
-  const corps = Array.from({ length: 400 }, (_, i) => `export const l${i} = ${i};`).join("
-");
-
-  it("compte 400 lignes sans retour final", () => {
-    expect(compterLignes(corps)).toBe(400);
-  });
-
-  it("compte 400 lignes avec retour final, comme max-lines et wc -l", () => {
-    expect(compterLignes(corps + "
-")).toBe(400);
-  });
-
-  it("compte 401 lignes quand il y en a 401", () => {
-    expect(compterLignes(corps + "
-export const fin = 1;
-")).toBe(401);
-  });
-
-  it("compte 0 ligne pour un fichier vide", () => {
-    expect(compterLignes("")).toBe(0);
-  });
-});
-```
-
-Run: `pnpm exec vitest run tests/harnais/compter-lignes.test.ts`
-Expected: rouge — le module n'existe pas.
-
-`scripts/compter-lignes.mjs` :
-
-```js
-/**
- * Compter les lignes comme `max-lines` d'ESLint et comme `wc -l` : la ligne
- * vide apres le dernier retour a la ligne ne compte pas (mesure du 22/09).
- * Partage par scripts/harnais-baseline.mjs et tests/harnais/cliquets.test.ts,
- * pour que le JSON des cliquets, la derogation ESLint et le test disent
- * le meme nombre.
- */
-export function compterLignes(texte) {
-  if (texte.length === 0) return 0;
-  const parts = texte.split("
-");
-  return texte.endsWith("
-") ? parts.length - 1 : parts.length;
-}
-```
-
-Run: `pnpm exec vitest run tests/harnais/compter-lignes.test.ts`
-Expected: `4 passed`.
-
-Puis dans `scripts/harnais-baseline.mjs` : importer `{ compterLignes } from "./compter-lignes.mjs"` et remplacer
-`const compte = readFileSync(r.filePath, "utf8").split("
-").length;` par
-`const compte = compterLignes(readFileSync(r.filePath, "utf8"));`.
-Dans `tests/harnais/cliquets.test.ts` : importer `{ compterLignes } from "../../scripts/compter-lignes.mjs"` et remplacer
-`const compte = readFileSync(chemin, "utf8").split("
-").length;` par
-`const compte = compterLignes(readFileSync(chemin, "utf8"));`.
-Puis regenerer : `pnpm run harnais:baseline` — les valeurs de
-`scripts/lines-baseline.json` baissent d'une unite pour chaque fichier qui
-finit par un retour a la ligne (`xolotl-companion.tsx` passe de 1323 a 1322,
-egal a `wc -l`). `scripts/lint-baseline.json` ne doit pas changer
-(`git diff scripts/lint-baseline.json` vide).
+**Etat au depart (22/09)** : la relecture de la tache 4 a deja livre ce que
+cette tache prevoyait en amont — `scripts/compter-lignes.mjs` (le compte de
+`max-lines` et de `wc -l`, prouve sur quatre cas), `PLAFOND_LIGNES`
+exporte par `eslint/harnais.mjs`, `cliquetLignes` et `motifFichier`
+exportes par `eslint/cliquets.mjs`, `scripts/lines-baseline.json` regenere
+avec le bon compte, et le test des cliquets qui garde deja les tailles. Il
+ne reste qu'a brancher la regle et ses derogations dans ESLint, et a le
+prouver sur des extraits.
 
 - [ ] **Step 1 : le test**
 
@@ -792,13 +704,18 @@ Ajouter a `tests/harnais/lints.test.ts` :
 ```ts
 describe("pilier 2 : le plafond de lignes", () => {
   it("refuse un fichier nouveau de plus de 400 lignes", async () => {
-    const extrait = Array.from({ length: 401 }, (_, i) => `export const ligne${i} = ${i};`).join("\n") + "\n";
+    const extrait = Array.from({ length: 401 }, (_, i) => `export const ligne${i} = ${i};`).join("
+") + "
+";
     expect(await regles(extrait, "src/lib/essai-harnais-long.ts")).toContain("max-lines");
   });
 
-  it("accepte 400 lignes", async () => {
-    const extrait = Array.from({ length: 400 }, (_, i) => `export const ligne${i} = ${i};`).join("\n") + "\n";
-    expect(await regles(extrait, "src/lib/essai-harnais-long.ts")).not.toContain("max-lines");
+  it("accepte 400 lignes, retour final compris", async () => {
+    // 400 lignes + retour final = 400 pour max-lines (mesure du 22/09).
+    const extrait = Array.from({ length: 400 }, (_, i) => `export const ligne${i} = ${i};`).join("
+") + "
+";
+    expect(await regles(extrait, "src/lib/essai-harnais-long.ts")).toEqual([]);
   });
 });
 ```
@@ -806,63 +723,64 @@ describe("pilier 2 : le plafond de lignes", () => {
 - [ ] **Step 2 : rouge**
 
 Run: `pnpm exec vitest run tests/harnais/lints.test.ts`
-Expected: `1 failed | 14 passed`.
+Expected: `1 failed | 16 passed` (le premier ; le second est deja vert, la regle n'existe pas).
 
 - [ ] **Step 3 : la regle et ses derogations generees**
 
-Dans `eslint/harnais.mjs`, sous l'import de `./cliquets.mjs` (qui fournit
-deja `cliquetLignes`), ajouter :
-
-```js
-export const PLAFOND_LIGNES = 400;
-```
-
-et a `harnais`, en fin de tableau :
+Dans `eslint/harnais.mjs`, importer `cliquetLignes` depuis `./cliquets.mjs`
+(a cote de `cliquetBoucle` et `motifFichier`), et ajouter a `harnais`, en
+fin de tableau :
 
 ```js
   {
     // Pilier 3 : un fichier qu'on ne tient pas en tete d'un coup est un
-    // fichier qu'on modifie mal. Lignes brutes, comme wc -l, pour que le
-    // cliquet se verifie a l'oeil.
-    files: ["src/**/*.{ts,tsx}"],
+    // fichier qu'on modifie mal. Lignes brutes, comme wc -l et comme le
+    // compteur du harnais (scripts/compter-lignes.mjs) : la ligne vide
+    // apres le dernier retour ne compte pas.
+    files: SRC,
     rules: {
       "max-lines": ["error", { max: PLAFOND_LIGNES, skipBlankLines: false, skipComments: false }],
     },
   },
+  // Le cliquet des tailles : les fichiers au-dessus du plafond le jour de
+  // la regle sont geles a leur taille (scripts/lines-baseline.json) ; ils
+  // ne peuvent plus grossir, chaque amaigrissement s'acquiert
+  // (tests/harnais/cliquets.test.ts), et sous le plafond ils sortent.
   ...Object.entries(cliquetLignes).map(([fichier, taille]) => ({
-    files: [fichier],
+    files: [motifFichier(fichier)],
     rules: {
       "max-lines": ["error", { max: taille, skipBlankLines: false, skipComments: false }],
     },
   })),
 ```
 
-- [ ] **Step 4 : vert partout**
+- [ ] **Step 4 : vert partout, y compris les deux chemins a crochets**
 
 Run: `pnpm exec vitest run tests/harnais && pnpm exec eslint src 2>&1 | tail -1`
-Expected: `17 passed` ; `eslint src` sans erreur (les dix-huit fichiers au-dessus de 400 sont geles a leur taille ; s'il reste une erreur `max-lines`, c'est qu'un fichier a change de taille depuis l'etape 5 de la tache 4 : relancer `pnpm run harnais:baseline`).
+Expected: `25 passed` ; `eslint src` sans erreur — en particulier
+`src/app/[locale]/layout.tsx` et `src/app/[locale]/[slug]/page.tsx`, geles
+par un motif echappe, ne remontent aucune erreur `max-lines`. S'il en reste
+une, c'est qu'un fichier a change de taille depuis la regeneration :
+`pnpm run harnais:baseline`, puis relancer.
 
 Verifier a l'oeil que le cliquet correspond au fichier :
 
 Run: `wc -l src/app/components/sound-design.tsx && grep sound-design scripts/lines-baseline.json`
-Expected: **le meme nombre des deux cotes** — depuis l'etape 0, le compteur
-du harnais, ESLint et `wc -l` disent la meme chose.
+Expected: **le meme nombre des deux cotes**.
 
 - [ ] **Step 5 : commit**
 
 ```bash
-git add scripts/compter-lignes.mjs tests/harnais/compter-lignes.test.ts scripts/harnais-baseline.mjs tests/harnais/cliquets.test.ts scripts/lines-baseline.json eslint/harnais.mjs tests/harnais/lints.test.ts
+git add eslint/harnais.mjs tests/harnais/lints.test.ts
 git commit -F - <<'EOF'
 chore(harnais): plafond de 400 lignes par fichier, les gros geles a leur taille
 
-max-lines en lignes brutes, comptees comme ESLint et wc -l les comptent :
-la ligne vide apres le dernier retour a la ligne ne compte pas (mesure du
-22/09 ; le generateur de la tache 4 comptait une ligne de trop, corrige par
-un compteur unique, scripts/compter-lignes.mjs, prouve sur quatre cas).
+max-lines en lignes brutes, comptees comme ESLint et wc -l les comptent.
 Dix-huit fichiers etaient au-dessus le 21/09, le plus gros a 1322 lignes
 (xolotl-companion.tsx) : chacun est gele a sa taille dans
-scripts/lines-baseline.json, ne peut plus grossir, et sort de la liste
-quand il passe sous 400 (tests/harnais/cliquets).
+scripts/lines-baseline.json par un motif echappe (deux d'entre eux vivent
+sous src/app/[locale]/), ne peut plus grossir, acquiert chaque
+amaigrissement, et sort de la liste sous 400 (tests/harnais/cliquets).
 
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01D2Uafui7DR6tuf8uVBrPy4
