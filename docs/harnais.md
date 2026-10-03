@@ -112,8 +112,19 @@ trace a son horloge, sans conversion. `window.__nahualR3f` est pose sous
 sur la vraie production, sans `SONDE` qui allume une dizaine de sondes
 dans la boucle.
 
-**Ce qui n'y est pas encore (B2b)** : le vrai telephone par `adb` (la
-meme suite `perf-telephone` sur un Pixel reel), les huit transitions par
+**Le vrai telephone, premiere mesure (04/10, exploration, hors barre)** :
+Redmi Note 9 Pro (Adreno 618, dpr 2,75) par `adb reverse` + `adb forward`
++ `connectOverCDP`, meme tracage : balayage de `fr` a 33 ms de budget, 177
+presentees, 68 au-dela, 263 perdues, pire 134 ms, p5 8,6 fps ; les cinq
+pages entre 231 et 264 perdues. **L'emulation /4 sous-estime d'un facteur
+quatre a cinq.** La nuit du Centre y est noire en face sombre, par le
+palier `QUALITY_MOBILE` (pas de post-traitement), pas par le GPU (A/B 767 /
+769 px sur le PC). Sondes dans `.scratch/adb-barre.mjs`, `adb-capture.mjs`,
+`pc-capture-largeur.mjs`.
+
+**Ce qui n'y est pas encore (B2b)** : le vrai telephone par `adb` dans la
+barre (projet `perf-adb` : ponts poses par le test, meme coeur, enveloppe
+a part, rapporte), la passe de DA « nuit mobile », les huit transitions par
 le Centre, le budget reparti script / soumission / GPU, le temps GPU
 (`EXT_disjoint_timer_query_webgl2`), les noms de source, les appels de
 rendu de la scene derriere le composer, et l'attribution d'un blocage du
