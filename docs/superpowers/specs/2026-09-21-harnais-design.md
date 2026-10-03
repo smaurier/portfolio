@@ -529,14 +529,22 @@ Pour `close-the-books`, quand le plan sera execute :
 3. `pnpm run perf` lance `perf-bureau` et `perf-telephone` contre un serveur
    de production sur `:3100` ; dix-sept moments par projet ; chaque rapport
    porte compte, pire, repartition, budget reparti, temps GPU, `renderer.info`.
+   — **Tranche B1 (03/10)** : `perf-bureau`, huit moments (voile x3,
+   defilement x5), compte / pire / repartition / `renderer.info` (limite :
+   apres le composer, seul le dernier `render()` est vu) ; le budget
+   reparti, le temps GPU et `perf-telephone` sont en B2.
 4. L'auto-test de mesure existe et refuse de conclure quand le chemin de
    mesure est en defaut. (Ecrit le 21/09 « sur une machine bruyante » ;
    mesure faux le 03/10, voir section 2.)
 5. `scripts/perf-baseline.json` existe, initialise sur l'etat mesure, cible
    a cote de chaque moment ; un moment pire que son meilleur connu est rouge.
    (03/10 : pire que son PLAFOND, l'enveloppe mesuree ; voir section 2, « Le
-   cliquet ».)
-6. Un moment rouge imprime les fonctions de sa pire image.
+   cliquet ».) — **Fait, B1 (03/10)** : `scripts/perf-baseline.json`
+   versionne, `pnpm run perf:enveloppe` (cinq jugements) et `perf:baseline`
+   ; vu rouge avec un plafond a zero (RECUL, code 1).
+6. Un moment rouge imprime les fonctions de sa pire image. — **Fait, B1
+   (03/10)**, temps propre du fil principal par etiquette, avec la limite
+   des noms minifies (`O`, `ip` ; cartes de source en B2).
 7. Les cinq lints du pilier 2 sont en place ; **aucun** fichier de `lib/`
    n'importe plus un composant (vingt et un le premier jour) ; `max-lines`
    est en cliquet, derogations generees depuis `scripts/lines-baseline.json`.
@@ -561,7 +569,10 @@ Pour `close-the-books`, quand le plan sera execute :
 8. Les quatre oracles nouveaux du pilier 2 (textures, profil telephone, 2D
    du voile, zero erreur) sont verts ou rouges pour une raison nommee,
    jamais sautes.
-9. Les quatre sondes nommees sont devenues des aides de `tests/perf/`.
+9. Les quatre sondes nommees sont devenues des aides de `tests/perf/`. —
+   **B1 (03/10)** : `voile.mjs` et `fps-bureau.mjs` sont montes
+   (`tests/perf/voile.perf.ts`, `defilement.perf.ts`) ; `profil-voile.mjs`
+   et `transition.mjs` restent pour B2.
 10. La suite par defaut (24 minutes) est inchangee et reste verte.
 11. Chaque oracle nouveau a ete vu rouge avant d'etre vu vert (preuve dans
     le message de commit).

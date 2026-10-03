@@ -7,7 +7,8 @@ une **preuve** (la mesure du depot qui l'a justifiee). Une regle sans
 mecanisme n'entre pas ici.*
 
 Etat : **tranche A** (processus, hooks, lints, types) : design 21/09/2026, livree 22/09/2026.
-Tranches suivantes : B la barre de performance, C les oracles de cause,
+**Tranche B1** (la barre de performance : socle et bureau) : plan 22/09, livree 03/10/2026.
+Tranches suivantes : B2 le telephone et le temps GPU, C les oracles de cause,
 D les bases du temps reel, E l'infrastructure.
 
 ---
@@ -40,7 +41,7 @@ Reprise dans `CLAUDE.md`, relue a chaque session.
 | --- | --- | --- |
 | les types et le lint bloquent tout commit | `scripts/hooks/pre-commit` (`eslint --cache`, le cache sous `node_modules/.cache/eslint/` : vingt secondes a froid, un hook a vingt secondes se contourne) | `git commit --no-verify`, dit dans le message, pour une faille de securite seulement |
 | les tests unitaires bloquent toute poussee | `scripts/hooks/pre-push` | idem |
-| la barre de performance bloque `main` | `scripts/hooks/pre-push`, `pnpm run --if-present perf` : ne bloque rien tant que le script n'existe pas *(tranche B)* | idem |
+| la barre de performance bloque `main` | `scripts/hooks/pre-push`, `pnpm run --if-present perf` : actif depuis B1 (03/10), construction de production comprise, ~4 min pour l'auto-test, le voile et les cinq defilements | idem |
 
 Les hooks sont installes par `pnpm install` (`prepare` pose
 `core.hooksPath`, et sort en 0 sans `.git` pour qu'une archive ou un
@@ -60,7 +61,61 @@ rattrape a la poussee.
 
 ## Pilier 1 : la barre de performance
 
-*Tranche B.*
+*Tranche B1, livree le 03/10/2026 : le socle et les huit moments du bureau.
+B2 apportera le telephone, les transitions, le budget reparti et le temps GPU.*
+
+**Ce qui est mesure.** Les images PRESENTEES par le compositeur, lues dans
+le tracage Chromium (session CDP, domaine `Tracing`) : une trame est un
+`PipelineReporter` du fil `Compositor` du processus de rendu, presentee,
+partielle, perdue ou sans mise a jour. `requestAnimationFrame` ne voit ni
+la 2D du voile ni une image perdue ; le tracage, si. Le coeur est pur et
+teste a l'unite (`tests/perf/aides/`, 39 tests) : des evenements en
+entree, des trames, des intervalles, des comptes, un verdict.
+
+**Une image en retard** : un intervalle entre deux presentations au-dela
+du budget plus une demi-periode (16,7 + 8,3 = 25 ms sur le bureau : elle a
+manque un balayage). Une trame perdue entre deux presentees allonge
+l'intervalle ; une trame sans mise a jour coupe la serie (rien n'etait a
+dessiner). Les trames se trient par instant de presentation (la sequence
+repart a 1 a chaque navigation) ; les paires se forment sur toutes les
+trames puis se decoupent a la fenetre (un blocage a cheval sur deux
+moments n'est perdu d'aucun cote) ; un moment qui n'a pas presente au
+moins 20 images ne conclut pas (un zero sur une fenetre vide est un vert
+par accident).
+
+**Ce que les deux comptes voient.** Une page avec script emet souvent deux
+rapporteurs par balayage (le compositeur seul, puis le fil principal).
+Quand le script bloque pendant l'attente du voile, le compositeur continue
+de presenter la Piedra : l'intervalle reste court, et c'est le compte des
+PERDUES (les images du fil principal tombees) qui porte le blocage. Les
+deux comptes sont juges. Mesure du 03/10 : les 617 a 767 ms de blocage du
+21/09 se lisent en 18 a 23 perdues et un `ip ...js:394` de 218 a 238 ms en
+temps propre, pas en intervalles longs (pire 34 ms).
+
+| mecanisme | ce qu'il fait | preuve |
+| --- | --- | --- |
+| `playwright.perf.config.ts`, `pnpm run perf` | une seconde suite, sur la PRODUCTION (`build` + `start -p 3100`, 21 s) ; refuse un serveur qui traine sur `:3100` ; projets `auto-test` puis `perf-bureau` (1280 x 800, `dpr` de `PERF_DPR`, 1 par defaut) | on ne melange pas mesurer et verifier ; un serveur d'un autre code serait une mesure d'un autre code. |
+| `tests/perf/auto-test.perf.ts` | avant tout, une rotation CSS isolee (page `data:`, aucun script) doit presenter a 60 Hz sans image en retard ni perdue, sinon `perf-bureau` ne tourne pas | il garde le CHEMIN DE MESURE (un compositeur dans la trace, le vsync, le GPU, les drapeaux ANGLE), PAS le bruit de la machine. 03/10 : 24 boucles CPU sur 12 coeurs (le build a pris 2 min au lieu de 37 s), le rendu logiciel force et 40 ms de blocage par image l'ont laisse vert ; 24 boucles en priorite haute ont empeche la page de charger ; un second Chromium n'a pas su saturer le GPU (compteur Windows a 0,14 %). Vu ROUGE par une animation non composee sous blocage : 143 presentees, 72 au-dela, pire 40,7 ms, 102 perdues. Propre : 179 presentees, 0 au-dela, pire 18,4 ms. |
+| `tests/perf/voile.perf.ts` | `voile-attente` (premier octet a `data-loaded`), `voile-ouverture` (a `data-foyer=done`), `arrivee` (trois secondes immobiles) ; contexte neuf par passe (premiere visite), un echauffement non mesure | point zero du 03/10, dix jugements : attente au-dela 6 a 11 (plafond 16), perdues 17 a 23 (plafond 29), pire 34,6 ms ; ouverture au-dela 1 a 2 (plafond 3), perdues 0, pire 26,7 ms ; arrivee 0 partout, pire 19,1 ms. |
+| `tests/perf/defilement.perf.ts` | le balayage du jure : haut en bas a vitesse constante, six secondes, sur les cinq pages, `veille=off` | point zero du 03/10, cinq jugements : `fr` au-dela 0 a 1 (plafond 2), perdues 0 a 7 (plafond 14) ; `contact` 0 a 1 (plafond 2), perdues 0 a 2 (plafond 4) ; `services`, `projets`, `memoire` : 0 partout, le cliquet est verrouille sur la cible. Pire intervalle 19 a 23 ms. Le bureau tient le balayage ; le telephone (B2) ne le tenait pas le 14/09 (Contact 30 Hz median). |
+| `scripts/perf-baseline.json`, `pnpm run perf:enveloppe`, `pnpm run perf:baseline` | le cliquet : par projet et par moment, une ENVELOPPE par compte (`meilleur` et `maximum` observes sur cinq jugements, `plafond` = maximum + (maximum - meilleur)), la cible a cote, la pire duree, la date, le `dpr` ; **rouge = pire que le plafond, sur un compte** ; `perf:enveloppe` mesure l'enveloppe (point zero, changement voulu, dit dans le commit), `perf:baseline` acquiert un progres sans toucher au plafond | 03/10 : « rouge = pire que le meilleur connu » a rougi 4 fois sur 4 sans code change (au-dela 8/10/9 contre 6) ; un plafond au max de 3 jugements a ete depasse par 4 des 9 jugements de la soiree (un max de K echantillons est depasse une fois sur K+1). Vu rouge avec un plafond a zero : RECUL, code 1, la pire image nommee. Tient sur elle-meme : tenu x3. |
+| le bruit | trois passes, mediane par compte ; les comptes avant les durees ; l'enveloppe mesuree ci-dessus. L'auto-test n'en fait PAS partie | note du 16/09 : une duree varie de quarante points d'une passe a l'autre. Le prix est nomme : une derive plus petite que l'ecart mesure passe sur cette machine ; la machine de mesure fixe (design, section 6 ter, chantier 1) resserrera. |
+| un rouge n'est jamais nu | chaque rapport porte, pour la pire image, le temps propre du fil principal par etiquette (`FunctionCall`, `EvaluateScript`, `Decode Image`, `Layout`...), et `renderer.info` a la fin du moment | **limites connues** : en production les fonctions s'appellent `O` ou `ip` ; les noms de source viennent avec les cartes de source (B2). `renderer.info` apres le composer ne voit que le dernier `render()` (1 appel, 1 triangle) ; les appels de la scene viennent en B2. |
+| `scripts/hooks/pre-push` | lance `pnpm run perf` quand la ref poussee est `main` | en place depuis la tranche A (`--if-present`), actif depuis B1 : premiere poussee gardee le 03/10 (`a17cf72`). |
+
+**Les bornes des moments** sont posees depuis la page par
+`console.timeStamp` (`tests/perf/aides/site.ts`) : elles tombent dans la
+trace a son horloge, sans conversion. `window.__nahualR3f` est pose sous
+`?shaders-prod` (le drapeau des suites de test) pour lire `renderer.info`
+sur la vraie production, sans `SONDE` qui allume une dizaine de sondes
+dans la boucle.
+
+**Ce qui n'y est pas encore (B2)** : `perf-telephone` (Pixel 7, processeur
+/4, Fast 3G sur le voile, cible 33 ms et p5 >= 45), les huit transitions
+par le Centre, le budget reparti script / soumission / GPU, le temps GPU
+(`EXT_disjoint_timer_query_webgl2`), les noms de source, les appels de
+rendu de la scene derriere le composer, et l'attribution d'un blocage du
+fil principal a un intervalle long quand le compositeur presente seul.
 
 ---
 

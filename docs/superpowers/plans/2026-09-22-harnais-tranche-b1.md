@@ -1187,7 +1187,7 @@ EOF
 - Create: `tests/perf/defilement.perf.ts`
 - Modify: `scripts/perf-baseline.json` (par acquisition)
 
-- [ ] **Step 1 : `defilement.perf.ts`**
+- [x] **Step 1 : `defilement.perf.ts`**
 
 ```ts
 import { test } from "@playwright/test";
@@ -1237,22 +1237,26 @@ for (const chemin of PAGES) {
 }
 ```
 
-- [ ] **Step 2 : `tsc`, `eslint`**
+- [x] **Step 2 : `tsc`, `eslint`**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec eslint tests/perf`
 Expected: rien.
 
-- [ ] **Step 3 : le point zero des cinq pages**
+- [x] **Step 3 : le point zero des cinq pages**
 
-Run: `pnpm run perf:baseline -- --grep defilement`
-Expected: cinq tests verts, cinq lignes nouvelles dans `scripts/perf-baseline.json` (`defilement-fr`, `defilement-fr-services`, `defilement-fr-projets`, `defilement-fr-contact`, `defilement-fr-memoire`). Recopier les cinq rapports (une ligne de resume par page suffit, plus les temps propres de la pire image de la pire page).
+Run: `pnpm run perf:enveloppe -- --grep defilement` (03/10 : l'enveloppe, cinq jugements, comme pour le voile)
+Expected: cinq tests verts par jugement, cinq lignes nouvelles dans `scripts/perf-baseline.json` (`defilement-fr`, `defilement-fr-services`, `defilement-fr-projets`, `defilement-fr-contact`, `defilement-fr-memoire`). Recopier les cinq enveloppes dans le message de commit.
 
-- [ ] **Step 4 : la suite entiere, telle que le hook la lancera**
+**Mesure du 03/10** : `fr` au-dela 0-1 / perdues 0-7 (plafond 2 / 14), `contact` 0-1 / 0-2 (plafond 2 / 4), `services`, `projets`, `memoire` 0 partout ; pire intervalle 19 a 23 ms. Le `--grep defilement` n'a PAS filtre le voile (les sept tests ont tourne a chaque jugement, 5,4 min chacun) : son enveloppe compte donc dix jugements (attente 6-11 / 17-23, plafond 16 / 29), ce qui est dit dans le commit.
+
+- [x] **Step 4 : la suite entiere, telle que le hook la lancera**
 
 Run: `pnpm run perf ; echo "code $?"`
 Expected: `7 passed` (auto-test, voile, cinq defilements), code 0, en moins de six minutes construction comprise. Noter la duree.
 
-- [ ] **Step 5 : commit**
+**Mesure du 03/10** : 7 verts en 328 s, tout « tenu » ; `voile-attente` a 14 au-dela, au-dessus du maximum observe (11) et sous le plafond (16) : la marge mesuree a fait son travail. `pnpm exec playwright test -c playwright.perf.config.ts --list --grep defilement` liste bien 6 tests : la cause du voile qui a tourne a l'acquisition n'est pas etablie ; le script imprime desormais les arguments qu'il passe.
+
+- [x] **Step 5 : commit**
 
 ```bash
 git add tests/perf/defilement.perf.ts scripts/perf-baseline.json
@@ -1272,7 +1276,9 @@ EOF
 - Modify: `docs/superpowers/specs/2026-09-21-harnais-design.md` (section 8, criteres 3, 4, 5, 6, 9)
 - Modify: `docs/superpowers/plans/2026-09-22-harnais-tranche-b1.md` (cocher)
 
-- [ ] **Step 1 : la section du pilier 1 dans `docs/harnais.md`**
+- [x] **Step 1 : la section du pilier 1 dans `docs/harnais.md`**
+
+**03/10 : le texte livre est dans `docs/harnais.md` et fait foi** (ecrit avec les chiffres mesures, l'enveloppe, l'auto-test du chemin de mesure, les limites de `renderer.info`). Le brouillon du 22/09 ci-dessous est garde pour l'histoire du plan.
 
 Remplacer `*Tranche B.*` par (les N sont les chiffres reels des commits des taches 5 et 6) :
 
@@ -1315,7 +1321,7 @@ par le Centre, le budget reparti script / soumission / GPU, le temps GPU
 (`EXT_disjoint_timer_query_webgl2`), les noms de source.
 ```
 
-- [ ] **Step 2 : la section 8 du design**
+- [x] **Step 2 : la section 8 du design**
 
 Dans `docs/superpowers/specs/2026-09-21-harnais-design.md`, section 8, ajouter apres chaque critere concerne :
 
@@ -1325,7 +1331,7 @@ Dans `docs/superpowers/specs/2026-09-21-harnais-design.md`, section 8, ajouter a
 - 6 : `— **Fait, B1**, avec la limite des noms minifies (cartes de source en B2).`
 - 9 : `— **B1** : voile.mjs et fps-bureau.mjs sont montes (tests/perf/voile.perf.ts, defilement.perf.ts) ; profil-voile.mjs et transition.mjs restent pour B2.`
 
-- [ ] **Step 3 : cocher ce plan, `tsc`, commit**
+- [x] **Step 3 : cocher ce plan, `tsc`, commit**
 
 Cocher toutes les cases des taches 1 a 7 dans ce fichier.
 
@@ -1334,7 +1340,7 @@ git add docs/harnais.md docs/superpowers/specs/2026-09-21-harnais-design.md docs
 git commit -m "docs(harnais): le pilier 1 ecrit, la barre livree en B1, ce qui reste en B2"
 ```
 
-- [ ] **Step 4 : la suite unitaire entiere, comme le hook la lancera**
+- [x] **Step 4 : la suite unitaire entiere, comme le hook la lancera**
 
 Run: `pnpm test`
 Expected: 1057 + 24 = 1081 tests verts (14 images, 4 fil principal, 6 cliquet).
