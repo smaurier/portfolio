@@ -1,8 +1,9 @@
 import { test } from "@playwright/test";
 import { CIBLE_BUREAU, PASSES, juger, mesurer, optionsDuProjet, type Passe } from "./aides/barre";
 import { filPrincipal, processusDeRendu, reperes } from "./aides/evenements";
-import { BUDGET_BUREAU_MS, trames } from "./aides/images";
-import { REPERE, attendreLeFoyer, infoRendu, poserLesReperes } from "./aides/site";
+import { trames } from "./aides/images";
+import { profilDuProjet } from "./aides/profil";
+import { REPERE, attendreLeFoyer, emulerLeTelephone, infoRendu, poserLesReperes } from "./aides/site";
 import { tracer } from "./aides/tracage";
 
 /**
@@ -32,10 +33,12 @@ const MOMENTS = ["voile-attente", "voile-ouverture", "arrivee"] as const;
 
 test("le voile : l'attente, l'ouverture, l'arrivee", async ({ browser }, info) => {
   const passes: Record<(typeof MOMENTS)[number], Passe[]> = { "voile-attente": [], "voile-ouverture": [], arrivee: [] };
+  const profil = profilDuProjet(info.project.name);
   for (let i = 0; i <= PASSES; i++) {
     const ctx = await browser.newContext(optionsDuProjet(info));
     const page = await ctx.newPage();
     await poserLesReperes(page);
+    if (profil.telephone) await emulerLeTelephone(page, { reseau: true });
     const t = await tracer(page);
     await page.goto("/fr?shaders-prod", { waitUntil: "commit" });
     await attendreLeFoyer(page);
@@ -51,9 +54,9 @@ test("le voile : l'attente, l'ouverture, l'arrivee", async ({ browser }, info) =
     const foyer = rep.get(REPERE.foyer);
     if (charge === undefined || foyer === undefined) throw new Error(`reperes absents de la trace (${[...rep.keys()].join(", ")})`);
     const debut = trames(evts, pid)[0].debut;
-    passes["voile-attente"].push(mesurer(evts, pid, tid, debut, charge, BUDGET_BUREAU_MS));
-    passes["voile-ouverture"].push(mesurer(evts, pid, tid, charge, foyer, BUDGET_BUREAU_MS));
-    passes.arrivee.push(mesurer(evts, pid, tid, foyer, foyer + ARRIVEE_US, BUDGET_BUREAU_MS, rendu));
+    passes["voile-attente"].push(mesurer(evts, pid, tid, debut, charge, profil.budgetMs));
+    passes["voile-ouverture"].push(mesurer(evts, pid, tid, charge, foyer, profil.budgetMs));
+    passes.arrivee.push(mesurer(evts, pid, tid, foyer, foyer + ARRIVEE_US, profil.budgetMs, rendu));
   }
   // `juger` fait `expect` : si l'attente est rouge, les deux autres moments ne sont pas juges dans cette passe (B2 : expect.soft).
   for (const moment of MOMENTS) juger(info.project.name, moment, passes[moment], CIBLE_BUREAU, info);

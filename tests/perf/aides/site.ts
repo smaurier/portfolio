@@ -7,6 +7,7 @@
  * d'initialisation, `document.documentElement` n'existe pas encore).
  */
 import type { Page } from "@playwright/test";
+import { FAST_3G, PROCESSEUR_TELEPHONE } from "./profil";
 
 export const REPERE = {
   charge: "nahual:data-loaded",
@@ -74,4 +75,19 @@ export async function defiler(page: Page, dureeMs: number): Promise<void> {
       }),
     dureeMs,
   );
+}
+
+/**
+ * Le telephone emule (B2a) : processeur divise par quatre toujours, Fast 3G
+ * si `reseau` (le design ne ralentit le reseau que pendant le voile : le
+ * defilement se mesure sur une page deja chargee). A appeler AVANT la
+ * navigation, sur une session CDP a part de celle du tracage.
+ */
+export async function emulerLeTelephone(page: Page, options: { reseau: boolean }): Promise<void> {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: PROCESSEUR_TELEPHONE });
+  if (options.reseau) {
+    await cdp.send("Network.enable");
+    await cdp.send("Network.emulateNetworkConditions", { ...FAST_3G });
+  }
 }

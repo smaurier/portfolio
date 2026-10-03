@@ -1,8 +1,8 @@
 import { test } from "@playwright/test";
 import { CIBLE_BUREAU, PASSES, juger, mesurer, optionsDuProjet, type Passe } from "./aides/barre";
 import { filPrincipal, processusDeRendu, reperes } from "./aides/evenements";
-import { BUDGET_BUREAU_MS } from "./aides/images";
-import { REPERE, attendreLeFoyer, defiler, infoRendu } from "./aides/site";
+import { profilDuProjet } from "./aides/profil";
+import { REPERE, attendreLeFoyer, defiler, emulerLeTelephone, infoRendu } from "./aides/site";
 import { tracer } from "./aides/tracage";
 
 /**
@@ -27,9 +27,11 @@ const BALAYAGE_MS = 6000;
 for (const chemin of PAGES) {
   test(`le defilement de /${chemin}`, async ({ browser }, info) => {
     const passes: Passe[] = [];
+    const profil = profilDuProjet(info.project.name);
     for (let i = 1; i <= PASSES; i++) {
       const ctx = await browser.newContext(optionsDuProjet(info));
       const page = await ctx.newPage();
+      if (profil.telephone) await emulerLeTelephone(page, { reseau: false });
       await page.goto(`/${chemin}?shaders-prod&veille=off`, { waitUntil: "commit" });
       await attendreLeFoyer(page);
       await page.waitForTimeout(3000);
@@ -44,7 +46,7 @@ for (const chemin of PAGES) {
       const debut = rep.get(REPERE.debutDefilement);
       const fin = rep.get(REPERE.finDefilement);
       if (debut === undefined || fin === undefined) throw new Error(`reperes du balayage absents (${[...rep.keys()].join(", ")})`);
-      passes.push(mesurer(evts, pid, tid, debut, fin, BUDGET_BUREAU_MS, rendu));
+      passes.push(mesurer(evts, pid, tid, debut, fin, profil.budgetMs, rendu));
     }
     juger(info.project.name, `defilement-${chemin.replace("/", "-")}`, passes, CIBLE_BUREAU, info);
   });

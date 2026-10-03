@@ -32,7 +32,10 @@ export type Passe = { presentees: number; resume: Resume; perdues: number; pireF
 
 export const MODE: ModeAcquisition | "aucun" =
   process.env.PERF_ACQUERIR === "enveloppe" ? "enveloppe" : process.env.PERF_ACQUERIR === "1" ? "progres" : "aucun";
-export const DPR = Number(process.env.PERF_DPR ?? "1");
+/** Le dpr auquel ce projet mesure : celui de l'appareil emule (Pixel 7 : 2,625), 1 sur le bureau. La ligne de base le porte et refuse de comparer deux dpr. */
+export function dprDuProjet(info: TestInfo): number {
+  return info.project.use.deviceScaleFactor ?? 1;
+}
 /** Impair, pour que la mediane d'un compte soit un compte. */
 export const PASSES = 3;
 export const CIBLE_BUREAU: Compte = { auDela: 0, perdues: 0 };
@@ -68,10 +71,11 @@ export function juger(projet: string, moment: string, passes: Passe[], cible: Co
     perdues: mediane(passes.map((p) => p.perdues)),
     pire: mediane(passes.map((p) => p.resume.pire)),
   };
+  const dpr = dprDuProjet(info);
   const base = lireLigneDeBase();
   const entree = base[projet];
-  if (entree && entree.dpr !== DPR) {
-    throw new Error(`la ligne de base de ${projet} a ete mesuree au dpr ${entree.dpr}, cette passe est au dpr ${DPR} : relance avec PERF_DPR=${entree.dpr}, ou acquiers une ligne neuve`);
+  if (entree && entree.dpr !== dpr) {
+    throw new Error(`la ligne de base de ${projet} a ete mesuree au dpr ${entree.dpr}, cette passe est au dpr ${dpr} : le projet a change d'appareil, acquiers une ligne neuve (pnpm run perf:enveloppe -- --project=${projet})`);
   }
   const ligne: Ligne | undefined = entree?.moments[moment];
   const v = verdict(mesure, ligne);
@@ -98,7 +102,7 @@ export function juger(projet: string, moment: string, passes: Passe[], cible: Co
     `${projet} / ${moment} n'a presente que ${mesure.presentees} images (plancher ${PLANCHER_PRESENTEES}) : la barre ne peut pas conclure sur ce moment\n${rapport}`,
   ).toBeGreaterThanOrEqual(PLANCHER_PRESENTEES);
   if (acquise) {
-    base[projet] = { dpr: DPR, moments: { ...(entree?.moments ?? {}), [moment]: acquise } };
+    base[projet] = { dpr, moments: { ...(entree?.moments ?? {}), [moment]: acquise } };
     ecrireLigneDeBase(base);
   }
   // En mode enveloppe, le jugement MESURE le bruit : il ne peut pas etre rouge contre l'enveloppe qu'il elargit.
