@@ -16,8 +16,14 @@ export type LigneDeBase = Record<string, Projet>;
 
 export const CHEMIN_LIGNE_DE_BASE = join(process.cwd(), "scripts", "perf-baseline.json");
 
+/** Absente, la ligne de base est vide ; illisible (elle s'edite a la main), l'erreur nomme le fichier. */
 export function lireLigneDeBase(chemin = CHEMIN_LIGNE_DE_BASE): LigneDeBase {
-  return existsSync(chemin) ? (JSON.parse(readFileSync(chemin, "utf8")) as LigneDeBase) : {};
+  if (!existsSync(chemin)) return {};
+  try {
+    return JSON.parse(readFileSync(chemin, "utf8")) as LigneDeBase;
+  } catch (e) {
+    throw new Error(`${chemin} ne se lit pas : ${e instanceof Error ? e.message : String(e)}`);
+  }
 }
 
 const trier = <T>(o: Record<string, T>): Record<string, T> =>

@@ -53,14 +53,18 @@ export function processusDeRendu(evts: Evenement[]): number {
   return pid;
 }
 
-/** Le fil principal (`CrRendererMain`) d'un processus. */
-export function filPrincipal(evts: Evenement[], pid: number): number {
+function fil(evts: Evenement[], pid: number, nomDuFil: string): number {
   for (const [cle, nom] of filsNommes(evts)) {
     const [p, t] = cle.split("/").map(Number);
-    if (p === pid && nom === "CrRendererMain") return t;
+    if (p === pid && nom === nomDuFil) return t;
   }
-  throw new Error(`pas de fil CrRendererMain dans le processus ${pid}`);
+  throw new Error(`pas de fil ${nomDuFil} dans le processus ${pid}`);
 }
+
+/** Le fil principal (`CrRendererMain`) d'un processus. */
+export const filPrincipal = (evts: Evenement[], pid: number): number => fil(evts, pid, "CrRendererMain");
+/** Le fil du compositeur (`Compositor`) d'un processus : celui qui porte les trames. */
+export const filCompositeur = (evts: Evenement[], pid: number): number => fil(evts, pid, "Compositor");
 
 /**
  * Les reperes poses depuis la page par `console.timeStamp(nom)` : nom ->

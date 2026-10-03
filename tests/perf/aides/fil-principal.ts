@@ -31,6 +31,10 @@ export function tempsPropre(evts: Evenement[], pid: number, tid: number, debut: 
   const dans = evts
     .filter((e) => e.ph === "X" && e.pid === pid && e.tid === tid && e.dur !== undefined && e.ts < fin && e.ts + e.dur > debut)
     .map((e) => ({ e, debut: Math.max(e.ts, debut), fin: Math.min(e.ts + (e.dur ?? 0), fin), enfants: 0 }))
+    // Le parent d'abord : meme debut, la plus longue avant. Deux evenements
+    // aux bornes strictement identiques restent dans l'ordre du fichier, ou
+    // Chromium ecrit l'enfant avant le parent (un evenement complet s'ecrit a
+    // sa sortie) : a la microseconde pres, ca n'arrive pas en pratique.
     .sort((a, b) => a.debut - b.debut || b.fin - a.fin);
   const pile: typeof dans = [];
   for (const x of dans) {

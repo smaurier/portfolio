@@ -43,6 +43,18 @@ describe("le temps propre", () => {
     const evts = [X("RunTask", 0, 1_000), X("RunTask", 2_000, 1_000), X("Paint", 4_000, 500)];
     expect(tempsPropre(evts, PID, TID, 0, 10_000, 1)).toEqual([{ nom: "RunTask", propreMs: 2 }]);
   });
+  it("etiquette un script evalue par son fichier, et un appel sans url sans fichier", () => {
+    const evts = [
+      X("EvaluateScript", 0, 2_000, { data: { url: "http://localhost:3100/_next/static/chunks/main.js" } }),
+      X("FunctionCall", 3_000, 1_000, { data: { functionName: "O", lineNumber: 0, columnNumber: 3115 } }),
+      X("v8.compile", 5_000, 500),
+    ];
+    expect(tempsPropre(evts, PID, TID, 0, 10_000)).toEqual([
+      { nom: "EvaluateScript main.js", propreMs: 2 },
+      { nom: "O :1:3115", propreMs: 1 },
+      { nom: "v8.compile", propreMs: 0.5 },
+    ]);
+  });
   it("une fenetre vide rend une liste vide", () => {
     expect(tempsPropre([], PID, TID, 0, 10)).toEqual([]);
   });

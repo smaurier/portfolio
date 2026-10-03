@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Evenement } from "./evenements";
 import { filPrincipal, processusDeRendu, reperes } from "./evenements";
-import { BUDGET_BUREAU_MS, fenetre, mediane, paires, perdues, resumer, trames } from "./images";
+import { BUDGET_BUREAU_MS, fenetre, fenetrePaires, mediane, paires, perdues, presentees, resumer, trames } from "./images";
 
 /**
  * LE COEUR DE LA BARRE, SUR DES EVENEMENTS FABRIQUES.
@@ -60,11 +60,37 @@ describe("le processus et les fils", () => {
 });
 
 describe("les trames", () => {
-  it("apparie b et e par identifiant, dans le seul processus de rendu, triees par sequence", () => {
+  it("apparie b et e par identifiant, dans le seul processus de rendu, triees par instant de presentation", () => {
     const t = trames(reguliere);
     expect(t.map((x) => x.sequence)).toEqual([1, 2, 3, 4, 5, 6]);
     expect(t[0]).toEqual({ sequence: 1, debut: 0, fin: 10_000, etat: "STATE_PRESENTED_ALL" });
     expect(t[3].etat).toBe("STATE_DROPPED");
+  });
+  it("une navigation fait repartir la sequence a 1 : l'ordre est celui du temps, pas de la sequence", () => {
+    const evts = [
+      ...fils,
+      ...trame(RENDU, 12, 40, 0, 1_000, "STATE_PRESENTED_ALL", "0x1"),
+      ...trame(RENDU, 12, 41, 16_667, 1_000, "STATE_PRESENTED_ALL", "0x2"),
+      ...trame(RENDU, 12, 1, 700_000, 1_000, "STATE_DROPPED", "0x3"),
+      ...trame(RENDU, 12, 2, 716_667, 1_000, "STATE_PRESENTED_ALL", "0x4"),
+    ];
+    expect(trames(evts).map((x) => x.sequence)).toEqual([40, 41, 1, 2]);
+    expect(paires(trames(evts)).map((x) => Math.round(x.ms))).toEqual([17, 700]);
+  });
+  it("seul le fil Compositor compte : une trame sur un autre fil du meme processus est ignoree", () => {
+    const evts = [...fils, ...trame(RENDU, 12, 1, 0, 1_000, "STATE_PRESENTED_ALL"), ...trame(RENDU, 11, 2, 5_000, 1_000, "STATE_PRESENTED_ALL")];
+    expect(trames(evts).map((x) => x.sequence)).toEqual([1]);
+  });
+  it("le rapporteur peut s'appeler chrome_frame_reporter (autre version de Chromium)", () => {
+    const evts: Evenement[] = [
+      ...fils,
+      { name: "PipelineReporter", ph: "b", pid: RENDU, tid: 12, ts: 0, id2: { local: "0x1" }, args: { chrome_frame_reporter: { frame_sequence: 7, state: "STATE_DROPPED" } } },
+      { name: "PipelineReporter", ph: "e", pid: RENDU, tid: 12, ts: 1_000, id2: { local: "0x1" }, args: {} },
+    ];
+    expect(trames(evts)).toEqual([{ sequence: 7, debut: 0, fin: 1_000, etat: "STATE_DROPPED" }]);
+  });
+  it("presentees compte les trames entieres et partielles, pas les perdues", () => {
+    expect(presentees(trames(reguliere))).toBe(5);
   });
   it("un identifiant reutilise apres sa fin donne deux trames, pas une", () => {
     const evts = [...fils, ...trame(RENDU, 12, 1, 0, 1_000, "STATE_PRESENTED_ALL", "0xa"), ...trame(RENDU, 12, 2, 5_000, 1_000, "STATE_PRESENTED_ALL", "0xa")];
@@ -96,15 +122,39 @@ describe("les paires d'intervalles", () => {
     ];
     expect(paires(trames(evts)).map((x) => Math.round(x.ms))).toEqual([17]);
   });
+  it("un blocage a cheval sur la frontiere de deux moments appartient au moment ou il finit", () => {
+    // Quatre presentations a 10, 26, 726 et 743 ms ; la frontiere a 100 ms.
+    // Decouper les TRAMES puis apparier perdrait le trou de 700 ms des deux
+    // cotes (relecture du 22/09) : on apparie tout, puis on decoupe les paires.
+    const evts = [
+      ...fils,
+      ...trame(RENDU, 12, 1, 0, 10_000, "STATE_PRESENTED_ALL"),
+      ...trame(RENDU, 12, 2, 16_000, 10_000, "STATE_PRESENTED_ALL"),
+      ...trame(RENDU, 12, 3, 716_000, 10_000, "STATE_PRESENTED_ALL"),
+      ...trame(RENDU, 12, 4, 733_000, 10_000, "STATE_PRESENTED_ALL"),
+    ];
+    const toutes = paires(trames(evts));
+    expect(fenetrePaires(toutes, 0, 100_000).map((x) => x.ms)).toEqual([16]);
+    expect(fenetrePaires(toutes, 100_000, 1_000_000).map((x) => x.ms)).toEqual([700, 17]);
+  });
 });
 
 describe("le resume", () => {
   it("compte les images au-dela du budget avec une demi-periode de tolerance, la pire, la repartition, le p5", () => {
     const r = resumer([16.7, 16.8, 25.1, 33.3, 41.7, 50, 100, 16.6, 16.7, 16.7], BUDGET_BUREAU_MS);
-    expect(r).toEqual({ images: 10, auDela: 5, pire: 100, hz60: 50, hz30: 20, hz20: 30, p5Fps: 10 });
+    expect(r).toEqual({ intervalles: 10, auDela: 5, pire: 100, hz60: 50, hz30: 20, hz20: 30, p5Fps: 10 });
+  });
+  it("les seuils sont des dixiemes exacts : 25,0 est encore a 60 Hz, 41,6 encore a 30 Hz", () => {
+    const r = resumer([25, 41.6], BUDGET_BUREAU_MS);
+    expect(r.auDela).toBe(1);
+    expect([r.hz60, r.hz30, r.hz20]).toEqual([50, 50, 0]);
+  });
+  it("le p5 est le rang le plus proche du 95e centile, jamais le maximum", () => {
+    const vingt = [...Array(19).fill(16.7), 200];
+    expect(resumer(vingt, BUDGET_BUREAU_MS).p5Fps).toBe(59.9);
   });
   it("une serie vide est un resume a zero, pas une division par zero", () => {
-    expect(resumer([], BUDGET_BUREAU_MS)).toEqual({ images: 0, auDela: 0, pire: 0, hz60: 0, hz30: 0, hz20: 0, p5Fps: 0 });
+    expect(resumer([], BUDGET_BUREAU_MS)).toEqual({ intervalles: 0, auDela: 0, pire: 0, hz60: 0, hz30: 0, hz20: 0, p5Fps: 0 });
   });
   it("les perdues sont les trames STATE_DROPPED", () => {
     expect(perdues(trames(reguliere))).toBe(1);
