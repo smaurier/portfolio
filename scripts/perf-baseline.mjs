@@ -20,13 +20,18 @@ import { spawnSync } from "node:child_process";
 
 /** Cinq : trois laissaient 4 jugements sur 9 hors de l'enveloppe le 03/10. */
 const JUGEMENTS_ENVELOPPE = 5;
-const args = process.argv.slice(2);
+// `pnpm run perf:enveloppe -- --project=x` : pnpm transmet le separateur `--`
+// lui-meme dans argv. Passe tel quel a Playwright, il ferme les options, et
+// `--project=x` devient un filtre de fichiers qui ne filtre rien : le 03/10,
+// `--grep defilement` a laisse tourner le voile, et le 04/10
+// `--project=perf-telephone` a fait tourner les 13 tests a chaque jugement.
+const args = process.argv.slice(2).filter((a, i, tous) => !(a === "--" && !tous.slice(0, i).includes("--")));
 const enveloppe = args[0] === "enveloppe";
 const reste = enveloppe ? args.slice(1) : args;
 const K = enveloppe ? JUGEMENTS_ENVELOPPE : 1;
 
 for (let i = 1; i <= K; i++) {
-  // Les arguments sont imprimes : le 03/10, `--grep defilement` a laisse tourner le voile sans qu'on sache pourquoi (`--list` filtre bien).
+  // Les arguments sont imprimes : c'est ainsi que le `--` de pnpm a ete vu le 04/10.
   if (enveloppe) console.log(`\n=== enveloppe : jugement ${i} sur ${K} (playwright ${reste.join(" ") || "sans argument"})`);
   const r = spawnSync("pnpm", ["exec", "playwright", "test", "-c", "playwright.perf.config.ts", ...reste], {
     stdio: "inherit",
