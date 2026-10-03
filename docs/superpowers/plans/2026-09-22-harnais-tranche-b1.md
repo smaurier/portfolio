@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** `pnpm run perf` mesure les images PRESENTEES par le compositeur sur la production, moment par moment, contre un cliquet versionne ; un rouge nomme ce qui a occupe sa pire image ; la barre refuse de conclure sur une machine bruyante ; et le hook `pre-push` la lance deja sur `main`.
+**Goal:** `pnpm run perf` mesure les images PRESENTEES par le compositeur sur la production, moment par moment, contre un cliquet versionne ; un rouge nomme ce qui a occupe sa pire image ; la barre refuse de conclure quand son chemin de mesure est en defaut (auto-test ; le 22/09 ecrivait « sur une machine bruyante », mesure faux le 03/10, voir la tache 4) ; et le hook `pre-push` la lance deja sur `main`.
 
 **Architecture:** Une seconde suite Playwright (`playwright.perf.config.ts`, serveur de production sur `:3100`), courte, hors de la suite par defaut. Le coeur est pur et teste a l'unite : des evenements de trace Chromium en entree, des trames, des intervalles, des comptes et un verdict en sortie (`tests/perf/aides/`). Les tests de la barre (`*.perf.ts`) ne font que conduire le site, tracer, et appeler ce coeur. Le cliquet vit dans `scripts/perf-baseline.json` (meilleur connu, cible a cote, `dpr` de mesure), acquis par `pnpm run perf:baseline`, jamais abaisse.
 
@@ -55,7 +55,7 @@ Vitest ramasse `tests/perf/aides/*.test.ts` (sa config n'exclut que `tests/e2e`)
 - Create: `tests/perf/aides/images.ts`
 - Test: `tests/perf/aides/images.test.ts`
 
-- [ ] **Step 1 : ecrire les tests, rouges**
+- [x] **Step 1 : ecrire les tests, rouges**
 
 `tests/perf/aides/images.test.ts` :
 
@@ -182,12 +182,12 @@ describe("la mediane", () => {
 });
 ```
 
-- [ ] **Step 2 : les voir rouges**
+- [x] **Step 2 : les voir rouges**
 
 Run: `pnpm exec vitest run tests/perf/aides/images.test.ts`
 Expected: FAIL, `Cannot find module './evenements'` (ou `./images`).
 
-- [ ] **Step 3 : `evenements.ts`**
+- [x] **Step 3 : `evenements.ts`**
 
 ```ts
 /**
@@ -270,7 +270,7 @@ export function reperes(evts: Evenement[]): Map<string, number> {
 }
 ```
 
-- [ ] **Step 4 : `images.ts`**
+- [x] **Step 4 : `images.ts`**
 
 ```ts
 /**
@@ -388,12 +388,12 @@ export function mediane(nombres: number[]): number {
 }
 ```
 
-- [ ] **Step 5 : les voir verts**
+- [x] **Step 5 : les voir verts**
 
 Run: `pnpm exec vitest run tests/perf/aides/images.test.ts`
 Expected: 14 passed. Si `p5Fps` ou la repartition ne tombent pas juste, verifier l'arithmetique du test (10 intervalles : 5 au-dela de 25 ms ; 5 a 60 Hz, 2 a 30 Hz, 3 en dessous ; le p95 est le 10e = 100 ms, soit 10 fps) avant de toucher au code.
 
-- [ ] **Step 6 : `tsc` et `eslint` sur les fichiers, puis commit**
+- [x] **Step 6 : `tsc` et `eslint` sur les fichiers, puis commit**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec eslint tests/perf`
 Expected: aucune erreur.
@@ -411,7 +411,7 @@ git commit -m "test(perf): le coeur des images presentees, pur et teste sur des 
 - Create: `tests/perf/aides/fil-principal.ts`
 - Test: `tests/perf/aides/fil-principal.test.ts`
 
-- [ ] **Step 1 : ecrire le test, rouge**
+- [x] **Step 1 : ecrire le test, rouge**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -465,12 +465,12 @@ describe("le temps propre", () => {
 });
 ```
 
-- [ ] **Step 2 : le voir rouge**
+- [x] **Step 2 : le voir rouge**
 
 Run: `pnpm exec vitest run tests/perf/aides/fil-principal.test.ts`
 Expected: FAIL, `Cannot find module './fil-principal'`.
 
-- [ ] **Step 3 : `fil-principal.ts`**
+- [x] **Step 3 : `fil-principal.ts`**
 
 ```ts
 /**
@@ -528,7 +528,7 @@ export function tempsPropre(evts: Evenement[], pid: number, tid: number, debut: 
 }
 ```
 
-- [ ] **Step 4 : le voir vert, `tsc`, `eslint`, commit**
+- [x] **Step 4 : le voir vert, `tsc`, `eslint`, commit**
 
 Run: `pnpm exec vitest run tests/perf/aides/fil-principal.test.ts && pnpm exec tsc --noEmit && pnpm exec eslint tests/perf`
 Expected: 4 passed, rien d'autre.
@@ -547,7 +547,7 @@ git commit -m "test(perf): le temps propre de la pire image, par une pile sur le
 - Create: `tests/perf/aides/ligne-de-base.ts`
 - Test: `tests/perf/aides/cliquet.test.ts`
 
-- [ ] **Step 1 : ecrire le test, rouge**
+- [x] **Step 1 : ecrire le test, rouge**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -600,12 +600,12 @@ describe("l'acquisition", () => {
 });
 ```
 
-- [ ] **Step 2 : le voir rouge**
+- [x] **Step 2 : le voir rouge**
 
 Run: `pnpm exec vitest run tests/perf/aides/cliquet.test.ts`
 Expected: FAIL, `Cannot find module './cliquet'`.
 
-- [ ] **Step 3 : `cliquet.ts`**
+- [x] **Step 3 : `cliquet.ts`**
 
 ```ts
 /**
@@ -648,7 +648,7 @@ export function acquerir(ligne: Ligne | undefined, mesure: Mesure, cible: Compte
 }
 ```
 
-- [ ] **Step 4 : `ligne-de-base.ts`**
+- [x] **Step 4 : `ligne-de-base.ts`**
 
 ```ts
 /**
@@ -683,7 +683,7 @@ export function ecrireLigneDeBase(base: LigneDeBase, chemin = CHEMIN_LIGNE_DE_BA
 }
 ```
 
-- [ ] **Step 5 : le voir vert, `tsc`, `eslint`, commit**
+- [x] **Step 5 : le voir vert, `tsc`, `eslint`, commit**
 
 Run: `pnpm exec vitest run tests/perf/aides/cliquet.test.ts && pnpm exec tsc --noEmit && pnpm exec eslint tests/perf`
 Expected: 6 passed, rien d'autre.
@@ -706,7 +706,7 @@ git commit -m "test(perf): le cliquet de la barre, verdict et acquisition purs, 
 - Create: `scripts/perf-baseline.mjs`
 - Modify: `package.json` (scripts)
 
-- [ ] **Step 1 : `tracage.ts`**
+- [x] **Step 1 : `tracage.ts`**
 
 ```ts
 /**
@@ -739,7 +739,7 @@ export async function tracer(page: Page): Promise<{ arreter: () => Promise<Evene
 }
 ```
 
-- [ ] **Step 2 : `site.ts`**
+- [x] **Step 2 : `site.ts`**
 
 ```ts
 /**
@@ -821,7 +821,7 @@ export async function defiler(page: Page, dureeMs: number): Promise<void> {
 }
 ```
 
-- [ ] **Step 3 : `barre.ts`**
+- [x] **Step 3 : `barre.ts`**
 
 ```ts
 /**
@@ -901,7 +901,7 @@ export function juger(projet: string, moment: string, passes: Passe[], cible: Co
 }
 ```
 
-- [ ] **Step 4 : `auto-test.perf.ts`**
+- [x] **Step 4 : `auto-test.perf.ts`**
 
 ```ts
 import { expect, test } from "@playwright/test";
@@ -946,7 +946,7 @@ test("la machine presente une rotation CSS sans image en retard ni perdue", asyn
 });
 ```
 
-- [ ] **Step 5 : `playwright.perf.config.ts`**
+- [x] **Step 5 : `playwright.perf.config.ts`**
 
 ```ts
 import { defineConfig, devices } from "@playwright/test";
@@ -995,7 +995,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 6 : `scripts/perf-baseline.mjs` et `package.json`**
+- [x] **Step 6 : `scripts/perf-baseline.mjs` et `package.json`**
 
 `scripts/perf-baseline.mjs` (pnpm lance ses scripts par `cmd.exe` sous Windows : `PERF_ACQUERIR=1 playwright ...` n'y passerait pas, d'ou ce lanceur) :
 
@@ -1025,7 +1025,7 @@ Dans `package.json`, apres `"test:e2e"` :
     "perf:baseline": "node scripts/perf-baseline.mjs",
 ```
 
-- [ ] **Step 7 : `tsc`, `eslint`, puis l'auto-test, vert**
+- [x] **Step 7 : `tsc`, `eslint`, puis l'auto-test, vert**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec eslint tests/perf playwright.perf.config.ts scripts/perf-baseline.mjs`
 Expected: rien.
@@ -1035,23 +1035,29 @@ Verifier qu'aucun serveur ne traine : `netstat -ano | grep ":3100" | grep LISTEN
 Run: `pnpm run perf --project=auto-test`
 Expected: la construction (21 s), puis `1 passed`, et sur la sortie `auto-test : ~150 images, 0 au-dela du budget, pire ~17 ms, 0 perdues`.
 
-- [ ] **Step 8 : le voir ROUGE sur une machine bruyante**
+- [x] **Step 8 : le voir ROUGE**
 
-Charger tous les coeurs, relancer, observer le refus, liberer :
+**Tel qu'ecrit le 22/09, cette etape etait fausse, et c'est la mesure du 03/10 qui l'a dit.** La recette prevue (douze a vingt-quatre boucles `node -e "for(;;){}"`, « la machine est bruyante ») ne fait PAS rougir l'auto-test : une rotation `transform` vit sur le fil du compositeur, et Windows arbitre en faveur du navigateur. Releve du 03/10, 12 coeurs :
 
-```bash
-for i in 1 2 3 4 5 6 7 8 9 10 11 12; do node -e "for(;;){}" & done
-pnpm run perf --project=auto-test ; echo "code $?"
-kill $(jobs -p)
-```
+| bruit essaye | auto-test ou sonde (`.scratch/sonde-bruit.mjs`) | verdict |
+| --- | --- | --- |
+| 24 boucles CPU, priorite normale (le build a pris 2 min au lieu de 37 s) | 191 presentees, 0 au-dela, pire 19,1 ms, 0 perdues | vert |
+| idem, page avec 8 ms de script par image | 197 presentees, 0 au-dela, pire 19,3 ms | vert |
+| rendu logiciel force (`--disable-gpu`) | 178 presentees, 0 au-dela, pire 18,9 ms | vert |
+| 24 boucles CPU en priorite HAUTE | Chromium ne charge plus la page : la sonde plante, la mesure n'existe plus | pas un rouge |
+| second Chromium, shader plein ecran 60 000 iterations (`.scratch/bruit-gpu.mjs`) | compteur GPU Windows a 0,14 %, contexte perdu par TDR ; sonde 179 presentees, 0 au-dela | vert, le GPU n'est pas sature |
+| script qui bloque 40 ms par image, rotation `transform` gardee | 246 presentees, 0 au-dela, pire 18,9 ms | vert |
+| **sabotage : rotation en animation NON composee (`margin-left` par rAF) + 40 ms de blocage** | **143 presentees, 72 au-dela, pire 40,7 ms, 102 perdues** | **ROUGE, code 1** |
 
-Expected: `1 failed`, message `la machine est bruyante, la barre refuse de conclure`, code 1. Si la machine tient malgre douze boucles (elle a plus de coeurs), en lancer vingt-quatre. Le nombre de boucles et le resultat vont dans le message de commit.
+Ce que l'auto-test garde donc : le CHEMIN DE MESURE (un compositeur dans la trace, le vsync, le GPU et les drapeaux ANGLE). Ce qu'il ne garde pas : le bruit de la machine, porte par la mediane de trois passes et le cliquet sur des comptes. Le mot « bruyante » sort du test, de ce plan et du design (section 2 et criteres 4 et 14).
 
-- [ ] **Step 9 : commit**
+Pour le revoir rouge : remplacer dans `PAGE` l'animation par `<style>div{animation:none}</style><script>const s=document.querySelector("div");function f(t){const a=performance.now();while(performance.now()-a<40);s.style.marginLeft=(t/10%300)+"px";requestAnimationFrame(f)}requestAnimationFrame(f)</script>`, lancer `pnpm run perf --project=auto-test`, lire `1 failed` et le message « le chemin de mesure est en defaut », puis retirer le sabotage.
+
+- [x] **Step 9 : commit**
 
 ```bash
 git add tests/perf/aides/tracage.ts tests/perf/aides/site.ts tests/perf/aides/barre.ts tests/perf/auto-test.perf.ts playwright.perf.config.ts scripts/perf-baseline.mjs package.json
-git commit -m "perf(barre): la seconde suite sur la production, et l'auto-test qui refuse de conclure sur une machine bruyante (vu rouge sous N boucles)"
+git commit -m "perf(barre): la seconde suite sur la production, et l'auto-test du chemin de mesure (vu rouge par une animation non composee sous 40 ms de blocage ; le bruit CPU ou GPU ne le fait pas rougir, mesure)"
 ```
 
 ---
@@ -1289,11 +1295,11 @@ dessiner).
 | mecanisme | ce qu'il fait | preuve |
 | --- | --- | --- |
 | `playwright.perf.config.ts`, `pnpm run perf` | une seconde suite, sur la PRODUCTION (`build` + `start -p 3100`, 21 s) ; refuse un serveur qui traine sur `:3100` ; projets `auto-test` puis `perf-bureau` (1280 x 800, `dpr` de `PERF_DPR`, 1 par defaut) | on ne melange pas mesurer et verifier ; un serveur d'un autre code serait une mesure d'un autre code. |
-| `tests/perf/auto-test.perf.ts` | avant tout, une rotation CSS isolee (page `data:`, aucun script) doit presenter sans image en retard ni perdue, sinon `perf-bureau` ne tourne pas | 22/09 : 150 trames en 2,5 s, 2 perdues a la naissance de la page, 0 ensuite. Vu refuser sous N boucles de calcul. |
+| `tests/perf/auto-test.perf.ts` | avant tout, une rotation CSS isolee (page `data:`, aucun script) doit presenter sans image en retard ni perdue, sinon `perf-bureau` ne tourne pas | 22/09 : 150 trames en 2,5 s, 2 perdues a la naissance de la page, 0 ensuite. 03/10 : vu ROUGE par sabotage (animation non composee sous 40 ms de blocage : 143 presentees, 72 au-dela, pire 40,7 ms, 102 perdues) ; 24 boucles CPU, priorite haute, rendu logiciel, blocage seul : vert. Il garde le chemin de mesure, pas le bruit. |
 | `tests/perf/voile.perf.ts` | `voile-attente` (premier octet a `data-loaded`), `voile-ouverture` (a `data-foyer=done`), `arrivee` (trois secondes immobiles) ; contexte neuf par passe (premiere visite), un echauffement non mesure | point zero du 22/09 : attente N au-dela / pire N ms / N perdues ; ouverture N ; arrivee N. |
 | `tests/perf/defilement.perf.ts` | le balayage du jure : haut en bas a vitesse constante, six secondes, sur les cinq pages | point zero du 22/09 : fr N, services N, projets N, contact N, memoire N (images au-dela du budget). |
 | `scripts/perf-baseline.json`, `pnpm run perf:baseline` | le cliquet : par projet et par moment, le meilleur connu (`auDela`, `perdues`), la cible a cote, la pire duree et la date de mesure, le `dpr` ; **rouge = pire que le meilleur connu, sur un compte** ; un progres s'acquiert, un recul ne s'inscrit jamais | vu rouge le 22/09 avec une ligne de base a zero : RECUL, code 1. |
-| le bruit | trois passes, mediane par compte ; les comptes avant les durees ; l'auto-test | note du 16/09 : une duree varie de quarante points d'une passe a l'autre. |
+| le bruit | trois passes, mediane par compte ; les comptes avant les durees. L'auto-test n'en fait PAS partie (03/10) | note du 16/09 : une duree varie de quarante points d'une passe a l'autre. |
 | un rouge n'est jamais nu | chaque rapport porte, pour la pire image, le temps propre du fil principal par etiquette (`FunctionCall`, `EvaluateScript`, `Decode Image`, `Layout`...), et `renderer.info` a la fin du moment | **limite connue** : en production les fonctions s'appellent `O` ; les noms de source viennent avec les cartes de source (B2). |
 | `scripts/hooks/pre-push` | lance `pnpm run perf` quand la ref poussee est `main` | en place depuis la tranche A (`--if-present`), actif depuis B1. |
 
@@ -1312,7 +1318,7 @@ par le Centre, le budget reparti script / soumission / GPU, le temps GPU
 Dans `docs/superpowers/specs/2026-09-21-harnais-design.md`, section 8, ajouter apres chaque critere concerne :
 
 - 3 : `— **Tranche B1 (22/09)** : perf-bureau, huit moments (voile x3, defilement x5), compte / pire / repartition / renderer.info ; le budget reparti, le temps GPU et perf-telephone sont en B2.`
-- 4 : `— **Fait, B1** : rotation CSS isolee hors du site (et non la Piedra : l'auto-test ne depend pas du site qu'il mesure), vu refuser sous charge.`
+- 4 : `— **Fait, B1 (03/10), critere amende** : rotation CSS isolee hors du site (et non la Piedra : l'auto-test ne depend pas du site qu'il mesure). Il garde le chemin de mesure, PAS le bruit : 24 boucles CPU, priorite haute, rendu logiciel et 40 ms de blocage l'ont laisse vert ; vu rouge par une animation non composee sous blocage.`
 - 5 : `— **Fait, B1** (scripts/perf-baseline.json, vu rouge avec une ligne a zero).`
 - 6 : `— **Fait, B1**, avec la limite des noms minifies (cartes de source en B2).`
 - 9 : `— **B1** : voile.mjs et fps-bureau.mjs sont montes (tests/perf/voile.perf.ts, defilement.perf.ts) ; profil-voile.mjs et transition.mjs restent pour B2.`

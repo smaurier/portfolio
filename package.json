@@ -9,6 +9,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "perf": "playwright test -c playwright.perf.config.ts",
+    "perf:baseline": "node scripts/perf-baseline.mjs",
     "models": "node scripts/optimise-models.mjs",
     "harnais:baseline": "node scripts/harnais-baseline.mjs",
     "prepare": "git config core.hooksPath scripts/hooks || exit 0"

@@ -217,6 +217,17 @@ passe a l'autre. Donc :
   immobile ». Faux : en frameloop `demand`, une scene immobile ne presente
   AUCUNE image, l'auto-test aurait ete vert a vide.) Une barre qui ne sait
   pas quand elle ne peut pas mesurer ment.
+  **Amende le 03/10 (B1, mesure)** : l'auto-test garde le CHEMIN DE MESURE
+  (un compositeur dans la trace, le vsync, le GPU, les drapeaux ANGLE), pas
+  le bruit de la machine. Une rotation composee ne depend pas du fil
+  principal : 24 boucles CPU sur 12 coeurs, le rendu logiciel force, 40 ms
+  de blocage par image l'ont laisse vert ; 24 boucles en priorite haute ont
+  empeche la page de charger sans faire rougir l'assertion ; un second
+  Chromium n'a pas su saturer le GPU. Vu rouge par une animation non
+  composee sous blocage (143 presentees, 72 au-dela, 102 perdues). Le bruit
+  est porte par la mediane de trois passes et le cliquet sur des comptes,
+  et c'est tout ce qui le porte tant que la machine de mesure fixe (section
+  6 ter, chantier 1) n'existe pas.
 
 ### Un rouge n'est jamais nu
 
@@ -463,7 +474,7 @@ demandent du materiel.
 
 | chantier | ce que c'est | premiere marche | materiel |
 | --- | --- | --- | --- |
-| 1. Une machine de mesure fixe | la barre tourne sur le PC de dev, qui fait autre chose ; le bruit est traite, pas supprime | la barre refuse de conclure si l'auto-test est bruyant (section 2) ; puis un profil `perf` qui tue tout serveur et process `next` avant de mesurer ; puis une machine dediee (un vieux portable suffit) | oui, a terme |
+| 1. Une machine de mesure fixe | la barre tourne sur le PC de dev, qui fait autre chose ; le bruit est traite, pas supprime | la barre refuse de conclure si l'auto-test ne presente pas (section 2 ; le 03/10 a montre qu'il ne detecte pas le bruit CPU ou GPU, seulement un chemin de mesure en defaut) ; puis un profil `perf` qui tue tout serveur et process `next` avant de mesurer ; puis une machine dediee (un vieux portable suffit) | oui, a terme |
 | 2. Un vrai telephone | l'emulation /4 est un proxy ; rien n'a ete vu sur un vrai appareil | Chrome sur Android par `adb` et le port de debogage distant : la meme suite `perf-telephone` se lance sur un vrai Pixel ; rituel a chaque jalon, chiffres dans `soty-etat.md` | un telephone Android, meme prete |
 | 3. Une chaine d'actifs | Draco / meshopt et KTX2 comme etapes de build, pas comme regles a la main | `scripts/optimise-models.mjs` existe ; y ajouter KTX2 pour les textures embarquees et une verification des plafonds (l'oracle des textures) dans la meme passe | non |
 | 4. Le decoupage du travail lourd | la chauffe etale les nuanciers sur plusieurs images ; rien ne le fait pour le decodage, l'envoi des textures, la construction des geometries | un ordonnanceur unique `lib/ordonnanceur.ts` (pur, teste) : une file de taches a budget par image, que la chauffe utilise en premier ; c'est le mecanisme qui reparera l'attente du voile | non |
@@ -499,8 +510,9 @@ Pour `close-the-books`, quand le plan sera execute :
 3. `pnpm run perf` lance `perf-bureau` et `perf-telephone` contre un serveur
    de production sur `:3100` ; dix-sept moments par projet ; chaque rapport
    porte compte, pire, repartition, budget reparti, temps GPU, `renderer.info`.
-4. L'auto-test de mesure existe et refuse de conclure sur une machine
-   bruyante.
+4. L'auto-test de mesure existe et refuse de conclure quand le chemin de
+   mesure est en defaut. (Ecrit le 21/09 « sur une machine bruyante » ;
+   mesure faux le 03/10, voir section 2.)
 5. `scripts/perf-baseline.json` existe, initialise sur l'etat mesure, cible
    a cote de chaque moment ; un moment pire que son meilleur connu est rouge.
 6. Un moment rouge imprime les fonctions de sa pire image.
@@ -521,7 +533,7 @@ Pour `close-the-books`, quand le plan sera execute :
     resultat est consigne : soit il est vert et l'hypothese des calques
     masques tombe, soit il est rouge et il nomme le calque.
 14. Les cinq chantiers d'infrastructure ont chacun leur premiere marche
-    livree : l'auto-test bruyant refuse de conclure (1) ; `perf-telephone`
+    livree : l'auto-test refuse de conclure quand il ne presente pas (1 ; le bruit lui-meme, il ne le voit pas, 03/10) ; `perf-telephone`
     sait viser un appareil `adb` (2) ; l'optimisation des modeles verifie
     les plafonds de textures (3) ; `lib/ordonnanceur.ts` existe, est teste,
     et la chauffe passe par lui (4) ; le rituel Spector.js est ecrit (5).
