@@ -494,7 +494,7 @@ demandent du materiel.
 | chantier | ce que c'est | premiere marche | materiel |
 | --- | --- | --- | --- |
 | 1. Une machine de mesure fixe | la barre tourne sur le PC de dev, qui fait autre chose ; le bruit est traite, pas supprime | la barre refuse de conclure si l'auto-test ne presente pas (section 2 ; le 03/10 a montre qu'il ne detecte pas le bruit CPU ou GPU, seulement un chemin de mesure en defaut) ; puis un profil `perf` qui tue tout serveur et process `next` avant de mesurer ; puis une machine dediee (un vieux portable suffit) | oui, a terme |
-| 2. Un vrai telephone | l'emulation /4 est un proxy ; rien n'a ete vu sur un vrai appareil | Chrome sur Android par `adb` et le port de debogage distant : la meme suite `perf-telephone` se lance sur un vrai Pixel ; rituel a chaque jalon, chiffres dans `soty-etat.md` | un telephone Android, meme prete |
+| 2. Un vrai telephone | l'emulation /4 est un proxy ; rien n'a ete vu sur un vrai appareil | Chrome sur Android par `adb` et le port de debogage distant : la meme suite `perf-telephone` se lance sur un vrai Pixel ; rituel a chaque jalon, chiffres dans `soty-etat.md`. B2a (04/10) : l'emulation est en place et mesuree (`pnpm run perf:telephone`) ; la marche adb reste a faire | un telephone Android, meme prete |
 | 3. Une chaine d'actifs | Draco / meshopt et KTX2 comme etapes de build, pas comme regles a la main | `scripts/optimise-models.mjs` existe ; y ajouter KTX2 pour les textures embarquees et une verification des plafonds (l'oracle des textures) dans la meme passe | non |
 | 4. Le decoupage du travail lourd | la chauffe etale les nuanciers sur plusieurs images ; rien ne le fait pour le decodage, l'envoi des textures, la construction des geometries | un ordonnanceur unique `lib/ordonnanceur.ts` (pur, teste) : une file de taches a budget par image, que la chauffe utilise en premier ; c'est le mecanisme qui reparera l'attente du voile | non |
 | 5. Les captures GPU | quand la barre dit « GPU » sans dire quoi | rituel dans `docs/harnais.md` : une capture Spector.js sur le moment rouge, lue avant toute correction ; rien a installer dans le site | non |
@@ -533,6 +533,9 @@ Pour `close-the-books`, quand le plan sera execute :
    defilement x5), compte / pire / repartition / `renderer.info` (limite :
    apres le composer, seul le dernier `render()` est vu) ; le budget
    reparti, le temps GPU et `perf-telephone` sont en B2.
+   — **B2a (04/10)** : `perf-telephone`, huit moments sur le Pixel 7 emule
+   (processeur /4, Fast 3G sur le voile, budget 33,3 ms), rapporte et pas
+   bloquant ; le temps GPU et le budget reparti restent en B2b.
 4. L'auto-test de mesure existe et refuse de conclure quand le chemin de
    mesure est en defaut. (Ecrit le 21/09 « sur une machine bruyante » ;
    mesure faux le 03/10, voir section 2.)

@@ -45,7 +45,7 @@
 - Create: `tests/perf/aides/profil.ts`
 - Test: `tests/perf/aides/profil.test.ts`
 
-- [ ] **Step 1 : ecrire le test, rouge**
+- [x] **Step 1 : ecrire le test, rouge**
 
 `tests/perf/aides/profil.test.ts` :
 
@@ -77,12 +77,12 @@ describe("le profil d'un projet", () => {
 });
 ```
 
-- [ ] **Step 2 : le voir rouge**
+- [x] **Step 2 : le voir rouge**
 
 Run: `pnpm exec vitest run tests/perf/aides/profil.test.ts`
 Expected: FAIL, `Cannot find module './profil'`.
 
-- [ ] **Step 3 : `profil.ts`**
+- [x] **Step 3 : `profil.ts`**
 
 ```ts
 /**
@@ -123,7 +123,7 @@ export function profilDuProjet(nom: string): Profil {
 }
 ```
 
-- [ ] **Step 4 : le voir vert, `tsc`, `eslint`, commit**
+- [x] **Step 4 : le voir vert, `tsc`, `eslint`, commit**
 
 Run: `pnpm exec vitest run tests/perf/aides/profil.test.ts && pnpm exec tsc --noEmit && pnpm exec eslint tests/perf --cache --cache-location node_modules/.cache/eslint/`
 Expected: 4 passed, rien d'autre.
@@ -143,7 +143,7 @@ git commit -m "test(perf): le profil d'un projet de la barre, budget et emulatio
 - Modify: `tests/perf/voile.perf.ts`
 - Modify: `tests/perf/defilement.perf.ts`
 
-- [ ] **Step 1 : `emulerLeTelephone` dans `site.ts`**
+- [x] **Step 1 : `emulerLeTelephone` dans `site.ts`**
 
 Ajouter en fin de `tests/perf/aides/site.ts` :
 
@@ -170,7 +170,7 @@ Et en tete du fichier, apres `import type { Page } from "@playwright/test";` :
 import { FAST_3G, PROCESSEUR_TELEPHONE } from "./profil";
 ```
 
-- [ ] **Step 2 : le dpr vient du projet dans `barre.ts`**
+- [x] **Step 2 : le dpr vient du projet dans `barre.ts`**
 
 Remplacer la ligne :
 
@@ -212,7 +212,7 @@ et, plus bas, `base[projet] = { dpr: DPR, moments: ... }` devient `base[projet] 
 
 `PERF_DPR` reste lu par `playwright.perf.config.ts` pour le bureau (c'est lui qui fixe `deviceScaleFactor` du projet) : une seule source, le projet.
 
-- [ ] **Step 3 : `voile.perf.ts` lit le profil**
+- [x] **Step 3 : `voile.perf.ts` lit le profil**
 
 Remplacer les imports :
 
@@ -243,7 +243,7 @@ Apres `await poserLesReperes(page);`, ajouter :
 
 Et remplacer les trois `BUDGET_BUREAU_MS` des appels a `mesurer` par `profil.budgetMs`.
 
-- [ ] **Step 4 : `defilement.perf.ts` lit le profil**
+- [x] **Step 4 : `defilement.perf.ts` lit le profil**
 
 Remplacer les imports :
 
@@ -273,12 +273,12 @@ Apres `const page = await ctx.newPage();` :
 
 Et `BUDGET_BUREAU_MS` dans l'appel a `mesurer` devient `profil.budgetMs`.
 
-- [ ] **Step 5 : `tsc`, `eslint`, la barre du bureau inchangee**
+- [x] **Step 5 : `tsc`, `eslint`, la barre du bureau inchangee**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec eslint tests/perf --cache --cache-location node_modules/.cache/eslint/ && pnpm run perf`
 Expected: rien pour `tsc` et `eslint` ; `7 passed`, tous `tenu` ou `progres a acquerir`, en ~5,5 min. Le bureau n'a pas bouge : le profil `perf-bureau` rend exactement le budget d'avant et n'emule rien.
 
-- [ ] **Step 6 : commit**
+- [x] **Step 6 : commit**
 
 ```bash
 git add tests/perf/aides/site.ts tests/perf/aides/barre.ts tests/perf/voile.perf.ts tests/perf/defilement.perf.ts
@@ -293,7 +293,7 @@ git commit -m "perf(barre): les specs lisent leur profil par projet ; emulation 
 - Modify: `playwright.perf.config.ts`
 - Modify: `package.json` (scripts)
 
-- [ ] **Step 1 : le projet dans la config**
+- [x] **Step 1 : le projet dans la config**
 
 Dans `playwright.perf.config.ts`, apres `const BUREAU = ...`, ajouter :
 
@@ -324,7 +324,7 @@ Mettre a jour le commentaire d'en-tete : apres la ligne `` * `pnpm run perf` ; o
  * (B2a) ; il bloquera quand son enveloppe aura tenu quelques semaines.
 ```
 
-- [ ] **Step 2 : les scripts**
+- [x] **Step 2 : les scripts**
 
 Dans `package.json`, remplacer :
 
@@ -341,7 +341,7 @@ par :
 
 Playwright lance toujours les dependances d'un projet : `--project=perf-bureau` lance `auto-test` avant, comme aujourd'hui.
 
-- [ ] **Step 3 : verifier sans mesurer**
+- [x] **Step 3 : verifier sans mesurer**
 
 Run: `pnpm exec playwright test -c playwright.perf.config.ts --list --project=perf-bureau`
 Expected: `Total: 7 tests in 3 files` (1 auto-test, 1 voile, 5 defilements), tous `[auto-test]` ou `[perf-bureau]`.
@@ -352,7 +352,7 @@ Expected: `Total: 7 tests in 3 files`, le premier `[auto-test]`, les six autres 
 Run: `pnpm exec playwright test -c playwright.perf.config.ts --list`
 Expected: `Total: 13 tests` (1 + 6 + 6) : c'est ce que `perf:enveloppe` sans `--project` lancerait, d'ou le `--project` obligatoire a la tache 4.
 
-- [ ] **Step 4 : `tsc`, `eslint`, commit**
+- [x] **Step 4 : `tsc`, `eslint`, commit**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec eslint playwright.perf.config.ts --cache --cache-location node_modules/.cache/eslint/`
 Expected: rien.
@@ -369,30 +369,32 @@ git commit -m "perf(barre): le projet perf-telephone (Pixel 7 emule) ; pnpm run 
 **Files:**
 - Modify: `scripts/perf-baseline.json` (par acquisition)
 
-- [ ] **Step 1 : machine libre**
+- [x] **Step 1 : machine libre**
 
 Fermer les navigateurs, ne rien construire en parallele. Verifier qu'aucun serveur ne traine : `netstat -ano | grep ":3100" | grep LISTENING` doit etre vide.
 
-- [ ] **Step 2 : un jugement d'essai, pour lire les durees**
+- [x] **Step 2 : un jugement d'essai, pour lire les durees**
 
 Run: `pnpm run perf:telephone 2>&1 | grep -E "auto-test :|perf-telephone / |passe [0-9] :|passed|failed|Error"`
 Expected: l'auto-test vert ; puis `perf-telephone / voile-attente : aucune ligne de base : a acquerir ...` et, en mode jugement sans ligne de base, **un rouge** sur chaque moment : `n'a pas de ligne de base : pnpm run perf:enveloppe`. C'est le rouge attendu d'un moment jamais acquis. Noter la duree totale : c'est le cout d'un jugement (~10 min attendu). Lire les trois passes de l'attente : au processeur /4 et Fast 3G, le voile doit se lever (sinon `attendreLeFoyer` sort en 120 s : relever le delai a 240 s dans `site.ts` et le dire dans le commit).
 
 Si un moment ne presente pas 20 images (`la barre ne peut pas conclure sur ce moment`), ne pas baisser le plancher : lire la passe, et chercher pourquoi la page n'a rien presente (reseau trop lent pour le moment choisi, repere absent).
 
-- [ ] **Step 3 : l'enveloppe en cinq jugements**
+- [x] **Step 3 : l'enveloppe en cinq jugements**
 
 Run: `pnpm run perf:enveloppe -- --project=perf-telephone 2>&1 | grep -E "=== enveloppe|perf-telephone / |passed|failed|Error"`
 Expected: cinq fois `7 passed` (auto-test compris), ~50 min, chaque ligne `enveloppe elargie : au-dela N (a a b, plafond c), perdues ...`. A la fin, `scripts/perf-baseline.json` porte `"perf-telephone": { "dpr": 2.625, "moments": { ... } }` avec les huit moments.
 
 Verifier : `node -e 'const j=JSON.parse(require("fs").readFileSync("scripts/perf-baseline.json","utf8"));console.log(j["perf-telephone"].dpr, Object.keys(j["perf-telephone"].moments).length)'` -> `2.625 8`.
 
-- [ ] **Step 4 : la barre tient sur elle-meme**
+**Mesure du 04/10** : 3644 s pour les cinq jugements, mais **13 tests par jugement au lieu de 7** : `pnpm run perf:enveloppe -- --project=perf-telephone` transmettait le separateur `--` de pnpm a Playwright, qui fermait ses options et lisait `--project=...` comme un filtre de fichiers inoperant. C'etait aussi la cause du `--grep defilement` qui ne filtrait pas le 03/10. Corrige dans `scripts/perf-baseline.mjs` (un `--` en tete est retire), verifie par `--list` (7 tests). Effet de bord assume : l'enveloppe du bureau compte cinq jugements de plus (quinze au total ; `projets` a maintenant un maximum de 1 et un plafond de 2, `voile-attente` 5-12 / 17-28, plafond 19 / 39), par la mesure, pas a la main. Enveloppe du telephone : voir `docs/harnais.md`, pilier 1.
+
+- [x] **Step 4 : la barre tient sur elle-meme**
 
 Run: `pnpm run perf:telephone 2>&1 | grep -E "perf-telephone / |passed|failed"`
 Expected: `7 passed`, huit `tenu :` ou `progres a acquerir`. Un RECUL ici, sans code change, veut dire que cinq jugements n'ont pas suffi a mesurer le bruit du processeur /4 : le dire dans le rapport avec les chiffres, ne pas toucher au plafond a la main, et relancer `perf:enveloppe` (qui elargit) en le disant dans le commit.
 
-- [ ] **Step 5 : le voir ROUGE par la ligne de base**
+- [x] **Step 5 : le voir ROUGE par la ligne de base**
 
 Sauvegarder le JSON hors du depot (`cp scripts/perf-baseline.json "$TEMP/perf-baseline.sauvegarde.json"`), puis y mettre `"auDela": 0` et `"perdues": 0` a `perf-telephone.moments.voile-attente.plafond`.
 
@@ -401,7 +403,7 @@ Expected: `1 failed`, code 1, `perf-telephone / voile-attente : RECUL : au-dela 
 
 Restaurer : `cp "$TEMP/perf-baseline.sauvegarde.json" scripts/perf-baseline.json`, puis verifier que `plafond` est revenu.
 
-- [ ] **Step 6 : commit, avec les chiffres**
+- [x] **Step 6 : commit, avec les chiffres**
 
 ```bash
 git add scripts/perf-baseline.json
@@ -427,7 +429,7 @@ EOF
 - Modify: `docs/superpowers/specs/2026-09-21-harnais-design.md` (section 8, critere 3 ; section 6 ter, chantier 2)
 - Modify: `docs/superpowers/plans/2026-10-04-harnais-tranche-b2a.md` (cocher)
 
-- [ ] **Step 1 : `docs/harnais.md`**
+- [x] **Step 1 : `docs/harnais.md`**
 
 Dans la table des mecanismes du pilier 1, apres la ligne `tests/perf/defilement.perf.ts`, ajouter (les N sont les chiffres du commit de la tache 4) :
 
@@ -437,13 +439,13 @@ Dans la table des mecanismes du pilier 1, apres la ligne `tests/perf/defilement.
 
 Dans « Ce qui n'y est pas encore (B2) », retirer `perf-telephone (Pixel 7, processeur /4, Fast 3G sur le voile, cible 33 ms et p5 >= 45)` et ecrire a la place `le vrai telephone par adb`, en tete de liste. Mettre a jour la ligne d'etat en tete du document : `**Tranche B2a** (le telephone emule) : plan 04/10, livree <date>.`
 
-- [ ] **Step 2 : le design**
+- [x] **Step 2 : le design**
 
 Section 8, critere 3, apres le texte de B1 : `— **B2a (<date>)** : perf-telephone, huit moments, rapporte et pas bloquant ; le temps GPU et le budget reparti restent en B2b.`
 
 Section 6 ter, ligne du chantier 2 (« Un vrai telephone ») : ajouter dans la colonne de la premiere marche : `B2a (<date>) : l'emulation est en place et mesuree ; la marche adb reste a faire.`
 
-- [ ] **Step 3 : cocher, `pnpm test`, commit**
+- [x] **Step 3 : cocher, `pnpm test`, commit**
 
 Cocher toutes les cases de ce plan.
 
@@ -455,6 +457,6 @@ git add docs/harnais.md docs/superpowers/specs/2026-09-21-harnais-design.md docs
 git commit -m "docs(harnais): B2a livree, le telephone emule rapporte ; adb, temps GPU et cartes de source en B2b"
 ```
 
-- [ ] **Step 4 : la poussee**
+- [x] **Step 4 : la poussee**
 
 `dev` est pousse a chaque tache. `main` : avance rapide quand il y a quelque chose a montrer (regle de `CLAUDE.md`) ; le hook `pre-push` y lance `pnpm run perf` (le bureau seul, ~5,5 min), pas le telephone.
