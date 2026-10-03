@@ -22,24 +22,124 @@
         "pire": 19.1,
         "date": "2026-10-03"
       },
+      "defilement-fr": {
+        "meilleur": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "maximum": {
+          "auDela": 1,
+          "perdues": 7
+        },
+        "plafond": {
+          "auDela": 2,
+          "perdues": 14
+        },
+        "cible": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "pire": 22.6,
+        "date": "2026-10-03"
+      },
+      "defilement-fr-contact": {
+        "meilleur": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "maximum": {
+          "auDela": 1,
+          "perdues": 2
+        },
+        "plafond": {
+          "auDela": 2,
+          "perdues": 4
+        },
+        "cible": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "pire": 19.4,
+        "date": "2026-10-03"
+      },
+      "defilement-fr-memoire": {
+        "meilleur": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "maximum": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "plafond": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "cible": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "pire": 23,
+        "date": "2026-10-03"
+      },
+      "defilement-fr-projets": {
+        "meilleur": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "maximum": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "plafond": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "cible": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "pire": 19.8,
+        "date": "2026-10-03"
+      },
+      "defilement-fr-services": {
+        "meilleur": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "maximum": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "plafond": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "cible": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "pire": 19.9,
+        "date": "2026-10-03"
+      },
       "voile-attente": {
         "meilleur": {
-          "auDela": 7,
-          "perdues": 18
+          "auDela": 6,
+          "perdues": 17
         },
         "maximum": {
           "auDela": 11,
           "perdues": 23
         },
         "plafond": {
-          "auDela": 15,
-          "perdues": 28
+          "auDela": 16,
+          "perdues": 29
         },
         "cible": {
           "auDela": 0,
           "perdues": 0
         },
-        "pire": 34.6,
+        "pire": 34,
         "date": "2026-10-03"
       },
       "voile-ouverture": {
@@ -59,7 +159,7 @@
           "auDela": 0,
           "perdues": 0
         },
-        "pire": 26.7,
+        "pire": 26.4,
         "date": "2026-10-03"
       }
     }

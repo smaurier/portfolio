@@ -26,7 +26,8 @@ const reste = enveloppe ? args.slice(1) : args;
 const K = enveloppe ? JUGEMENTS_ENVELOPPE : 1;
 
 for (let i = 1; i <= K; i++) {
-  if (enveloppe) console.log(`\n=== enveloppe : jugement ${i} sur ${K}`);
+  // Les arguments sont imprimes : le 03/10, `--grep defilement` a laisse tourner le voile sans qu'on sache pourquoi (`--list` filtre bien).
+  if (enveloppe) console.log(`\n=== enveloppe : jugement ${i} sur ${K} (playwright ${reste.join(" ") || "sans argument"})`);
   const r = spawnSync("pnpm", ["exec", "playwright", "test", "-c", "playwright.perf.config.ts", ...reste], {
     stdio: "inherit",
     shell: true,
