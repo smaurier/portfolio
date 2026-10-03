@@ -224,6 +224,10 @@ les pieds de ce qui l'a ecrite.
   aujourd'hui, pas une archive. Si des liens `?t=` ont ete diffuses quelque
   part (Sylvain seul peut le dire), la question se repose : il faudrait
   alors versionner le parametre, `?t2=`, et ignorer l'ancien.
+  **Tranche le 03/10 (Sylvain : « oui, ou je ne sais plus »)** : le lien
+  neuf porte `v=2` (`?t=0.612&v=2`), un `?t=` sans version ou d'une autre
+  version est un lien d'avant et ouvre en haut de page ; `scene=1` reste lu
+  quelle que soit la version. `lib/instant-link.ts`, oracle vu rouge d'abord.
 - **« Reprendre », `localStorage`.** `t = scrollY / arc` est ecrit a chaque
   visite. Un visiteur qui revient apres la mise en ligne avec un `t = 0,9`
   d'avant serait renvoye a `0,9 x 6,2 = 5,6` fenetres, tres loin sous

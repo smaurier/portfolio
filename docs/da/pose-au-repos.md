@@ -106,6 +106,13 @@ chemins, par cout croissant :
    quarante composants ranges derriere -- c'est-a-dire une passe de la
    famille « rendre visible ce qui existe », a placer apres le Sud.
 
+**DECIDE le 03/10/2026 (Sylvain) : le chemin 3.** Une pose par direction,
+assumee comme une image de DA, les quarante composants ranges derriere ;
+c'est une passe de la famille « rendre visible ce qui existe », placee
+APRES le Sud, pas un correctif a glisser entre deux. D'ici la, l'Est et le
+Sud restent noirs au repos et on le sait. La garde, quand la passe
+viendra, se prend sur des pixels (`regression-visuelle`).
+
 **Ce qui ne doit PAS etre refait** : un oracle sur `progressRef`. La seule
 garde qui vaille ici se prend sur des pixels, et `regression-visuelle` est
 deja au bon endroit pour la porter -- ses references sont prises en
