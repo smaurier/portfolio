@@ -1068,7 +1068,7 @@ git commit -m "perf(barre): la seconde suite sur la production, et l'auto-test d
 - Create: `tests/perf/voile.perf.ts`
 - Create: `scripts/perf-baseline.json` (par acquisition)
 
-- [ ] **Step 1 : `voile.perf.ts`**
+- [x] **Step 1 : `voile.perf.ts`**
 
 ```ts
 import { test } from "@playwright/test";
@@ -1125,22 +1125,24 @@ test("le voile : l'attente, l'ouverture, l'arrivee", async ({ browser }, info) =
 
 Note : `juger` fait `expect` ; si `voile-attente` est rouge, les deux autres moments ne sont pas juges dans cette passe. C'est voulu au premier jour ; la tranche B2 pourra passer par `expect.soft`.
 
-- [ ] **Step 2 : `tsc`, `eslint`**
+- [x] **Step 2 : `tsc`, `eslint`**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec eslint tests/perf`
 Expected: rien.
 
-- [ ] **Step 3 : le point zero, par acquisition**
+- [x] **Step 3 : le point zero, par acquisition de l'ENVELOPPE**
 
-Run: `pnpm run perf:baseline -- --grep voile`
-Expected: construction, auto-test vert, puis le test du voile vert avec trois rapports `aucune ligne de base : a acquerir` et, a la fin, `scripts/perf-baseline.json` cree :
+**Amende le 03/10.** Tel qu'ecrit le 22/09 (`perf:baseline`, un jugement, « rouge = pire que le meilleur connu »), le point zero etait acquis, puis l'etape 4 a rougi **quatre fois sur quatre** sans qu'une ligne de code ait bouge : au-dela 6, 8, 10, 9 et perdues 18, 25, 28, 20 contre un meilleur retenu de 6/18. Sur un compte bruite, un cliquet au meilleur ne peut que descendre sa barre a chaque passe chanceuse, puis rougir sur toute passe normale. Le plan interdisait d'elargir une tolerance a la main : la reponse (Sylvain, 03/10) est une ENVELOPPE MESUREE. Premiere forme, plafond = max observe de 3 jugements (6-8 / 19-21) : depasse par 4 des 9 jugements de la soiree (au-dela 5 a 10, perdues 17 a 28), un max de K echantillons etant depasse par le suivant une fois sur K+1. Forme retenue : **K = 5 jugements, plafond = maximum + (maximum - meilleur)**, la marge est l'ecart mesure. Le JSON garde `meilleur`, `maximum`, `plafond`, `cible`, `pire`, `date`.
+
+Run: `rm -f scripts/perf-baseline.json && pnpm run perf:enveloppe -- --grep voile`
+Expected: cinq fois (construction, auto-test vert, voile vert avec trois rapports `enveloppe elargie : ...`), ~6 min, et a la fin `scripts/perf-baseline.json` :
 
 ```json
 {
   "perf-bureau": {
     "dpr": 1,
     "moments": {
-      "arrivee": { "meilleur": { "auDela": N, "perdues": N }, "cible": { "auDela": 0, "perdues": 0 }, "pire": N, "date": "2026-09-22" },
+      "arrivee": { "meilleur": { "auDela": N, "perdues": N }, "maximum": { ... }, "plafond": { ... }, "cible": { "auDela": 0, "perdues": 0 }, "pire": N, "date": "2026-10-03" },
       "voile-attente": { ... },
       "voile-ouverture": { ... }
     }
@@ -1148,23 +1150,23 @@ Expected: construction, auto-test vert, puis le test du voile vert avec trois ra
 }
 ```
 
-Lire les trois rapports sur la sortie et les recopier dans le message de commit (images, au-dela, pire, perdues, repartition, et les huit lignes de temps propre de la pire image de l'attente).
+Lire les rapports sur la sortie et recopier l'enveloppe finale dans le message de commit (meilleur, maximum, plafond par moment, et les huit lignes de temps propre de la pire image de l'attente).
 
-- [ ] **Step 4 : la barre tient sur elle-meme**
+- [x] **Step 4 : la barre tient sur elle-meme**
 
 Run: `pnpm run perf -- --grep voile`
-Expected: vert, trois `tenu :` ou `progres a acquerir` (le bruit joue dans le bon sens). Si un moment est ROUGE ici, sans que le code ait bouge, la mediane de trois passes ne suffit pas sur cette machine : relancer une fois ; si c'est encore rouge, ne pas elargir la tolerance mais le dire dans le rapport final (BLOCKED), avec les six rapports.
+Expected: vert, trois `tenu :` ou `progres a acquerir` (le bruit joue dans le bon sens). Si un moment est ROUGE ici, sans que le code ait bouge, l'enveloppe est trop etroite : le dire dans le rapport final avec les chiffres, ne pas toucher au plafond a la main.
 
-- [ ] **Step 5 : le voir ROUGE par la ligne de base**
+- [x] **Step 5 : le voir ROUGE par la ligne de base**
 
-Editer `scripts/perf-baseline.json` : mettre `"auDela": 0` et `"perdues": 0` a `voile-attente.meilleur` (une ligne de base meilleure que le site).
+Sauvegarder `scripts/perf-baseline.json` (`cp` hors du depot), puis y mettre `"auDela": 0` et `"perdues": 0` a `voile-attente.plafond` (un plafond que le site ne tient pas).
 
 Run: `pnpm run perf -- --grep voile ; echo "code $?"`
-Expected: `1 failed`, code 1, le rapport commence par `perf-bureau / voile-attente : RECUL : au-dela N (meilleur connu 0, cible 0)...` et se termine par les huit lignes de temps propre de la pire image.
+Expected: `1 failed`, code 1, le rapport commence par `perf-bureau / voile-attente : RECUL : au-dela N (meilleur connu N, maximum connu N, plafond 0, cible 0)...` et se termine par les huit lignes de temps propre de la pire image.
 
-Restaurer : `git checkout -- scripts/perf-baseline.json` ne marche pas (fichier non versionne) ; relancer `pnpm run perf:baseline -- --grep voile`, qui reecrit les vrais meilleurs connus (l'acquisition n'ecrit que si `progres` : avec `meilleur` a 0 elle serait rouge et n'ecrirait rien -- donc **supprimer le fichier** puis relancer l'acquisition : `rm scripts/perf-baseline.json && pnpm run perf:baseline -- --grep voile`).
+Restaurer la sauvegarde (`cp` retour) ; verifier que `plafond` est revenu.
 
-- [ ] **Step 6 : commit, avec les chiffres**
+- [x] **Step 6 : commit, avec les chiffres**
 
 ```bash
 git add tests/perf/voile.perf.ts scripts/perf-baseline.json

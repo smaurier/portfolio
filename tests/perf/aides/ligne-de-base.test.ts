@@ -22,7 +22,14 @@ afterEach(() => {
   for (const d of dossiers.splice(0)) rmSync(d, { recursive: true, force: true });
 });
 
-const ligne = (n: number) => ({ meilleur: { auDela: n, perdues: n }, cible: { auDela: 0, perdues: 0 }, pire: n, date: "2026-09-22" });
+const ligne = (n: number) => ({
+  meilleur: { auDela: n, perdues: n },
+  maximum: { auDela: n + 1, perdues: n + 1 },
+  plafond: { auDela: n + 2, perdues: n + 2 },
+  cible: { auDela: 0, perdues: 0 },
+  pire: n,
+  date: "2026-09-22",
+});
 
 describe("la ligne de base", () => {
   it("absente, elle est vide", () => {

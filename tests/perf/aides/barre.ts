@@ -5,9 +5,14 @@
  * au-dela, pire, 60/30/20 Hz, p5, perdues) et le temps propre de sa pire
  * image. Trois passes se jugent a la MEDIANE, compte par compte, contre le
  * cliquet ; le rapport complet part dans les annotations du test et sur la
- * sortie, vert ou rouge. En mode acquisition (PERF_ACQUERIR=1, `pnpm run
- * perf:baseline`), un progres ou un moment nouveau s'inscrit dans la ligne
- * de base ; un recul ne s'inscrit jamais.
+ * sortie, vert ou rouge.
+ *
+ * TROIS MODES, par PERF_ACQUERIR. Absent : on juge, rouge = pire que le
+ * plafond connu, et un moment sans ligne de base est rouge. `1` (`pnpm run
+ * perf:baseline`) : un progres s'inscrit, un recul jamais. `enveloppe`
+ * (`pnpm run perf:enveloppe`, K jugements) : chaque jugement elargit
+ * l'enveloppe (meilleur et plafond) et ne peut pas etre rouge, puisqu'il la
+ * mesure ; c'est l'acte du point zero (voir `aides/cliquet.ts`).
  *
  * UNE FENETRE QUI N'A RIEN MESURE NE CONCLUT PAS (relecture du 22/09) : un
  * moment sans images presentees resumerait a zero, passerait pour parfait,
@@ -17,7 +22,7 @@
  */
 import { expect, type BrowserContextOptions, type TestInfo } from "@playwright/test";
 import type { Evenement } from "./evenements";
-import { acquerir, verdict, type Compte, type Ligne } from "./cliquet";
+import { acquerir, verdict, type Compte, type Ligne, type ModeAcquisition } from "./cliquet";
 import { tempsPropre, type Part } from "./fil-principal";
 import { fenetre, fenetrePaires, mediane, paires, perdues, presentees, resumer, trames, type Resume } from "./images";
 import { ecrireLigneDeBase, lireLigneDeBase } from "./ligne-de-base";
@@ -25,7 +30,8 @@ import type { InfoRendu } from "./site";
 
 export type Passe = { presentees: number; resume: Resume; perdues: number; pireFonctions: Part[]; rendu?: InfoRendu };
 
-export const ACQUERIR = process.env.PERF_ACQUERIR === "1";
+export const MODE: ModeAcquisition | "aucun" =
+  process.env.PERF_ACQUERIR === "enveloppe" ? "enveloppe" : process.env.PERF_ACQUERIR === "1" ? "progres" : "aucun";
 export const DPR = Number(process.env.PERF_DPR ?? "1");
 /** Impair, pour que la mediane d'un compte soit un compte. */
 export const PASSES = 3;
@@ -69,6 +75,13 @@ export function juger(projet: string, moment: string, passes: Passe[], cible: Co
   }
   const ligne: Ligne | undefined = entree?.moments[moment];
   const v = verdict(mesure, ligne);
+  const date = new Date().toISOString().slice(0, 10);
+  const acquise = MODE === "enveloppe" || (MODE === "progres" && !v.rouge && v.progres) ? acquerir(ligne, mesure, cible, date, MODE) : undefined;
+  const entete =
+    MODE === "enveloppe" && acquise
+      ? `enveloppe elargie : au-dela ${mesure.auDela} (${acquise.meilleur.auDela} a ${acquise.maximum.auDela}, plafond ${acquise.plafond.auDela}), ` +
+        `perdues ${mesure.perdues} (${acquise.meilleur.perdues} a ${acquise.maximum.perdues}, plafond ${acquise.plafond.perdues})`
+      : v.message;
   const lignes = passes.map(
     (p, i) =>
       `  passe ${i + 1} : ${p.presentees} images presentees, ${p.resume.intervalles} intervalles, ${p.resume.auDela} au-dela, pire ${p.resume.pire} ms, ${p.perdues} perdues, ` +
@@ -77,17 +90,19 @@ export function juger(projet: string, moment: string, passes: Passe[], cible: Co
   );
   const pire = passes.reduce((a, b) => (b.resume.pire > a.resume.pire ? b : a));
   const fonctions = pire.pireFonctions.map((f) => `    ${f.propreMs} ms  ${f.nom}`);
-  const rapport = [`${projet} / ${moment} : ${v.message}`, ...lignes, `  la pire image (${pire.resume.pire} ms), temps propre du fil principal :`, ...fonctions].join("\n");
+  const rapport = [`${projet} / ${moment} : ${entete}`, ...lignes, `  la pire image (${pire.resume.pire} ms), temps propre du fil principal :`, ...fonctions].join("\n");
   info.annotations.push({ type: "mesure", description: rapport });
   console.log(rapport);
   expect(
     mesure.presentees,
     `${projet} / ${moment} n'a presente que ${mesure.presentees} images (plancher ${PLANCHER_PRESENTEES}) : la barre ne peut pas conclure sur ce moment\n${rapport}`,
   ).toBeGreaterThanOrEqual(PLANCHER_PRESENTEES);
-  if (ACQUERIR && !v.rouge && v.progres) {
-    base[projet] = { dpr: DPR, moments: { ...(entree?.moments ?? {}), [moment]: acquerir(ligne, mesure, cible, new Date().toISOString().slice(0, 10)) } };
+  if (acquise) {
+    base[projet] = { dpr: DPR, moments: { ...(entree?.moments ?? {}), [moment]: acquise } };
     ecrireLigneDeBase(base);
   }
+  // En mode enveloppe, le jugement MESURE le bruit : il ne peut pas etre rouge contre l'enveloppe qu'il elargit.
+  if (MODE === "enveloppe") return;
   expect(v.rouge, rapport).toBe(false);
-  if (!ACQUERIR) expect(ligne !== undefined, `${projet} / ${moment} n'a pas de ligne de base : pnpm run perf:baseline`).toBe(true);
+  if (MODE === "aucun") expect(ligne !== undefined, `${projet} / ${moment} n'a pas de ligne de base : pnpm run perf:enveloppe`).toBe(true);
 }

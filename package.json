@@ -11,6 +11,7 @@
     "test:e2e": "playwright test",
     "perf": "playwright test -c playwright.perf.config.ts",
     "perf:baseline": "node scripts/perf-baseline.mjs",
+    "perf:enveloppe": "node scripts/perf-baseline.mjs enveloppe",
     "models": "node scripts/optimise-models.mjs",
     "harnais:baseline": "node scripts/harnais-baseline.mjs",
     "prepare": "git config core.hooksPath scripts/hooks || exit 0"

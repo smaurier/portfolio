@@ -200,13 +200,17 @@ export default function PersistentScene() {
           // serveur de dev, ou la verification synchrone des programmes
           // multiplie le cout de chaque compilation par quatre ou cinq. Avec
           // ce drapeau, three se comporte comme en production.
-          const shadersProd = process.env.NODE_ENV === "production" || new URLSearchParams(window.location.search).has("shaders-prod");
+          const drapeauTest = new URLSearchParams(window.location.search).has("shaders-prod");
+          const shadersProd = process.env.NODE_ENV === "production" || drapeauTest;
           if (shadersProd) state.gl.debug.checkShaderErrors = false;
-          if (SONDE) {
-            const w = window as unknown as { __nahualScene?: unknown; __nahualR3f?: unknown };
-            w.__nahualScene = state.scene;
-            w.__nahualR3f = state;
-          }
+          const w = window as unknown as { __nahualScene?: unknown; __nahualR3f?: unknown };
+          if (SONDE) w.__nahualScene = state.scene;
+          // La barre de performance (03/10) mesure la VRAIE production, sans
+          // SONDE (qui allume une dizaine de sondes dans la boucle), et lit
+          // `renderer.info` a la fin de chaque moment : la poignee R3F est
+          // aussi posee sous le drapeau de test. Un visiteur sans `?shaders-prod`
+          // ne la voit pas.
+          if (SONDE || drapeauTest) w.__nahualR3f = state;
         }}
         // Ombres (05/09, Sud : « un jeu d'ombres delicats ») : shadow map
         // activee au niveau du Canvas, la directionnelle ne projette qu'au

@@ -133,7 +133,7 @@ police. La premiere demande a traverser le harnais entier.
 | `tests/perf/` | les tests de la barre (un par moment) et leurs aides, montees depuis `.scratch`. |
 | `tests/e2e/` | les oracles de cause, a cote des six existants, meme style : ils comptent, ils ne chronometrent pas. |
 | `eslint.config.*` | les regles de code qui se lintent (section 3). |
-| `scripts/perf-baseline.json` | les cliquets : le meilleur resultat connu par moment et par projet, avec la cible a cote, et le `dpr` auquel il a ete mesure. Versionne. |
+| `scripts/perf-baseline.json` | les cliquets : par moment et par projet, l'enveloppe mesuree (meilleur, maximum, plafond = maximum + ecart ; 03/10), avec la cible a cote, et le `dpr` auquel elle a ete mesuree. Versionne. |
 | `scripts/lines-baseline.json` | le cliquet des tailles de fichier : chaque fichier au-dessus du plafond, gele a sa taille du jour ; la config ESLint en genere ses derogations. Versionne. |
 | `scripts/hooks/` | `pre-commit` (`tsc`, `eslint --cache`) et `pre-push` (`pnpm test`, puis `pnpm run --if-present perf` quand la ref poussee est `main`), installes par le script `prepare` via `git config core.hooksPath`. **Il n'existait aucun hook git dans le depot** : sans eux, « bloque tout commit » serait une regle sans mecanisme. |
 
@@ -200,6 +200,25 @@ correctif de securite que la regle Netlify exempte. Donc :
 
 Le premier jour, les cliquets s'initialisent sur l'etat mesure de ce jour
 (section 0). Ce n'est pas un vert de complaisance : c'est le point zero.
+
+**Amende le 03/10 (B1, mesure) : le cliquet juge une ENVELOPPE, pas le
+meilleur.** « Rouge = pire que le meilleur connu » a rougi quatre fois sur
+quatre sur le voile sans qu'une ligne de code ait bouge (au-dela 8, 10, 9
+contre 6 ; perdues 25, 28, 20 contre 18) : sur un compte bruite, un cliquet
+au meilleur descend sa barre a chaque passe chanceuse, puis rougit sur
+toute passe normale. Un plafond au maximum observe de trois jugements a
+ensuite ete depasse par quatre des neuf jugements de la soiree : un max de
+K echantillons est depasse par le suivant une fois sur K+1. Forme retenue :
+chaque moment tient son **meilleur** et son **maximum** observes sur cinq
+jugements (`pnpm run perf:enveloppe`), et le **plafond juge = maximum +
+(maximum - meilleur)**, la marge etant l'ecart mesure, pas un nombre
+choisi. Rouge = pire que le plafond ; progres a acquerir = mieux que le
+meilleur (`pnpm run perf:baseline`, qui ne touche ni le maximum ni le
+plafond : une passe chanceuse n'elargit pas la porte). La cible reste
+ecrite a cote. Le prix est nomme : sur cette machine, une derive plus
+petite que l'ecart mesure passe ; la machine de mesure fixe (section 6 ter,
+chantier 1) resserrera l'enveloppe. Le JSON est versionne, une enveloppe
+qui bouge est relue dans le commit qui la porte.
 
 ### Le bruit, traite comme un defaut
 
@@ -515,6 +534,8 @@ Pour `close-the-books`, quand le plan sera execute :
    mesure faux le 03/10, voir section 2.)
 5. `scripts/perf-baseline.json` existe, initialise sur l'etat mesure, cible
    a cote de chaque moment ; un moment pire que son meilleur connu est rouge.
+   (03/10 : pire que son PLAFOND, l'enveloppe mesuree ; voir section 2, « Le
+   cliquet ».)
 6. Un moment rouge imprime les fonctions de sa pire image.
 7. Les cinq lints du pilier 2 sont en place ; **aucun** fichier de `lib/`
    n'importe plus un composant (vingt et un le premier jour) ; `max-lines`

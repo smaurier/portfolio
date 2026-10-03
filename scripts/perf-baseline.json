@@ -1,0 +1,67 @@
+{
+  "perf-bureau": {
+    "dpr": 1,
+    "moments": {
+      "arrivee": {
+        "meilleur": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "maximum": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "plafond": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "cible": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "pire": 19.1,
+        "date": "2026-10-03"
+      },
+      "voile-attente": {
+        "meilleur": {
+          "auDela": 7,
+          "perdues": 18
+        },
+        "maximum": {
+          "auDela": 11,
+          "perdues": 23
+        },
+        "plafond": {
+          "auDela": 15,
+          "perdues": 28
+        },
+        "cible": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "pire": 34.6,
+        "date": "2026-10-03"
+      },
+      "voile-ouverture": {
+        "meilleur": {
+          "auDela": 1,
+          "perdues": 0
+        },
+        "maximum": {
+          "auDela": 2,
+          "perdues": 0
+        },
+        "plafond": {
+          "auDela": 3,
+          "perdues": 0
+        },
+        "cible": {
+          "auDela": 0,
+          "perdues": 0
+        },
+        "pire": 26.7,
+        "date": "2026-10-03"
+      }
+    }
+  }
+}

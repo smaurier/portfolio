@@ -6,5 +6,10 @@
  * scene. `NEXT_PUBLIC_NAHUAL_SONDE=1` au build les active en production ;
  * le build de Netlify ne pose pas cette variable, donc rien ne part en
  * ligne.
+ *
+ * UNE EXCEPTION (03/10) : `window.__nahualR3f` est aussi posee quand l'URL
+ * porte `?shaders-prod`, le drapeau des suites de test, pour que la barre
+ * de performance lise `renderer.info` sur la vraie production sans allumer
+ * les autres sondes (voir persistent-scene.tsx).
  */
 export const SONDE = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_NAHUAL_SONDE === "1";
