@@ -131,7 +131,8 @@ passe, sur une capture de la moitie basse (`readPixels` rend du noir pur
 sur le tampon), mouvement normal (sous mouvement reduit la nuit est noire
 sur les deux largeurs : 76 / 73 %, c'est la pose au repos). Point zero :
 mobile 76,3 % de noir / luminance mediane 6,1 contre bureau 21,4 % / 21,4 ;
-apres : 56,1 % / 9,2, valide a l'oeil par Sylvain. Les seuils du design
+apres : 56,1 % / 9,2 ; **la validation a l'oeil reste a faire** (la reponse
+de 03h a ete donnee sans les captures sous les yeux). Les seuils du design
 (10 points, 70 %) etaient hors de portee sans Bloom (bissection : le Bloom
 seul fait 37,9 % / 13,6, l'herbe seule 54,5 % / 9,4) ; relaches une fois,
 sur mesure, a 40 points et 40 %. `perf-telephone` tenue (7 verts, `fr` 2

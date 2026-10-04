@@ -22,8 +22,8 @@ const NOIR = 12;
  * Les seuils, RELACHES UNE FOIS, sur la mesure (04/10). Le design voulait
  * « 10 points de noir, 70 % de luminance » ; c'est hors de portee sans
  * Bloom : point zero mobile 76,3 % / 6,1 contre bureau 21,4 % / 21,4 ;
- * dosage retenu (2,2 / 3,5 / 1,15, valide a l'oeil par Sylvain) 56,1 % /
- * 9,2, soit 35 points et 42 %. Le Bloom seul ramenerait a 37,9 % / 13,6
+ * dosage retenu (2,2 / 3,5 / 1,15, hypothese : la validation a l'oeil reste
+ * a faire) 56,1 % / 9,2, soit 35 points et 42 %. Le Bloom seul ramenerait a 37,9 % / 13,6
  * mais coute une passe plein ecran sur un telephone a dix images par
  * seconde (budget : zero image de plus). L'oracle garde donc le niveau
  * ATTEINT contre un retour au noir : au plus 40 points de plus que le
