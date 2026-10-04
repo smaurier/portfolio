@@ -143,13 +143,14 @@ au-dela / 36 perdues). `perf-bureau` : 7 moments tenus, `memoire` rouge a
 0 : cause nommee par la liste des programmes, **le Xolotl apparait au
 hasard sur Memoire (40 % des sessions) et compile ~20 programmes en plein
 balayage**, independant de la nuit mobile, oracle a ecrire (spawn
-deterministe sous le drapeau de test). **Vrai telephone : mesure a
-refaire a froid**, trois courses avant et trois apres dos a dos ; la serie
-« avant » du 04/10 a 04h (313 a 377 perdues, p5 1 a 3 fps) est inutilisable,
-le telephone a 36,5 degres apres une heure de mesures ne tient plus les 263
-perdues de 01h, et la serie « apres » a ete interrompue. Tant que cette
-mesure manque, le critere « zero image de plus » n'est pas prouve sur
-l'appareil reel.
+deterministe sous le drapeau de test). **Vrai telephone, a froid (04/10,
+10h, 32 degres)** : balayage de `fr`, trois courses avant (facteurs a 1) et
+trois apres, dos a dos : perdues **320 / 307 / 317 avant, 325 / 310 / 322
+apres**, medianes 317 et 322 pour un ecart avant de 13 ; p5 3,1 a 3,7 fps
+avant, 3,0 a 3,3 apres. Zero image de plus, dans le bruit. (La serie de
+04h, telephone a 36,5 degres apres une heure de mesures, donnait 313 a 377
+perdues et avait ete ecartee ; et le meme telephone a 01h donnait 263 : son
+etat pese plus que n'importe quel reglage, d'ou les series dos a dos.)
 
 **Ce qui n'y est pas encore (B2b)** : le vrai telephone par `adb` dans la
 barre (projet `perf-adb` : ponts poses par le test, meme coeur, enveloppe

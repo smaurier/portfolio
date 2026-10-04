@@ -188,6 +188,9 @@ vrai telephone).
    ~20 programmes en plein balayage) ; independant de cette passe, oracle a
    ecrire (spawn deterministe sous le drapeau de test).
 5. Vrai telephone : trois courses avant, trois apres, mediane des perdues
-   dans l'ecart. — voir `docs/harnais.md`, ligne de la nuit mobile.
+   dans l'ecart. — **Fait, 04/10 a 10h, telephone a froid (32 degres)** :
+   perdues 320 / 307 / 317 avant (mediane 317, ecart 13), 325 / 310 / 322
+   apres (mediane 322) ; p5 3,1 a 3,7 fps avant, 3,0 a 3,3 apres. Zero image
+   de plus, dans le bruit.
 6. `docs/harnais.md` et `project_nahual_da` (memoire) portent les chiffres ;
    `docs/da/pose-au-repos.md` renvoie ici pour la nuit mobile. — **Fait.**

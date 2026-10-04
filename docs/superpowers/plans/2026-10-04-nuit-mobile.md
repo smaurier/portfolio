@@ -431,7 +431,11 @@ EOF
 **Files:**
 - aucun (mesure) ; `docs/harnais.md` a la tache 6
 
-**04/10, 04h20 : OUVERTE, a refaire a froid.** La serie « avant » a donne
+**04/10, 10h : FAITE a froid (32 degres).** Avant 320 / 307 / 317 perdues
+(mediane 317, ecart 13), apres 325 / 310 / 322 (mediane 322) : dans l'ecart,
+zero image de plus. Ce qui suit est l'historique de 04h.
+
+**04/10, 04h20 : etait ouverte, a refaire a froid.** La serie « avant » a donne
 25 / 76 / 78 presentees et 377 / 313 / 313 perdues (p5 1,3 a 3,2 fps), tres
 loin des 177 presentees / 263 perdues de 01h sur la meme page : le
 telephone etait a 36,5 degres apres une heure de mesures, ou en economie.
@@ -439,7 +443,7 @@ La serie « apres » a ete interrompue par Sylvain. Consigne : un soir calme,
 telephone froid et charge, les deux series dos a dos, et seulement alors le
 critere 5 du design. `main` attend cette mesure.
 
-- [ ] **Step 1 : l'etat d'AVANT**
+- [x] **Step 1 : l'etat d'AVANT**
 
 Sur le commit d'avant la tache 2 (`git stash` des changements, ou `git switch --detach <sha du commit de la tache 1>`), construire et servir la production (`pnpm run build && pnpm exec next start -p 3100`), poser les ponts :
 
@@ -452,13 +456,13 @@ for i in 1 2 3; do node .scratch/adb-barre.mjs fr 6000 2>&1 | grep presentees; d
 
 Expected: trois lignes `N presentees, N au-dela, pire N ms, N perdues, ..., p5 N fps`. Noter la mediane des perdues et l'ecart (max - min) des trois.
 
-- [ ] **Step 2 : l'etat d'APRES**
+- [x] **Step 2 : l'etat d'APRES**
 
 Revenir sur `dev` (tache 4 commitee), reconstruire, relancer le serveur, les trois memes courses. Mediane des perdues.
 
 Acceptation : `mediane(apres) <= mediane(avant) + ecart(avant)`. Sinon, le remede coute des images : revenir a la tache 4 et nommer le levier (l'exposition et les facteurs sont des multiplications, ils ne devraient rien couter ; si ca coute, c'est qu'un chemin de code a bouge ailleurs, le dire).
 
-- [ ] **Step 3 : ranger**
+- [x] **Step 3 : ranger**
 
 ```bash
 "$ADB" reverse --remove-all; "$ADB" forward --remove-all; "$ADB" shell svc power stayon false
