@@ -68,11 +68,11 @@
           "perdues": 0
         },
         "maximum": {
-          "auDela": 0,
+          "auDela": 1,
           "perdues": 0
         },
         "plafond": {
-          "auDela": 0,
+          "auDela": 2,
           "perdues": 0
         },
         "cible": {
@@ -80,7 +80,7 @@
           "perdues": 0
         },
         "pire": 22.1,
-        "date": "2026-10-03"
+        "date": "2026-10-04"
       },
       "defilement-fr-projets": {
         "meilleur": {
@@ -244,8 +244,8 @@
           "auDela": 0,
           "perdues": 0
         },
-        "pire": 37.6,
-        "date": "2026-10-03"
+        "pire": 37.4,
+        "date": "2026-10-04"
       },
       "defilement-fr-projets": {
         "meilleur": {
