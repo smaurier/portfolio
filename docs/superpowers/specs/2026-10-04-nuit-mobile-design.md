@@ -86,8 +86,8 @@ Les consommateurs, chacun une ligne :
 | ou | quoi | aujourd'hui |
 | --- | --- | --- |
 | `reveal-lighting.tsx` ligne 221 | `ambientRef.current.intensity *= c.ambiant` | `getAmbientIntensity(p) * rig.ambientScale * reflet.ambientScale` |
-| `piedra-ground.tsx` | un uniform `uNuitMobile` multiplie l'emissif dans le chunk `emissivemap_fragment` deja surcharge | emissif brut |
 | `copal-braziers.tsx` ligne 147 | `b.ember.material.opacity = 0.55 * lit * flicker * c.emissif` (borne a 1) | sans facteur |
+| ~~`piedra-ground.tsx`~~ | retire a la lecture du code (04/10) : le disque n'a PAS d'emissif (`PIEDRA_NEUTRAL`, opacite 0,1, or de l'Est seulement) ; en bureau sa lueur vient du Bloom sur le sol eclaire par le foyer. Son levier mobile est donc le foyer (`c.ambiant` sur `hearth.intensity`), pas un uniform | |
 | `copal-braziers.tsx` ligne 129 | `hearth.intensity = HEARTH_LIGHT * intensity * pulse * c.ambiant` | sans facteur |
 | un composant mince `NuitMobile` dans le `Canvas` de `persistent-scene.tsx` | `gl.toneMappingExposure = c.exposition` a chaque image | 1 |
 
