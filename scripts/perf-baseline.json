@@ -12,8 +12,8 @@
           "perdues": 0
         },
         "plafond": {
-          "auDela": 0,
-          "perdues": 0
+          "auDela": 1,
+          "perdues": 1
         },
         "cible": {
           "auDela": 0,
@@ -73,7 +73,7 @@
         },
         "plafond": {
           "auDela": 2,
-          "perdues": 0
+          "perdues": 1
         },
         "cible": {
           "auDela": 0,
@@ -93,7 +93,7 @@
         },
         "plafond": {
           "auDela": 2,
-          "perdues": 0
+          "perdues": 1
         },
         "cible": {
           "auDela": 0,
@@ -112,8 +112,8 @@
           "perdues": 0
         },
         "plafond": {
-          "auDela": 0,
-          "perdues": 0
+          "auDela": 1,
+          "perdues": 1
         },
         "cible": {
           "auDela": 0,
@@ -153,7 +153,7 @@
         },
         "plafond": {
           "auDela": 4,
-          "perdues": 0
+          "perdues": 1
         },
         "cible": {
           "auDela": 0,
@@ -177,7 +177,7 @@
           "perdues": 5
         },
         "plafond": {
-          "auDela": 0,
+          "auDela": 1,
           "perdues": 10
         },
         "cible": {
@@ -317,8 +317,8 @@
           "perdues": 0
         },
         "plafond": {
-          "auDela": 0,
-          "perdues": 0
+          "auDela": 1,
+          "perdues": 1
         },
         "cible": {
           "auDela": 0,

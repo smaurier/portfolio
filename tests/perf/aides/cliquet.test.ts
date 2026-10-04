@@ -16,6 +16,12 @@ import { acquerir, verdict, type Ligne } from "./cliquet";
  * plafond juge = max + (max - min) : la marge est l'ecart MESURE, pas un
  * nombre choisi. Rouge = pire que le plafond ; progres a acquerir = mieux
  * que le min ; la cible est ecrite a cote et ne bouge pas.
+ *
+ * ET LA MARGE NE DESCEND JAMAIS SOUS UNE IMAGE (04/10, apres quatre refus
+ * de main par des moments a 0 partout : projets avant tout changement de
+ * code, memoire quatre fois, services) : un compte se mesure en images, sa
+ * dispersion ne peut pas etre plus fine qu'une image, et un plafond a +0
+ * pretend une precision que la mesure n'a pas. plafond = max + max(ecart, 1).
  */
 const ligne: Ligne = {
   meilleur: { auDela: 6, perdues: 19 },
@@ -55,12 +61,18 @@ describe("le verdict", () => {
 });
 
 describe("l'acquisition", () => {
-  it("sans ligne, la mesure devient meilleur, maximum et plafond (ecart nul), la cible est celle donnee", () => {
+  it("sans ligne, la mesure devient meilleur et maximum, le plafond est a une image au-dessus (la marge minimale), la cible est celle donnee", () => {
     expect(acquerir(undefined, { auDela: 6, perdues: 19, pire: 34.3 }, { auDela: 0, perdues: 0 }, "2026-10-03")).toEqual({
       ...ligne,
       maximum: { auDela: 6, perdues: 19 },
-      plafond: { auDela: 6, perdues: 19 },
+      plafond: { auDela: 7, perdues: 20 },
     });
+  });
+  it("un moment a zero partout garde une marge d'une image : plafond 1, jamais 0", () => {
+    const zero: Ligne = { meilleur: { auDela: 0, perdues: 0 }, maximum: { auDela: 0, perdues: 0 }, plafond: { auDela: 1, perdues: 1 }, cible: { auDela: 0, perdues: 0 }, pire: 20, date: "2026-10-03" };
+    expect(acquerir(zero, { auDela: 0, perdues: 0, pire: 19 }, { auDela: 0, perdues: 0 }, "2026-10-04", "enveloppe").plafond).toEqual({ auDela: 1, perdues: 1 });
+    expect(verdict({ auDela: 1, perdues: 0 }, zero)).toMatchObject({ rouge: false });
+    expect(verdict({ auDela: 2, perdues: 0 }, zero)).toMatchObject({ rouge: true });
   });
   it("en mode progres, le meilleur descend ; maximum et plafond ne bougent pas : un recul ne s'inscrit pas, une passe chanceuse n'elargit pas la porte", () => {
     expect(acquerir(ligne, { auDela: 4, perdues: 30, pire: 40 }, { auDela: 0, perdues: 0 }, "2026-10-04", "progres")).toEqual({

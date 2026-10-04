@@ -5,7 +5,7 @@
  * le correctif de securite. Donc chaque moment tient une ENVELOPPE par
  * compte (images au-dela du budget, images perdues) : le MEILLEUR et le
  * MAXIMUM observes a l'acquisition, et le PLAFOND juge = maximum +
- * (maximum - meilleur). Rouge = pire que le plafond : une regression sort
+ * max(maximum - meilleur, 1). Rouge = pire que le plafond : une regression sort
  * de l'enveloppe du bruit mesure, marge comprise. Progres a acquerir =
  * mieux que le meilleur. La cible est ecrite a cote, toujours. On juge des
  * COMPTES, pas des durees : une duree varie de quarante points d'une passe
@@ -41,7 +41,7 @@
  */
 export type Compte = { auDela: number; perdues: number };
 export type Mesure = Compte & { pire: number };
-/** `meilleur` et `maximum` = min et max observes ; `plafond` = maximum + (maximum - meilleur), ce qui est juge. */
+/** `meilleur` et `maximum` = min et max observes ; `plafond` = maximum + max(maximum - meilleur, 1), ce qui est juge. */
 export type Ligne = { meilleur: Compte; maximum: Compte; plafond: Compte; cible: Compte; pire: number; date: string };
 export type Verdict = { rouge: boolean; progres: boolean; message: string };
 export type ModeAcquisition = "progres" | "enveloppe";
@@ -61,10 +61,15 @@ export function verdict(mesure: Compte, ligne: Ligne | undefined): Verdict {
 
 const min = (a: Compte, b: Compte): Compte => ({ auDela: Math.min(a.auDela, b.auDela), perdues: Math.min(a.perdues, b.perdues) });
 const max = (a: Compte, b: Compte): Compte => ({ auDela: Math.max(a.auDela, b.auDela), perdues: Math.max(a.perdues, b.perdues) });
-/** Le plafond : le maximum observe, plus l'ecart observe en marge. */
+/**
+ * Le plafond : le maximum observe, plus l'ecart observe en marge, et la
+ * marge ne descend jamais sous UNE image (04/10 : un compte se mesure en
+ * images, sa dispersion ne peut pas etre plus fine ; un plafond a +0 a
+ * refuse `main` quatre fois en une nuit sur des moments a 0 partout).
+ */
 const plafond = (meilleur: Compte, maximum: Compte): Compte => ({
-  auDela: maximum.auDela + (maximum.auDela - meilleur.auDela),
-  perdues: maximum.perdues + (maximum.perdues - meilleur.perdues),
+  auDela: maximum.auDela + Math.max(1, maximum.auDela - meilleur.auDela),
+  perdues: maximum.perdues + Math.max(1, maximum.perdues - meilleur.perdues),
 });
 
 /**
@@ -76,7 +81,7 @@ const plafond = (meilleur: Compte, maximum: Compte): Compte => ({
  */
 export function acquerir(ligne: Ligne | undefined, mesure: Mesure, cible: Compte, date: string, mode: ModeAcquisition = "progres"): Ligne {
   const compteMesure: Compte = { auDela: mesure.auDela, perdues: mesure.perdues };
-  if (!ligne) return { meilleur: compteMesure, maximum: compteMesure, plafond: compteMesure, cible, pire: mesure.pire, date };
+  if (!ligne) return { meilleur: compteMesure, maximum: compteMesure, plafond: plafond(compteMesure, compteMesure), cible, pire: mesure.pire, date };
   const meilleur = min(ligne.meilleur, compteMesure);
   const maximum = mode === "enveloppe" ? max(ligne.maximum, compteMesure) : ligne.maximum;
   return {

@@ -220,6 +220,16 @@ petite que l'ecart mesure passe ; la machine de mesure fixe (section 6 ter,
 chantier 1) resserrera l'enveloppe. Le JSON est versionne, une enveloppe
 qui bouge est relue dans le commit qui la porte.
 
+**Amende le 04/10 : la marge ne descend jamais sous une image.** Quatre
+refus de `main` en une nuit par des moments a 0 partout (`projets` a 01h,
+avant tout changement de code ; `memoire` quatre fois ; `services`) : un
+plafond a +0 pretend une precision que la mesure n'a pas, un compte se
+mesure en images et sa dispersion ne peut pas etre plus fine qu'une image.
+Donc **plafond = maximum + max(maximum - meilleur, 1)** : un moment a 0
+partout a un plafond de 1, un moment a 0-1 garde 2 ; un vrai recul (deux
+images la ou il n'y en avait aucune) reste rouge. Les plafonds existants
+ont ete recalcules une fois par ce seul calcul, min et max intacts.
+
 ### Le bruit, traite comme un defaut
 
 Note du 16/09 : une duree sur cette machine varie de quarante points d'une
