@@ -1,5 +1,37 @@
 @AGENTS.md
 
+# LIS CECI D'ABORD : le sens et la forme, ou rien
+
+**Sylvain, 04/10/2026, apres une nuit et une matinee de mesures : « on ne fait
+que des mesures qui ne servent aucun reglage, ni le sens ni la forme. On ne
+va, les prochaines sessions, que faire ce qui a du sens et de la forme et
+fait reellement avancer le sujet. Sinon je brule mes tokens pour pas grand
+chose. »**
+
+C'est la regle qui prime sur toutes les autres de ce fichier, harnais
+compris. Avant d'ouvrir une session sur ce site :
+
+1. **Nommer ce que le site montrera ou dira de plus a la fin.** Si la
+   reponse est « une mesure », « un oracle », « une enveloppe », ce n'est pas
+   une session : le harnais est le moyen de livrer sans reculer, jamais le
+   sujet.
+2. **Une session = une chose, bornee, et une capture a la fin que Sylvain
+   regarde vraiment** (dans `C:\Users\sylva\Downloads`, jamais le Bureau).
+   Son oeil decide, pas un seuil.
+3. **Un rouge de la barre sans cause en trente minutes devient une note**
+   (`test.fixme` + memoire), jamais une enquete de trois heures. La DA
+   reprend la main.
+4. **Les chantiers d'instrumentation** (B2b, oracles de cause, enveloppes,
+   sondes) se font bornes dans le temps, et jamais le meme jour qu'une
+   passe de DA.
+5. Jusqu'a l'examen RGAA du 23/10/2026, Nahual est un projet de fond : une
+   heure, une chose, une image.
+
+Ce qui attend, avec du sens et de la forme : l'accueil mobile dont le
+panneau de texte mange la scene (lecture de Sylvain, 04/10), le Sud et ses
+colibris (brainstorm du 21/09, parque), la pose au repos par direction
+(chemin 3, apres le Sud), le Xolotl paye (apres le 23/10).
+
 # La branche de travail et les constructions Netlify
 
 **Decide le 14/09/2026, sur le constat de Sylvain : « je risque d'etre
