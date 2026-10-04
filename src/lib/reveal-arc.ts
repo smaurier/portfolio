@@ -9,7 +9,7 @@ import { clampProgress } from "./camera-path";
 export type RevealPhase = "penombre" | "conscience" | "face-a-face" | "chemins-reveles";
 
 // Bornes de progression pour chaque temps : un quart de scroll chacun.
-const PHASE_START = {
+export const PHASE_START = {
   penombre: 0,
   conscience: 0.25,
   "face-a-face": 0.5,
@@ -41,7 +41,7 @@ function lerpWithinRange(progress: number, start: number, end: number, from: num
  * aux deux bornes) : une seule courbe continue sur toute la plage plutôt
  * que plat→rampe→plat, qui se lisait comme deux paliers nets plutôt qu'une
  * montée fluide (retour direct de Sylvain en regardant /lab). */
-function easeWithinRange(progress: number, start: number, end: number, from: number, to: number): number {
+export function easeWithinRange(progress: number, start: number, end: number, from: number, to: number): number {
   const p = clampProgress(progress);
   const t = end > start ? Math.min(1, Math.max(0, (p - start) / (end - start))) : p >= end ? 1 : 0;
   const smoothed = t * t * (3 - 2 * t);
