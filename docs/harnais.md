@@ -101,7 +101,7 @@ temps propre, pas en intervalles longs (pire 34 ms).
 | `tests/perf/defilement.perf.ts` | le balayage du jure : haut en bas a vitesse constante, six secondes, sur les cinq pages, `veille=off` | point zero du 03/10, dix jugements au 04/10 : `fr` au-dela 0 a 1 (plafond 2), perdues 0 a 7 (plafond 14) ; `contact` 0 a 1 (plafond 2), perdues 0 a 2 (plafond 4) ; `projets` 0 a 1 (plafond 2), perdues 0 ; `services`, `memoire` : 0 partout, le cliquet est verrouille sur la cible. Pire intervalle 19 a 23 ms. Le bureau tient le balayage. |
 | projet `perf-telephone`, `pnpm run perf:telephone` | les memes huit moments sur un Pixel 7 emule (412 x 839, dpr 2,625) : processeur divise par quatre par CDP, Fast 3G des DevTools pendant le voile seulement, budget 33,3 ms ; chaque spec lit son profil par nom de projet (`aides/profil.ts`), le dpr vient du projet ; sous 900 px il n'y a pas de composer, `renderer.info` y est donc vrai (40 a 85 appels, 98 a 166 k triangles) | point zero du 04/10, cinq jugements, un jugement = 7,3 min : attente au-dela 0 a 2 (plafond 4), perdues 27 a 39 (plafond 51) ; ouverture 0 ; arrivee perdues 0 a 5 (plafond 10) ; `fr` 2 a 7 (plafond 12), perdues 30 a 57 (plafond 84) ; `services` 0 a 2 (plafond 4), perdues 0 a 27 (plafond 54) ; `projets` **2 a 21 (plafond 40), perdues 24 a 71 (plafond 118)**, p5 26 a 32 fps ; `contact` 2 a 10 (plafond 18), perdues 18 a 65 (plafond 112), pire 205 ms ; `memoire` 0 a 4 (plafond 8), perdues 9 a 33 (plafond 57). **Rapporte, pas bloquant** : `pnpm run perf` reste le bureau seul ; le telephone bloquera quand son enveloppe aura tenu. C'est le trou que B1 ne voyait pas : le bureau est a 0 partout sur le defilement, le telephone perd 24 a 71 images par balayage sur `projets`. |
 | `scripts/perf-baseline.json`, `pnpm run perf:enveloppe`, `pnpm run perf:baseline` | le cliquet : par projet et par moment, une ENVELOPPE par compte (`meilleur` et `maximum` observes sur cinq jugements, `plafond` = maximum + (maximum - meilleur)), la cible a cote, la pire duree, la date, le `dpr` ; **rouge = pire que le plafond, sur un compte** ; `perf:enveloppe` mesure l'enveloppe (point zero, changement voulu, dit dans le commit), `perf:baseline` acquiert un progres sans toucher au plafond | 03/10 : « rouge = pire que le meilleur connu » a rougi 4 fois sur 4 sans code change (au-dela 8/10/9 contre 6) ; un plafond au max de 3 jugements a ete depasse par 4 des 9 jugements de la soiree (un max de K echantillons est depasse une fois sur K+1). Vu rouge avec un plafond a zero : RECUL, code 1, la pire image nommee. Tient sur elle-meme : tenu x3. |
-| le bruit | trois passes, mediane par compte ; les comptes avant les durees ; l'enveloppe mesuree ci-dessus. L'auto-test n'en fait PAS partie. **La poussee sur `main` se lance machine libre** : rien ne se construit, aucun modele ne se charge, aucun navigateur ouvert pendant les six minutes | note du 16/09 : une duree varie de quarante points d'une passe a l'autre. 04/10, 01h : la barre a REFUSE une poussee sur `main` (projets 1 au-dela, memoire 2, contre un plafond de 0) pendant qu'un modele d'embeddings se chargeait a cote ; relancee machine libre, 7 verts. Deux faits : un moment a 0 sur cinq jugements a une enveloppe de largeur nulle, donc aucune marge, et l'auto-test ne voit pas ce bruit-la. Le prix est nomme : une derive plus petite que l'ecart mesure passe sur cette machine ; la machine de mesure fixe (design, section 6 ter, chantier 1) resserrera. |
+| le bruit | trois passes, mediane par compte ; les comptes avant les durees ; l'enveloppe mesuree ci-dessus. L'auto-test n'en fait PAS partie. **La poussee sur `main` se lance machine libre** : rien ne se construit, aucun modele ne se charge, aucun navigateur ouvert pendant les six minutes ; et un processus `node` oublie se voit avant de mesurer (`Get-Process node | Sort-Object CPU -Descending` : le 04/10 a 03h, un serveur Vite d'un autre projet tournait a plein depuis trois heures et a fait rougir les deux barres) | note du 16/09 : une duree varie de quarante points d'une passe a l'autre. 04/10, 01h : la barre a REFUSE une poussee sur `main` (projets 1 au-dela, memoire 2, contre un plafond de 0) pendant qu'un modele d'embeddings se chargeait a cote ; relancee machine libre, 7 verts. Deux faits : un moment a 0 sur cinq jugements a une enveloppe de largeur nulle, donc aucune marge, et l'auto-test ne voit pas ce bruit-la. Le prix est nomme : une derive plus petite que l'ecart mesure passe sur cette machine ; la machine de mesure fixe (design, section 6 ter, chantier 1) resserrera. |
 | un rouge n'est jamais nu | chaque rapport porte, pour la pire image, le temps propre du fil principal par etiquette (`FunctionCall`, `EvaluateScript`, `Decode Image`, `Layout`...), et `renderer.info` a la fin du moment | **limites connues** : en production les fonctions s'appellent `O` ou `ip` ; les noms de source viennent avec les cartes de source (B2). `renderer.info` apres le composer ne voit que le dernier `render()` (1 appel, 1 triangle) ; les appels de la scene viennent en B2. |
 | `scripts/hooks/pre-push` | lance `pnpm run perf` quand la ref poussee est `main` | en place depuis la tranche A (`--if-present`), actif depuis B1 : premiere poussee gardee le 03/10 (`a17cf72`). |
 
@@ -121,6 +121,32 @@ quatre a cinq.** La nuit du Centre y est noire en face sombre, par le
 palier `QUALITY_MOBILE` (pas de post-traitement), pas par le GPU (A/B 767 /
 769 px sur le PC). Sondes dans `.scratch/adb-barre.mjs`, `adb-capture.mjs`,
 `pc-capture-largeur.mjs`.
+
+**La nuit mobile (04/10, `lib/nuit-mobile.ts`, design
+`2026-10-04-nuit-mobile-design.md`)** : ce que le Bloom ajoutait est rendu
+en lumiere sur le profil sans post-traitement (ambiante x 2,2, foyer x 2,2,
+braises x 3,5, exposition 1,15), sur la courbe de l'arc, a 1 en bureau.
+Oracle `tests/e2e/nuit-mobile.spec.ts` : 767 contre 769 px dans la meme
+passe, sur une capture de la moitie basse (`readPixels` rend du noir pur
+sur le tampon), mouvement normal (sous mouvement reduit la nuit est noire
+sur les deux largeurs : 76 / 73 %, c'est la pose au repos). Point zero :
+mobile 76,3 % de noir / luminance mediane 6,1 contre bureau 21,4 % / 21,4 ;
+apres : 56,1 % / 9,2, valide a l'oeil par Sylvain. Les seuils du design
+(10 points, 70 %) etaient hors de portee sans Bloom (bissection : le Bloom
+seul fait 37,9 % / 13,6, l'herbe seule 54,5 % / 9,4) ; relaches une fois,
+sur mesure, a 40 points et 40 %. `perf-telephone` tenue (7 verts, `fr` 2
+au-dela / 36 perdues). `perf-bureau` : 7 moments tenus, `memoire` rouge a
+1-2 au-dela contre un plafond de 0, et l'A/B sans le cablage donne 7 / 0 /
+0 : cause nommee par la liste des programmes, **le Xolotl apparait au
+hasard sur Memoire (40 % des sessions) et compile ~20 programmes en plein
+balayage**, independant de la nuit mobile, oracle a ecrire (spawn
+deterministe sous le drapeau de test). **Vrai telephone : mesure a
+refaire a froid**, trois courses avant et trois apres dos a dos ; la serie
+« avant » du 04/10 a 04h (313 a 377 perdues, p5 1 a 3 fps) est inutilisable,
+le telephone a 36,5 degres apres une heure de mesures ne tient plus les 263
+perdues de 01h, et la serie « apres » a ete interrompue. Tant que cette
+mesure manque, le critere « zero image de plus » n'est pas prouve sur
+l'appareil reel.
 
 **Ce qui n'y est pas encore (B2b)** : le vrai telephone par `adb` dans la
 barre (projet `perf-adb` : ponts poses par le test, meme coeur, enveloppe

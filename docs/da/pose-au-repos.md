@@ -113,6 +113,14 @@ APRES le Sud, pas un correctif a glisser entre deux. D'ici la, l'Est et le
 Sud restent noirs au repos et on le sait. La garde, quand la passe
 viendra, se prend sur des pixels (`regression-visuelle`).
 
+La nuit MOBILE a ete traitee a part le 04/10
+(`docs/superpowers/specs/2026-10-04-nuit-mobile-design.md`) : ce n'etait pas
+la pose, c'etait le profil de performance qui coupait le Bloom sous 768 px.
+Et la mesure de ce jour-la a confirme le constat d'ici : sous mouvement
+reduit, la nuit du Centre est noire sur les deux largeurs (76 % et 73 % de
+pixels quasi noirs, luminance mediane 3 sur 255), pas seulement l'Est et le
+Sud.
+
 **Ce qui ne doit PAS etre refait** : un oracle sur `progressRef`. La seule
 garde qui vaille ici se prend sur des pixels, et `regression-visuelle` est
 deja au bon endroit pour la porter -- ses references sont prises en

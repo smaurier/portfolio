@@ -47,11 +47,11 @@
 - Create: `src/lib/nuit-mobile.ts`
 - Test: `src/lib/nuit-mobile.test.ts`
 
-- [ ] **Step 1 : exporter la courbe de l'arc**
+- [x] **Step 1 : exporter la courbe de l'arc**
 
 Dans `src/lib/reveal-arc.ts`, `const PHASE_START = {` devient `export const PHASE_START = {` et `function easeWithinRange(` devient `export function easeWithinRange(`. Rien d'autre ne bouge.
 
-- [ ] **Step 2 : ecrire le test, rouge**
+- [x] **Step 2 : ecrire le test, rouge**
 
 `src/lib/nuit-mobile.test.ts` :
 
@@ -105,12 +105,12 @@ describe("la compensation de la nuit mobile", () => {
 });
 ```
 
-- [ ] **Step 3 : le voir rouge**
+- [x] **Step 3 : le voir rouge**
 
 Run: `pnpm exec vitest run src/lib/nuit-mobile.test.ts`
 Expected: FAIL, `Cannot find module './nuit-mobile'`.
 
-- [ ] **Step 4 : `nuit-mobile.ts`**
+- [x] **Step 4 : `nuit-mobile.ts`**
 
 ```ts
 /**
@@ -157,7 +157,7 @@ export function compensationNuit(profil: { postFx: boolean }, progress: number):
 }
 ```
 
-- [ ] **Step 5 : le voir vert, `tsc`, `eslint`, commit**
+- [x] **Step 5 : le voir vert, `tsc`, `eslint`, commit**
 
 Run: `pnpm exec vitest run src/lib/nuit-mobile.test.ts src/lib/reveal-arc.test.ts && pnpm exec tsc --noEmit && pnpm exec eslint src/lib --cache --cache-location node_modules/.cache/eslint/`
 Expected: 6 passed pour la lib, les tests de reveal-arc inchanges, rien d'autre. Si `easeWithinRange` rend une valeur hors de `[to, from]` a `p = 1` (verifier : la fonction borne-t-elle ?), le test « vaut 1 au-dela » le dira ; ne pas toucher a reveal-arc, border dans nuit-mobile par `clamp01`.
@@ -178,7 +178,7 @@ git commit -m "feat(nuit-mobile): la compensation de la nuit sans Bloom, pure, s
 - Modify: `src/app/components/stag-scene/reveal-lighting.tsx` (ligne 221)
 - Modify: `src/app/components/stag-scene/copal-braziers.tsx` (lignes 129 et 147)
 
-- [ ] **Step 1 : le store**
+- [x] **Step 1 : le store**
 
 `src/app/components/stag-scene/nuit-mobile-store.ts` :
 
@@ -195,7 +195,7 @@ import type { CompensationNuit } from "@/lib/nuit-mobile";
 export const nuitMobileStore: CompensationNuit = { ambiant: 1, emissif: 1, exposition: 1 };
 ```
 
-- [ ] **Step 2 : le composant**
+- [x] **Step 2 : le composant**
 
 `src/app/components/stag-scene/nuit-mobile.tsx` :
 
@@ -231,7 +231,7 @@ export default function NuitMobile() {
 
 La priorite `-1` : avant les consommateurs (priorite 0 par defaut), pour qu'ils lisent la valeur de l'image courante.
 
-- [ ] **Step 3 : le monter**
+- [x] **Step 3 : le monter**
 
 Dans `persistent-scene.tsx`, avant `{refs.perfProfile.postFx && <PostFX />}` (ligne 274), ajouter :
 
@@ -243,7 +243,7 @@ Dans `persistent-scene.tsx`, avant `{refs.perfProfile.postFx && <PostFX />}` (li
 
 et l'import en tete, a cote des autres composants de scene : `import NuitMobile from "./nuit-mobile";`.
 
-- [ ] **Step 4 : les consommateurs**
+- [x] **Step 4 : les consommateurs**
 
 `reveal-lighting.tsx`, ligne 221, devient :
 
@@ -255,7 +255,7 @@ avec `import { nuitMobileStore } from "./nuit-mobile-store";` en tete.
 
 `copal-braziers.tsx`, ligne 129 : `hearth.intensity = HEARTH_LIGHT * intensity * pulse * nuitMobileStore.ambiant;` et ligne 147 : `b.ember.material.opacity = Math.min(1, 0.55 * lit * flicker * nuitMobileStore.emissif);`, avec l'import. Un commentaire d'une ligne au-dessus de chacune : `// La nuit mobile (04/10) : voir lib/nuit-mobile.`
 
-- [ ] **Step 5 : `tsc`, `eslint`, les tests unitaires, la barre du bureau inchangee**
+- [x] **Step 5 : `tsc`, `eslint`, les tests unitaires, la barre du bureau inchangee**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec eslint src --cache --cache-location node_modules/.cache/eslint/ && pnpm test`
 Expected: 0 erreur, 0 avertissement nouveau (13 avant), tous les tests verts. Les lints de la boucle (`useFrame` sans allocation, pas de setter) passent : `compensationNuit` retourne un objet neuf par image -- c'est une allocation dans `useFrame` ? Non : la regle vise `new Vector3()` et consorts (objets three), pas un litteral ; mais pour ne rien allouer quand meme, faire muter le store dans la lib n'est pas possible (pure). Garder l'objet litteral : trois nombres, le ramasse-miettes n'y voit rien, et le dire dans le commentaire du composant.
@@ -263,7 +263,7 @@ Expected: 0 erreur, 0 avertissement nouveau (13 avant), tous les tests verts. Le
 Run: `pnpm run perf`
 Expected: `7 passed`, tous `tenu` ou `progres a acquerir` : aucun chemin de code ne change en bureau (`postFx: true` → facteurs a 1).
 
-- [ ] **Step 6 : commit**
+- [x] **Step 6 : commit**
 
 ```bash
 git add src/app/components/stag-scene/nuit-mobile-store.ts src/app/components/stag-scene/nuit-mobile.tsx src/app/components/stag-scene/persistent-scene.tsx src/app/components/stag-scene/reveal-lighting.tsx src/app/components/stag-scene/copal-braziers.tsx
@@ -279,7 +279,7 @@ Cette tache se fait **avant** que la compensation existe a l'ecran : pour voir l
 **Files:**
 - Create: `tests/e2e/nuit-mobile.spec.ts`
 
-- [ ] **Step 1 : le spec**
+- [x] **Step 1 : le spec**
 
 ```ts
 import { expect, test, type Browser } from "@playwright/test";
@@ -356,7 +356,7 @@ test("a 767 px (profil mobile), la nuit du Centre n'est pas plus noire qu'a 769 
 });
 ```
 
-- [ ] **Step 2 : le voir ROUGE sans compensation**
+- [x] **Step 2 : le voir ROUGE sans compensation**
 
 Avec `COMPENSATION_NUIT = { ambiant: 1, emissif: 1, exposition: 1 }` (edition temporaire de `src/lib/nuit-mobile.ts`, ou `git stash` de la tache 2) :
 
@@ -367,7 +367,7 @@ Si `readPixels` rend des zeros partout (tampon vide) : `preserveDrawingBuffer` e
 
 Restaurer `COMPENSATION_NUIT` aux valeurs du design.
 
-- [ ] **Step 3 : commit du spec rouge**
+- [x] **Step 3 : commit du spec rouge**
 
 ```bash
 git add tests/e2e/nuit-mobile.spec.ts
@@ -381,12 +381,12 @@ git commit -m "test(nuit-mobile): l'oracle sur pixels, 767 contre 769 px, vu rou
 **Files:**
 - Modify: `src/lib/nuit-mobile.ts` (`COMPENSATION_NUIT`)
 
-- [ ] **Step 1 : l'oracle avec les valeurs du design**
+- [x] **Step 1 : l'oracle avec les valeurs du design**
 
 Run: `pnpm exec playwright test tests/e2e/nuit-mobile.spec.ts`
 Expected : lire les quatre chiffres. Vert ou rouge, ce sont eux qui guident le dosage.
 
-- [ ] **Step 2 : les captures pour Sylvain**
+- [x] **Step 2 : les captures pour Sylvain**
 
 Serveur de production : `pnpm run build && pnpm exec next start -p 3100` (en fond), puis :
 
@@ -397,13 +397,13 @@ node .scratch/pc-capture-largeur.mjs fr dark 769
 
 Montrer a Sylvain `.scratch/pc-767px-fr-dark.png` (apres) contre `.scratch/pc-769px-fr-dark.png` (reference) et contre la capture d'avant (`git stash` ou la capture du 04/10 01h, deja dans `.scratch`). La question est unique : « le cerf et le foyer sont-ils la, et la penombre est-elle restee une penombre ? »
 
-- [ ] **Step 3 : doser, dans l'ordre des leviers**
+- [x] **Step 3 : doser, dans l'ordre des leviers**
 
 Si le foyer ne se voit pas : `emissif` d'abord (2,5 → 3,5), et `ambiant` sur le foyer est deja porte par le point de lumiere. Si le cerf ne se lit pas : `ambiant` (1,6 → 2,0 ; au-dela, le decor s'aplatit). En dernier recours seulement, `exposition` 1 → 1,1, jamais au-dessus de 1,15 (design). Chaque essai : les deux captures + l'oracle. S'arreter au premier « oui » de Sylvain avec l'oracle vert.
 
 Si l'oracle reste rouge alors que Sylvain dit oui : les seuils (10 points, 70 %) sont trop serres pour une penombre voulue ; les relacher UNE fois, en ecrivant la nouvelle mesure a cote, jamais a l'aveugle. Si l'oracle est vert mais que Sylvain dit non : l'oracle ne mesure pas ce qu'il voit ; dire lequel des deux sujets manque (cerf ou foyer) et ajouter la mesure correspondante avant de doser.
 
-- [ ] **Step 4 : la barre, les deux**
+- [x] **Step 4 : la barre, les deux**
 
 Run: `pnpm run perf`
 Expected: `7 passed`, tous `tenu` ou `progres a acquerir` (le bureau n'a pas bouge).
@@ -411,7 +411,7 @@ Expected: `7 passed`, tous `tenu` ou `progres a acquerir` (le bureau n'a pas bou
 Run: `pnpm run perf:telephone`
 Expected: `7 passed`, tous `tenu` ou `progres a acquerir`. Un RECUL ici signifie que le remede coute des images sur le profil emule : revenir au step 3 et dire lequel des leviers a coute.
 
-- [ ] **Step 5 : commit, avec les chiffres**
+- [x] **Step 5 : commit, avec les chiffres**
 
 ```bash
 git add src/lib/nuit-mobile.ts
@@ -430,6 +430,14 @@ EOF
 
 **Files:**
 - aucun (mesure) ; `docs/harnais.md` a la tache 6
+
+**04/10, 04h20 : OUVERTE, a refaire a froid.** La serie « avant » a donne
+25 / 76 / 78 presentees et 377 / 313 / 313 perdues (p5 1,3 a 3,2 fps), tres
+loin des 177 presentees / 263 perdues de 01h sur la meme page : le
+telephone etait a 36,5 degres apres une heure de mesures, ou en economie.
+La serie « apres » a ete interrompue par Sylvain. Consigne : un soir calme,
+telephone froid et charge, les deux series dos a dos, et seulement alors le
+critere 5 du design. `main` attend cette mesure.
 
 - [ ] **Step 1 : l'etat d'AVANT**
 
@@ -468,7 +476,7 @@ et arreter le serveur `:3100` (un serveur qui traine fait echouer `pnpm run perf
 - Modify: `docs/superpowers/specs/2026-10-04-nuit-mobile-design.md` (section 6, criteres coches avec leurs preuves)
 - Modify: ce plan (cocher)
 
-- [ ] **Step 1 : `docs/harnais.md`**
+- [x] **Step 1 : `docs/harnais.md`**
 
 Apres le paragraphe « Le vrai telephone, premiere mesure (04/10, ...) », ajouter :
 
@@ -482,11 +490,11 @@ luminance mediane N / N. Vrai telephone, trois courses : N perdues
 (mediane) avant, N apres.
 ```
 
-- [ ] **Step 2 : `docs/da/pose-au-repos.md`**
+- [x] **Step 2 : `docs/da/pose-au-repos.md`**
 
 Dans la section 4, apres le paragraphe « DECIDE le 03/10/2026 », ajouter : `La nuit MOBILE a ete traitee a part le 04/10 (design 2026-10-04-nuit-mobile-design.md) : ce n'etait pas la pose, c'etait le profil de performance qui coupait le Bloom.`
 
-- [ ] **Step 3 : cocher, `pnpm test`, commit, push**
+- [x] **Step 3 : cocher, `pnpm test`, commit, push**
 
 Cocher ce plan et les criteres de la section 6 du design (avec le commit qui les prouve).
 

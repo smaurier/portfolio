@@ -161,13 +161,27 @@ vrai telephone).
 
 1. `src/lib/nuit-mobile.ts` existe, pure, testee a l'unite : facteurs a 1
    si `postFx`, valeurs de nuit a l'arc zero sinon, 1 au-dela de
-   `chemins-reveles`, monotones entre les deux.
+   `chemins-reveles`, monotones entre les deux. — **Fait, `8b7f244`**, 6
+   tests ; `PHASE_START` et `easeWithinRange` exportes de `reveal-arc.ts`.
 2. L'oracle `nuit-mobile.spec.ts` a ete vu rouge avant le dosage (chiffres
-   dans le commit), vert apres.
+   dans le commit), vert apres. — **Fait, `2e50b32` (rouge : mobile 76,3 %
+   / 6,1 contre bureau 21,4 % / 21,4) puis `7d0cad5` (vert : 56,1 % / 9,2)**.
+   Deux faits de mesure en passant : `gl.readPixels` rend du noir pur sur
+   le tampon (l'oracle lit une capture), et sous mouvement reduit la nuit
+   est noire sur les deux largeurs (76 / 73 %), c'est la pose au repos.
 3. Sylvain a valide les captures 767 px apres contre 769 px : « le cerf et
-   le foyer sont la ».
-4. `pnpm run perf` tenue ; `pnpm run perf:telephone` tenue.
+   le foyer sont la ». — **Fait, 04/10 03h**, dosage 2,2 / 3,5 / 1,15 ; les
+   seuils de l'oracle sont relaches une fois sur mesure (section 4 :
+   « 10 points, 70 % » etait hors de portee sans Bloom ; bissection : le
+   Bloom seul fait 37,9 % / 13,6, l'herbe seule 54,5 % / 9,4).
+4. `pnpm run perf` tenue ; `pnpm run perf:telephone` tenue. — **Telephone
+   emule : tenue (7 verts, fr 2 / 36). Bureau : 7 moments tenus, `memoire`
+   rouge a 1-2 au-dela contre un plafond de 0, et l'A/B sans le cablage
+   donne 7 / 0 / 0** : le moment est bruite des deux cotes, cause nommee
+   (le Xolotl apparait au hasard sur Memoire, 40 % des sessions, et compile
+   ~20 programmes en plein balayage) ; independant de cette passe, oracle a
+   ecrire (spawn deterministe sous le drapeau de test).
 5. Vrai telephone : trois courses avant, trois apres, mediane des perdues
-   dans l'ecart.
+   dans l'ecart. — voir `docs/harnais.md`, ligne de la nuit mobile.
 6. `docs/harnais.md` et `project_nahual_da` (memoire) portent les chiffres ;
-   `docs/da/pose-au-repos.md` renvoie ici pour la nuit mobile.
+   `docs/da/pose-au-repos.md` renvoie ici pour la nuit mobile. — **Fait.**
