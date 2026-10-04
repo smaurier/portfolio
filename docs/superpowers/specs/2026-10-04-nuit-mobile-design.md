@@ -68,8 +68,18 @@ export function compensationNuit(profil: { postFx: boolean }, progress: number):
   figer dans la lib avec leur preuve : ambiant **1,6** (0,35 → 0,56 a
   l'arc zero, au-dessus du seuil de 0,3 ou le cerf tombe a (0,0,0), note
   de `reveal-arc.ts`), emissif **2,5** (le disque du sol et les braises),
-  exposition **1,25** (`toneMappingExposure`, qui agit sur tout, cerf
-  compris).
+  exposition **1** (`toneMappingExposure`).
+- **L'ordre des leviers, et pourquoi** (04/10, doute nomme et accepte) :
+  l'exposition est globale, elle eclaircit aussi le ciel, le brouillard et
+  les etoiles, et transformerait la penombre en nuit grise. On dose donc
+  d'abord ce qui eclaire LOCALEMENT (le point de lumiere du foyer, les
+  braises, le disque du sol), puis l'ambiante, et l'exposition reste a 1
+  tant que le cerf est lisible sans elle. Si elle doit monter, elle ne
+  depasse pas 1,15, et la capture a 769 px reste le juge de la penombre.
+- Ces nombres sont des hypotheses, pas des mesures. Ce qui est mesure :
+  l'ecart 767 / 769 (section 4) et la cible « cerf et foyer lisibles »,
+  validee a l'oeil par Sylvain. Deux ou trois allers-retours de captures
+  sont attendus ; l'oracle garde le niveau une fois le dosage accepte.
 
 Les consommateurs, chacun une ligne :
 
