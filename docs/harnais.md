@@ -122,6 +122,17 @@ palier `QUALITY_MOBILE` (pas de post-traitement), pas par le GPU (A/B 767 /
 769 px sur le PC). Sondes dans `.scratch/adb-barre.mjs`, `adb-capture.mjs`,
 `pc-capture-largeur.mjs`.
 
+**L'apparition de Xolotl (04/10, oracle `tests/e2e/xolotl-apparition.spec.ts`,
+en `fixme`)** : sur Memoire le chien apparait toujours, 10 s apres le
+montage, donc en plein balayage de la barre ; 73 programmes avant comme
+apres (la chauffe les compile), mais une image de 41 a 65 ms a
+l'apparition, dont **41 ms de GPUTask dans le processus GPU** et 10 ms de
+fil principal. Un dessin cache sous le pixel des que la direction est
+chaude (pre-envoi des textures et geometries) n'a rien change : ce n'est
+pas l'envoi du chien. Pistes : une cible de rendu allouee au premier usage
+(reflet de la nappe du Nord, afterimage), ou une liaison tardive cote
+pilote. Sondes : `.scratch/xolotl-apparition.mjs`, `xolotl-image.mjs`.
+
 **La nuit mobile (04/10, `lib/nuit-mobile.ts`, design
 `2026-10-04-nuit-mobile-design.md`)** : ce que le Bloom ajoutait est rendu
 en lumiere sur le profil sans post-traitement (ambiante x 2,2, foyer x 2,2,
