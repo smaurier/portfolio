@@ -22,8 +22,23 @@ import { PHASE_START, easeWithinRange } from "./reveal-arc";
 
 export type CompensationNuit = { ambiant: number; emissif: number; exposition: number };
 
-/** Les valeurs a l'arc zero, sur mobile. Point de depart du 04/10, a doser (plan, tache 4). */
-export const COMPENSATION_NUIT: CompensationNuit = { ambiant: 1.6, emissif: 2.5, exposition: 1 };
+/**
+ * Les valeurs a l'arc zero, sur mobile. DOSAGE DU 04/10, valide a l'oeil par
+ * Sylvain (« le cerf et le foyer sont la, la penombre est restee une
+ * penombre ») sur la capture a 767 px contre 769 px, texte masque.
+ *
+ * Ce que la mesure a dit avant de doser (oracle tests/e2e/nuit-mobile) :
+ * sans compensation, mobile 76,3 % de noir / luminance mediane 6,1 contre
+ * bureau 21,4 % / 21,4 ; a 1,6 / 2,5 / 1 (le point de depart du design) :
+ * 67,7 % / 7,2, presque rien ; a 3 / 4 / 1,15 : 47,6 % / 11,1, et la scene
+ * devient plate. Bissection du palier mobile : le Bloom seul ramene a 37,9 %
+ * / 13,6, l'herbe seule (26 000 brins) a 54,5 % / 9,4 -- la nuit du bureau
+ * est faite de Bloom et d'herbe dense, deux choses que le budget « zero
+ * image de plus » interdit sur un telephone a dix images par seconde. Ce
+ * dosage donne 56,1 % / 9,2 : le cerf, le foyer et les braises se lisent,
+ * pas le rayonnement. L'exposition est au plafond du design (1,15).
+ */
+export const COMPENSATION_NUIT: CompensationNuit = { ambiant: 2.2, emissif: 3.5, exposition: 1.15 };
 
 const UN: CompensationNuit = { ambiant: 1, emissif: 1, exposition: 1 };
 
