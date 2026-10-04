@@ -23,12 +23,13 @@ import { PHASE_START, easeWithinRange } from "./reveal-arc";
 export type CompensationNuit = { ambiant: number; emissif: number; exposition: number };
 
 /**
- * Les valeurs a l'arc zero, sur mobile. DOSAGE DU 04/10, HYPOTHESE : la
- * validation a l'oeil n'a PAS eu lieu (Sylvain, 04/10 au matin : il n'avait
- * pas les captures sous les yeux et a mal lu la question). Ce dosage tient
- * par la mesure seule (ci-dessous) tant qu'un regard sur la capture a
- * 767 px contre 769 px, texte masque, ou sur un vrai telephone, ne l'a pas
- * confirme ou refuse.
+ * Les valeurs a l'arc zero, sur mobile. DOSAGE DU 04/10, valide par Sylvain
+ * le 04/10 au matin sur la capture a 767 px contre 769 px, texte masque,
+ * avec sa nuance exacte : « ca passe ; on voit le cerf, mais dire qu'il se
+ * detache, c'est complique ». (La reponse de 03h avait ete donnee sans les
+ * captures sous les yeux et ne valait pas.) Le cerf se lit, il ne rayonne
+ * pas : c'est la limite d'une nuit sans Bloom, pas un reglage a pousser
+ * plus loin (a 3 / 4 / 1,15 la scene devient plate).
  *
  * Ce que la mesure a dit avant de doser (oracle tests/e2e/nuit-mobile) :
  * sans compensation, mobile 76,3 % de noir / luminance mediane 6,1 contre

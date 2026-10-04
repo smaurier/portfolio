@@ -170,14 +170,16 @@ vrai telephone).
    le tampon (l'oracle lit une capture), et sous mouvement reduit la nuit
    est noire sur les deux largeurs (76 / 73 %), c'est la pose au repos.
 3. Sylvain a valide les captures 767 px apres contre 769 px : « le cerf et
-   le foyer sont la ». — **OUVERT.** La reponse du 04/10 a 03h a ete donnee
-   sans les captures sous les yeux (Sylvain, le matin : « je n'ai rien eu
-   sous les yeux et ai mal lu ») ; elle ne vaut pas. Le dosage 2,2 / 3,5 /
-   1,15 reste une hypothese tenue par la mesure (56,1 % / 9,2), a regarder
-   sur `.scratch/scene-767-dose-moyen.png` contre `scene-769-bureau.png`, ou
-   mieux sur le telephone lui-meme. Les seuils de l'oracle relaches sur
-   mesure (section 4) restent valables comme garde contre le retour au noir,
-   pas comme preuve de lisibilite.
+   le foyer sont la ». — **Fait, 04/10 au matin, avec la nuance de
+   Sylvain** sur `nahual-nuit-767px-mobile-dosage-2.2-3.5-1.15.png` contre
+   la reference 769 px : « ca passe ; on voit le cerf, mais dire qu'il se
+   detache, c'est complique » ; et sur la capture sans compensation avec le
+   panneau : « texte omnipresent, on ne voit que ca ». (La reponse de 03h
+   avait ete donnee sans les captures sous les yeux et ne valait pas ; elle
+   a ete retiree de partout.) Le dosage 2,2 / 3,5 / 1,15 est donc retenu
+   comme ce qu'une nuit sans Bloom peut donner : le cerf se lit, il ne
+   rayonne pas. Les seuils de l'oracle relaches sur mesure (section 4)
+   gardent ce niveau contre un retour au noir.
 4. `pnpm run perf` tenue ; `pnpm run perf:telephone` tenue. — **Telephone
    emule : tenue (7 verts, fr 2 / 36). Bureau : 7 moments tenus, `memoire`
    rouge a 1-2 au-dela contre un plafond de 0, et l'A/B sans le cablage
