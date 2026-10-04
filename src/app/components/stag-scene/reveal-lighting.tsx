@@ -1,7 +1,6 @@
 "use client";
 
-import type { MutableRefObject } from "react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Color, SRGBColorSpace, type AmbientLight, type DirectionalLight, type Fog, type Object3D, type PointLight, type SpotLight } from "three";
 import { EMBER_COLOR, EMBER_DISTANCE, freezeShadow, persistentLights, thawShadow } from "./persistent-lights";
@@ -28,6 +27,7 @@ import { useTheme } from "../theme-store";
 import { approachReflet, refletFogColorFor, refletFogRange, refletK, refletLight, REFLET_PAPER } from "@/lib/reflet";
 import { apresMidiIci } from "@/lib/heure-du-lieu";
 import { refletStore } from "./reflet-store";
+import { nuitMobileStore } from "./nuit-mobile-store";
 import { poserArc } from "./arc-store";
 import { poserFondu } from "@/lib/presence-direction";
 import { getSceneControls } from "../scene-controls-store";
@@ -218,7 +218,7 @@ export default function RevealLighting({
     }
     rigColorScratch.set(rig.color);
     if (ambientRef.current) {
-      ambientRef.current.intensity = getAmbientIntensity(p) * rig.ambientScale * reflet.ambientScale;
+      ambientRef.current.intensity = getAmbientIntensity(p) * rig.ambientScale * reflet.ambientScale * nuitMobileStore.ambiant;
       // Tint ambient 65% (28/08 recalibré après boost raté à 100% :
       // trop d'ambient teinté coloriait le cerf ENTIER uniformément
       // via l'éclairage global, contradictoire avec l'objectif "cerf

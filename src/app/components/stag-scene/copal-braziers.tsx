@@ -11,6 +11,7 @@ import { foyerStore } from "./foyer-store";
 import { persistentLights } from "./persistent-lights";
 import { DIRECTION_COLOR_VIVID } from "./direction-colors";
 import { frostStore } from "./frost-store";
+import { nuitMobileStore } from "./nuit-mobile-store";
 import { useCurrentDirection } from "./use-current-direction";
 import { useSceneRefs } from "./scene-refs-context";
 
@@ -126,7 +127,8 @@ export default function CopalBraziers() {
     if (hearth && direction === "jade") {
       hearth.position.set(0, HEARTH_LIGHT_Y, 0);
       const pulse = sceneRefs?.reducedMotionRef.current ? 1 : 0.92 + 0.08 * Math.sin(state.clock.elapsedTime * 5.3);
-      hearth.intensity = HEARTH_LIGHT * intensity * pulse;
+      // La nuit mobile (04/10) : voir lib/nuit-mobile.
+      hearth.intensity = HEARTH_LIGHT * intensity * pulse * nuitMobileStore.ambiant;
     }
     if (!root.visible) return;
     // La fumee prend un peu la teinte de la direction, sans la trahir.
@@ -144,7 +146,8 @@ export default function CopalBraziers() {
       const lit = intensity * brazierGlow(i, foyerStore.arrival);
       // La braise palpite.
       const flicker = reduced ? 0.7 : 0.55 + 0.45 * Math.abs(Math.sin(t * 3.1 + b.puffs[0].seed));
-      b.ember.material.opacity = 0.55 * lit * flicker;
+      // La nuit mobile (04/10) : voir lib/nuit-mobile.
+      b.ember.material.opacity = Math.min(1, 0.55 * lit * flicker * nuitMobileStore.emissif);
       for (const puff of b.puffs) {
         const age = reduced ? COPAL.puffLife * 0.5 : (t + puff.offset) % COPAL.puffLife;
         const pose = puffPose(puff.seed, age, lit);
