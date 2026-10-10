@@ -5,7 +5,8 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { Group, Mesh, MeshStandardMaterial, Quaternion, Vector3 } from "three";
-import { birdTangent, HUITZILIN_SPEC, HUITZILIN_SPECIES, initialBird, stepBird, type BirdState, type Prey } from "@/lib/huitzilin";
+import { birdTangent, commencerVisite, HUITZILIN_SPEC, HUITZILIN_SPECIES, initialBird, stepBird, suivreVisite, type BirdState, type Prey, type Vec3 } from "@/lib/huitzilin";
+import { avancerPassage, cibleEclat, doitDeclencher, oiseauLePlusProche, PASSAGE, passageInitial, pointDevantLaCamera, type Passage } from "@/lib/passage-colibri";
 import { CENTZON_COUNT, CENTZON_SPEC, makeStarField, throwFactor } from "@/lib/centzon-stars";
 import { centzonStore } from "./centzon-store";
 import { markTrace } from "../traces-store";
@@ -39,7 +40,7 @@ const FLAP_AMPLITUDE = 0.75; // rad
 
 // Pas de preload au niveau module (08/09) : monte au Sud seulement.
 
-type BirdUniforms = { uTime: { value: number }; uFlap: { value: number }; uHue: { value: number }; uSat: { value: number }; uPhase: { value: number } };
+type BirdUniforms = { uTime: { value: number }; uFlap: { value: number }; uHue: { value: number }; uSat: { value: number }; uPhase: { value: number }; uEclat: { value: number } };
 
 function makeMaterial(base: MeshStandardMaterial, uniforms: BirdUniforms): MeshStandardMaterial {
   const mat = base.clone();
@@ -50,6 +51,7 @@ function makeMaterial(base: MeshStandardMaterial, uniforms: BirdUniforms): MeshS
     shader.uniforms.uHue = uniforms.uHue;
     shader.uniforms.uSat = uniforms.uSat;
     shader.uniforms.uPhase = uniforms.uPhase;
+    shader.uniforms.uEclat = uniforms.uEclat;
     shader.vertexShader = shader.vertexShader
       .replace(
         "#include <common>",
@@ -84,6 +86,7 @@ vec3 hRotate(vec3 p, vec3 axis, float a) {
         `#include <common>
 uniform float uHue;
 uniform float uSat;
+uniform float uEclat;
 vec3 hHueShift(vec3 c, float h, float sat) {
   // Rotation de teinte dans l'espace YIQ, puis saturation.
   const vec3 k = vec3(0.57735);
@@ -93,7 +96,14 @@ vec3 hHueShift(vec3 c, float h, float sat) {
   return mix(vec3(l), r, sat);
 }`
       )
-      .replace("#include <map_fragment>", "#include <map_fragment>\ndiffuseColor.rgb = hHueShift(diffuseColor.rgb, uHue, uSat);");
+      .replace("#include <map_fragment>", "#include <map_fragment>\ndiffuseColor.rgb = hHueShift(diffuseColor.rgb, uHue, uSat);")
+      .replace(
+        "#include <emissivemap_fragment>",
+        // Le passage (10/10, lib/passage-colibri) : la texture elle-meme
+        // s'allume (pas une couleur plate par-dessus) ; le guerrier du
+        // soleil brille en venant. uEclat = 0 hors passage : rien ne change.
+        "#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * uEclat;"
+      );
   });
   mat.customProgramCacheKey = () => "huitzilin";
   return mat;
@@ -112,8 +122,24 @@ export default function HuitzilinBirds() {
   const stars = useMemo(() => makeStarField(400), []);
   const arrivedAtRef = useRef<number | null>(null);
   const preyPick = useRef(0);
+  // Le passage (10/10, lib/passage-colibri) : une fois par montage au Sud.
+  const passageRef = useRef<Passage>(passageInitial());
+  const eclatRef = useRef(0);
   const scratch = useMemo(
-    () => ({ q: new Quaternion(), qy: new Quaternion(), qx: new Quaternion(), qm: new Quaternion(), axisY: new Vector3(0, 1, 0), axisX: new Vector3(1, 0, 0), fwd: new Vector3(), vel: new Vector3() }),
+    () => ({
+      q: new Quaternion(),
+      qy: new Quaternion(),
+      qx: new Quaternion(),
+      qm: new Quaternion(),
+      axisY: new Vector3(0, 1, 0),
+      axisX: new Vector3(1, 0, 0),
+      fwd: new Vector3(),
+      vel: new Vector3(),
+      // Objets plats reutilises pour la lib du passage (rien d'alloue par image).
+      camPos: { x: 0, y: 0, z: 0 },
+      camQ: { x: 0, y: 0, z: 0, w: 1 },
+      obs: { declenche: undefined as number | undefined, mode: "hover" as "hover" | "dart", visite: null as Vec3 | null, justKilled: null as number | null },
+    }),
     []
   );
 
@@ -128,7 +154,7 @@ export default function HuitzilinBirds() {
     const src = source as Mesh;
     const base = src.material as MeshStandardMaterial;
     return HUITZILIN_SPECIES.map((sp, i) => {
-      const uniforms: BirdUniforms = { uTime: { value: 0 }, uFlap: { value: FLAP_AMPLITUDE }, uHue: { value: (sp.hueShift * Math.PI) / 180 }, uSat: { value: sp.saturation }, uPhase: { value: i * 1.3 } };
+      const uniforms: BirdUniforms = { uTime: { value: 0 }, uFlap: { value: FLAP_AMPLITUDE }, uHue: { value: (sp.hueShift * Math.PI) / 180 }, uSat: { value: sp.saturation }, uPhase: { value: i * 1.3 }, uEclat: { value: 0 } };
       const mesh = new Mesh(src.geometry, makeMaterial(base, uniforms));
       mesh.frustumCulled = false;
       mesh.userData.uniforms = uniforms;
@@ -188,6 +214,31 @@ export default function HuitzilinBirds() {
     };
     const { q, qy, qx, qm, axisY, axisX } = scratch;
     qm.setFromAxisAngle(axisX, MODEL_PITCH);
+    // LE PASSAGE (10/10, lib/passage-colibri) : quand, qui, ou. La camera est
+    // recopiee dans des objets plats du scratch (rien d'alloue ici ; les libs
+    // pures allouent, comme stepBird, c'est leur role).
+    const cam = state.camera;
+    const { camPos, camQ } = scratch;
+    camPos.x = cam.position.x;
+    camPos.y = cam.position.y;
+    camPos.z = cam.position.z;
+    camQ.x = cam.quaternion.x;
+    camQ.y = cam.quaternion.y;
+    camQ.z = cam.quaternion.z;
+    camQ.w = cam.quaternion.w;
+    let declenche: number | undefined;
+    if (dt > 0 && doitDeclencher(passageRef.current, sinceArrival, p)) {
+      const i = oiseauLePlusProche(statesRef.current, camPos);
+      if (i >= 0) {
+        statesRef.current[i] = commencerVisite(statesRef.current[i], pointDevantLaCamera(camPos, camQ, PASSAGE), PASSAGE.tenue);
+        declenche = i;
+      }
+    }
+    const visiteur = passageRef.current.oiseau;
+    if (visiteur !== null && statesRef.current[visiteur].visite !== null) {
+      // Le point suit la camera (parallaxe, scroll) : il reste devant l'oeil.
+      statesRef.current[visiteur] = suivreVisite(statesRef.current[visiteur], pointDevantLaCamera(camPos, camQ, PASSAGE));
+    }
     for (let i = 0; i < birds.length; i++) {
       const mesh = birds[i];
       const s = (statesRef.current[i] = dt > 0 ? stepBird(statesRef.current[i], dt, p, HUITZILIN_SPEC, pickPrey) : statesRef.current[i]);
@@ -195,6 +246,21 @@ export default function HuitzilinBirds() {
       if (s.justKilled !== null && centzonStore.killedAt[s.justKilled] < 0) {
         centzonStore.killedAt[s.justKilled] = state.clock.elapsedTime;
         markTrace("huitzilin-catch"); // une trace : un colibri a pris une etoile
+      }
+      // L'etat du passage avance avec ce que fait l'oiseau du passage.
+      if (declenche === i || passageRef.current.oiseau === i) {
+        const obs = scratch.obs;
+        obs.declenche = declenche === i ? i : undefined;
+        obs.mode = s.mode;
+        obs.visite = s.visite;
+        obs.justKilled = s.justKilled;
+        const suivant = avancerPassage(passageRef.current, obs);
+        if (suivant !== passageRef.current) {
+          passageRef.current = suivant;
+          // Sonde pour la capture (.scratch/passage-colibri.mjs), meme motif
+          // que __huitzilinForward : une chaine, sans cout.
+          if (typeof window !== "undefined") (window as unknown as { __huitzilinPassage?: string }).__huitzilinPassage = suivant.etat;
+        }
       }
       mesh.position.set(s.x, s.y, s.z);
       // Le modele regarde +z : cap = rotation autour de Y telle que +z -> tangente.
@@ -220,6 +286,12 @@ export default function HuitzilinBirds() {
       const u = mesh.userData.uniforms as BirdUniforms;
       u.uTime.value = state.clock.elapsedTime;
       u.uFlap.value = reduced ? 0 : FLAP_AMPLITUDE;
+      // L'eclat ne concerne que l'oiseau du passage ; lisse (0,15 par image
+      // a 60 Hz, ~0,5 s), visible en venant et en tenant, eteint en partant.
+      if (passageRef.current.oiseau === i) {
+        eclatRef.current += (cibleEclat(passageRef.current.etat) - eclatRef.current) * 0.15;
+        u.uEclat.value = eclatRef.current;
+      }
       const mat = mesh.material as MeshStandardMaterial;
       // Toujours transparent (11/09) : basculer `transparent` change la cle
       // du programme (le bit opaque), et three recompilait les oiseaux a la
