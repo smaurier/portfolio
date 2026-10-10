@@ -151,7 +151,7 @@ describe("la visite (10/10, le passage du colibri)", () => {
     expect(secondes).toBeLessThan(3); // ~1 s depuis la boite a 9 u/s
   });
 
-  it("en stationnaire de visite : vibration reduite, pas de borne de boite, l'ancre suit le point", () => {
+  it("en stationnaire de visite : vibration proche de la normale (10/10 apres-midi, plus de x0,4), pas de borne de boite, l'ancre suit le point", () => {
     let { s } = volerJusquAuPoint(commencerVisite(initialBird(3, SPEC), POINT, TENUE));
     let maxEcart = 0;
     const suivi = { x: 0.6, y: 3.3, z: 9.9 }; // la camera a bouge (parallaxe)
@@ -162,7 +162,7 @@ describe("la visite (10/10, le passage du colibri)", () => {
     }
     expect(maxEcart).toBeGreaterThan(0); // elle vibre
     // Trois composantes bornees a 1 chacune : l'ecart est au plus jit * sqrt(3).
-    expect(maxEcart).toBeLessThanOrEqual(SPEC.jitter * VISITE_VIBRATION * Math.sqrt(3) + 1e-6); // mais quatre fois moins
+    expect(maxEcart).toBeLessThanOrEqual(SPEC.jitter * VISITE_VIBRATION * Math.sqrt(3) + 1e-6); // vibration proche de la normale, pas reduite
     expect(s.z).toBeGreaterThan(SPEC.zMax);
   });
 

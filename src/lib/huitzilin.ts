@@ -76,8 +76,12 @@ export const HUITZILIN_SPEC: BirdSpec = {
   huntDart: 5,
 };
 
-/** Facteur de la vibration en stationnaire de visite (lib/passage-colibri). */
-export const VISITE_VIBRATION = 0.4;
+/** Facteur de la vibration en stationnaire de visite (lib/passage-colibri).
+ * Montee de 0,4 a 1 le 10/10 apres-midi : a 0,4 la silhouette se figeait
+ * assez longtemps pour se lire comme un dessin plat ; a 1 (vibration
+ * normale, non reduite) le flou du mouvement reel masque la forme figee.
+ * A doser a la capture, pas en dur. */
+export const VISITE_VIBRATION = 1;
 
 export type BirdState = {
   x: number;
@@ -101,8 +105,8 @@ export type BirdState = {
   /** Etoile mise a mort a la fin de la derniere fleche (un seul pas), sinon null. */
   justKilled: number | null;
   /** Le passage (10/10, lib/passage-colibri) : le point devant la camera
-   * ou l'oiseau tient son stationnaire, hors boite, vibration reduite ;
-   * null hors visite. */
+   * ou l'oiseau tient son stationnaire, hors boite, vibration proche de
+   * la normale ; null hors visite. */
   visite: Vec3 | null;
   /** Duree du stationnaire de visite (s), posee a l'arrivee sur le point. */
   visiteTenue: number;
@@ -193,7 +197,8 @@ export function stepBird(s: BirdState, dt: number, p: number, spec: BirdSpec = H
     const yMin = spec.yMinNight + (spec.yMinNoon - spec.yMinNight) * pp;
     const yMax = spec.yMaxNight + (spec.yMaxNoon - spec.yMaxNight) * pp;
     // En visite (le passage) : l'ancre est le point devant la camera, hors
-    // boite, et la vibration est reduite (a 1,3 u, 12 cm serait un saut).
+    // boite ; la vibration reste proche de la normale (VISITE_VIBRATION),
+    // le flou du mouvement masque la silhouette figee plutot que l'inverse.
     const pointVisite = s.visite;
     const visite = pointVisite !== null;
     const anchor = pointVisite !== null ? pointVisite : { x: s.anchor.x, y: clamp(s.anchor.y, yMin, yMax), z: s.anchor.z };
