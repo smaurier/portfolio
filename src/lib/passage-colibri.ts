@@ -38,8 +38,11 @@ export const PASSAGE = {
   tenue: 2.5,
   /** Facteur de la vibration en visite (0,12 u a 1,3 u serait un saut). */
   vibration: 0.4,
-  /** Intensite de l'eclat emissif pendant la visite ; dosage a la capture. */
-  eclat: 0.4,
+  /** Intensite du passage pendant la visite : assombrit le corps (shader,
+   * 1 - eclat) ET pilote l'opacite du halo (sprite). Montee de 0,4 a 0,88
+   * le 10/10 apres-midi (Sylvain : « c'est moche » sur l'aplat colore) ;
+   * dosage a la capture, pas au seuil. */
+  eclat: 0.88,
 } as const;
 
 export type EtatPassage = "attente" | "approche" | "stationnaire" | "chasse" | "fini";

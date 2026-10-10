@@ -3,8 +3,8 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
-import { Group, Mesh, MeshStandardMaterial, type PerspectiveCamera, Quaternion, Vector3 } from "three";
+import { useGLTF, useTexture } from "@react-three/drei";
+import { AdditiveBlending, Color, Group, Mesh, MeshStandardMaterial, type PerspectiveCamera, Quaternion, Sprite, SpriteMaterial, Vector3 } from "three";
 import { birdTangent, commencerVisite, HUITZILIN_SPEC, HUITZILIN_SPECIES, initialBird, stepBird, suivreVisite, type BirdState, type Prey, type Vec3 } from "@/lib/huitzilin";
 import { avancerPassage, cibleEclat, doitDeclencher, oiseauLePlusProche, PASSAGE, passageInitial, pointDevantLaCamera, type Passage } from "@/lib/passage-colibri";
 import { CENTZON_COUNT, CENTZON_SPEC, makeStarField, throwFactor } from "@/lib/centzon-stars";
@@ -37,6 +37,10 @@ const BASE_SCALE = 0.06; // 0.22 -> 0.08 -> 0.06 (05/09, Sylvain : « trop gros,
 const MODEL_PITCH = 0.68; // rad, redresse le corps : +atan(0.63/0.78), le bec vient a l horizontale (05/09, retour Sylvain « ils volent a la verticale » : le signe etait inverse)
 const FLAP_HZ = 14;
 const FLAP_AMPLITUDE = 0.75; // rad
+
+const SMOKE_SPRITE = "/img/particles/smoke_07.png"; // deja preload par d'autres modules (voir Tache 5 ci-dessus) : aucun cout de chargement de plus ici.
+const HALO_COLOR = new Color("#ff7a2a"); // meme teinte que les braises (copal-braziers.tsx) : chaude et restreinte, pas l'arc-en-ciel par espece.
+const HALO_SCALE = 0.5; // u, billboard carre ; assez grand pour que les ailes en vibration ne depassent jamais net du halo (a doser a la capture).
 
 // Pas de preload au niveau module (08/09) : monte au Sud seulement.
 
@@ -99,10 +103,13 @@ vec3 hHueShift(vec3 c, float h, float sat) {
       .replace("#include <map_fragment>", "#include <map_fragment>\ndiffuseColor.rgb = hHueShift(diffuseColor.rgb, uHue, uSat);")
       .replace(
         "#include <emissivemap_fragment>",
-        // Le passage (10/10, lib/passage-colibri) : la texture elle-meme
-        // s'allume (pas une couleur plate par-dessus) ; le guerrier du
-        // soleil brille en venant. uEclat = 0 hors passage : rien ne change.
-        "#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * uEclat;"
+        // Le passage, revise le 10/10 apres-midi (Sylvain : l'aplat
+        // colore etait moche en gros plan, texture bas-poly exposee). Le
+        // corps s'assombrit au lieu de s'eclaircir : il ne reste qu'une
+        // silhouette sombre, jamais la peinture a plat. La couleur et la
+        // chaleur viennent du halo (sprite), pas du mesh. uEclat = 0 hors
+        // passage : rien ne change.
+        "#include <emissivemap_fragment>\ndiffuseColor.rgb *= 1.0 - uEclat;"
       );
   });
   mat.customProgramCacheKey = () => "huitzilin";
@@ -114,6 +121,11 @@ export default function HuitzilinBirds() {
   const direction = useCurrentDirection();
   const sceneRefs = useSceneRefs();
   const { scene } = useGLTF(MODEL_PATH);
+  const smokeTexture = useTexture(SMOKE_SPRITE);
+  const haloMaterial = useMemo(
+    () => new SpriteMaterial({ map: smokeTexture, color: HALO_COLOR, transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }),
+    [smokeTexture]
+  );
   const blendRef = useRef(direction === "turquoise" ? 1 : 0);
   const statesRef = useRef<BirdState[]>(HUITZILIN_SPECIES.map((_, i) => initialBird(11 + i * 17, HUITZILIN_SPEC)));
   const birdsRef = useRef<Mesh[]>([]);
@@ -159,19 +171,31 @@ export default function HuitzilinBirds() {
       mesh.frustumCulled = false;
       mesh.userData.uniforms = uniforms;
       mesh.userData.scale = BASE_SCALE * sp.scale;
+      const halo = new Sprite(haloMaterial.clone());
+      halo.scale.setScalar(HALO_SCALE);
+      halo.raycast = () => null;
+      halo.visible = false;
+      mesh.userData.halo = halo;
       return mesh;
     });
-  }, [scene]);
+  }, [scene, haloMaterial]);
 
   useEffect(() => {
     birdsRef.current = birds;
     const g = groupRef.current;
     if (!g) return;
-    for (const b of birds) g.add(b);
+    for (const b of birds) {
+      g.add(b);
+      g.add(b.userData.halo as Sprite);
+    }
     return () => {
-      for (const b of birds) g.remove(b);
+      for (const b of birds) {
+        g.remove(b);
+        g.remove(b.userData.halo as Sprite);
+      }
     };
   }, [birds]);
+  useEffect(() => () => haloMaterial.dispose(), [haloMaterial]);
 
   useFrame((state, delta) => {
     const south = direction === "turquoise";
@@ -292,9 +316,17 @@ export default function HuitzilinBirds() {
       u.uFlap.value = reduced ? 0 : FLAP_AMPLITUDE;
       // L'eclat ne concerne que l'oiseau du passage ; lisse (0,15 par image
       // a 60 Hz, ~0,5 s), visible en venant et en tenant, eteint en partant.
+      // Assombrit le corps (uEclat, shader) ET pilote l'opacite du halo
+      // (meme courbe : revision du 10/10 apres-midi, docs/superpowers/specs).
+      const halo = mesh.userData.halo as Sprite;
       if (passageRef.current.oiseau === i) {
         eclatRef.current += (cibleEclat(passageRef.current.etat) - eclatRef.current) * 0.15;
         u.uEclat.value = eclatRef.current;
+        halo.visible = eclatRef.current * blend > 0.01;
+        halo.position.copy(mesh.position);
+        (halo.material as SpriteMaterial).opacity = eclatRef.current * blend;
+      } else if (halo.visible) {
+        halo.visible = false;
       }
       const mat = mesh.material as MeshStandardMaterial;
       // Toujours transparent (11/09) : basculer `transparent` change la cle
