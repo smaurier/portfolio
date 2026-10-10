@@ -32,7 +32,7 @@ Conventions du depot a respecter : commentaires en francais sans accents dans le
 - Create: `src/lib/passage-colibri.ts`
 - Test: `src/lib/passage-colibri.test.ts`
 
-- [ ] **Step 1 : ecrire les tests, rouges**
+- [x] **Step 1 : ecrire les tests, rouges**
 
 ```ts
 // src/lib/passage-colibri.test.ts
@@ -146,12 +146,12 @@ describe("le passage du colibri : l'eclat", () => {
 });
 ```
 
-- [ ] **Step 2 : verifier le rouge**
+- [x] **Step 2 : verifier le rouge**
 
 Run: `pnpm exec vitest run src/lib/passage-colibri.test.ts`
 Expected: FAIL, « Failed to resolve import "./passage-colibri" ».
 
-- [ ] **Step 3 : ecrire la lib**
+- [x] **Step 3 : ecrire la lib**
 
 ```ts
 // src/lib/passage-colibri.ts
@@ -279,12 +279,12 @@ export function cibleEclat(etat: EtatPassage): number {
 }
 ```
 
-- [ ] **Step 4 : verifier le vert**
+- [x] **Step 4 : verifier le vert**
 
 Run: `pnpm exec vitest run src/lib/passage-colibri.test.ts`
 Expected: PASS, 15 tests.
 
-- [ ] **Step 5 : commit**
+- [x] **Step 5 : commit**
 
 ```bash
 git add src/lib/passage-colibri.ts src/lib/passage-colibri.test.ts
@@ -299,7 +299,7 @@ git commit -m "feat(sud): le passage du colibri, la lib pure (quand, qui, le poi
 - Modify: `src/lib/huitzilin.ts`
 - Test: `src/lib/huitzilin.test.ts`
 
-- [ ] **Step 1 : ecrire les tests, rouges** (a la fin de `src/lib/huitzilin.test.ts`)
+- [x] **Step 1 : ecrire les tests, rouges** (a la fin de `src/lib/huitzilin.test.ts`)
 
 ```ts
 import { commencerVisite, suivreVisite } from "./huitzilin";
@@ -382,12 +382,12 @@ describe("la visite (10/10, le passage du colibri)", () => {
 });
 ```
 
-- [ ] **Step 2 : verifier le rouge**
+- [x] **Step 2 : verifier le rouge**
 
 Run: `pnpm exec vitest run src/lib/huitzilin.test.ts`
 Expected: FAIL, « does not provide an export named 'commencerVisite' ».
 
-- [ ] **Step 3 : modifier la lib**
+- [x] **Step 3 : modifier la lib**
 
 Dans `src/lib/huitzilin.ts`, ajouter a `BirdState` (apres `justKilled`) :
 
@@ -451,14 +451,14 @@ Ajouter la constante en haut du fichier, apres `HUITZILIN_SPEC` :
 export const VISITE_VIBRATION = 0.4;
 ```
 
-- [ ] **Step 4 : verifier le vert, et que l'ancien reste vert**
+- [x] **Step 4 : verifier le vert, et que l'ancien reste vert**
 
 Run: `pnpm exec vitest run src/lib/huitzilin.test.ts src/lib/passage-colibri.test.ts`
 Expected: PASS (les anciens tests de la boite restent verts : sans visite, rien ne change).
 
 Note : le test « reste dans la boite » existant borne `y` par `yMinNoon..yMaxNight` ; la visite n'y passe pas (pas de `commencerVisite` dans `run`).
 
-- [ ] **Step 5 : commit**
+- [x] **Step 5 : commit**
 
 ```bash
 git add src/lib/huitzilin.ts src/lib/huitzilin.test.ts
@@ -472,14 +472,14 @@ git commit -m "feat(sud): la visite du colibri dans la lib de vol (ancre imposee
 **Files:**
 - Modify: `src/app/components/stag-scene/huitzilin-birds.tsx`
 
-- [ ] **Step 1 : les imports**
+- [x] **Step 1 : les imports**
 
 ```ts
 import { birdTangent, commencerVisite, HUITZILIN_SPEC, HUITZILIN_SPECIES, initialBird, stepBird, suivreVisite, type BirdState, type Prey } from "@/lib/huitzilin";
 import { avancerPassage, cibleEclat, doitDeclencher, oiseauLePlusProche, PASSAGE, passageInitial, pointDevantLaCamera, type Passage } from "@/lib/passage-colibri";
 ```
 
-- [ ] **Step 2 : l'uniform `uEclat` (pas de recompilation : un uniform de plus a la creation, jamais une cle de programme)**
+- [x] **Step 2 : l'uniform `uEclat` (pas de recompilation : un uniform de plus a la creation, jamais une cle de programme)**
 
 Dans le type :
 
@@ -512,7 +512,7 @@ et apres le `.replace("#include <map_fragment>", ...)` existant, enchainer :
 
 Dans `useMemo(birds)`, ajouter `uEclat: { value: 0 }` a l'objet `uniforms`.
 
-- [ ] **Step 3 : l'etat du passage et le branchement dans `useFrame`**
+- [x] **Step 3 : l'etat du passage et le branchement dans `useFrame`**
 
 Apres `const preyPick = useRef(0);` :
 
@@ -579,17 +579,17 @@ Et dans la mise a jour des uniforms de la boucle (apres `u.uFlap.value = ...`) :
       }
 ```
 
-- [ ] **Step 4 : verifier types et lint**
+- [x] **Step 4 : verifier types et lint**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec eslint src/app/components/stag-scene/huitzilin-birds.tsx src/lib/huitzilin.ts src/lib/passage-colibri.ts`
 Expected: aucune erreur. Si eslint signale une allocation dans `useFrame` : c'est un objet litteral ecrit DANS le callback ; le deplacer dans `scratch`.
 
-- [ ] **Step 5 : les unitaires complets**
+- [x] **Step 5 : les unitaires complets**
 
 Run: `pnpm test`
 Expected: tous verts (1109 + 19 nouveaux).
 
-- [ ] **Step 6 : commit**
+- [x] **Step 6 : commit**
 
 ```bash
 git add src/app/components/stag-scene/huitzilin-birds.tsx
@@ -603,7 +603,7 @@ git commit -m "feat(sud): le passage du colibri branche (un oiseau vient devant 
 **Files:**
 - Create: `.scratch/passage-colibri.mjs`
 
-- [ ] **Step 1 : le script**
+- [x] **Step 1 : le script**
 
 ```js
 // .scratch/passage-colibri.mjs : le passage du colibri (10/10). Bureau 1280
@@ -639,7 +639,7 @@ for (const [nom, ctxOpts] of Object.entries(CAS)) {
 await b.close();
 ```
 
-- [ ] **Step 2 : compiler, servir, capturer**
+- [x] **Step 2 : compiler, servir, capturer**
 
 Run (PowerShell) :
 
@@ -654,13 +654,346 @@ Stop-Process -Id $p.Id -Force
 
 Expected : six images, « stationnaire a +~5 s » et « fini a +~9 s » sur les deux cas.
 
-- [ ] **Step 3 : regarder soi-meme AVANT de remettre** : sur `1-stationnaire`, l'oiseau est-il lisible (ailes, couleur) en haut a droite, le cerf entier ? sur `3-prise`, voit-on l'etoile tomber (centzon-stars fait tomber l'etoile marquee) ? Si l'oiseau est une silhouette noire : monter `PASSAGE.eclat` (0,4 -> 0,7) et recapturer, UNE fois ; au-dela c'est a Sylvain de doser.
+- [x] **Step 3 : regarder soi-meme AVANT de remettre** — FAIT, et le verdict a change la suite. `1-stationnaire` montrait l'oiseau lisible mais l'eclat en aplat exposait la texture peinte bas-poly (couleurs saturees, zero volume) a cote d'un decor ombre. Pas de recapture a l'identique : voir la revision ci-dessous.
 
-- [ ] **Step 4 : remettre a Sylvain** les chemins complets des six images dans `C:\Users\sylva\Downloads` ; son oeil decide (eclat, decalage, tenue). Rien d'autre ne se fait tant qu'il n'a pas repondu.
+- [x] **Step 4 : remettre a Sylvain** — FAIT (10/10, les six images de `Downloads/nahual-sud-2-passage-*`). Verdict de Sylvain : « le colibri est bien visible mais peut etre assez moche ». Brainstorm (compagnon visuel) : voir `docs/superpowers/specs/2026-10-10-passage-colibri-design.md`, section « Revision du 10/10 (apres-midi) ». Decision : pas un dosage du shader existant, le traitement change (Taches 5-7 ci-dessous).
 
 ---
 
-### Task 5 : docs et cloture
+## Revision du 10/10 (apres-midi) : le gros plan repense
+
+Spec : `docs/superpowers/specs/2026-10-10-passage-colibri-design.md`, section
+« Revision du 10/10 (apres-midi) ». Trois changements, dans l'ordre : le
+corps s'assombrit au lieu de s'eclaircir (Tache 5), un halo flou additif
+porte la couleur, meme recette que les braises du foyer (Tache 5), la
+vibration de la visite n'est plus reduite (Tache 6). Puis nouvelle capture
+et nouveau feu vert de Sylvain (Tache 7) avant docs et poussee (Tache 8,
+l'ancienne Tache 5 renumerotee).
+
+### Task 5 : le corps s'assombrit, un halo flou additif porte la couleur
+
+**Files:**
+- Modify: `src/lib/passage-colibri.ts` (constante `eclat`)
+- Modify: `src/app/components/stag-scene/huitzilin-birds.tsx` (shader + sprite de halo)
+
+Reference technique : `src/app/components/stag-scene/copal-braziers.tsx`,
+lignes 60-65 et 76-80 (le sprite `ember` des braseros, deja valide a
+l'oeil) — meme texture (`/img/particles/smoke_07.png`), meme materiau
+(`SpriteMaterial`, `AdditiveBlending`, `transparent: true`,
+`depthWrite: false`). Cette texture est deja chargee sur TOUTES les
+directions (pas seulement jade) : `arrow-vapor.tsx`, `cihuateteo.tsx`,
+`frost-world.tsx` et `sun-beam.tsx` appellent tous
+`useTexture.preload("/img/particles/smoke_07.png")` au niveau module, et
+leurs modules sont importes sans condition par `scene-content.tsx` — le
+halo ne coute donc aucun chargement de plus au Sud.
+
+- [ ] **Step 1 : monter le dosage de la constante partagee**
+
+Dans `src/lib/passage-colibri.ts`, remplacer :
+
+```ts
+  /** Intensite de l'eclat emissif pendant la visite ; dosage a la capture. */
+  eclat: 0.4,
+```
+
+par :
+
+```ts
+  /** Intensite du passage pendant la visite : assombrit le corps (shader,
+   * 1 - eclat) ET pilote l'opacite du halo (sprite). Montee de 0,4 a 0,88
+   * le 10/10 apres-midi (Sylvain : « c'est moche » sur l'aplat colore) ;
+   * dosage a la capture, pas au seuil. */
+  eclat: 0.88,
+```
+
+- [ ] **Step 2 : verifier que les unitaires de `passage-colibri.test.ts` restent verts**
+
+Run: `pnpm exec vitest run src/lib/passage-colibri.test.ts`
+Expected: PASS, 15 tests (le test de `cibleEclat` lit `PASSAGE.eclat`, pas une valeur en dur : rien a changer la).
+
+- [ ] **Step 3 : le corps ne s'eclaircit plus — remplacer l'aplat colore**
+
+Dans `src/app/components/stag-scene/huitzilin-birds.tsx`, la fonction `makeMaterial` (vers la ligne 100), remplacer :
+
+```ts
+      .replace(
+        "#include <emissivemap_fragment>",
+        // Le passage (10/10, lib/passage-colibri) : la texture elle-meme
+        // s'allume (pas une couleur plate par-dessus) ; le guerrier du
+        // soleil brille en venant. uEclat = 0 hors passage : rien ne change.
+        "#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * uEclat;"
+      );
+```
+
+par :
+
+```ts
+      .replace(
+        "#include <emissivemap_fragment>",
+        // Le passage, revise le 10/10 apres-midi (Sylvain : l'aplat
+        // colore etait moche en gros plan, texture bas-poly exposee). Le
+        // corps s'assombrit au lieu de s'eclaircir : il ne reste qu'une
+        // silhouette sombre, jamais la peinture a plat. La couleur et la
+        // chaleur viennent du halo (sprite), pas du mesh. uEclat = 0 hors
+        // passage : rien ne change.
+        "#include <emissivemap_fragment>\ndiffuseColor.rgb *= 1.0 - uEclat;"
+      );
+```
+
+- [ ] **Step 4 : le halo, memes imports que `copal-braziers.tsx`**
+
+Dans `src/app/components/stag-scene/huitzilin-birds.tsx`, ajouter aux imports existants :
+
+```ts
+import { useGLTF, useTexture } from "@react-three/drei";
+import { AdditiveBlending, Color, Group, Mesh, MeshStandardMaterial, type PerspectiveCamera, Quaternion, Sprite, SpriteMaterial, Vector3 } from "three";
+```
+
+(remplace les lignes 6 et 7 existantes : `useGLTF` seul devient `useGLTF, useTexture` ; `Group, Mesh, MeshStandardMaterial, ...` gagne `AdditiveBlending`, `Color`, `Sprite`, `SpriteMaterial`.)
+
+Ajouter apres la constante `MODEL_PATH` :
+
+```ts
+const SMOKE_SPRITE = "/img/particles/smoke_07.png"; // deja preload par d'autres modules (voir Tache 5 ci-dessus) : aucun cout de chargement de plus ici.
+const HALO_COLOR = new Color("#ff7a2a"); // meme teinte que les braises (copal-braziers.tsx) : chaude et restreinte, pas l'arc-en-ciel par espece.
+const HALO_SCALE = 0.5; // u, billboard carre ; assez grand pour que les ailes en vibration ne depassent jamais net du halo (a doser a la capture).
+```
+
+- [ ] **Step 5 : creer le materiau et un sprite par oiseau**
+
+Dans le composant, juste apres `const { scene } = useGLTF(MODEL_PATH);`, ajouter :
+
+```ts
+  const smokeTexture = useTexture(SMOKE_SPRITE);
+  const haloMaterial = useMemo(
+    () => new SpriteMaterial({ map: smokeTexture, color: HALO_COLOR, transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending, fog: false }),
+    [smokeTexture]
+  );
+```
+
+Dans `useMemo(birds)`, la fonction qui construit les meshs (vers la ligne 156), le `return HUITZILIN_SPECIES.map((sp, i) => { ... })` cree aujourd'hui un seul `Mesh` par oiseau. Lui adjoindre un sprite de halo stocke a cote (pas dans la scene graph du mesh : un enfant suivrait sa rotation/echelle, alors que le halo doit rester une boule billboard de taille fixe) :
+
+```ts
+    return HUITZILIN_SPECIES.map((sp, i) => {
+      const uniforms: BirdUniforms = { uTime: { value: 0 }, uFlap: { value: FLAP_AMPLITUDE }, uHue: { value: (sp.hueShift * Math.PI) / 180 }, uSat: { value: sp.saturation }, uPhase: { value: i * 1.3 }, uEclat: { value: 0 } };
+      const mesh = new Mesh(src.geometry, makeMaterial(base, uniforms));
+      mesh.frustumCulled = false;
+      mesh.userData.uniforms = uniforms;
+      mesh.userData.scale = BASE_SCALE * sp.scale;
+      const halo = new Sprite(haloMaterial.clone());
+      halo.scale.setScalar(HALO_SCALE);
+      halo.raycast = () => null;
+      halo.visible = false;
+      mesh.userData.halo = halo;
+      return mesh;
+    });
+```
+
+La ligne de fermeture du `useMemo`, juste apres ce `return`, passe de :
+
+```ts
+  }, [scene]);
+```
+
+a :
+
+```ts
+  }, [scene, haloMaterial]);
+```
+
+Dans le `useEffect` qui monte/demonte les oiseaux (`birdsRef.current = birds; ... for (const b of birds) g.add(b);`), ajouter aussi les halos :
+
+```ts
+  useEffect(() => {
+    birdsRef.current = birds;
+    const g = groupRef.current;
+    if (!g) return;
+    for (const b of birds) {
+      g.add(b);
+      g.add(b.userData.halo as Sprite);
+    }
+    return () => {
+      for (const b of birds) {
+        g.remove(b);
+        g.remove(b.userData.halo as Sprite);
+      }
+    };
+  }, [birds]);
+```
+
+- [ ] **Step 6 : piloter le halo dans `useFrame`, au meme endroit que `uEclat`**
+
+Dans la boucle `for (let i = 0; i < birds.length; i++)`, remplacer le bloc existant :
+
+```ts
+      // L'eclat ne concerne que l'oiseau du passage ; lisse (0,15 par image
+      // a 60 Hz, ~0,5 s), visible en venant et en tenant, eteint en partant.
+      if (passageRef.current.oiseau === i) {
+        eclatRef.current += (cibleEclat(passageRef.current.etat) - eclatRef.current) * 0.15;
+        u.uEclat.value = eclatRef.current;
+      }
+```
+
+par :
+
+```ts
+      // L'eclat ne concerne que l'oiseau du passage ; lisse (0,15 par image
+      // a 60 Hz, ~0,5 s), visible en venant et en tenant, eteint en partant.
+      // Assombrit le corps (uEclat, shader) ET pilote l'opacite du halo
+      // (meme courbe : revision du 10/10 apres-midi, docs/superpowers/specs).
+      const halo = mesh.userData.halo as Sprite;
+      if (passageRef.current.oiseau === i) {
+        eclatRef.current += (cibleEclat(passageRef.current.etat) - eclatRef.current) * 0.15;
+        u.uEclat.value = eclatRef.current;
+        halo.visible = eclatRef.current > 0.01;
+        halo.position.copy(mesh.position);
+        (halo.material as SpriteMaterial).opacity = eclatRef.current;
+      } else if (halo.visible) {
+        halo.visible = false;
+      }
+```
+
+- [ ] **Step 7 : disposer les materiaux de halo au demontage**
+
+A cote du `useEffect` de nettoyage existant (ou dans le meme, apres le `for` de retrait), ajouter la liberation du materiau d'origine :
+
+```ts
+  useEffect(() => () => haloMaterial.dispose(), [haloMaterial]);
+```
+
+(les clones par oiseau partagent la meme texture — pas de `dispose()` par clone necessaire, `SpriteMaterial.clone()` ne duplique pas la texture GPU.)
+
+- [ ] **Step 8 : types et lint**
+
+Run: `pnpm exec tsc --noEmit && pnpm exec eslint src/app/components/stag-scene/huitzilin-birds.tsx`
+Expected: aucune nouvelle erreur. Les avertissements deja presents ailleurs dans le depot (`background-flora.tsx`, `frost-world.tsx`, etc., vus au dernier commit) ne sont pas de ce fichier : ne pas les toucher.
+
+- [ ] **Step 9 : les unitaires complets**
+
+Run: `pnpm test`
+Expected: tous verts (aucune lib pure modifiee dans cette tache : seuls `huitzilin-birds.tsx` (composant, pas teste a l'unite) et la constante `PASSAGE.eclat` (testee via `cibleEclat`, deja verifiee a l'etape 2) changent).
+
+- [ ] **Step 10 : commit**
+
+```bash
+git add src/lib/passage-colibri.ts src/app/components/stag-scene/huitzilin-birds.tsx
+git commit -m "feat(sud): le passage du colibri ne s'eclaire plus, il s'assombrit ; un halo flou additif (recette des braises) porte la couleur"
+```
+
+---
+
+### Task 6 : la vibration de la visite n'est plus reduite
+
+**Files:**
+- Modify: `src/lib/huitzilin.ts`
+- Modify: `src/lib/huitzilin.test.ts`
+
+- [ ] **Step 1 : le test actuel nomme encore « vibration reduite » — le corriger AVANT de changer la valeur, pour le voir rouge pour la bonne raison**
+
+Dans `src/lib/huitzilin.test.ts`, remplacer le titre et le commentaire (lignes 154 et 165) :
+
+```ts
+  it("en stationnaire de visite : vibration reduite, pas de borne de boite, l'ancre suit le point", () => {
+```
+
+par :
+
+```ts
+  it("en stationnaire de visite : vibration proche de la normale (10/10 apres-midi, plus de x0,4), pas de borne de boite, l'ancre suit le point", () => {
+```
+
+et :
+
+```ts
+    expect(maxEcart).toBeLessThanOrEqual(SPEC.jitter * VISITE_VIBRATION * Math.sqrt(3) + 1e-6); // mais quatre fois moins
+```
+
+par :
+
+```ts
+    expect(maxEcart).toBeLessThanOrEqual(SPEC.jitter * VISITE_VIBRATION * Math.sqrt(3) + 1e-6); // vibration proche de la normale, pas reduite
+```
+
+(l'assertion elle-meme lit deja la constante `VISITE_VIBRATION`, pas une valeur en dur : elle reste vraie quelle que soit sa valeur ; seul le commentaire mentait.)
+
+- [ ] **Step 2 : verifier que les unitaires restent verts (rien n'a encore change dans la lib)**
+
+Run: `pnpm exec vitest run src/lib/huitzilin.test.ts`
+Expected: PASS (le test ne verifie qu'une borne superieure ; il reste vrai avant comme apres la Step 3).
+
+- [ ] **Step 3 : monter la constante**
+
+Dans `src/lib/huitzilin.ts`, remplacer :
+
+```ts
+/** Facteur de la vibration en stationnaire de visite (lib/passage-colibri). */
+export const VISITE_VIBRATION = 0.4;
+```
+
+par :
+
+```ts
+/** Facteur de la vibration en stationnaire de visite (lib/passage-colibri).
+ * Montee de 0,4 a 1 le 10/10 apres-midi : a 0,4 la silhouette se figeait
+ * assez longtemps pour se lire comme un dessin plat ; a 1 (vibration
+ * normale, non reduite) le flou du mouvement reel masque la forme figee.
+ * A doser a la capture, pas en dur. */
+export const VISITE_VIBRATION = 1;
+```
+
+- [ ] **Step 4 : verifier le vert**
+
+Run: `pnpm exec vitest run src/lib/huitzilin.test.ts`
+Expected: PASS, memes tests (la borne verifiee est proportionnelle a `VISITE_VIBRATION`, elle monte avec).
+
+- [ ] **Step 5 : les unitaires complets, et tsc/eslint**
+
+Run: `pnpm test && pnpm exec tsc --noEmit && pnpm exec eslint src/lib/huitzilin.ts src/lib/huitzilin.test.ts`
+Expected: tout vert, zero nouvelle erreur.
+
+- [ ] **Step 6 : commit**
+
+```bash
+git add src/lib/huitzilin.ts src/lib/huitzilin.test.ts
+git commit -m "fix(sud): la vibration de la visite du colibri n'est plus reduite (x0,4 -> x1) : le mouvement masque la silhouette figee, pas un post-effet"
+```
+
+---
+
+### Task 7 : nouvelle capture, et l'oeil de Sylvain
+
+**Files:**
+- Modify: (aucun fichier nouveau ; reutilise `.scratch/passage-colibri.mjs` ecrit a la Tache 4)
+
+- [ ] **Step 1 : verifier qu'aucun autre processus Node ne tourne a plein (lecon du 04/10, nuit mobile : un serveur Vite oublie avait fait rougir la barre)**
+
+Run (PowerShell) : `Get-Process node -ErrorAction SilentlyContinue`
+Expected : rien, ou uniquement des process attendus. Si un process inattendu tourne a plein CPU : le signaler avant de continuer, ne pas le tuer sans savoir ce que c'est.
+
+- [ ] **Step 2 : compiler, servir, capturer (meme script, meme procedure que la Tache 4)**
+
+Run (PowerShell) :
+
+```powershell
+pnpm run build
+$p = Start-Process -FilePath "pnpm" -ArgumentList "exec","next","start","-p","3100" -WindowStyle Hidden -PassThru
+# attendre que http://localhost:3100/fr reponde 200, puis :
+node .scratch/passage-colibri.mjs 3100
+foreach ($f in Get-ChildItem .scratch/passage-*.png) { Copy-Item $f.FullName "C:\Users\sylva\Downloads\nahual-sud-3-$($f.Name)" -Force }
+Stop-Process -Id $p.Id -Force
+```
+
+(prefixe `nahual-sud-3-`, pas `nahual-sud-2-` : la revision precedente garde ses fichiers dans `Downloads`, pour comparer avant/apres si besoin.)
+
+Expected : six images, « stationnaire a +~5 s » et « fini a +~9 s » sur les deux cas.
+
+- [ ] **Step 3 : regarder soi-meme AVANT de remettre** : le corps est-il bien une silhouette sombre (plus de couleur plate lisible) ? le halo a-t-il un bord flou, pas de contour geometrique dur ? les ailes en vibration restent-elles dans le halo ou depassent-elles net ? Si le halo a un bord dur : verifier `HALO_SCALE` (le sprite est peut-etre trop petit, ou la texture de fumee a un bord net a cette echelle — regarder `/public/img/particles/smoke_07.png`).
+
+- [ ] **Step 4 : remettre a Sylvain** les chemins complets des six images (`C:\Users\sylva\Downloads\nahual-sud-3-*`), avec un rappel court de ce qui a change (corps assombri, halo flou, vibration normale). **Rien d'autre ne se fait tant qu'il n'a pas repondu** — ni la Tache 8 (docs, poussee `dev`), ni `main` (regle de `CLAUDE.md` : une session = une chose bornee + une capture regardee).
+
+---
+
+### Task 8 : docs et cloture (seulement apres le feu vert de Sylvain sur la Tache 7)
 
 **Files:**
 - Modify: `docs/da/plans/sud.md`
@@ -669,7 +1002,7 @@ Expected : six images, « stationnaire a +~5 s » et « fini a +~9 s » sur les 
 - [ ] **Step 1 : la ligne du passage dans le tableau de `docs/da/plans/sud.md`**, entre les lignes 2 et 3 :
 
 ```markdown
-| 2b | arrivee + 4 s, si p < 0,5 | le passage du colibri (`lib/passage-colibri`) : UN oiseau vient a 1,3 u devant l'objectif, en haut a droite, tient 2,5 s avec un eclat, puis file sur une etoile qui tombe ; une fois par arrivee | 2,5 s | (le bourdonnement : a faire) | `huitzilin-birds.tsx`, `lib/huitzilin` (visite) |
+| 2b | arrivee + 4 s, si p < 0,5 | le passage du colibri (`lib/passage-colibri`) : UN oiseau vient a 1,3 u devant l'objectif, en haut a droite, corps assombri + halo flou (recette des braises), tient 2,5 s, puis file sur une etoile qui tombe ; une fois par arrivee | 2,5 s | (le bourdonnement : a faire) | `huitzilin-birds.tsx`, `lib/huitzilin` (visite) |
 ```
 
 - [ ] **Step 2 : commit docs, pousser `dev`**
