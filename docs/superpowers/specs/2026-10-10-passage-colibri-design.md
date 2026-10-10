@@ -69,14 +69,78 @@ approche (fleche, vitesse actuelle 9 u/s, ~1 s depuis la boite)
 Sans proie disponible : fleche vers une ancre de la boite ; l'oiseau est
 quand meme venu.
 
-### La lumiere (risque DA)
+### La lumiere (risque DA) — PERIMEE, voir la revision du 10/10 apres-midi
 
-La nuit du Sud est a 0,18 : un oiseau sombre devant un ciel sombre est une
+~~La nuit du Sud est a 0,18 : un oiseau sombre devant un ciel sombre est une
 silhouette. Une emissive chaude est posee sur le materiau a la creation
 (intensite 0 : aucune recompilation, `emissiveIntensity` est un uniform)
 et monte a ~0,4 pendant la visite, fondu a l'aller et au retour : le
-guerrier du soleil porte un eclat. **Le dosage se decide a la capture**,
-pas au seuil.
+guerrier du soleil porte un eclat.~~ Implemente, capture le 10/10 11h30 :
+**l'eclat en aplat rend la texture peinte plus lisible, pas moins** — le
+risque DA annonce ici s'est realise, voir plus bas.
+
+## Revision du 10/10 (apres-midi) : le gros plan repense
+
+Capture `.scratch/passage-colibri.mjs` regardee par Sylvain
+(`Downloads/nahual-sud-2-passage-*`), tache 4 du plan d'execution. Verdict :
+« le colibri est bien visible mais peut etre assez moche » — en gros plan a
+1,3 u, le modele Google Poly (`hummingbird-poly.glb`, CC BY 3.0, texture
+peinte bas-poly) expose un aplat de couleurs saturees (rotation de teinte
+par espece jusqu'a 110°, saturation jusqu'a 1,2) sans aucun volume, contre
+un decor peint mais ombre (le cerf a du relief, l'oiseau non). L'eclat
+actuel (uEclat ajoute au diffuse) aggrave l'expose plutot que de le
+corriger. Sylvain tranche : on ne dose pas le shader existant, **on remet
+en cause le gros plan lui-meme**.
+
+Brainstorm (compagnon visuel, trois options testees) :
+- **Reculer / isoler sans se rapprocher** — ecarte : c'est exactement la
+  proximite qui a ete choisie le 21/09 PARCE QUE l'echelle est fixee et
+  realiste (0,06, trois pixels de loin) ; sans elle, le colibri redevient
+  invisible, on recree le defaut mesure plus haut (« personne ne le voit »).
+- **Contre-jour litteral** (le placer devant une vraie source de lumiere
+  de la scene) — ecarte : depend d'un alignement camera/lumiere non
+  garanti a chaque passage, risque de silhouette plate sans rien a
+  regarder si ca ne tombe pas pile.
+- **Halo flou additif + assombrissement du corps, mouvement jamais fige**
+  — retenu. Premier essai d'un contour net colore (fresnel geometrique) 
+  juge « encore plus effet dessin » par Sylvain (a raison : un contour dur
+  et sature a le meme defaut que l'aplat d'origine). La bonne reference
+  etait deja dans le depot : `copal-braziers.tsx` (les braises du foyer,
+  deja validees a l'oeil) n'utilise ni aplat ni contour geometrique, mais
+  un **sprite flou en fondu additif** (texture de fumee existante,
+  `AdditiveBlending`, teinte chaude et restreinte `#ff7a2a`, pas un
+  camaieu par espece a pleine saturation).
+
+### La lumiere et le mouvement, nouvelle version
+
+- **Distance inchangee (1,3 u)** : c'est le levier proximite qui rend le
+  passage visible, rien a y toucher.
+- **Le corps ne s'eclaircit plus.** Pendant `approche`/`stationnaire`, le
+  diffuse est assombri vers le noir (au lieu du `uEclat` actuel qui
+  l'eclaire) : l'oiseau reste une silhouette sombre, jamais la texture
+  peinte a plat.
+- **Un halo separe porte la couleur**, meme recette que les braises :
+  sprite flou additif (reutiliser la texture de fumee existante si le
+  cout le permet, sinon une texture equivalente), teinte ambree/doree
+  restreinte (pas la rotation de teinte complete par espece a pleine
+  saturation — une famille chaude commune, legerement nuancee si besoin),
+  positionne sur le meme point devant la camera, pilote par `cibleEclat`
+  comme aujourd'hui (l'intensite monte a l'approche/au stationnaire,
+  retombe a 0 au depart).
+- **La vibration du stationnaire ne retombe plus a × 0,4.** Ce facteur
+  fige trop la silhouette et laisse le temps de la lire ; elle reste
+  proche de la vibration normale (a doser a la capture, pas en dur) : le
+  flou vient du vrai mouvement, pas d'un post-effet qu'on n'a pas.
+- **Dosage a la capture, pas au seuil** (regle inchangee) : teinte,
+  taille et intensite du halo, niveau de vibration — l'oeil de Sylvain
+  decide sur `Downloads`.
+
+### Ce qui ne change pas (confirme)
+
+Aucun mesh ni appel de rendu en plus : le halo reutilise un materiau/texture
+du meme ordre de grandeur que les braises (deja dans le budget perf
+mesure). `huitzilin.ts` reste pur. `pnpm run perf` passe quand meme avant
+toute poussee sur `main`, comme d'habitude.
 
 ## Ce qui ne change pas
 
