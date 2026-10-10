@@ -888,7 +888,7 @@ git commit -m "feat(sud): le passage du colibri ne s'eclaire plus, il s'assombri
 - Modify: `src/lib/huitzilin.ts`
 - Modify: `src/lib/huitzilin.test.ts`
 
-- [ ] **Step 1 : le test actuel nomme encore « vibration reduite » — le corriger AVANT de changer la valeur, pour le voir rouge pour la bonne raison**
+- [x] **Step 1 : le test actuel nomme encore « vibration reduite » — le corriger AVANT de changer la valeur, pour le voir rouge pour la bonne raison**
 
 Dans `src/lib/huitzilin.test.ts`, remplacer le titre et le commentaire (lignes 154 et 165) :
 
@@ -916,12 +916,12 @@ par :
 
 (l'assertion elle-meme lit deja la constante `VISITE_VIBRATION`, pas une valeur en dur : elle reste vraie quelle que soit sa valeur ; seul le commentaire mentait.)
 
-- [ ] **Step 2 : verifier que les unitaires restent verts (rien n'a encore change dans la lib)**
+- [x] **Step 2 : verifier que les unitaires restent verts (rien n'a encore change dans la lib)**
 
 Run: `pnpm exec vitest run src/lib/huitzilin.test.ts`
 Expected: PASS (le test ne verifie qu'une borne superieure ; il reste vrai avant comme apres la Step 3).
 
-- [ ] **Step 3 : monter la constante**
+- [x] **Step 3 : monter la constante**
 
 Dans `src/lib/huitzilin.ts`, remplacer :
 
@@ -941,17 +941,17 @@ par :
 export const VISITE_VIBRATION = 1;
 ```
 
-- [ ] **Step 4 : verifier le vert**
+- [x] **Step 4 : verifier le vert**
 
 Run: `pnpm exec vitest run src/lib/huitzilin.test.ts`
 Expected: PASS, memes tests (la borne verifiee est proportionnelle a `VISITE_VIBRATION`, elle monte avec).
 
-- [ ] **Step 5 : les unitaires complets, et tsc/eslint**
+- [x] **Step 5 : les unitaires complets, et tsc/eslint**
 
 Run: `pnpm test && pnpm exec tsc --noEmit && pnpm exec eslint src/lib/huitzilin.ts src/lib/huitzilin.test.ts`
 Expected: tout vert, zero nouvelle erreur.
 
-- [ ] **Step 6 : commit**
+- [x] **Step 6 : commit**
 
 ```bash
 git add src/lib/huitzilin.ts src/lib/huitzilin.test.ts
