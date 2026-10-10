@@ -563,6 +563,23 @@ body.nahual-lab-reveal main {
   isolation: isolate;
 }
 
+/* L'ACCUEIL MOBILE (04/10, lib/hero-mobile). `main` est une colonne centree
+   verticalement sur toute la hauteur : sur telephone, la carte du hero
+   flottait au milieu de l'ecran, exactement sur le cerf (capture 412 px,
+   scene seule : le cerf est au centre avec sa couronne de fleurs ; avec la
+   carte, on ne voit que le texte). Sur l'accueil seul (les pages echo ont
+   leur propre mise en page par main[data-direction]), le contenu s'ancre
+   en bas, au-dessus de la boussole (84 px) : le cerf garde le centre, la
+   carte prend le bas. Le test controls-overlap garde cette zone.
+   112 -> 84 px le 10/10 : la carte a recu 28 px de padding vertical et
+   mordait la couronne de fleurs ; on lui rend la place par le bas. */
+@media (max-width: 767px) {
+  body.nahual-lab-reveal main:not([data-direction]) {
+    justify-content: flex-end;
+    padding-bottom: calc(84px + var(--footer-height));
+  }
+}
+
 /* Passage cardinal Nepantla (03/09) : l'opacite et le transform du
    contenu sont pilotes par GSAP (cardinal-transition-context +
    nepantla-frame), plus par le CSS. Le body class ne sert plus qu'a
@@ -1818,6 +1835,16 @@ html:not([data-strike]) .contentPage {
    titres descendent d'un cran de plus. Mesure du 10/09 : a 28,4 px, le
    titre du hero prenait trois lignes sur 194 px de large et remontait sous
    le bouton du menu (432 px2 de chevauchement, test controls-overlap). */
+/* Sous 400 px (04/10, l'accueil mobile : le Redmi Note 9 Pro de Sylvain fait
+   392 px), le titre du hero a 28,4 px tenait sur trois lignes et la carte
+   remontait sur le cerf ; a 24 px il tient sur deux. Le palier de 380 px
+   garde le sien, plus bas. */
+@media (max-width: 400px) {
+  :root {
+    --t-page: 1.5rem;
+  }
+}
+
 @media (max-width: 380px) {
   :root {
     --t-page: 1.333rem;
@@ -1937,7 +1964,11 @@ html[data-footer-in-view="true"] .seuilTete[data-seuil-tete="fixe"] {
 /* Telephone etroit (13/09) : le hero de l'accueil ne tient plus en hauteur
    avec la ligne de seuil, et son titre montait sous le bouton du menu
    (mesure : 553 px2 sur un Galaxy S9+). La ligne du voyage l'annonce deja. */
-@media (max-width: 400px) {
+/* 400 -> 767 px le 04/10 (l'accueil mobile, lib/hero-mobile) : sur tout
+   telephone la carte du hero tient en titre + appel, le cerf garde le
+   centre ; a 412 px la ligne de seuil faisait trois lignes et la carte
+   remontait jusqu'a la tete du cerf. */
+@media (max-width: 767px) {
   .seuilTete:not([data-seuil-tete]) {
     display: none;
   }

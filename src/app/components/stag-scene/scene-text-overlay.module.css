@@ -60,6 +60,21 @@
   .stack {
     gap: 18px;
   }
+
+  /* Plus serre sur telephone (10/10) : le couloir des controles prend deja
+     72 px, et la carte perd en largeur ce qu'elle gagne en padding. */
+  .block {
+    padding: 14px 16px;
+  }
+
+  /* L'ACCUEIL MOBILE (04/10, lib/hero-mobile) : sur telephone, le paragraphe
+     du hero n'entre dans la carte qu'au premier defilement. Avant, la carte
+     tient en titre + seuil + appel et la scene se voit (Sylvain, sur son
+     Redmi : « texte omnipresent, on ne voit que ca » ; variante V1 choisie
+     sur captures). L'attribut est pose par hero-texte-mobile.tsx. */
+  .heroTexte:not([data-visible]) {
+    display: none;
+  }
 }
 
 /* Empile hero et à-propos verticalement — jamais superposés, y compris
@@ -78,6 +93,12 @@
      tomber un mot du hero sous 4,5:1 (mesure : p05 2,92). */
   background: rgba(var(--panel-rgb), calc(0.45 * var(--scene-lum, 0)));
   border-radius: 12px;
+  /* La carte avait un fond mais aucun padding (10/10, Sylvain sur les
+     captures de l'accueil mobile : « l'encart fait coller la typo sur le
+     bord »). Invisible tant que le fond etait nul la nuit ; des que la
+     scene s'eclaire, le texte touchait les quatre bords. Meme respiration
+     que l'encadre du chapitre. */
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -209,6 +230,16 @@
    ancre en bas et remontait sous le bouton du menu. On resserre ce qui
    peut l'etre sans toucher au corps (16 px, jamais moins) : l'interligne
    du chapeau pour les paragraphes, et la pile plus serree. */
+/* Sous 400 px (le Redmi Note 9 Pro de Sylvain : 392 px), l'appel tenait sur
+   deux lignes et la carte remontait sur le cerf (04/10, l'accueil mobile) :
+   l'appel se resserre pour tenir sur une ligne. */
+@media (max-width: 400px) {
+  .cta {
+    padding: 10px 16px;
+    font-size: 0.95rem;
+  }
+}
+
 @media (max-width: 380px) {
   .block p {
     line-height: var(--il-chapeau);

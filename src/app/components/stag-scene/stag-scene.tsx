@@ -6,6 +6,7 @@ import RevealText from "../reveal-text";
 import Cantar, { type CantarTexts } from "../cantar";
 import CardinalLink from "./cardinal-link";
 import FadingBlock from "./fading-block";
+import HeroTexteMobile from "./hero-texte-mobile";
 import PageClosure from "./page-closure";
 import SceneStage from "./scene-stage";
 import overlayStyles from "./scene-text-overlay.module.css";
@@ -100,7 +101,8 @@ export default function StagScene({
             <div aria-hidden="true">
               <RevealText as="h1" text={home.heroTitle} delayPerWord={50} />
               {seuil ? <p className="seuilTete">{seuil}</p> : null}
-              <p>{home.heroText}</p>
+              {/* Sur telephone, le paragraphe n'entre qu'au premier defilement (04/10, lib/hero-mobile). */}
+              <HeroTexteMobile progressRef={progressRef}>{home.heroText}</HeroTexteMobile>
             </div>
             <div className={overlayStyles.links}>
               <CardinalLink href={servicesHref} className={overlayStyles.cta}>
