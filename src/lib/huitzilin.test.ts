@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { birdTangent, HUITZILIN_SPECIES, HUITZILIN_SPEC, initialBird, stepBird, type BirdState } from "./huitzilin";
+import { birdTangent, commencerVisite, HUITZILIN_SPECIES, HUITZILIN_SPEC, initialBird, stepBird, suivreVisite, VISITE_VIBRATION, type BirdState } from "./huitzilin";
 
 const SPEC = HUITZILIN_SPEC;
 
@@ -116,5 +116,82 @@ describe("la chasse (pickPrey : une fleche vers une etoile, qu'elle eteint a l'a
       expect(s.justKilled).toBeNull();
       expect(s.preyIndex).toBeNull();
     }
+  });
+});
+
+describe("la visite (10/10, le passage du colibri)", () => {
+  const POINT = { x: 0.35, y: 3.15, z: 9.7 }; // hors boite (zMax 3)
+  const TENUE = 2.5;
+
+  function volerJusquAuPoint(s: BirdState, dt = 1 / 60): { s: BirdState; secondes: number } {
+    let secondes = 0;
+    while (s.mode === "dart" && secondes < 10) {
+      s = stepBird(s, dt, 0, SPEC);
+      secondes += dt;
+    }
+    return { s, secondes };
+  }
+
+  it("commencerVisite : une fleche vers le point, la visite posee", () => {
+    const s = commencerVisite(initialBird(3, SPEC), POINT, TENUE);
+    expect(s.mode).toBe("dart");
+    expect(s.target).toEqual(POINT);
+    expect(s.visite).toEqual(POINT);
+    expect(s.visiteTenue).toBe(TENUE);
+  });
+
+  it("l'oiseau arrive SUR le point, hors boite, et tient la duree de la visite", () => {
+    const { s, secondes } = volerJusquAuPoint(commencerVisite(initialBird(3, SPEC), POINT, TENUE));
+    expect(s.mode).toBe("hover");
+    expect(s.x).toBeCloseTo(POINT.x, 6);
+    expect(s.y).toBeCloseTo(POINT.y, 6);
+    expect(s.z).toBeCloseTo(POINT.z, 6);
+    expect(s.z).toBeGreaterThan(SPEC.zMax); // la boite ne borne pas la visite
+    expect(s.remaining).toBeCloseTo(TENUE, 6);
+    expect(secondes).toBeLessThan(3); // ~1 s depuis la boite a 9 u/s
+  });
+
+  it("en stationnaire de visite : vibration reduite, pas de borne de boite, l'ancre suit le point", () => {
+    let { s } = volerJusquAuPoint(commencerVisite(initialBird(3, SPEC), POINT, TENUE));
+    let maxEcart = 0;
+    const suivi = { x: 0.6, y: 3.3, z: 9.9 }; // la camera a bouge (parallaxe)
+    for (let i = 0; i < 60; i++) {
+      s = stepBird(suivreVisite(s, suivi), 1 / 60, 0, SPEC);
+      expect(s.mode).toBe("hover");
+      maxEcart = Math.max(maxEcart, Math.hypot(s.x - suivi.x, s.y - suivi.y, s.z - suivi.z));
+    }
+    expect(maxEcart).toBeGreaterThan(0); // elle vibre
+    // Trois composantes bornees a 1 chacune : l'ecart est au plus jit * sqrt(3).
+    expect(maxEcart).toBeLessThanOrEqual(SPEC.jitter * VISITE_VIBRATION * Math.sqrt(3) + 1e-6); // mais quatre fois moins
+    expect(s.z).toBeGreaterThan(SPEC.zMax);
+  });
+
+  it("a la fin de la tenue : la visite est rendue, la fleche vise la proie si on en a une", () => {
+    let { s } = volerJusquAuPoint(commencerVisite(initialBird(3, SPEC), POINT, TENUE));
+    const prey = { index: 17, dir: { x: 0, y: 0.4, z: -0.92 } };
+    let secondes = 0;
+    while (s.mode === "hover" && secondes < 5) {
+      s = stepBird(s, 1 / 60, 0, SPEC, () => prey);
+      secondes += 1 / 60;
+    }
+    expect(secondes).toBeGreaterThanOrEqual(TENUE - 1 / 30);
+    expect(s.mode).toBe("dart");
+    expect(s.visite).toBeNull();
+    expect(s.preyIndex).toBe(17);
+    expect(s.target.z).toBeLessThanOrEqual(SPEC.zMax); // la cible rentre dans la boite
+    expect(s.target.z).toBeLessThan(POINT.z); // et part bien vers l'etoile (-z)
+  });
+
+  it("sans proie : la fleche part vers une ancre de la boite, et la vie normale reprend", () => {
+    let { s } = volerJusquAuPoint(commencerVisite(initialBird(3, SPEC), POINT, TENUE));
+    for (let i = 0; i < 60 * 8; i++) s = stepBird(s, 1 / 60, 0, SPEC);
+    expect(s.visite).toBeNull();
+    expect(Math.abs(s.x)).toBeLessThanOrEqual(SPEC.xHalf + 1e-6);
+    expect(s.z).toBeLessThanOrEqual(SPEC.zMax + 1e-6);
+  });
+
+  it("stepBird sans visite est inchange (le champ est null)", () => {
+    const s = stepBird(initialBird(3, SPEC), 1 / 60, 0, SPEC);
+    expect(s.visite).toBeNull();
   });
 });

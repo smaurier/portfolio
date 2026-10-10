@@ -76,6 +76,9 @@ export const HUITZILIN_SPEC: BirdSpec = {
   huntDart: 5,
 };
 
+/** Facteur de la vibration en stationnaire de visite (lib/passage-colibri). */
+export const VISITE_VIBRATION = 0.4;
+
 export type BirdState = {
   x: number;
   y: number;
@@ -97,6 +100,12 @@ export type BirdState = {
   preyIndex: number | null;
   /** Etoile mise a mort a la fin de la derniere fleche (un seul pas), sinon null. */
   justKilled: number | null;
+  /** Le passage (10/10, lib/passage-colibri) : le point devant la camera
+   * ou l'oiseau tient son stationnaire, hors boite, vibration reduite ;
+   * null hors visite. */
+  visite: Vec3 | null;
+  /** Duree du stationnaire de visite (s), posee a l'arrivee sur le point. */
+  visiteTenue: number;
 };
 
 function hash(seed: number, i: number, k: number): number {
@@ -140,7 +149,22 @@ export function initialBird(seed: number, spec: BirdSpec = HUITZILIN_SPEC, p = 0
     darts: 0,
     preyIndex: null,
     justKilled: null,
+    visite: null,
+    visiteTenue: 0,
   };
+}
+
+/** Le passage commence : une fleche droit vers le point devant la camera,
+ * et la visite est posee (l'arrivee donnera un stationnaire de `tenue` s). */
+export function commencerVisite(s: BirdState, point: Vec3, tenue: number): BirdState {
+  return { ...s, mode: "dart", target: point, visite: point, visiteTenue: tenue, preyIndex: null };
+}
+
+/** Le point suit la camera (parallaxe, scroll) : l'ancre de la visite est
+ * remise a jour chaque image ; sans effet hors visite. */
+export function suivreVisite(s: BirdState, point: Vec3): BirdState {
+  if (s.visite === null) return s;
+  return { ...s, visite: point, anchor: s.mode === "hover" ? point : s.anchor, target: s.mode === "dart" ? point : s.target };
 }
 
 /** Un pas : en stationnaire, vibration autour de l'ancre et cap qui derive
@@ -168,10 +192,15 @@ export function stepBird(s: BirdState, dt: number, p: number, spec: BirdSpec = H
     // L'ancre glisse vers l'altitude du moment (le jour descend l'oiseau).
     const yMin = spec.yMinNight + (spec.yMinNoon - spec.yMinNight) * pp;
     const yMax = spec.yMaxNight + (spec.yMaxNoon - spec.yMaxNight) * pp;
-    const anchor = { x: s.anchor.x, y: clamp(s.anchor.y, yMin, yMax), z: s.anchor.z };
-    const x = clamp(anchor.x + jx * spec.jitter, -spec.xHalf, spec.xHalf);
-    const y = clamp(anchor.y + jy * spec.jitter, spec.yMinNoon, spec.yMaxNight);
-    const z = clamp(anchor.z + jz * spec.jitter, spec.zMin, spec.zMax);
+    // En visite (le passage) : l'ancre est le point devant la camera, hors
+    // boite, et la vibration est reduite (a 1,3 u, 12 cm serait un saut).
+    const pointVisite = s.visite;
+    const visite = pointVisite !== null;
+    const anchor = pointVisite !== null ? pointVisite : { x: s.anchor.x, y: clamp(s.anchor.y, yMin, yMax), z: s.anchor.z };
+    const jit = visite ? spec.jitter * VISITE_VIBRATION : spec.jitter;
+    const x = visite ? anchor.x + jx * jit : clamp(anchor.x + jx * jit, -spec.xHalf, spec.xHalf);
+    const y = visite ? anchor.y + jy * jit : clamp(anchor.y + jy * jit, spec.yMinNoon, spec.yMaxNight);
+    const z = visite ? anchor.z + jz * jit : clamp(anchor.z + jz * jit, spec.zMin, spec.zMax);
     const heading = wrapAngle(s.heading + Math.sin(t * 0.9 + ph) * 0.35 * dt);
     const pitch = s.pitch + (0.25 - s.pitch) * Math.min(1, dt * 3); // cabre en stationnaire
     if (remaining > 0) return { ...s, x, y, z, anchor, remaining, heading, pitch, t };
@@ -187,10 +216,11 @@ export function stepBird(s: BirdState, dt: number, p: number, spec: BirdSpec = H
         y: clamp(y + prey.dir.y * spec.huntDart, yMin, yMax),
         z: clamp(z + prey.dir.z * spec.huntDart, spec.zMin, spec.zMax),
       };
-      return { ...s, x, y, z, anchor, mode: "dart", target, remaining: 0, heading, pitch, t, darts, preyIndex: prey.index };
+      // La visite est rendue : la fleche de chasse part du point devant la camera.
+      return { ...s, x, y, z, anchor, mode: "dart", target, remaining: 0, heading, pitch, t, darts, preyIndex: prey.index, visite: null };
     }
     const target = pickAnchor(s.seed, darts, pp, spec);
-    return { ...s, x, y, z, anchor, mode: "dart", target, remaining: 0, heading, pitch, t, darts, preyIndex: null };
+    return { ...s, x, y, z, anchor, mode: "dart", target, remaining: 0, heading, pitch, t, darts, preyIndex: null, visite: null };
   }
   // Fleche : droit vers la cible.
   const dx = s.target.x - s.x, dy = s.target.y - s.y, dz = s.target.z - s.z;
@@ -206,7 +236,8 @@ export function stepBird(s: BirdState, dt: number, p: number, spec: BirdSpec = H
       z: s.target.z,
       mode: "hover",
       anchor: s.target,
-      remaining: spec.hoverMin + (spec.hoverMax - spec.hoverMin) * hash(s.seed, s.darts, 4),
+      // Arrivee sur le point de visite : la tenue du passage, pas un tirage.
+      remaining: s.visite !== null ? s.visiteTenue : spec.hoverMin + (spec.hoverMax - spec.hoverMin) * hash(s.seed, s.darts, 4),
       heading,
       pitch,
       t,
