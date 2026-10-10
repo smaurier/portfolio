@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
-import { Group, Mesh, MeshStandardMaterial, Quaternion, Vector3 } from "three";
+import { Group, Mesh, MeshStandardMaterial, type PerspectiveCamera, Quaternion, Vector3 } from "three";
 import { birdTangent, commencerVisite, HUITZILIN_SPEC, HUITZILIN_SPECIES, initialBird, stepBird, suivreVisite, type BirdState, type Prey, type Vec3 } from "@/lib/huitzilin";
 import { avancerPassage, cibleEclat, doitDeclencher, oiseauLePlusProche, PASSAGE, passageInitial, pointDevantLaCamera, type Passage } from "@/lib/passage-colibri";
 import { CENTZON_COUNT, CENTZON_SPEC, makeStarField, throwFactor } from "@/lib/centzon-stars";
@@ -217,7 +217,7 @@ export default function HuitzilinBirds() {
     // LE PASSAGE (10/10, lib/passage-colibri) : quand, qui, ou. La camera est
     // recopiee dans des objets plats du scratch (rien d'alloue ici ; les libs
     // pures allouent, comme stepBird, c'est leur role).
-    const cam = state.camera;
+    const cam = state.camera as PerspectiveCamera;
     const { camPos, camQ } = scratch;
     camPos.x = cam.position.x;
     camPos.y = cam.position.y;
@@ -226,18 +226,22 @@ export default function HuitzilinBirds() {
     camQ.y = cam.quaternion.y;
     camQ.z = cam.quaternion.z;
     camQ.w = cam.quaternion.w;
+    // La place dans le cadre depend de la focale et du ratio (telephone :
+    // cadre etroit, le point se resserre).
+    const fov = cam.isPerspectiveCamera ? cam.fov : 45;
+    const aspect = cam.isPerspectiveCamera ? cam.aspect : 1.6;
     let declenche: number | undefined;
     if (dt > 0 && doitDeclencher(passageRef.current, sinceArrival, p)) {
       const i = oiseauLePlusProche(statesRef.current, camPos);
       if (i >= 0) {
-        statesRef.current[i] = commencerVisite(statesRef.current[i], pointDevantLaCamera(camPos, camQ, PASSAGE), PASSAGE.tenue);
+        statesRef.current[i] = commencerVisite(statesRef.current[i], pointDevantLaCamera(camPos, camQ, fov, aspect, PASSAGE), PASSAGE.tenue);
         declenche = i;
       }
     }
     const visiteur = passageRef.current.oiseau;
     if (visiteur !== null && statesRef.current[visiteur].visite !== null) {
       // Le point suit la camera (parallaxe, scroll) : il reste devant l'oeil.
-      statesRef.current[visiteur] = suivreVisite(statesRef.current[visiteur], pointDevantLaCamera(camPos, camQ, PASSAGE));
+      statesRef.current[visiteur] = suivreVisite(statesRef.current[visiteur], pointDevantLaCamera(camPos, camQ, fov, aspect, PASSAGE));
     }
     for (let i = 0; i < birds.length; i++) {
       const mesh = birds[i];

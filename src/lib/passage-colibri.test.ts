@@ -47,29 +47,46 @@ describe("le passage du colibri : qui", () => {
 });
 
 describe("le passage du colibri : le point devant la camera", () => {
-  it("camera a l'identite : devant = -z, a droite = +x, en haut = +y", () => {
-    const pt = pointDevantLaCamera({ x: 0, y: 3, z: 11 }, { x: 0, y: 0, z: 0, w: 1 });
-    expect(pt.x).toBeCloseTo(PASSAGE.droite, 6);
-    expect(pt.y).toBeCloseTo(3 + PASSAGE.haut, 6);
+  // Bureau : focale 45, ratio 1280/800. Demi-hauteur a 1,3 u = 1,3 tan(22,5).
+  const FOV = 45;
+  const ASPECT = 1.6;
+  const demiH = PASSAGE.distance * Math.tan((FOV * Math.PI) / 360);
+  const demiL = demiH * ASPECT;
+
+  it("camera a l'identite : devant = -z, a droite = +x, en haut = +y, en fraction du cadre", () => {
+    const pt = pointDevantLaCamera({ x: 0, y: 3, z: 11 }, { x: 0, y: 0, z: 0, w: 1 }, FOV, ASPECT);
+    expect(pt.x).toBeCloseTo(PASSAGE.droite * demiL, 6);
+    expect(pt.y).toBeCloseTo(3 + PASSAGE.haut * demiH, 6);
     expect(pt.z).toBeCloseTo(11 - PASSAGE.distance, 6);
   });
   it("camera tournee d'un demi-tour autour de Y : devant = +z, a droite = -x", () => {
     // Quaternion d'une rotation de PI autour de Y : (0, sin(PI/2), 0, cos(PI/2)) = (0, 1, 0, 0).
-    const pt = pointDevantLaCamera({ x: 0, y: 3, z: -11 }, { x: 0, y: 1, z: 0, w: 0 });
-    expect(pt.x).toBeCloseTo(-PASSAGE.droite, 6);
-    expect(pt.y).toBeCloseTo(3 + PASSAGE.haut, 6);
+    const pt = pointDevantLaCamera({ x: 0, y: 3, z: -11 }, { x: 0, y: 1, z: 0, w: 0 }, FOV, ASPECT);
+    expect(pt.x).toBeCloseTo(-PASSAGE.droite * demiL, 6);
+    expect(pt.y).toBeCloseTo(3 + PASSAGE.haut * demiH, 6);
     expect(pt.z).toBeCloseTo(-11 + PASSAGE.distance, 6);
   });
   it("le point est toujours a la distance voulue de la camera", () => {
-    const d = Math.hypot(PASSAGE.droite, PASSAGE.haut, PASSAGE.distance);
+    const d = Math.hypot(PASSAGE.droite * demiL, PASSAGE.haut * demiH, PASSAGE.distance);
     // Rotation quelconque (normalisee) autour d'un axe oblique.
     const a = 0.7;
     const n = Math.hypot(1, 2, 3);
     const ax = { x: 1 / n, y: 2 / n, z: 3 / n };
     const q = { x: ax.x * Math.sin(a / 2), y: ax.y * Math.sin(a / 2), z: ax.z * Math.sin(a / 2), w: Math.cos(a / 2) };
     const cam = { x: 1, y: 2, z: 3 };
-    const pt = pointDevantLaCamera(cam, q);
+    const pt = pointDevantLaCamera(cam, q, FOV, ASPECT);
     expect(Math.hypot(pt.x - cam.x, pt.y - cam.y, pt.z - cam.z)).toBeCloseTo(d, 5);
+  });
+  it("sur un telephone (focale 58, ratio 412/839) le point reste DANS le cadre", () => {
+    const fov = 58;
+    const aspect = 412 / 839;
+    const pt = pointDevantLaCamera({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0, w: 1 }, fov, aspect);
+    const dh = PASSAGE.distance * Math.tan((fov * Math.PI) / 360);
+    const dl = dh * aspect;
+    expect(Math.abs(pt.x)).toBeLessThan(dl * 0.75); // marge pour le corps de l'oiseau
+    expect(Math.abs(pt.y)).toBeLessThan(dh * 0.75);
+    expect(pt.x).toBeGreaterThan(0);
+    expect(pt.y).toBeGreaterThan(0);
   });
 });
 

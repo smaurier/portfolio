@@ -26,11 +26,14 @@ export const PASSAGE = {
   pMax: 0.5,
   /** Distance devant l'objectif (u). */
   distance: 1.3,
-  /** Decalage dans le repere camera : a droite (+x) et en haut (+y), en u.
+  /** Place dans le CADRE, en fraction du demi-cadre (0 = centre, 1 = bord) :
+   * a droite et en haut. En fraction et non en unites monde (premiere
+   * capture du 10/10 : a +0,35 u sur un Pixel 7, la demi-largeur du cadre a
+   * 1,3 u ne fait que 0,35 u, l'oiseau etait posee sur le bord, hors champ).
    * Le cerf est au centre (telephone) ou aux deux tiers (bureau, colonne de
    * texte a gauche) : en haut a droite on ne le couvre jamais. */
-  droite: 0.35,
-  haut: 0.15,
+  droite: 0.4,
+  haut: 0.3,
   /** Duree du stationnaire devant l'objectif (s). */
   tenue: 2.5,
   /** Facteur de la vibration en visite (0,12 u a 1,3 u serait un saut). */
@@ -69,12 +72,16 @@ export function oiseauLePlusProche(oiseaux: readonly Vec3[], camera: Vec3): numb
   return best;
 }
 
-/** Le point devant la camera : (droite, haut, -distance) dans le repere
- * camera (three regarde vers -z), tourne par le quaternion de la camera,
- * ajoute a sa position. Rotation d'un vecteur par un quaternion unitaire :
+/** Le point devant la camera : a `distance` devant (three regarde vers -z),
+ * decale a droite et en haut d'une fraction du demi-cadre a cette distance
+ * (demi-hauteur = distance * tan(fov/2), demi-largeur = demi-hauteur *
+ * ratio), le tout tourne par le quaternion de la camera et ajoute a sa
+ * position. Rotation d'un vecteur par un quaternion unitaire :
  * v' = v + 2 q.xyz x (q.xyz x v + q.w v). */
-export function pointDevantLaCamera(position: Vec3, q: Quat, spec: typeof PASSAGE = PASSAGE): Vec3 {
-  const vx = spec.droite, vy = spec.haut, vz = -spec.distance;
+export function pointDevantLaCamera(position: Vec3, q: Quat, fovDeg: number, aspect: number, spec: typeof PASSAGE = PASSAGE): Vec3 {
+  const demiHauteur = spec.distance * Math.tan((fovDeg * Math.PI) / 360);
+  const demiLargeur = demiHauteur * aspect;
+  const vx = spec.droite * demiLargeur, vy = spec.haut * demiHauteur, vz = -spec.distance;
   // t = q.xyz x v + q.w v
   const tx = q.y * vz - q.z * vy + q.w * vx;
   const ty = q.z * vx - q.x * vz + q.w * vy;
