@@ -27,10 +27,12 @@ compris. Avant d'ouvrir une session sur ce site :
 5. Jusqu'a l'examen RGAA du 23/10/2026, Nahual est un projet de fond : une
    heure, une chose, une image.
 
-Ce qui attend, avec du sens et de la forme : l'accueil mobile dont le
-panneau de texte mange la scene (lecture de Sylvain, 04/10), le Sud et ses
-colibris (brainstorm du 21/09, parque), la pose au repos par direction
-(chemin 3, apres le Sud), le Xolotl paye (apres le 23/10).
+Ce qui attend, avec du sens et de la forme : le Sud et ses colibris
+(brainstorm du 21/09, parque), la pose au repos par direction (chemin 3,
+apres le Sud), le Xolotl paye (apres le 23/10). Fait le 10/10 : l'accueil
+mobile (la carte du hero en bas, titre + appel, le cerf au centre, et le
+padding de la carte qui manquait partout), valide a l'oeil sur captures,
+`main` `b7d3944`.
 
 # La branche de travail et les constructions Netlify
 
