@@ -687,7 +687,7 @@ directions (pas seulement jade) : `arrow-vapor.tsx`, `cihuateteo.tsx`,
 leurs modules sont importes sans condition par `scene-content.tsx` — le
 halo ne coute donc aucun chargement de plus au Sud.
 
-- [ ] **Step 1 : monter le dosage de la constante partagee**
+- [x] **Step 1 : monter le dosage de la constante partagee**
 
 Dans `src/lib/passage-colibri.ts`, remplacer :
 
@@ -706,12 +706,12 @@ par :
   eclat: 0.88,
 ```
 
-- [ ] **Step 2 : verifier que les unitaires de `passage-colibri.test.ts` restent verts**
+- [x] **Step 2 : verifier que les unitaires de `passage-colibri.test.ts` restent verts**
 
 Run: `pnpm exec vitest run src/lib/passage-colibri.test.ts`
 Expected: PASS, 15 tests (le test de `cibleEclat` lit `PASSAGE.eclat`, pas une valeur en dur : rien a changer la).
 
-- [ ] **Step 3 : le corps ne s'eclaircit plus — remplacer l'aplat colore**
+- [x] **Step 3 : le corps ne s'eclaircit plus — remplacer l'aplat colore**
 
 Dans `src/app/components/stag-scene/huitzilin-birds.tsx`, la fonction `makeMaterial` (vers la ligne 100), remplacer :
 
@@ -740,7 +740,7 @@ par :
       );
 ```
 
-- [ ] **Step 4 : le halo, memes imports que `copal-braziers.tsx`**
+- [x] **Step 4 : le halo, memes imports que `copal-braziers.tsx`**
 
 Dans `src/app/components/stag-scene/huitzilin-birds.tsx`, ajouter aux imports existants :
 
@@ -759,7 +759,7 @@ const HALO_COLOR = new Color("#ff7a2a"); // meme teinte que les braises (copal-b
 const HALO_SCALE = 0.5; // u, billboard carre ; assez grand pour que les ailes en vibration ne depassent jamais net du halo (a doser a la capture).
 ```
 
-- [ ] **Step 5 : creer le materiau et un sprite par oiseau**
+- [x] **Step 5 : creer le materiau et un sprite par oiseau**
 
 Dans le composant, juste apres `const { scene } = useGLTF(MODEL_PATH);`, ajouter :
 
@@ -821,7 +821,7 @@ Dans le `useEffect` qui monte/demonte les oiseaux (`birdsRef.current = birds; ..
   }, [birds]);
 ```
 
-- [ ] **Step 6 : piloter le halo dans `useFrame`, au meme endroit que `uEclat`**
+- [x] **Step 6 : piloter le halo dans `useFrame`, au meme endroit que `uEclat`**
 
 Dans la boucle `for (let i = 0; i < birds.length; i++)`, remplacer le bloc existant :
 
@@ -853,7 +853,7 @@ par :
       }
 ```
 
-- [ ] **Step 7 : disposer les materiaux de halo au demontage**
+- [x] **Step 7 : disposer les materiaux de halo au demontage**
 
 A cote du `useEffect` de nettoyage existant (ou dans le meme, apres le `for` de retrait), ajouter la liberation du materiau d'origine :
 
@@ -863,17 +863,17 @@ A cote du `useEffect` de nettoyage existant (ou dans le meme, apres le `for` de 
 
 (les clones par oiseau partagent la meme texture — pas de `dispose()` par clone necessaire, `SpriteMaterial.clone()` ne duplique pas la texture GPU.)
 
-- [ ] **Step 8 : types et lint**
+- [x] **Step 8 : types et lint**
 
 Run: `pnpm exec tsc --noEmit && pnpm exec eslint src/app/components/stag-scene/huitzilin-birds.tsx`
 Expected: aucune nouvelle erreur. Les avertissements deja presents ailleurs dans le depot (`background-flora.tsx`, `frost-world.tsx`, etc., vus au dernier commit) ne sont pas de ce fichier : ne pas les toucher.
 
-- [ ] **Step 9 : les unitaires complets**
+- [x] **Step 9 : les unitaires complets**
 
 Run: `pnpm test`
 Expected: tous verts (aucune lib pure modifiee dans cette tache : seuls `huitzilin-birds.tsx` (composant, pas teste a l'unite) et la constante `PASSAGE.eclat` (testee via `cibleEclat`, deja verifiee a l'etape 2) changent).
 
-- [ ] **Step 10 : commit**
+- [x] **Step 10 : commit**
 
 ```bash
 git add src/lib/passage-colibri.ts src/app/components/stag-scene/huitzilin-birds.tsx
