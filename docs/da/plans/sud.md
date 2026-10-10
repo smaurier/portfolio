@@ -8,6 +8,7 @@ frappe, la Piedra s'allume, les pierres de l'annee s'embrasent
 | --- | --- | --- | --- | --- | --- |
 | 1 | voile | la nuit du Sud (lumiere a 0,18, `lightNight`), le ciel photographie du Sud (`sud-sky.jpg`) | | | `sud-sky.tsx` |
 | 2 | 0,05 a 0,45 | la bande de l'aube (`dawnBand`) : la lumiere monte vers midi (`lightNoon` 1) ; les colibris (Huitzilin) au Sud seulement | | le lit de chaleur (triangles 55, 55,7, 110,3 Hz, passe-bas 220) qui suit le jour | `huitzilin-birds.tsx`, `sound-design.tsx` |
+| 2b | arrivee + 4 s, si p < 0,5 | le passage du colibri (`lib/passage-colibri`) : UN oiseau vient a 1,3 u devant l'objectif, en haut a droite, corps assombri + halo flou (recette des braises), tient 2,5 s, puis file sur une etoile qui tombe ; une fois par arrivee | 2,5 s | (le bourdonnement : a faire) | `huitzilin-birds.tsx`, `lib/huitzilin` (visite) |
 | 3 | 0,28 a 0,52 | la bataille (`battleStart` -> `battleEnd`) : les quatre cents (les etoiles Centzon) se dispersent | | | `centzon-stars.tsx` |
 | 4 | arc | le serpent erre (`xiuhcoatl-wander`), son projecteur au sol, son ombre la nuit | | | `xiuhcoatl-companion.tsx` |
 | 5 | frappe | la sequence de frappe (`strike-sequence`) : raidissement, eclair, secousse du sol (la Piedra tremble, `cardinal-orientation`), soulevement, feu, teinte ; le trajet (`strike-path`) ; l'anneau de la Piedra s'allume, les pierres de l'annee s'embrasent (lustre 0,35) | selon la sequence | le tonnerre a `strikeHit` : craquement, boom, sub | `xiuhcoatl-strike-director.tsx`, `piedra-ring-fire.tsx`, `year-stones.tsx` |

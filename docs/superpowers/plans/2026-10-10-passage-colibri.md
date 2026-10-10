@@ -965,12 +965,12 @@ git commit -m "fix(sud): la vibration de la visite du colibri n'est plus reduite
 **Files:**
 - Modify: (aucun fichier nouveau ; reutilise `.scratch/passage-colibri.mjs` ecrit a la Tache 4)
 
-- [ ] **Step 1 : verifier qu'aucun autre processus Node ne tourne a plein (lecon du 04/10, nuit mobile : un serveur Vite oublie avait fait rougir la barre)**
+- [x] **Step 1 : verifier qu'aucun autre processus Node ne tourne a plein (lecon du 04/10, nuit mobile : un serveur Vite oublie avait fait rougir la barre)**
 
 Run (PowerShell) : `Get-Process node -ErrorAction SilentlyContinue`
 Expected : rien, ou uniquement des process attendus. Si un process inattendu tourne a plein CPU : le signaler avant de continuer, ne pas le tuer sans savoir ce que c'est.
 
-- [ ] **Step 2 : compiler, servir, capturer (meme script, meme procedure que la Tache 4)**
+- [x] **Step 2 : compiler, servir, capturer (meme script, meme procedure que la Tache 4)**
 
 Run (PowerShell) :
 
@@ -987,9 +987,9 @@ Stop-Process -Id $p.Id -Force
 
 Expected : six images, « stationnaire a +~5 s » et « fini a +~9 s » sur les deux cas.
 
-- [ ] **Step 3 : regarder soi-meme AVANT de remettre** : le corps est-il bien une silhouette sombre (plus de couleur plate lisible) ? le halo a-t-il un bord flou, pas de contour geometrique dur ? les ailes en vibration restent-elles dans le halo ou depassent-elles net ? Si le halo a un bord dur : verifier `HALO_SCALE` (le sprite est peut-etre trop petit, ou la texture de fumee a un bord net a cette echelle — regarder `/public/img/particles/smoke_07.png`).
+- [x] **Step 3 : regarder soi-meme AVANT de remettre** : le corps est-il bien une silhouette sombre (plus de couleur plate lisible) ? le halo a-t-il un bord flou, pas de contour geometrique dur ? les ailes en vibration restent-elles dans le halo ou depassent-elles net ? Si le halo a un bord dur : verifier `HALO_SCALE` (le sprite est peut-etre trop petit, ou la texture de fumee a un bord net a cette echelle — regarder `/public/img/particles/smoke_07.png`).
 
-- [ ] **Step 4 : remettre a Sylvain** les chemins complets des six images (`C:\Users\sylva\Downloads\nahual-sud-3-*`), avec un rappel court de ce qui a change (corps assombri, halo flou, vibration normale). **Rien d'autre ne se fait tant qu'il n'a pas repondu** — ni la Tache 8 (docs, poussee `dev`), ni `main` (regle de `CLAUDE.md` : une session = une chose bornee + une capture regardee).
+- [x] **Step 4 : remettre a Sylvain** les chemins complets des six images (`C:\Users\sylva\Downloads\nahual-sud-3-*`), avec un rappel court de ce qui a change (corps assombri, halo flou, vibration normale). **Rien d'autre ne se fait tant qu'il n'a pas repondu** — ni la Tache 8 (docs, poussee `dev`), ni `main` (regle de `CLAUDE.md` : une session = une chose bornee + une capture regardee).
 
 ---
 
@@ -999,7 +999,7 @@ Expected : six images, « stationnaire a +~5 s » et « fini a +~9 s » sur les 
 - Modify: `docs/da/plans/sud.md`
 - Modify: `docs/superpowers/plans/2026-10-10-passage-colibri.md` (cases cochees)
 
-- [ ] **Step 1 : la ligne du passage dans le tableau de `docs/da/plans/sud.md`**, entre les lignes 2 et 3 :
+- [x] **Step 1 : la ligne du passage dans le tableau de `docs/da/plans/sud.md`**, entre les lignes 2 et 3 :
 
 ```markdown
 | 2b | arrivee + 4 s, si p < 0,5 | le passage du colibri (`lib/passage-colibri`) : UN oiseau vient a 1,3 u devant l'objectif, en haut a droite, corps assombri + halo flou (recette des braises), tient 2,5 s, puis file sur une etoile qui tombe ; une fois par arrivee | 2,5 s | (le bourdonnement : a faire) | `huitzilin-birds.tsx`, `lib/huitzilin` (visite) |
