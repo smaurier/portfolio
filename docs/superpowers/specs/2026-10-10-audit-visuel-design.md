@@ -30,7 +30,7 @@ chose, bornee, avec une capture regardee).
   resorbe de 3,9 s a ~1,5 s d'images longues). **T10 reste ouvert** : le
   chargement des modeles pendant le voile (600-700 ms vers 0,8 s de l'arc).
   L'audit ne remesure pas ca au chiffre ; la video de chaque page sert a
-  voir SI, a l'oeil, une saccade reste visible malgraa ce travail -- et si
+  voir SI, a l'oeil, une saccade reste visible malgre ce travail -- et si
   oui, la nommer, pas la re-profiler depuis zero.
 - **Le mapping page <-> direction**, verifie dans le code
   (`src/app/[locale]/[slug]/page.tsx:27-30`,
@@ -49,6 +49,16 @@ chose, bornee, avec une capture regardee).
   scroll anime a simuler. C'est le mecanisme de capture ; `scene=1` n'est
   PAS utilise ici (on veut voir le texte d'interface, c'est un des quatre
   sujets de l'audit).
+- **La ceremonie d'arrivee n'est pas sautee par `?t=`** : chaque chargement
+  de page attend `data-foyer="done"` (`foyer-arrival.tsx`) avant que la
+  scene soit utilisable, meme avec un `t` deja pose dans l'URL -- verifie
+  dans le code, pas suppose. Chaque capture de cette passe paie donc ce
+  temps d'attente une fois par page chargee ; ce n'est pas un defaut de
+  methode, juste un cout a prevoir dans le plan.
+- **Le theme se force par `localStorage`**, pas par un parametre d'URL :
+  cle `nahual-theme` (`src/lib/theme.ts`, `THEME_STORAGE_KEY`), posee par
+  `theme-toggle.tsx`. A ecrire AVANT le chargement de la page
+  (`addInitScript` ou equivalent), pas en cliquant le bouton apres coup.
 
 ## Portee (decidee avec Sylvain)
 
@@ -62,17 +72,22 @@ invivable a produire et a lire) :
   suit le contenu de la page (Sylvain : « c'est selon le contenu de la
   page ») -- entre 5 et 7 selon le tableau de la direction, pas un compte
   fixe invente.
-- **+ une image d'arrivee seule (le premier moment, pas l'arc entier)**, en
-  **clair** et en **mobile** (Pixel 7, meme profil que les captures du
-  colibri du jour), par page. Attrape une regression de theme ou d'appareil
-  sans refaire chaque page quatre fois.
-- **+ une courte video de defilement par page**, sombre + bureau
-  (defilement reel, pas des sauts `?t=`, pour voir une vraie saccade si
-  elle existe), quelques secondes, format court (gif ou mp4 -- au choix de
-  l'executant, ce n'est pas un choix de DA).
+- **+ DEUX images d'arrivee seule (le premier moment, pas l'arc entier),
+  chacune ne changeant qu'UNE variable** par rapport a la reference
+  sombre+bureau -- pas une seule image qui changerait les deux a la fois,
+  qui ne prouverait rien isolement :
+  1. meme instant, **clair + bureau** (isole le theme) ;
+  2. meme instant, **sombre + mobile** (Pixel 7, meme profil que les
+     captures du colibri du jour -- isole l'appareil).
+- **+ une video de defilement par page**, sombre + bureau, **le defilement
+  REEL de toute la page** (`page.mouse.wheel`, meme motif que
+  `.scratch/contemplation_check.mjs`), a un rythme constant de robot --
+  pas une vitesse humaine avec des pauses de lecture, pas non plus
+  accelere au point de sauter des images. La duree suit donc la longueur
+  reelle de l'arc de la page, pas un format court fixe choisi d'avance.
 
-**Total approximatif** : 5 pages x (5 a 7 images sombre/bureau + 1 claire +
-1 mobile) + 5 videos, soit environ 35 a 45 images fixes et 5 videos.
+**Total approximatif** : 5 pages x (5 a 7 images sombre/bureau + 1 claire
++ 1 mobile) + 5 videos, soit environ 35 a 45 images fixes et 5 videos.
 
 ## Ce que l'audit regarde, par image
 
