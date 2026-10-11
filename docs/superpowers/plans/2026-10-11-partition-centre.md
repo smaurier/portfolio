@@ -906,7 +906,7 @@ git commit -m "feat(texte): le calque fixe suit la partition -- FadingBlock pilo
 - Modify: `src/app/components/reveal-text.tsx`
 - Modify: `src/app/components/stag-scene/stag-scene.tsx` (les `RevealText` du hero et des chapitres)
 
-- [ ] **Step 1 : la prop `pilote`**
+- [x] **Step 1 : la prop `pilote`**
 
 Dans `src/app/components/reveal-text.tsx` :
 
@@ -989,11 +989,11 @@ export default function RevealText({
 
 (Si eslint refuse un commentaire de desactivation parce que la regle ne se declenche pas a cet endroit, le retirer.)
 
-- [ ] **Step 2 : le Centre l'utilise**
+- [x] **Step 2 : le Centre l'utilise**
 
 Dans `src/app/components/stag-scene/stag-scene.tsx`, ajouter `pilote="fenetre"` aux trois `RevealText` : celui du hero (`as="h1"`) et les deux des chapitres (`chapterKicker`, `chapterLine`).
 
-- [ ] **Step 3 : verifier**
+- [x] **Step 3 : verifier**
 
 ```powershell
 pnpm exec tsc --noEmit
@@ -1003,7 +1003,7 @@ pnpm test
 
 Puis, a l'oeil dans le navigateur (`pnpm run dev`, `http://localhost:3000/fr`) : descendre jusqu'au chapitre I, remonter, redescendre : les mots du chapitre doivent re-cascader a la seconde entree. Le titre du hero cascade a l'arrivee comme avant.
 
-- [ ] **Step 4 : commit**
+- [x] **Step 4 : commit**
 
 ```powershell
 git add src/app/components/reveal-text.tsx src/app/components/stag-scene/stag-scene.tsx
@@ -1021,7 +1021,7 @@ git commit -m "feat(texte): RevealText pilote par la fenetre -- la cascade des m
 - Modify: `src/app/components/stag-scene/stag-scene.tsx:150-156`
 - Modify: `tests/e2e/cantares.spec.ts`
 
-- [ ] **Step 1 : `--arc-h`, pose par `scene-refs-context`**
+- [x] **Step 1 : `--arc-h`, pose par `scene-refs-context`**
 
 Dans `src/app/components/stag-scene/scene-refs-context.tsx`, remplacer la fonction `handleScroll` (lignes 126 a 138) et les deux lignes qui suivent par :
 
@@ -1066,7 +1066,7 @@ Et dans le nettoyage de l'effet, apres `window.removeEventListener("scroll", han
 
 Note : sous mouvement reduit `handleScroll` sort tout de suite et `--arc-h` n'est jamais posee ; le CSS a un repli (`200vh`, le plancher de l'arc) et le chant est de toute facon force visible et en place par le mouvement reduit (ETAT_PLEIN). Pas de boucle de mise en page : `.cantarFlow` garde `min-height: 300vh`, et son contenu (0,32 arc + 120 px + la figure, soit environ 1,3 fenetre) reste bien en dessous.
 
-- [ ] **Step 2 : `BlocEnFlux`**
+- [x] **Step 2 : `BlocEnFlux`**
 
 ```tsx
 // src/app/components/stag-scene/bloc-en-flux.tsx
@@ -1119,7 +1119,7 @@ export default function BlocEnFlux({ fenetre, nom, children }: { fenetre: Fenetr
 }
 ```
 
-- [ ] **Step 3 : le CSS du chant et du bloc en flux**
+- [x] **Step 3 : le CSS du chant et du bloc en flux**
 
 Dans `src/app/globals.css`, remplacer le commentaire et le bloc `.cantarFlow` (depuis la ligne `/* Sur la home, le chant vit dans le flux vide de 300vh` jusqu'a l'accolade qui ferme la media query mobile de `.cantarFlow`, juste avant `body.reading-mode .cantar`) par :
 
@@ -1184,7 +1184,7 @@ body.reading-mode .blocEnFlux {
 }
 ```
 
-- [ ] **Step 4 : `stag-scene.tsx` enveloppe le chant**
+- [x] **Step 4 : `stag-scene.tsx` enveloppe le chant**
 
 Ajouter `import BlocEnFlux from "./bloc-en-flux";` et remplacer la section du chant (le commentaire « LE CHANT DU CENTRE (M4, 11/09) » et la `<section>`) par :
 
@@ -1202,7 +1202,7 @@ Ajouter `import BlocEnFlux from "./bloc-en-flux";` et remplacer la section du ch
       </section>
 ```
 
-- [ ] **Step 5 : l'oracle du chant du Centre**
+- [x] **Step 5 : l'oracle du chant du Centre**
 
 Dans `tests/e2e/cantares.spec.ts`, ajouter a la fin :
 
@@ -1248,7 +1248,7 @@ test("/fr : le chant parle a 0,41, se tait a 0,72, se lit en mode recit", async 
 
 Et dans le test existant par page, le commentaire d'en-tete (lignes 14-18) gagne une phrase : « Sur le Centre, la figure a aussi une fenetre dans l'arc (11/10) : l'oracle dedie est en bas de ce fichier. »
 
-- [ ] **Step 6 : verifier**
+- [x] **Step 6 : verifier**
 
 ```powershell
 pnpm exec tsc --noEmit
@@ -1259,7 +1259,7 @@ pnpm exec playwright test tests/e2e/cantares.spec.ts tests/e2e/lectures-de-mise-
 
 Expected : tout vert. Si le test « 0,41 » echoue sur `box.y + height <= 800`, c'est le dosage de 120 px (ou la hauteur de la figure) : NE PAS changer l'oracle, mesurer `box` et le dire dans le rapport, Sylvain tranche sur la capture (Task 8).
 
-- [ ] **Step 7 : commit**
+- [x] **Step 7 : commit**
 
 ```powershell
 git add src/app/components/stag-scene/scene-refs-context.tsx src/app/components/stag-scene/bloc-en-flux.tsx src/app/globals.css src/app/components/stag-scene/stag-scene.tsx tests/e2e/cantares.spec.ts
@@ -1274,7 +1274,7 @@ git commit -m "feat(texte): le chant du Centre dans sa fenetre -- un seul noeud 
 - Modify: `src/app/components/stag-scene/page-closure.tsx`
 - Modify: `src/app/components/stag-scene/stag-scene.tsx` (le `PageClosure` du Centre)
 
-- [ ] **Step 1 : la prop `fenetre`**
+- [x] **Step 1 : la prop `fenetre`**
 
 Dans `src/app/components/stag-scene/page-closure.tsx` :
 
@@ -1325,11 +1325,11 @@ Dans `src/app/components/stag-scene/page-closure.tsx` :
 
 - dans le commentaire d'en-tete (lignes 31-34), apres « La classe `.revealed` est posée en fonction de getNavEmphasis > 0.05 », ajouter « (ou de la fenetre de la partition quand la page en passe une : le Centre, 11/10) ».
 
-- [ ] **Step 2 : le Centre passe sa fenetre**
+- [x] **Step 2 : le Centre passe sa fenetre**
 
 Dans `src/app/components/stag-scene/stag-scene.tsx`, le `PageClosure` du Centre gagne `fenetre={PARTITION_CENTRE.cloture}`.
 
-- [ ] **Step 3 : verifier**
+- [x] **Step 3 : verifier**
 
 ```powershell
 pnpm exec tsc --noEmit
@@ -1340,7 +1340,7 @@ pnpm exec playwright test tests/e2e/calque-fixe.spec.ts tests/e2e/acte-de-sortie
 
 Expected : vert (les quatre pages echo de calque-fixe ne passent pas de fenetre et gardent le comportement du 13/09).
 
-- [ ] **Step 4 : commit**
+- [x] **Step 4 : commit**
 
 ```powershell
 git add src/app/components/stag-scene/page-closure.tsx src/app/components/stag-scene/stag-scene.tsx
@@ -1354,7 +1354,7 @@ git commit -m "feat(texte): la cloture du Centre se revele sur sa fenetre [0,96,
 **Files:**
 - Create: `tests/e2e/partition-centre.spec.ts`
 
-- [ ] **Step 1 : le test**
+- [x] **Step 1 : le test**
 
 ```ts
 // tests/e2e/partition-centre.spec.ts
@@ -1419,12 +1419,12 @@ for (const [t, bloc] of ATTENDU) {
 }
 ```
 
-- [ ] **Step 2 : lancer**
+- [x] **Step 2 : lancer**
 
 Run: `pnpm exec playwright test tests/e2e/partition-centre.spec.ts tests/e2e/controls-overlap.spec.ts tests/e2e/mouvement-reduit.spec.ts --project=chromium`
 Expected : tout vert. Si un instant montre DEUX blocs, c'est une transition d'opacite pas finie ou un bloc qui ne respecte pas sa fenetre : lire `blocsVisibles` dans le message et remonter au composant, pas elargir le seuil.
 
-- [ ] **Step 3 : commit**
+- [x] **Step 3 : commit**
 
 ```powershell
 git add tests/e2e/partition-centre.spec.ts
