@@ -58,3 +58,23 @@ for (const [t, bloc] of ATTENDU) {
     }
   });
 }
+
+/**
+ * SUR TELEPHONE AUSSI (11/10, trouve sur la capture Pixel) : la sentinelle du
+ * chant (chant-sentinel.tsx) eteint le calque fixe quand la figure entre
+ * dans le cadre ; placee par sa fenetre, elle y est deja a 0,21, invisible.
+ * Le chapitre I doit parler quand meme, et le chant a son tour.
+ */
+test.describe("Pixel 7", () => {
+  const { defaultBrowserType: _d, ...PIXEL } = devices["Pixel 7"];
+  test.use({ ...PIXEL });
+  for (const [t, bloc] of [[0.21, "chapitre-0"], [0.41, "chant"], [0.59, "chapitre-1"]] as const) {
+    test(`/fr?t=${t} sur Pixel : seul « ${bloc} » parle`, async ({ page }) => {
+      test.setTimeout(150_000);
+      await page.goto(`/fr?t=${t}&v=2&shaders-prod`);
+      await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 90_000 });
+      await page.waitForTimeout(2500);
+      expect(await blocsVisibles(page), `a t=${t} sur Pixel`).toEqual([bloc]);
+    });
+  }
+});
