@@ -19,7 +19,9 @@ import styles from "./page-closure.module.css";
  * Card glass avec gradient direction, border 1px cardinale qui se
  * trace, H2 split par mot avec stagger, underline dorée qui se
  * dessine, micro-glyphe cardinal en marge, CTA pill avec chevron
- * animé. Timings enchaînés (~800ms total).
+ * animé. Sans ligne poetique depuis le 11/10 (partition du texte) :
+ * titre cardinal + lien vers la suite, rien d'autre. Timings
+ * enchaînés (~800ms total).
  *
  * Contenu par direction (Codex Nahual s3) :
  *  - jade / Centre / Tlalxicco
@@ -121,7 +123,6 @@ export default function PageClosure({
         ))}
       </h2>
       <div className={styles.underline} />
-      <p className={styles.poetic}>{closure.poetic}</p>
       <CardinalLink href={nextHref} className={styles.cta} tabIndex={-1}>
         {closure.nextLabel}
         <span className={styles.arrow} aria-hidden>

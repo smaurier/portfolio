@@ -563,7 +563,7 @@ body.nahual-lab-reveal main {
   isolation: isolate;
 }
 
-/* L'ACCUEIL MOBILE (04/10, lib/hero-mobile). `main` est une colonne centree
+/* L'ACCUEIL MOBILE (04/10). `main` est une colonne centree
    verticalement sur toute la hauteur : sur telephone, la carte du hero
    flottait au milieu de l'ecran, exactement sur le cerf (capture 412 px,
    scene seule : le cerf est au centre avec sa couronne de fleurs ; avec la
@@ -1964,10 +1964,10 @@ html[data-footer-in-view="true"] .seuilTete[data-seuil-tete="fixe"] {
 /* Telephone etroit (13/09) : le hero de l'accueil ne tient plus en hauteur
    avec la ligne de seuil, et son titre montait sous le bouton du menu
    (mesure : 553 px2 sur un Galaxy S9+). La ligne du voyage l'annonce deja. */
-/* 400 -> 767 px le 04/10 (l'accueil mobile, lib/hero-mobile) : sur tout
-   telephone la carte du hero tient en titre + appel, le cerf garde le
-   centre ; a 412 px la ligne de seuil faisait trois lignes et la carte
-   remontait jusqu'a la tete du cerf. */
+/* 400 -> 767 px le 04/10 (l'accueil mobile) : sur tout telephone la carte
+   du hero tient en titre + appel, le cerf garde le centre ; a 412 px la
+   ligne de seuil faisait trois lignes et la carte remontait jusqu'a la
+   tete du cerf. (Le paragraphe du hero, lui, est parti partout le 11/10.) */
 @media (max-width: 767px) {
   .seuilTete:not([data-seuil-tete]) {
     display: none;
@@ -2004,13 +2004,6 @@ html[data-footer-in-view="true"] .seuilTete[data-seuil-tete="fixe"] {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   color: var(--ink);
-}
-.cantarLabel {
-  margin: 0 0 0.9rem;
-  font-size: var(--t-petit);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.75;
 }
 .cantar blockquote {
   margin: 0 0 1rem;

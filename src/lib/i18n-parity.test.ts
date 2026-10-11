@@ -74,23 +74,37 @@ describe("i18n : les trois dictionnaires ont les memes cles", () => {
     }
   });
 
-  it("les cinq sorties de scene sont traduites, cardinal, phrase et suite", () => {
+  it("les cinq sorties de scene sont traduites, cardinal et suite", () => {
     // Le defaut jumeau du 09/09 : la table des sorties de scene vivait dans
     // le composant, en francais seulement, donc les DIX pages etrangeres
     // finissaient sur « Le nombril du monde. D'ou partent les chemins. »
     // C'est la derniere chose qu'un jury lit sur chaque page.
+    // 11/10 : la ligne poetique est partie (partition du texte, KISS : la
+    // cloture ne garde que le titre cardinal et le lien vers la suite).
     for (const dir of ["jade", "dore", "turquoise", "cendre", "obsidienne"]) {
-      for (const champ of ["cardinal", "poetic", "nextLabel"]) {
+      for (const champ of ["cardinal", "nextLabel"]) {
         const cle = `closure.${dir}.${champ}`;
         for (const loc of ["fr", "en", "es"] as const) {
           expect(dicos[loc].get(cle), `${loc} ${cle}`).toBeTruthy();
         }
       }
+      expect(dicos.fr.has(`closure.${dir}.poetic`), `${dir} : la ligne poetique est partie`).toBe(false);
       // Et elles ne sont pas juste recopiees du francais.
-      const frPhrase = dicos.fr.get(`closure.${dir}.poetic`);
+      const frSuite = dicos.fr.get(`closure.${dir}.nextLabel`);
       for (const loc of ["en", "es"] as const) {
-        expect(dicos[loc].get(`closure.${dir}.poetic`), `${loc} ${dir} : phrase non traduite`).not.toBe(frPhrase);
+        expect(dicos[loc].get(`closure.${dir}.nextLabel`), `${loc} ${dir} : suite non traduite`).not.toBe(frSuite);
       }
+    }
+  });
+
+  it("le Centre raconte trois chapitres, I, II et IV", () => {
+    // 11/10, partition du texte : III « Un silence. » est dit par le silence
+    // lui-meme, V « L'Ollin » par la cloture qui est deja le depart.
+    for (const loc of ["fr", "en", "es"] as const) {
+      expect(dicos[loc].get("home.chapters[2].kicker"), loc).toMatch(/^IV /);
+      expect(dicos[loc].has("home.chapters[3].kicker"), loc).toBe(false);
+      expect(dicos[loc].has("home.heroText"), `${loc} : le paragraphe du hero est parti`).toBe(false);
+      expect(dicos[loc].has("common.cantar.ourTranslation"), `${loc} : la citation longue est partie`).toBe(false);
     }
   });
 });

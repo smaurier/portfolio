@@ -31,8 +31,7 @@
     },
     "cantar": {
       "label": "Un canto de esta dirección",
-      "source": "Cantares mexicanos, canto {chant}, estrofa {strophe}, folio {folio}. Paleografía y traducción: edición de Miguel León-Portilla, UNAM, 2011.",
-      "ourTranslation": "Texto en español de la edición.",
+      "source": "Cantares mexicanos, {chant} · {strophe}",
       "editionLink": "La edición abierta de la UNAM"
     },
     "theme": {
@@ -137,7 +136,6 @@
   },
   "home": {
     "heroTitle": "Nahual · estudio creativo",
-    "heroText": "Entre los nahuas, pueblo mesoamericano, el venado (Mazātl) es el séptimo signo de día del calendario sagrado, y pertenece a Tláloc, la lluvia. El México de hoy llama nahual a esa esencia animal; las fuentes antiguas la llaman el tonal, y reservan nahualli para quien cruza. Yo leo al venado como un mensajero entre los mundos, la gracia, la vigilancia, y el arte de ocultar su verdadera naturaleza. Este sitio conserva la palabra viva, encarnada aquí por este venado.",
     "heroCta": "Descubrir mi trabajo",
     "aboutTitle": "Sobre mí",
     "aboutText": "Nahual, el estudio, aplica la misma lógica a la web: transformar una idea en un sitio real. ¿La prueba de que funcionó? Que funciona para todos.\n\nSylvain Maurier, desarrollador frontend senior, 10 años de experiencia (React, Next.js, Vue/Nuxt, React Native). Especializado en accesibilidad digital (RGAA/WCAG), con una convicción simple: la accesibilidad se programa, no solo se audita.",
@@ -153,16 +151,8 @@
         "line": "El ciervo te ha notado. No huye · espera."
       },
       {
-        "kicker": "III · Cara a cara",
-        "line": "Un silencio. Tres entidades: tu cuerpo, su cuerpo, lo que pasa entre los dos."
-      },
-      {
         "kicker": "IV · Los caminos",
         "line": "Cuatro direcciones a tu alrededor, una quinta en el centro. Tu decisión."
-      },
-      {
-        "kicker": "V · El Ollin",
-        "line": "Te mueves. El mundo tiembla. El viaje comienza."
       }
     ]
   },
@@ -888,27 +878,22 @@
   "closure": {
     "jade": {
       "cardinal": "Centro · Tlalxicco",
-      "poetic": "El ombligo del mundo. De donde parten los caminos.",
       "nextLabel": "Este · Dorado"
     },
     "dore": {
       "cardinal": "Este · Tlahuizcalpan",
-      "poetic": "El alba dorada. Tonatiuh se alza, el día se abre.",
       "nextLabel": "Sur · Turquesa"
     },
     "turquoise": {
       "cardinal": "Sur · Huitztlampa",
-      "poetic": "Xóchitl, la flor. Huitzilopochtli vela por lo que crece.",
       "nextLabel": "Oeste · Ceniza"
     },
     "cendre": {
       "cardinal": "Oeste · Cihuatlampa",
-      "poetic": "El crepúsculo malva. Las Cihuateteo acompañan al sol.",
       "nextLabel": "Norte · Obsidiana"
     },
     "obsidienne": {
       "cardinal": "Norte · Mictlampa",
-      "poetic": "El lugar del reposo. Mictlán recibe lo que fue vivido.",
       "nextLabel": "Volver al Centro"
     }
   }

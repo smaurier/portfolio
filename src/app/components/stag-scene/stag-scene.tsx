@@ -6,7 +6,6 @@ import RevealText from "../reveal-text";
 import Cantar, { type CantarTexts } from "../cantar";
 import CardinalLink from "./cardinal-link";
 import FadingBlock from "./fading-block";
-import HeroTexteMobile from "./hero-texte-mobile";
 import PageClosure from "./page-closure";
 import SceneStage from "./scene-stage";
 import overlayStyles from "./scene-text-overlay.module.css";
@@ -14,7 +13,6 @@ import type { Dictionary, Locale } from "../../../dictionaries";
 
 export type HomeContent = {
   heroTitle: string;
-  heroText: string;
   heroCta: string;
   aboutTitle: string;
   aboutText: string;
@@ -77,8 +75,7 @@ export default function StagScene({
           <div className="sr-only">
             <p>{renderWithNahuatl(sceneDescription)}</p>
             <h1>{renderWithNahuatl(home.heroTitle)}</h1>
-            <p>{renderWithNahuatl(home.heroText)}</p>
-            <section aria-label="Recit du cerf, quatre chapitres">
+            <section aria-label="Recit du cerf, trois chapitres">
               <ol>
                 {home.chapters.map((chapter, i) => (
                   <li key={i}>
@@ -98,11 +95,13 @@ export default function StagScene({
             {/* Textes du hero : deja lus via sr-only, aria-hidden pour
                 eviter le doublon. Le CardinalLink reste focusable et
                 cliquable pour tous (souris, clavier, SR focus mode). */}
+            {/* Le hero tient en titre + ligne de seuil + appel (11/10, partition du
+                texte) : le paragraphe sur Mazatl est parti, le Codex (totem,
+                tonalpohualli) en disait deja chaque mot. C'etait deja le cas sur
+                telephone depuis le 04/10 ; le bureau rejoint. */}
             <div aria-hidden="true">
               <RevealText as="h1" text={home.heroTitle} delayPerWord={50} />
               {seuil ? <p className="seuilTete">{seuil}</p> : null}
-              {/* Sur telephone, le paragraphe n'entre qu'au premier defilement (04/10, lib/hero-mobile). */}
-              <HeroTexteMobile progressRef={progressRef}>{home.heroText}</HeroTexteMobile>
             </div>
             <div className={overlayStyles.links}>
               <CardinalLink href={servicesHref} className={overlayStyles.cta}>
