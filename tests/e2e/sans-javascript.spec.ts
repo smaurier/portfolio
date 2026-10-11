@@ -43,7 +43,9 @@ test.describe("sans JavaScript", () => {
 
     // Le contenu principal et la navigation restent atteignables.
     await expect(page.getByRole("link", { name: /services/i }).first()).toBeVisible();
-    await expect(page.getByText(/Chez les Nahuas/).first()).toBeVisible();
+    // 11/10 : le paragraphe du hero est parti (partition du texte) ; le chant, dans le flux de chaque page, est le temoin.
+    await expect(page.locator("figure.cantar blockquote[lang='nah']").first()).toBeVisible();
+    await expect(page.locator("figure.cantar figcaption cite").first()).toContainText("Cantares mexicanos");
 
     // Et on explique au visiteur ce qu'il ne verra pas.
     await expect(page.getByText(/besoin de JavaScript/i)).toBeVisible();

@@ -66,15 +66,6 @@
   .block {
     padding: 14px 16px;
   }
-
-  /* L'ACCUEIL MOBILE (04/10, lib/hero-mobile) : sur telephone, le paragraphe
-     du hero n'entre dans la carte qu'au premier defilement. Avant, la carte
-     tient en titre + seuil + appel et la scene se voit (Sylvain, sur son
-     Redmi : « texte omnipresent, on ne voit que ca » ; variante V1 choisie
-     sur captures). L'attribut est pose par hero-texte-mobile.tsx. */
-  .heroTexte:not([data-visible]) {
-    display: none;
-  }
 }
 
 /* Empile hero et à-propos verticalement — jamais superposés, y compris
@@ -117,6 +108,24 @@
 @media (prefers-reduced-motion: reduce) {
   .block {
     transition: none;
+  }
+}
+
+/* LA GRAMMAIRE D'APPARITION (11/10, partition du texte, lib/partition-texte).
+   Le bloc entre en montant de 12 px sur les premiers 15 % de sa fenetre,
+   tient, puis sort en derivant de 8 px vers le haut sur les derniers 15 %.
+   `--avancement` (0 -> 1 dans la phase) et `data-phase` sont poses par
+   image depuis l'arc (use-pilote-fenetre) ; les pixels, eux, vivent ici,
+   et le mouvement est scrube par le defilement, pas par une horloge. */
+.block[data-phase="entree"] {
+  transform: translateY(calc(12px * (1 - var(--avancement, 1))));
+}
+.block[data-phase="sortie"] {
+  transform: translateY(calc(-8px * var(--avancement, 0)));
+}
+@media (prefers-reduced-motion: reduce) {
+  .block[data-phase] {
+    transform: none;
   }
 }
 

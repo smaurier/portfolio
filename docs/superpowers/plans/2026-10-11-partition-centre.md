@@ -54,7 +54,7 @@ Expected : vitest vert (le nombre de fichiers change au fil des taches), `tsc` m
 - Create: `src/lib/partition-texte.ts`
 - Create: `src/lib/partition-texte.test.ts`
 
-- [ ] **Step 1 : ecrire les tests (rouges)**
+- [x] **Step 1 : ecrire les tests (rouges)**
 
 ```ts
 // src/lib/partition-texte.test.ts
@@ -85,7 +85,7 @@ describe("partitionValide : la regle d'une partition", () => {
   const sansTenueCloture = { ignorerTenue: ["cloture"] };
 
   it("accepte la partition du Centre", () => {
-    expect(partitionValide(PARTITION_CENTRE, SILENCES_CENTRE, { ignorerTenue: ["hero", "cloture"] })).toEqual([]);
+    expect(partitionValide(PARTITION_CENTRE, SILENCES_CENTRE, { ignorerTenue: ["cloture"] })).toEqual([]);
   });
 
   it("refuse deux fenetres qui se chevauchent", () => {
@@ -119,9 +119,15 @@ describe("partitionValide : la regle d'une partition", () => {
     expect(v.some((m) => m.includes("dernier"))).toBe(true);
   });
 
-  it("sur le Centre, chaque tenue vaut au moins 8 % de l'arc, hero et cloture mis a part", () => {
+  it("refuse une fenetre hors de l'arc, inversee, ou NaN", () => {
+    for (const f of [{ debut: 0.5, fin: 1.5 }, { debut: 0.6, fin: 0.4 }, { debut: NaN, fin: 0.5 }]) {
+      expect(partitionValide({ a: f }, [], { ignorerTenue: ["a"], dernier: "a" }).some((m) => m.includes("invalide")), JSON.stringify(f)).toBe(true);
+    }
+  });
+
+  it("sur le Centre, chaque tenue vaut au moins 8 % de l'arc, cloture mise a part", () => {
     for (const [nom, f] of Object.entries(PARTITION_CENTRE)) {
-      if (nom === "hero" || nom === "cloture") continue;
+      if (nom === "cloture") continue;
       expect(tenueDe(f), nom).toBeGreaterThanOrEqual(TENUE_MIN);
     }
   });
@@ -182,10 +188,13 @@ describe("etatBloc : la grammaire d'apparition", () => {
 
 describe("la partition du Centre : un seul bloc a la fois", () => {
   it("a aucun progres deux blocs n'ont une opacite non nulle", () => {
-    for (let p = 0; p <= 1; p += 0.001) {
+    for (let i = 0; i <= 1000; i++) {
+      const p = i / 1000;
       const visibles = Object.values(PARTITION_CENTRE).filter((f) => etatBloc(p, f).opacite > 0).length;
       expect(visibles, `a p=${p.toFixed(3)}`).toBeLessThanOrEqual(1);
     }
+    // Au-dela de l'arc (l'acte de sortie, progres borne a 1) : la cloture seule.
+    expect(Object.values(PARTITION_CENTRE).filter((f) => etatBloc(2, f).opacite > 0).length).toBe(1);
   });
 
   it("rien n'est visible au climax 0,75", () => {
@@ -194,12 +203,12 @@ describe("la partition du Centre : un seul bloc a la fois", () => {
 });
 ```
 
-- [ ] **Step 2 : verifier qu'ils echouent**
+- [x] **Step 2 : verifier qu'ils echouent**
 
 Run: `pnpm exec vitest run src/lib/partition-texte.test.ts`
 Expected : FAIL, `Cannot find module './partition-texte'`.
 
-- [ ] **Step 3 : ecrire la lib**
+- [x] **Step 3 : ecrire la lib**
 
 ```ts
 // src/lib/partition-texte.ts
@@ -235,12 +244,15 @@ Expected : FAIL, `Cannot find module './partition-texte'`.
  * posee pendant l'acte de sortie, le dernier 0,55 vh hors arc, ou le
  * progres de l'arc vaut 1).
  *
+ * Seule la cloture est exemptee de TENUE_MIN (0,04 d'arc sans sortie :
+ * 3,4 %) ; le hero, lui, tient 8,5 % et la regle s'applique.
+ *
  * Pur : aucune lecture du DOM ici. Le composant qui applique l'etat par
  * image est use-pilote-fenetre.ts.
  */
 import { clampProgress } from "./camera-path";
 
-export type Fenetre = { debut: number; fin: number };
+export type Fenetre = { readonly debut: number; readonly fin: number };
 export type Phase = "avant" | "entree" | "tenue" | "sortie" | "apres";
 export type EtatBloc = {
   /** 0 avant et apres ; monte pendant l'entree, 1 en tenue, descend en sortie. */
@@ -300,18 +312,20 @@ export function etatBloc(progress: number, fenetre: Fenetre): EtatBloc {
   if (p < debut) return { opacite: 0, phase: "avant", avancement: 0 };
   if (p >= fin && !sansSortie) return { opacite: 0, phase: "apres", avancement: 1 };
   const t = fin > debut ? (p - debut) / (fin - debut) : 1;
-  if (!sansEntree && t < PART_ENTREE) {
-    const a = t / PART_ENTREE;
+  // Les frontieres de phase portent la meme tolerance que partitionValide :
+  // (0,37 - 0,2) / 0,2 vaut 0,8499999999999999 en flottant, pas 0,85.
+  if (!sansEntree && t < PART_ENTREE - EPSILON) {
+    const a = Math.min(1, Math.max(0, t / PART_ENTREE));
     return { opacite: a, phase: "entree", avancement: a };
   }
   const debutSortie = 1 - PART_SORTIE;
-  if (!sansSortie && t >= debutSortie) {
-    const a = (t - debutSortie) / PART_SORTIE;
+  if (!sansSortie && t >= debutSortie - EPSILON) {
+    const a = Math.min(1, Math.max(0, (t - debutSortie) / PART_SORTIE));
     return { opacite: 1 - a, phase: "sortie", avancement: a };
   }
   const debutTenue = sansEntree ? 0 : PART_ENTREE;
   const finTenue = sansSortie ? 1 : debutSortie;
-  const a = finTenue > debutTenue ? Math.min(1, (t - debutTenue) / (finTenue - debutTenue)) : 1;
+  const a = finTenue > debutTenue ? Math.max(0, Math.min(1, (t - debutTenue) / (finTenue - debutTenue))) : 1;
   return { opacite: 1, phase: "tenue", avancement: a };
 }
 
@@ -352,19 +366,19 @@ export function partitionValide(
       violations.push(`${nomA} et ${nomB} : ecart ${(b.debut - a.fin).toFixed(3)} < ${ECART_MIN}`);
     }
   }
-  if (dernier in partition && blocs.length > 0 && blocs[blocs.length - 1][0] !== dernier) {
+  if (Object.hasOwn(partition, dernier) && blocs[blocs.length - 1][0] !== dernier) {
     violations.push(`${dernier} n'est pas le dernier bloc`);
   }
   return violations;
 }
 ```
 
-- [ ] **Step 4 : verifier que les tests passent**
+- [x] **Step 4 : verifier que les tests passent**
 
 Run: `pnpm exec vitest run src/lib/partition-texte.test.ts`
 Expected : PASS, 17 tests.
 
-- [ ] **Step 5 : tsc + eslint, puis commit**
+- [x] **Step 5 : tsc + eslint, puis commit**
 
 ```powershell
 pnpm exec tsc --noEmit
@@ -391,7 +405,7 @@ Tout ce que la scene dit deja sort du texte. Les trois dictionnaires sont reecri
 - Modify: `src/app/components/cantar.tsx:72,92-97`
 - Modify: `src/app/globals.css` (`.cantarLabel`)
 
-- [ ] **Step 1 : l'oracle i18n (rouge) : `poetic` n'existe plus, la non-copie se verifie sur `nextLabel`**
+- [x] **Step 1 : l'oracle i18n (rouge) : `poetic` n'existe plus, la non-copie se verifie sur `nextLabel`**
 
 Dans `src/lib/i18n-parity.test.ts`, remplacer le dernier `it` (lignes 76 a 94) par :
 
@@ -422,11 +436,26 @@ Dans `src/lib/i18n-parity.test.ts`, remplacer le dernier `it` (lignes 76 a 94) p
   it("le Centre raconte trois chapitres, I, II et IV", () => {
     // 11/10, partition du texte : III « Un silence. » est dit par le silence
     // lui-meme, V « L'Ollin » par la cloture qui est deja le depart.
+    const chapitresPartition = Object.keys(PARTITION_CENTRE).filter((k) => k.startsWith("chapitre-")).length;
     for (const loc of ["fr", "en", "es"] as const) {
+      expect(dicos[loc].get("home.chapters[0].kicker"), loc).toMatch(/^I /);
+      expect(dicos[loc].get("home.chapters[1].kicker"), loc).toMatch(/^II /);
       expect(dicos[loc].get("home.chapters[2].kicker"), loc).toMatch(/^IV /);
       expect(dicos[loc].has("home.chapters[3].kicker"), loc).toBe(false);
+      expect(dicos[loc].has(`home.chapters[${chapitresPartition}].kicker`), `${loc} : autant de chapitres que de fenetres dans la partition`).toBe(false);
+      expect(dicos[loc].has(`home.chapters[${chapitresPartition - 1}].kicker`), loc).toBe(true);
       expect(dicos[loc].has("home.heroText"), `${loc} : le paragraphe du hero est parti`).toBe(false);
       expect(dicos[loc].has("common.cantar.ourTranslation"), `${loc} : la citation longue est partie`).toBe(false);
+    }
+  });
+
+  it("la source du chant porte le chant et la strophe, jamais le folio", () => {
+    // 11/10 : source courte ; un `{folio}` oublie s'afficherait tel quel.
+    for (const loc of ["fr", "en", "es"] as const) {
+      const source = dicos[loc].get("common.cantar.source") ?? "";
+      expect(source, loc).toContain("{chant}");
+      expect(source, loc).toContain("{strophe}");
+      expect(source, loc).not.toContain("{folio}");
     }
   });
 ```
@@ -434,7 +463,7 @@ Dans `src/lib/i18n-parity.test.ts`, remplacer le dernier `it` (lignes 76 a 94) p
 Run: `pnpm exec vitest run src/lib/i18n-parity.test.ts`
 Expected : FAIL (poetic existe encore, cinq chapitres, heroText present).
 
-- [ ] **Step 2 : reecrire les trois dictionnaires par script**
+- [x] **Step 2 : reecrire les trois dictionnaires par script**
 
 Creer `.scratch/partition-dictionnaires.mjs` :
 
@@ -472,7 +501,7 @@ git diff --stat src/dictionaries
 
 Expected : trois lignes « I · ... / II · ... / IV · ... » ; le diff stat montre environ 20 lignes retirees par fichier et 1 modifiee (`source`), rien d'autre. Si le diff depasse 40 lignes par fichier, le format a bouge : `git checkout src/dictionaries` et chercher pourquoi avant de continuer.
 
-- [ ] **Step 3 : le hero sans paragraphe, trois chapitres, dans `stag-scene.tsx`**
+- [x] **Step 3 : le hero sans paragraphe, trois chapitres, dans `stag-scene.tsx`**
 
 Dans `src/app/components/stag-scene/stag-scene.tsx` :
 
@@ -495,7 +524,7 @@ et ajouter, a la place, ce commentaire au-dessus de `<div aria-hidden="true">` :
                 telephone depuis le 04/10 ; le bureau rejoint. */}
 ```
 
-- [ ] **Step 4 : supprimer l'accueil mobile du 04/10, qui n'a plus de sujet**
+- [x] **Step 4 : supprimer l'accueil mobile du 04/10, qui n'a plus de sujet**
 
 ```powershell
 git rm src/app/components/stag-scene/hero-texte-mobile.tsx src/lib/hero-mobile.ts src/lib/hero-mobile.test.ts
@@ -521,7 +550,7 @@ par :
    tete du cerf. (Le paragraphe du hero, lui, est parti partout le 11/10.) */
 ```
 
-- [ ] **Step 5 : la cloture sans ligne poetique**
+- [x] **Step 5 : la cloture sans ligne poetique**
 
 Dans `src/app/components/stag-scene/page-closure.tsx`, supprimer la ligne 124 :
 
@@ -536,7 +565,7 @@ Dans `src/app/components/stag-scene/page-closure.module.css` :
 - dans la liste sous `@media (prefers-reduced-motion: reduce)` (ligne 209), retirer la ligne `  .poetic,` ;
 - dans le commentaire d'en-tete, remplacer `underline → poétique → CTA (~700ms total)` par `underline → CTA (~700ms total)`.
 
-- [ ] **Step 6 : le chant sans etiquette ni citation longue**
+- [x] **Step 6 : le chant sans etiquette ni citation longue**
 
 Dans `src/app/components/cantar.tsx` :
 - supprimer la ligne 72 `<p className="cantarLabel">{texts.label}</p>` ;
@@ -560,7 +589,7 @@ Dans `src/app/components/cantar.tsx` :
 
 Dans `src/app/globals.css`, supprimer le bloc `.cantarLabel { ... }` (lignes 2008 a 2014).
 
-- [ ] **Step 7 : verifier**
+- [x] **Step 7 : verifier**
 
 ```powershell
 pnpm test
@@ -571,10 +600,11 @@ git grep -n "heroText\|ourTranslation\|\.poetic\|cantarLabel\|hero-mobile\|HeroT
 
 Expected : vitest vert (un fichier de tests en moins : hero-mobile), `tsc` muet, eslint propre, le `git grep` ne renvoie RIEN.
 
-- [ ] **Step 8 : commit**
+- [x] **Step 8 : commit**
 
 ```powershell
-git add -A src .scratch/partition-dictionnaires.mjs
+git add -A src
+# `.scratch/` est ignore par git (decision anterieure : scripts de sonde locaux) : le script reste sur le disque, pas dans le depot.
 git commit -m "feat(texte): ce qui part -- paragraphe du hero, chapitres III et V, ligne poetique des clotures, etiquette et citation longue du chant (KISS, l'image prevaut)"
 ```
 
@@ -590,7 +620,7 @@ git commit -m "feat(texte): ce qui part -- paragraphe du hero, chapitres III et 
 - Modify: `src/lib/reveal-arc.ts:197-273`, `src/lib/reveal-arc.test.ts:2,167-184,344-409`
 - Modify: `tests/e2e/calque-fixe.spec.ts:20-48`
 
-- [ ] **Step 1 : le hook partage**
+- [x] **Step 1 : le hook partage**
 
 ```ts
 // src/app/components/stag-scene/use-pilote-fenetre.ts
@@ -653,7 +683,7 @@ export function usePiloteFenetre(
 }
 ```
 
-- [ ] **Step 2 : `FadingBlock` prend `fenetre` et `nom`**
+- [x] **Step 2 : `FadingBlock` prend `fenetre` et `nom`**
 
 Remplacer tout `src/app/components/stag-scene/fading-block.tsx` par :
 
@@ -728,7 +758,7 @@ export default function FadingBlock({
 }
 ```
 
-- [ ] **Step 3 : la grammaire en CSS**
+- [x] **Step 3 : la grammaire en CSS**
 
 Dans `src/app/components/stag-scene/scene-text-overlay.module.css`, juste apres le bloc `@media (prefers-reduced-motion: reduce) { .block { transition: none; } }` (ligne 117 a 121), ajouter :
 
@@ -752,7 +782,7 @@ Dans `src/app/components/stag-scene/scene-text-overlay.module.css`, juste apres 
 }
 ```
 
-- [ ] **Step 4 : `stag-scene.tsx` lit la partition**
+- [x] **Step 4 : `stag-scene.tsx` lit la partition**
 
 - Remplacer `import { getChapterOpacity, getIntroOpacity } from "@/lib/reveal-arc";` par `import { PARTITION_CENTRE, type BlocCentre } from "@/lib/partition-texte";`.
 - Au-dessus de `export default function StagScene`, ajouter :
@@ -790,7 +820,7 @@ const CHAPITRES: readonly BlocCentre[] = ["chapitre-0", "chapitre-1", "chapitre-
 
 - Dans le commentaire d'en-tete du composant (lignes 26-35), remplacer `hero visible dès le chargement (getIntroOpacity, s'efface avec la pénombre) et à-propos révélé à "chemins révélés" (getNavEmphasis, même moment que l'emphase de la nav).` par `chaque bloc de texte dans sa fenetre de la partition du Centre (lib/partition-texte, 11/10) : hero a l'arrivee, I, le chant, II, un silence au climax, IV, la cloture.`
 
-- [ ] **Step 5 : `reveal-arc.ts` perd ce qui n'a plus de consommateur**
+- [x] **Step 5 : `reveal-arc.ts` perd ce qui n'a plus de consommateur**
 
 Dans `src/lib/reveal-arc.ts`, supprimer les lignes 197 a 273 : le commentaire et la fonction `getIntroOpacity`, le commentaire des chapitres, `type ChapterWindow`, `CHAPTER_WINDOWS`, `CHAPTER_FADE_SHARE`, `CHAPTER_COUNT`, `getChapterOpacity`. A la place, laisser ce repere :
 
@@ -806,7 +836,7 @@ Dans `src/lib/reveal-arc.test.ts` :
 - supprimer le `describe("getIntroOpacity", ...)` (lignes 167 a 184) ;
 - supprimer le `describe("les chapitres du Centre : assez longtemps pour etre lus", ...)` (lignes 344 a 409, jusqu'a la fin du fichier).
 
-- [ ] **Step 6 : verifier**
+- [x] **Step 6 : verifier**
 
 ```powershell
 pnpm test
@@ -817,7 +847,7 @@ git grep -n "getIntroOpacity\|getChapterOpacity\|CHAPTER_COUNT\|CHAPTER_WINDOWS"
 
 Expected : vert, muet, propre, `git grep` vide.
 
-- [ ] **Step 7 : l'oracle du calque fixe vise les fenetres de la partition**
+- [x] **Step 7 : l'oracle du calque fixe vise les fenetres de la partition**
 
 L'ancien `calque-fixe.spec.ts` allait a 35, 60 et 95 % du DEFILEMENT et comptait sur un chapitre allume ; avec la partition, 35 % du defilement tombe pendant le chant (en flux, pas dans le calque), 60 % dans le silence. Il vise desormais le milieu de chaque chapitre dans l'ARC.
 
@@ -861,7 +891,7 @@ test("accueil : au milieu de chaque chapitre, le bloc allume est dans la fenetre
 Run: `pnpm exec playwright test tests/e2e/calque-fixe.spec.ts --project=chromium`
 Expected : 5 passed (le serveur `pnpm run dev` est lance par la config).
 
-- [ ] **Step 8 : commit**
+- [x] **Step 8 : commit**
 
 ```powershell
 git add src/app/components/stag-scene/use-pilote-fenetre.ts src/app/components/stag-scene/fading-block.tsx src/app/components/stag-scene/scene-text-overlay.module.css src/app/components/stag-scene/stag-scene.tsx src/lib/reveal-arc.ts src/lib/reveal-arc.test.ts tests/e2e/calque-fixe.spec.ts
@@ -876,7 +906,7 @@ git commit -m "feat(texte): le calque fixe suit la partition -- FadingBlock pilo
 - Modify: `src/app/components/reveal-text.tsx`
 - Modify: `src/app/components/stag-scene/stag-scene.tsx` (les `RevealText` du hero et des chapitres)
 
-- [ ] **Step 1 : la prop `pilote`**
+- [x] **Step 1 : la prop `pilote`**
 
 Dans `src/app/components/reveal-text.tsx` :
 
@@ -959,11 +989,11 @@ export default function RevealText({
 
 (Si eslint refuse un commentaire de desactivation parce que la regle ne se declenche pas a cet endroit, le retirer.)
 
-- [ ] **Step 2 : le Centre l'utilise**
+- [x] **Step 2 : le Centre l'utilise**
 
 Dans `src/app/components/stag-scene/stag-scene.tsx`, ajouter `pilote="fenetre"` aux trois `RevealText` : celui du hero (`as="h1"`) et les deux des chapitres (`chapterKicker`, `chapterLine`).
 
-- [ ] **Step 3 : verifier**
+- [x] **Step 3 : verifier**
 
 ```powershell
 pnpm exec tsc --noEmit
@@ -973,7 +1003,7 @@ pnpm test
 
 Puis, a l'oeil dans le navigateur (`pnpm run dev`, `http://localhost:3000/fr`) : descendre jusqu'au chapitre I, remonter, redescendre : les mots du chapitre doivent re-cascader a la seconde entree. Le titre du hero cascade a l'arrivee comme avant.
 
-- [ ] **Step 4 : commit**
+- [x] **Step 4 : commit**
 
 ```powershell
 git add src/app/components/reveal-text.tsx src/app/components/stag-scene/stag-scene.tsx
@@ -991,7 +1021,7 @@ git commit -m "feat(texte): RevealText pilote par la fenetre -- la cascade des m
 - Modify: `src/app/components/stag-scene/stag-scene.tsx:150-156`
 - Modify: `tests/e2e/cantares.spec.ts`
 
-- [ ] **Step 1 : `--arc-h`, pose par `scene-refs-context`**
+- [x] **Step 1 : `--arc-h`, pose par `scene-refs-context`**
 
 Dans `src/app/components/stag-scene/scene-refs-context.tsx`, remplacer la fonction `handleScroll` (lignes 126 a 138) et les deux lignes qui suivent par :
 
@@ -1036,7 +1066,7 @@ Et dans le nettoyage de l'effet, apres `window.removeEventListener("scroll", han
 
 Note : sous mouvement reduit `handleScroll` sort tout de suite et `--arc-h` n'est jamais posee ; le CSS a un repli (`200vh`, le plancher de l'arc) et le chant est de toute facon force visible et en place par le mouvement reduit (ETAT_PLEIN). Pas de boucle de mise en page : `.cantarFlow` garde `min-height: 300vh`, et son contenu (0,32 arc + 120 px + la figure, soit environ 1,3 fenetre) reste bien en dessous.
 
-- [ ] **Step 2 : `BlocEnFlux`**
+- [x] **Step 2 : `BlocEnFlux`**
 
 ```tsx
 // src/app/components/stag-scene/bloc-en-flux.tsx
@@ -1089,7 +1119,7 @@ export default function BlocEnFlux({ fenetre, nom, children }: { fenetre: Fenetr
 }
 ```
 
-- [ ] **Step 3 : le CSS du chant et du bloc en flux**
+- [x] **Step 3 : le CSS du chant et du bloc en flux**
 
 Dans `src/app/globals.css`, remplacer le commentaire et le bloc `.cantarFlow` (depuis la ligne `/* Sur la home, le chant vit dans le flux vide de 300vh` jusqu'a l'accolade qui ferme la media query mobile de `.cantarFlow`, juste avant `body.reading-mode .cantar`) par :
 
@@ -1154,7 +1184,7 @@ body.reading-mode .blocEnFlux {
 }
 ```
 
-- [ ] **Step 4 : `stag-scene.tsx` enveloppe le chant**
+- [x] **Step 4 : `stag-scene.tsx` enveloppe le chant**
 
 Ajouter `import BlocEnFlux from "./bloc-en-flux";` et remplacer la section du chant (le commentaire « LE CHANT DU CENTRE (M4, 11/09) » et la `<section>`) par :
 
@@ -1163,16 +1193,16 @@ Ajouter `import BlocEnFlux from "./bloc-en-flux";` et remplacer la section du ch
           l'overlay fixe ; le chant, lui, est dans le flux (le seul contenu
           des 300vh) et reste visible en mode lecture. Depuis le 11/10 il a
           sa fenetre dans la partition (0,32 -> 0,50) : un seul noeud, qui
-          defile pendant sa tenue. L'etiquette de la section reste pour les
-          lecteurs d'ecran, c'est un repere, pas un panneau. */}
-      <section className="cantarFlow" aria-label={cantar.texts.label}>
+          defile pendant sa tenue. Le nom accessible du chant est porte par
+          la figure (cantar.tsx), sur les cinq pages. */}
+      <section className="cantarFlow">
         <BlocEnFlux fenetre={PARTITION_CENTRE.chant} nom="chant">
           <Cantar direction="jade" locale={locale} texts={cantar.texts} newWindow={cantar.newWindow} />
         </BlocEnFlux>
       </section>
 ```
 
-- [ ] **Step 5 : l'oracle du chant du Centre**
+- [x] **Step 5 : l'oracle du chant du Centre**
 
 Dans `tests/e2e/cantares.spec.ts`, ajouter a la fin :
 
@@ -1218,7 +1248,7 @@ test("/fr : le chant parle a 0,41, se tait a 0,72, se lit en mode recit", async 
 
 Et dans le test existant par page, le commentaire d'en-tete (lignes 14-18) gagne une phrase : « Sur le Centre, la figure a aussi une fenetre dans l'arc (11/10) : l'oracle dedie est en bas de ce fichier. »
 
-- [ ] **Step 6 : verifier**
+- [x] **Step 6 : verifier**
 
 ```powershell
 pnpm exec tsc --noEmit
@@ -1229,7 +1259,7 @@ pnpm exec playwright test tests/e2e/cantares.spec.ts tests/e2e/lectures-de-mise-
 
 Expected : tout vert. Si le test « 0,41 » echoue sur `box.y + height <= 800`, c'est le dosage de 120 px (ou la hauteur de la figure) : NE PAS changer l'oracle, mesurer `box` et le dire dans le rapport, Sylvain tranche sur la capture (Task 8).
 
-- [ ] **Step 7 : commit**
+- [x] **Step 7 : commit**
 
 ```powershell
 git add src/app/components/stag-scene/scene-refs-context.tsx src/app/components/stag-scene/bloc-en-flux.tsx src/app/globals.css src/app/components/stag-scene/stag-scene.tsx tests/e2e/cantares.spec.ts
@@ -1244,7 +1274,7 @@ git commit -m "feat(texte): le chant du Centre dans sa fenetre -- un seul noeud 
 - Modify: `src/app/components/stag-scene/page-closure.tsx`
 - Modify: `src/app/components/stag-scene/stag-scene.tsx` (le `PageClosure` du Centre)
 
-- [ ] **Step 1 : la prop `fenetre`**
+- [x] **Step 1 : la prop `fenetre`**
 
 Dans `src/app/components/stag-scene/page-closure.tsx` :
 
@@ -1295,11 +1325,11 @@ Dans `src/app/components/stag-scene/page-closure.tsx` :
 
 - dans le commentaire d'en-tete (lignes 31-34), apres « La classe `.revealed` est posée en fonction de getNavEmphasis > 0.05 », ajouter « (ou de la fenetre de la partition quand la page en passe une : le Centre, 11/10) ».
 
-- [ ] **Step 2 : le Centre passe sa fenetre**
+- [x] **Step 2 : le Centre passe sa fenetre**
 
 Dans `src/app/components/stag-scene/stag-scene.tsx`, le `PageClosure` du Centre gagne `fenetre={PARTITION_CENTRE.cloture}`.
 
-- [ ] **Step 3 : verifier**
+- [x] **Step 3 : verifier**
 
 ```powershell
 pnpm exec tsc --noEmit
@@ -1310,7 +1340,7 @@ pnpm exec playwright test tests/e2e/calque-fixe.spec.ts tests/e2e/acte-de-sortie
 
 Expected : vert (les quatre pages echo de calque-fixe ne passent pas de fenetre et gardent le comportement du 13/09).
 
-- [ ] **Step 4 : commit**
+- [x] **Step 4 : commit**
 
 ```powershell
 git add src/app/components/stag-scene/page-closure.tsx src/app/components/stag-scene/stag-scene.tsx
@@ -1324,7 +1354,7 @@ git commit -m "feat(texte): la cloture du Centre se revele sur sa fenetre [0,96,
 **Files:**
 - Create: `tests/e2e/partition-centre.spec.ts`
 
-- [ ] **Step 1 : le test**
+- [x] **Step 1 : le test**
 
 ```ts
 // tests/e2e/partition-centre.spec.ts
@@ -1389,12 +1419,12 @@ for (const [t, bloc] of ATTENDU) {
 }
 ```
 
-- [ ] **Step 2 : lancer**
+- [x] **Step 2 : lancer**
 
 Run: `pnpm exec playwright test tests/e2e/partition-centre.spec.ts tests/e2e/controls-overlap.spec.ts tests/e2e/mouvement-reduit.spec.ts --project=chromium`
 Expected : tout vert. Si un instant montre DEUX blocs, c'est une transition d'opacite pas finie ou un bloc qui ne respecte pas sa fenetre : lire `blocsVisibles` dans le message et remonter au composant, pas elargir le seuil.
 
-- [ ] **Step 3 : commit**
+- [x] **Step 3 : commit**
 
 ```powershell
 git add tests/e2e/partition-centre.spec.ts
@@ -1512,7 +1542,8 @@ Donner les chemins complets des onze images et la liste des dosages qui sont a l
 En tete de la spec, sous la ligne « Date : 10/10/2026, soir », ajouter : « Plan d'execution du Centre : `docs/superpowers/plans/2026-10-11-partition-centre.md` (11/10). »
 
 ```powershell
-git add docs/da/plans/centre.md CLAUDE.md docs/superpowers/specs/2026-10-10-partition-texte-design.md .scratch/partition-centre.mjs
+git add docs/da/plans/centre.md CLAUDE.md docs/superpowers/specs/2026-10-10-partition-texte-design.md
+# `.scratch/partition-centre.mjs` reste local (`.scratch/` est ignore par git).
 git commit -m "docs(texte): la partition du Centre dans le plan du Centre et dans CLAUDE.md ; script de capture"
 git push origin dev
 ```

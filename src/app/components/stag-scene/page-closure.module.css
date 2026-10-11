@@ -7,7 +7,7 @@
  * Chaque enfant a sa propre courbe d'entrée déclenchée par la classe
  * .revealed posée depuis le composant (via requestAnimationFrame qui
  * lit getNavEmphasis). Timings enchaînés : glyphe → mots stagger →
- * underline → poétique → CTA (~700ms total). Courbe cubic-bezier
+ * underline → CTA (~700ms total). Courbe cubic-bezier
  * (0.22, 1, 0.36, 1) = ease-out-quart — signature Awwwards, plus
  * élégante qu'un ease-out standard.
  *
@@ -142,23 +142,6 @@
   transform: scaleX(1);
 }
 
-.poetic {
-  font-size: var(--t-corps);
-  line-height: var(--il-corps);
-  color: rgba(var(--ink-warm-rgb), 0.82);
-  margin: 0 0 16px 0;
-  opacity: 0;
-  transform: translateY(8px);
-  transition:
-    opacity 0.55s ease-out 0.65s,
-    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.65s;
-}
-
-.revealed .poetic {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 /* CTA — pill avec border cardinal + fond glass, chevron animé au hover. */
 .cta {
   display: inline-flex;
@@ -206,7 +189,6 @@
   .closure::before,
   .word,
   .underline,
-  .poetic,
   .cta {
     transition: none;
     opacity: 1;

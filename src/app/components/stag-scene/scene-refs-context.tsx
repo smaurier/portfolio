@@ -123,6 +123,20 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
     // 28/08 ("une scene statique lisible"), et le mode recit accessible
     // est l'alternative offerte. Des que la contemplation est demandee,
     // reducedMotionRef repasse a faux et l'arc se remet a suivre le scroll.
+    // LA LONGUEUR DE L'ARC EN CSS (11/10, partition du texte). Le chant du
+    // Centre est dans le flux et doit se trouver sous le haut du cadre quand
+    // l'arc vaut 0,32 : `.cantarFlow` se place par `--arc-h`. Posee ici,
+    // ou maxScroll est deja lu (une lecture par evenement, jamais par
+    // image), et seulement quand elle change : une ecriture de style a
+    // valeur egale coute quand meme un recalcul.
+    let dernierArcH = -1;
+    function poserArcH(vh: number, maxScroll: number) {
+      const h = Math.round(arcScrollHeight(vh, maxScroll));
+      if (h === dernierArcH) return;
+      dernierArcH = h;
+      document.documentElement.style.setProperty("--arc-h", `${h}px`);
+    }
+
     function handleScroll() {
       if (reducedMotionRef.current) return;
       // UNE SEULE LECTURE DE MISE EN PAGE POUR LES DEUX (20/09). L'arc et la
@@ -135,10 +149,14 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
       const maxScroll = document.documentElement.scrollHeight - vh;
       progressRef.current = arcProgress(window.scrollY, vh, maxScroll);
       exitRef.current = exitProgress(window.scrollY, vh, maxScroll);
+      poserArcH(vh, maxScroll);
     }
 
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
+    // Au redimensionnement aussi : la longueur de l'arc depend de la hauteur
+    // de la fenetre, et rien ne defile forcement apres.
+    window.addEventListener("resize", handleScroll, { passive: true });
 
     // SONDE DE L'ARC (20/09). L'oracle « l'arc finit ou la sortie
     // commence » doit lire ce que le site TIENT, pas recalculer la regle de
@@ -157,6 +175,7 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
     };
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
       reducedMotionQuery.removeEventListener("change", relireMouvement);
       desabonnerMouvement();
       document.body.classList.remove(REVEAL_SCOPE_CLASS);

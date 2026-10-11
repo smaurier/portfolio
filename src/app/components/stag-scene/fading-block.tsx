@@ -1,56 +1,49 @@
 "use client";
 
 import { useEffect, useRef, useState, type MutableRefObject, type ReactNode } from "react";
+import { etatBloc, type Fenetre } from "@/lib/partition-texte";
 import { isBot } from "@/lib/is-bot";
 import styles from "./scene-text-overlay.module.css";
+import { ETAT_PLEIN, usePiloteFenetre } from "./use-pilote-fenetre";
 
 /**
- * Bloc de texte dont l'opacité suit le scroll (cf reveal-arc.ts) : en flux
- * normal, pas positionné lui-même (contrairement à l'ancienne version de
- * SceneTextOverlay) : c'est SceneTextOverlay (le parent) qui empile
+ * Bloc de texte du calque fixe, dont l'opacite suit sa FENETRE dans l'arc
+ * (11/10, partition du texte, lib/partition-texte) : en flux normal, pas
+ * positionne lui-meme, c'est SceneTextOverlay (le parent) qui empile
  * plusieurs FadingBlock verticalement, pour que deux blocs cohabitant au
- * même coin (retour de Sylvain le 20/08 : hero + à-propos tous les deux en
- * bas à gauche) ne se superposent jamais, même quand les deux sont visibles
- * en même temps (`prefers-reduced-motion`, cf garde-fou du Codex Nahual).
+ * meme coin ne se superposent jamais quand les deux sont visibles
+ * (`prefers-reduced-motion`, garde-fou du Codex Nahual). Hors mouvement
+ * reduit, la partition garantit qu'un seul bloc est visible a la fois.
  *
- * `display: none` en plus de l'opacité quand le bloc est totalement
- * invisible : un bloc à opacité 0 reste sinon présent dans le flux et
- * pousse le voisin visible loin de son ancrage réel : bug constaté en vrai
- * (hero collé en haut au lieu du bas, à-propos invisible occupant quand
- * même sa hauteur dans la colonne). Sûr ici : hero (getIntroOpacity) et
- * à-propos (getNavEmphasis) n'ont jamais tous les deux une opacité non
- * nulle en même temps hors reduced-motion (fenêtres [0, 0.25[ et ]0.75, 1]
- * disjointes) : et sous reduced-motion, les deux passent à 1 ensemble,
- * jamais collapsés, donc jamais superposés (empilés en flux normal).
+ * `display: none` en plus de l'opacite quand le bloc est totalement
+ * invisible : un bloc a opacite 0 reste sinon present dans le flux et
+ * pousse le voisin visible loin de son ancrage reel (bug constate le
+ * 19/08 : hero colle en haut au lieu du bas).
  *
- * Même technique que l'ancien SceneTextOverlay : requestAnimationFrame
- * plutôt qu'un listener 'scroll' séparé (évite tout risque d'ordre
- * d'exécution avec le handleScroll de stag-scene.tsx qui met à jour
- * progressRef.current pour le même événement).
+ * L'opacite de tout premier rendu est posee en style inline depuis
+ * `etatBloc(0, fenetre)` : sans ca, un bloc cense demarrer invisible
+ * flashait plein pot avant le premier calcul (bug reel du 19/08).
+ *
+ * `data-bloc` nomme le bloc pour les oracles (partition-centre.spec.ts) ;
+ * `data-phase` et `--avancement` sont poses par le pilote.
  */
 export default function FadingBlock({
   progressRef,
   reducedMotionRef,
-  getOpacity,
-  initialOpacity,
+  fenetre,
+  nom,
   children,
 }: {
   progressRef: MutableRefObject<number>;
   reducedMotionRef: MutableRefObject<boolean>;
-  getOpacity: (progress: number) => number;
-  /** Opacité de tout premier rendu (avant même le premier tick JS) : posée
-   * explicitement en style inline plutôt que laissée au défaut du
-   * navigateur (1) : sans ça, un bloc censé démarrer invisible (l'à-propos)
-   * flashait plein pot avant le premier calcul, superposé au hero : bug
-   * réel constaté (cf memory project-nahual-da, 19/08), pas hypothétique. */
-  initialOpacity: number;
+  fenetre: Fenetre;
+  nom: string;
   children: ReactNode;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   // Bots (Lighthouse/PageSpeed/crawlers) : skip rAF permanent + force
-  // contenu visible (les chapitres et l'a-propos demarrent invisibles,
-  // seul le hero serait crawle sinon). Detection post-hydration =
-  // pas de mismatch SSR.
+  // contenu visible (les chapitres demarrent invisibles, seul le hero
+  // serait crawle sinon). Detection post-hydration = pas de mismatch SSR.
   const [bot, setBot] = useState(false);
 
   useEffect(() => {
@@ -58,33 +51,17 @@ export default function FadingBlock({
     if (isBot()) setBot(true);
   }, []);
 
-  useEffect(() => {
-    if (bot) return;
-    let raf: number;
-    function tick() {
-      const opacity = reducedMotionRef.current ? 1 : getOpacity(progressRef.current);
-      const el = rootRef.current;
-      if (el) {
-        el.style.opacity = String(opacity);
-        el.style.pointerEvents = opacity > 0.05 ? "auto" : "none";
-        el.style.display = opacity > 0.001 ? "flex" : "none";
-      }
-      raf = requestAnimationFrame(tick);
-    }
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [bot, progressRef, reducedMotionRef, getOpacity]);
+  usePiloteFenetre(rootRef, fenetre, progressRef, reducedMotionRef, { masquer: true, actif: !bot });
 
-  const inlineStyle = bot
-    ? { opacity: 1, pointerEvents: "auto" as const, display: "flex" as const }
-    : {
-        opacity: initialOpacity,
-        pointerEvents: (initialOpacity > 0.05 ? "auto" : "none") as "auto" | "none",
-        display: (initialOpacity > 0.001 ? "flex" : "none") as "flex" | "none",
-      };
+  const initial = bot ? ETAT_PLEIN : etatBloc(0, fenetre);
+  const inlineStyle = {
+    opacity: initial.opacite,
+    pointerEvents: (initial.opacite > 0.05 ? "auto" : "none") as "auto" | "none",
+    display: (initial.opacite > 0.001 ? "flex" : "none") as "flex" | "none",
+  };
 
   return (
-    <div ref={rootRef} className={styles.block} style={inlineStyle}>
+    <div ref={rootRef} className={styles.block} style={inlineStyle} data-bloc={nom} data-phase={initial.phase}>
       {children}
     </div>
   );

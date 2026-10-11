@@ -194,83 +194,10 @@ export function getHeadTurnAmount(progress: number): number {
   return easeWithinRange(progress, PHASE_START["face-a-face"], PHASE_START["chemins-reveles"], 0, 1);
 }
 
-// Opacité de la couche "préface" superposée à la scène : le texte
-// d'accroche (hero) au premier plan, la Piedra del Sol en fond très
-// discret (mise à l'échelle par le composant, cf memory
-// project-nahual-da : "ce qui existe avant que le cerf n'apparaisse").
-// Pleinement visible en tout début de scroll (retour de Sylvain le 19/08 :
-// "si rien n'invite au scroll, l'utilisateur va-t-il forcément y penser ?"
-// : l'accroche doit donc se lire AVANT tout scroll, pas après), puis
-// s'efface sur la fenêtre de "pénombre" : le même rythme que la prise de
-// conscience du cerf, pour que l'accroche cède la place plutôt que de
-// s'attarder pendant que la scène change de sens.
-export function getIntroOpacity(progress: number): number {
-  return easeWithinRange(progress, PHASE_START.penombre, PHASE_START.conscience, 1, 0);
-}
-
-/**
- * Scroll-driven storytelling multi-chapitres (28/08 task #63). 5 bells
- * successives, chacune ancree au milieu d'une phase du reveal-arc. Le
- * texte apparait puis fade out avant le suivant : narration cardinale
- * qui accompagne le scroll sans jamais occulter la scene 3D.
- *
- * Chapitres :
- *  0 : L'approche       (toute la penombre,        0.03-0.25)
- *  1 : Le regard         (toute la conscience,      0.26-0.50)
- *  2 : Face-a-face       (tout le face-a-face,      0.51-0.74)
- *  3 : Les chemins       (les chemins reveles,      0.75-0.94)
- *  4 : L'Ollin           (climax 0.95-1.0, ne s'efface pas : 29/08)
- *
- * 13/09, retour Sylvain : « l'encadre apparait au scroll seulement un court
- * moment, c'est un bug ». Mesure : les cinq fenetres ne couvraient que 61 %
- * de l'arc, avec 34 % de vide entre elles, et chaque chapitre ne tenait sa
- * pleine opacite que sur 5 % de l'arc, soit 83 pixels de defilement sur un
- * ecran de 800 : un cran de molette. Les fenetres epousent desormais les
- * PHASES de l'arc (penombre, conscience, face-a-face, chemins), ce qui les
- * double ET remet chaque texte en face de ce que la scene raconte ; le
- * fondu passe de 30 a 18 % de la fenetre, ce qui allonge encore le
- * plateau. Un ecart d'un centieme reste entre deux fenetres : deux
- * chapitres visibles ensemble pousseraient la colonne (cf FadingBlock).
- *
- * Le 5e chapitre est le seul dont le tuple contient un troisieme
- * booleen `keepAfterEnd` : au lieu de fade out symetrique bell curve,
- * il monte puis reste plateau 1 jusqu'a p=1. Signature "le voyage
- * commence, le monde tremble sous ton doigt" : ancre narrative de la
- * feature press-deform Ollin (voir Codex section ollin).
- */
-type ChapterWindow = readonly [number, number] | readonly [number, number, boolean];
-const CHAPTER_WINDOWS: readonly ChapterWindow[] = [
-  [0.03, 0.25],
-  [0.26, 0.5],
-  [0.51, 0.74],
-  [0.75, 0.94],
-  [0.95, 1.0, true],
-];
-
-/** Part de la fenetre consommee par le fondu, de chaque cote. Le reste est
- * le plateau, ou le texte est lisible. 0,3 -> 0,18 le 13/09. */
-const CHAPTER_FADE_SHARE = 0.18;
-
-/** Le nombre de chapitres du Centre (la table ci-dessus fait foi). */
-export const CHAPTER_COUNT = CHAPTER_WINDOWS.length;
-
-export function getChapterOpacity(progress: number, chapterIdx: number): number {
-  const w = CHAPTER_WINDOWS[chapterIdx];
-  if (!w) return 0;
-  const [start, end] = w;
-  const keepAfterEnd = w.length === 3 ? w[2] : false;
-  const p = clampProgress(progress);
-  if (p < start) return 0;
-  if (p > end && !keepAfterEnd) return 0;
-  const t = Math.min(1, (p - start) / (end - start));
-  const fadeIn = Math.min(1, t / CHAPTER_FADE_SHARE);
-  if (keepAfterEnd) {
-    // Pas de fade out : plateau tenu apres montee.
-    return fadeIn;
-  }
-  const fadeOut = Math.min(1, (1 - t) / CHAPTER_FADE_SHARE);
-  return Math.min(fadeIn, fadeOut);
-}
+// Le hero (getIntroOpacity, 19/08) et les chapitres du Centre (CHAPTER_WINDOWS,
+// 28/08, elargis le 13/09) ont quitte ce fichier le 11/10 : le texte du Centre
+// suit desormais une partition unique, lib/partition-texte.ts, qui porte ses
+// propres oracles (tenue minimale, jamais deux blocs ensemble, silences).
 
 /**
  * LA LONGUEUR DE L'ARC (08/09, reecrit le 20/09). La valeur etait DUPLIQUEE
