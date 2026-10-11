@@ -588,7 +588,8 @@ Expected : vitest vert (un fichier de tests en moins : hero-mobile), `tsc` muet,
 - [ ] **Step 8 : commit**
 
 ```powershell
-git add -A src .scratch/partition-dictionnaires.mjs
+git add -A src
+# `.scratch/` est ignore par git (decision anterieure : scripts de sonde locaux) : le script reste sur le disque, pas dans le depot.
 git commit -m "feat(texte): ce qui part -- paragraphe du hero, chapitres III et V, ligne poetique des clotures, etiquette et citation longue du chant (KISS, l'image prevaut)"
 ```
 
@@ -1526,7 +1527,8 @@ Donner les chemins complets des onze images et la liste des dosages qui sont a l
 En tete de la spec, sous la ligne « Date : 10/10/2026, soir », ajouter : « Plan d'execution du Centre : `docs/superpowers/plans/2026-10-11-partition-centre.md` (11/10). »
 
 ```powershell
-git add docs/da/plans/centre.md CLAUDE.md docs/superpowers/specs/2026-10-10-partition-texte-design.md .scratch/partition-centre.mjs
+git add docs/da/plans/centre.md CLAUDE.md docs/superpowers/specs/2026-10-10-partition-texte-design.md
+# `.scratch/partition-centre.mjs` reste local (`.scratch/` est ignore par git).
 git commit -m "docs(texte): la partition du Centre dans le plan du Centre et dans CLAUDE.md ; script de capture"
 git push origin dev
 ```
