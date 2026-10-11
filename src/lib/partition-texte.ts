@@ -30,12 +30,15 @@
  * posee pendant l'acte de sortie, le dernier 0,55 vh hors arc, ou le
  * progres de l'arc vaut 1).
  *
+ * Seule la cloture est exemptee de TENUE_MIN (0,04 d'arc sans sortie :
+ * 3,4 %) ; le hero, lui, tient 8,5 % et la regle s'applique.
+ *
  * Pur : aucune lecture du DOM ici. Le composant qui applique l'etat par
  * image est use-pilote-fenetre.ts.
  */
 import { clampProgress } from "./camera-path";
 
-export type Fenetre = { debut: number; fin: number };
+export type Fenetre = { readonly debut: number; readonly fin: number };
 export type Phase = "avant" | "entree" | "tenue" | "sortie" | "apres";
 export type EtatBloc = {
   /** 0 avant et apres ; monte pendant l'entree, 1 en tenue, descend en sortie. */
@@ -108,7 +111,7 @@ export function etatBloc(progress: number, fenetre: Fenetre): EtatBloc {
   }
   const debutTenue = sansEntree ? 0 : PART_ENTREE;
   const finTenue = sansSortie ? 1 : debutSortie;
-  const a = finTenue > debutTenue ? Math.min(1, (t - debutTenue) / (finTenue - debutTenue)) : 1;
+  const a = finTenue > debutTenue ? Math.max(0, Math.min(1, (t - debutTenue) / (finTenue - debutTenue))) : 1;
   return { opacite: 1, phase: "tenue", avancement: a };
 }
 
@@ -149,7 +152,7 @@ export function partitionValide(
       violations.push(`${nomA} et ${nomB} : ecart ${(b.debut - a.fin).toFixed(3)} < ${ECART_MIN}`);
     }
   }
-  if (dernier in partition && blocs.length > 0 && blocs[blocs.length - 1][0] !== dernier) {
+  if (Object.hasOwn(partition, dernier) && blocs[blocs.length - 1][0] !== dernier) {
     violations.push(`${dernier} n'est pas le dernier bloc`);
   }
   return violations;
