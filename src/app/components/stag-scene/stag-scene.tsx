@@ -50,9 +50,10 @@ export default function StagScene({
   seuil?: string;
   servicesHref: string;
   /** Conserve pour compat call-site (page.js passe encore contactHref).
-   * A retirer au prochain nettoyage de dictionnaire home (aboutText,
-   * aboutTitle, contactCta, githubCta ne sont plus utilises non plus
-   * depuis la sortie du bloc "A propos" de la home le 29/08). */
+   * Laisse en place le 11/10 (partition du texte) : aboutText, aboutTitle,
+   * contactCta, githubCta ne sont plus utilises depuis la sortie du bloc
+   * "A propos" le 29/08, mais leur retour sur la home est une question de
+   * design, pas de nettoyage ; a trancher avec Sylvain. */
   contactHref?: string;
   /** Description poetique-immersive de la scene 3D pour les lecteurs
    * d'ecran (29/08 chantier a11y "SR enrichi"). Injectee en tete du
@@ -67,7 +68,7 @@ export default function StagScene({
         <main id="main" tabIndex={-1}>
           {/* Recit canonique pour lecteurs d'ecran (29/08 chantier
               a11y). Le tree accessibility est structure : description
-              scene + h1 hero + texte + section chapitres ordonnee.
+              scene + h1 hero + section des trois chapitres, ordonnee.
               Toujours dans le flux, jamais cache par les FadingBlock
               scroll-driven qui vivent en aria-hidden ci-dessous. Le
               CTA reste dans le bloc visuel pour ne pas doubler le
@@ -149,8 +150,10 @@ export default function StagScene({
       {/* LE CHANT DU CENTRE (M4, 11/09). Le texte de la home vit dans
           l'overlay fixe ; le chant, lui, est dans le flux (le seul contenu
           des 300vh), ancre en bas : il arrive sous la scene, dans la derniere
-          hauteur d'ecran, et reste visible en mode lecture. */}
-      <section className="cantarFlow" aria-label={cantar.texts.label}>
+          hauteur d'ecran, et reste visible en mode lecture. Son nom accessible
+          (common.cantar.label) est porte par la figure elle-meme, sur les
+          cinq pages. */}
+      <section className="cantarFlow">
         <Cantar direction="jade" locale={locale} texts={cantar.texts} newWindow={cantar.newWindow} />
       </section>
     </SceneStage>
