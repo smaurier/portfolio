@@ -436,11 +436,26 @@ Dans `src/lib/i18n-parity.test.ts`, remplacer le dernier `it` (lignes 76 a 94) p
   it("le Centre raconte trois chapitres, I, II et IV", () => {
     // 11/10, partition du texte : III « Un silence. » est dit par le silence
     // lui-meme, V « L'Ollin » par la cloture qui est deja le depart.
+    const chapitresPartition = Object.keys(PARTITION_CENTRE).filter((k) => k.startsWith("chapitre-")).length;
     for (const loc of ["fr", "en", "es"] as const) {
+      expect(dicos[loc].get("home.chapters[0].kicker"), loc).toMatch(/^I /);
+      expect(dicos[loc].get("home.chapters[1].kicker"), loc).toMatch(/^II /);
       expect(dicos[loc].get("home.chapters[2].kicker"), loc).toMatch(/^IV /);
       expect(dicos[loc].has("home.chapters[3].kicker"), loc).toBe(false);
+      expect(dicos[loc].has(`home.chapters[${chapitresPartition}].kicker`), `${loc} : autant de chapitres que de fenetres dans la partition`).toBe(false);
+      expect(dicos[loc].has(`home.chapters[${chapitresPartition - 1}].kicker`), loc).toBe(true);
       expect(dicos[loc].has("home.heroText"), `${loc} : le paragraphe du hero est parti`).toBe(false);
       expect(dicos[loc].has("common.cantar.ourTranslation"), `${loc} : la citation longue est partie`).toBe(false);
+    }
+  });
+
+  it("la source du chant porte le chant et la strophe, jamais le folio", () => {
+    // 11/10 : source courte ; un `{folio}` oublie s'afficherait tel quel.
+    for (const loc of ["fr", "en", "es"] as const) {
+      const source = dicos[loc].get("common.cantar.source") ?? "";
+      expect(source, loc).toContain("{chant}");
+      expect(source, loc).toContain("{strophe}");
+      expect(source, loc).not.toContain("{folio}");
     }
   });
 ```
@@ -1178,9 +1193,9 @@ Ajouter `import BlocEnFlux from "./bloc-en-flux";` et remplacer la section du ch
           l'overlay fixe ; le chant, lui, est dans le flux (le seul contenu
           des 300vh) et reste visible en mode lecture. Depuis le 11/10 il a
           sa fenetre dans la partition (0,32 -> 0,50) : un seul noeud, qui
-          defile pendant sa tenue. L'etiquette de la section reste pour les
-          lecteurs d'ecran, c'est un repere, pas un panneau. */}
-      <section className="cantarFlow" aria-label={cantar.texts.label}>
+          defile pendant sa tenue. Le nom accessible du chant est porte par
+          la figure (cantar.tsx), sur les cinq pages. */}
+      <section className="cantarFlow">
         <BlocEnFlux fenetre={PARTITION_CENTRE.chant} nom="chant">
           <Cantar direction="jade" locale={locale} texts={cantar.texts} newWindow={cantar.newWindow} />
         </BlocEnFlux>
