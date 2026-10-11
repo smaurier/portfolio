@@ -2032,24 +2032,70 @@ html[data-footer-in-view="true"] .seuilTete[data-seuil-tete="fixe"] {
 /* Sur la home, le chant vit dans le flux vide de 300vh, le seul contenu
    qui defile par-dessus la scene. Il n'est PAS ancre en bas : l'image
    finale du Centre (validee le 11/09, nette, le monde entier) doit rester
-   libre. Il part au bas de la premiere hauteur d'ecran, en colonne droite
-   (les chapitres vivent en bas a gauche), et il est sorti du cadre avant
-   80 % de l'arc. Mesure : bloc de 65vh, en vue de 0 a 0,82 de l'arc. */
+   libre. Depuis le 11/10 (partition du texte), il a sa FENETRE dans l'arc,
+   0,32 -> 0,50 (la lumiere monte, le mais pousse), et sa place dans le
+   document est posee pour que son CENTRE soit au centre du cadre au
+   milieu de sa fenetre (0,41) : `--arc-h` est la longueur de l'arc de
+   cette page, posee par scene-refs-context (repli 200vh = le plancher de
+   l'arc), et `--decalage: -50%` remonte le bloc de sa demi-hauteur. La
+   spec disait « 120 px du haut a 0,32 » : mesure le 11/10, la figure
+   (321 px) remonte de 313 px pendant sa tenue, donc ce dosage la coupait
+   en haut des le milieu de sa fenetre (y = -37 px a 0,41) ; centree, elle
+   est entiere du debut a la fin (de 396 a 83 px du haut sur 800).
+   Dosage a l'oeil de Sylvain sur capture. Il defile pendant sa tenue
+   (0,18 d'arc, 313 px sur l'Accueil), en colonne droite (les chapitres
+   vivent en bas a gauche). */
 .cantarFlow {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-end;
   min-height: 300vh;
-  padding: 100vh 6vw 0;
+  padding: calc(0.41 * var(--arc-h, 200vh) + 50vh) 6vw 0;
   box-sizing: border-box;
+}
+.cantarFlow .cantar {
+  margin-top: 0;
+}
+.cantarFlow .blocEnFlux {
+  --decalage: -50%;
 }
 @media (max-width: 767px) {
   .cantarFlow {
     /* Le couloir des controles (13/09, X3) : le bloc ne passe plus sous la
        colonne de boutons. */
     align-items: flex-start;
-    padding: 100vh 5vw 0 72px;
+    padding: calc(0.41 * var(--arc-h, 200vh) + 50vh) 5vw 0 72px;
+  }
+}
+
+/* LE BLOC EN FLUX (11/10, partition du texte, bloc-en-flux.tsx) : meme
+   grammaire que le calque fixe (scene-text-overlay.module.css), le
+   mouvement scrube par `--avancement`. En mode recit, visible quoi qu'il
+   arrive : il est dans le flux, il se lit. `--decalage` (0 par defaut) est
+   l'ancrage propre a la page, pose par le parent, hors du mouvement. */
+.blocEnFlux {
+  transition: opacity 0.6s ease-out;
+  transform: translateY(var(--decalage, 0px));
+}
+.blocEnFlux[data-phase="entree"] {
+  transform: translateY(calc(var(--decalage, 0px) + 12px * (1 - var(--avancement, 1))));
+}
+.blocEnFlux[data-phase="sortie"] {
+  transform: translateY(calc(var(--decalage, 0px) - 8px * var(--avancement, 0)));
+}
+body.reading-mode .blocEnFlux {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(var(--decalage, 0px));
+  pointer-events: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .blocEnFlux {
+    transition: none;
+  }
+  .blocEnFlux[data-phase] {
+    transform: translateY(var(--decalage, 0px));
   }
 }
 body.reading-mode .cantar {
