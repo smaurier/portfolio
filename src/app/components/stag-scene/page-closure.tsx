@@ -3,6 +3,7 @@
 import { useEffect, useRef, type CSSProperties, type MutableRefObject } from "react";
 import CardinalLink from "./cardinal-link";
 import { getNavEmphasis } from "@/lib/reveal-arc";
+import { etatBloc, type Fenetre } from "@/lib/partition-texte";
 import { getPath, type PageKey } from "@/lib/routes";
 import type { Dictionary, Locale } from "../../../dictionaries";
 import {
@@ -31,6 +32,8 @@ import styles from "./page-closure.module.css";
  *  - obsidienne / Nord / Mictlampa (retour Centre pour fermer le cycle)
  *
  * La classe `.revealed` est posée en fonction de getNavEmphasis > 0.05
+ * (ou de la fenetre de la partition quand la page en passe une : le
+ * Centre, 11/10)
  * (rAF interne, pas de useState pour éviter les re-renders inutiles) :
  * mêmes fenêtres que FadingBlock ancienne version, mais transitions CSS
  * enchaînées au lieu d'un simple opacity fade.
@@ -62,6 +65,7 @@ export default function PageClosure({
   closure,
   progressRef,
   reducedMotionRef,
+  fenetre,
 }: {
   directionKey: DirectionKey;
   locale: Locale;
@@ -69,6 +73,11 @@ export default function PageClosure({
   closure: Dictionary["closure"][DirectionKey];
   progressRef: MutableRefObject<number>;
   reducedMotionRef: MutableRefObject<boolean>;
+  /** LA FENETRE DU CENTRE (11/10, partition du texte) : la cloture du calque
+   *  fixe se revele sur [0,96, 1] et reste posee pendant l'acte de sortie
+   *  (une fenetre qui finit a 1 ne sort jamais, lib/partition-texte). Sans
+   *  fenetre (les pages echo, en flux) : getNavEmphasis, comme avant. */
+  fenetre?: Fenetre;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const nextKey = NEXT_KEY[directionKey];
@@ -85,7 +94,16 @@ export default function PageClosure({
       const el = rootRef.current;
       if (el) {
         const reduced = reducedMotionRef.current;
-        const emphasis = reduced ? 1 : getNavEmphasis(progressRef.current);
+        let emphasis: number;
+        if (reduced) {
+          emphasis = 1;
+        } else if (fenetre) {
+          const etat = etatBloc(progressRef.current, fenetre);
+          emphasis = etat.opacite;
+          if (el.dataset.phase !== etat.phase) el.dataset.phase = etat.phase;
+        } else {
+          emphasis = getNavEmphasis(progressRef.current);
+        }
         const shouldReveal = emphasis > 0.05;
         el.classList.toggle(styles.revealed, shouldReveal);
         // pointer-events uniquement quand la card est visible : évite
@@ -96,7 +114,7 @@ export default function PageClosure({
     }
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [progressRef, reducedMotionRef]);
+  }, [progressRef, reducedMotionRef, fenetre]);
 
   const cardinalWords = closure.cardinal.split(" ");
   const style: CSSProperties = {
@@ -114,7 +132,7 @@ export default function PageClosure({
   // (nav aria-label a fixer, en cours). Reste 100% visible et
   // cliquable pour utilisateurs souris.
   return (
-    <div ref={rootRef} className={styles.closure} style={style} aria-hidden="true">
+    <div ref={rootRef} className={styles.closure} style={style} aria-hidden="true" data-bloc={fenetre ? "cloture" : undefined}>
       <h2 className={styles.title}>
         {cardinalWords.map((word, i) => (
           <span key={i} className={styles.word}>

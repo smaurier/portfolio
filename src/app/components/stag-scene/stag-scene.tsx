@@ -141,6 +141,7 @@ export default function StagScene({
           closure={closure.jade}
           progressRef={progressRef}
           reducedMotionRef={reducedMotionRef}
+          fenetre={PARTITION_CENTRE.cloture}
         />
       )}
     >
