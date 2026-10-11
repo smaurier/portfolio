@@ -99,7 +99,7 @@ export default function StagScene({
                 tonalpohualli) en disait deja chaque mot. C'etait deja le cas sur
                 telephone depuis le 04/10 ; le bureau rejoint. */}
             <div aria-hidden="true">
-              <RevealText as="h1" text={home.heroTitle} delayPerWord={50} />
+              <RevealText as="h1" text={home.heroTitle} delayPerWord={50} pilote="fenetre" />
               {seuil ? <p className="seuilTete">{seuil}</p> : null}
             </div>
             <div className={overlayStyles.links}>
@@ -117,8 +117,8 @@ export default function StagScene({
             return (
               <FadingBlock key={nom} progressRef={progressRef} reducedMotionRef={reducedMotionRef} fenetre={PARTITION_CENTRE[nom]} nom={nom}>
                 <div aria-hidden="true" className={overlayStyles.chapter}>
-                  <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
-                  <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
+                  <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} pilote="fenetre" />
+                  <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} pilote="fenetre" />
                 </div>
               </FadingBlock>
             );

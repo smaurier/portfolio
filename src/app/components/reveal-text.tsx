@@ -17,6 +17,14 @@ import styles from "./reveal-text.module.css";
  * visible. threshold ratio = léger biais pour paragraphes longs qui
  * n'entreraient jamais entièrement.
  *
+ * `pilote="fenetre"` (11/10, partition du texte) : dans le calque fixe du
+ * Centre, un bloc entre et sort plusieurs fois (on remonte, on redescend)
+ * et l'IntersectionObserver ne dit rien d'un bloc fixe. La cascade suit
+ * alors le `data-phase` de l'ancetre le plus proche (pose par
+ * use-pilote-fenetre) : revelee en entree/tenue/sortie, rearmee en
+ * avant/apres, donc rejouee a chaque entree. Un MutationObserver sur cet
+ * attribut, pas d'etat par image.
+ *
  * Respect reducedMotion : CSS media query dans le module écrase
  * l'anim, spans visibles instantanément sans translate.
  */
@@ -29,12 +37,14 @@ export default function RevealText({
   className,
   delayPerWord = DEFAULT_DELAY_PER_WORD_MS,
   startDelay = 0,
+  pilote = "observateur",
 }: {
   text: string;
   as?: "span" | "p" | "h1" | "h2" | "h3" | "h4" | "div";
   className?: string;
   delayPerWord?: number;
   startDelay?: number;
+  pilote?: "observateur" | "fenetre";
 }) {
   const ref = useRef<HTMLElement | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -46,15 +56,24 @@ export default function RevealText({
     // sans IntersectionObserver. Sans ca, .inner reste opacity:0
     // (fade CSS suspendu) et LCP Lighthouse mesure du vide.
     if (isBot()) {
-      // Bots (Lighthouse/PageSpeed) : force revelation immediate,
-      // sans IntersectionObserver qui ne trigger jamais en headless
-      // sans scroll (LCP mesurerait du vide).
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setRevealed(true);
       return;
     }
     const node = ref.current;
     if (!node) return;
+    if (pilote === "fenetre") {
+      const hote = node.closest<HTMLElement>("[data-phase]");
+      if (!hote) return;
+      const lire = () => {
+        const ph = hote.dataset.phase;
+        setRevealed(ph === "entree" || ph === "tenue" || ph === "sortie");
+      };
+      lire();
+      const mo = new MutationObserver(lire);
+      mo.observe(hote, { attributes: true, attributeFilter: ["data-phase"] });
+      return () => mo.disconnect();
+    }
     if (revealed) return;
     const obs = new IntersectionObserver(
       (entries) => {
@@ -70,7 +89,7 @@ export default function RevealText({
     );
     obs.observe(node);
     return () => obs.disconnect();
-  }, [revealed]);
+  }, [revealed, pilote]);
 
   const children = words.map((word, i) => {
     if (/^\s+$/.test(word)) return <span key={i}>{word}</span>;
