@@ -1,4 +1,5 @@
 import { test, expect, devices } from "@playwright/test";
+import { defilerDansLArc } from "./arc";
 
 /**
  * LE CALQUE DE TEXTE SUIT LA FENETRE (13/09, X1 et X4 de l'audit).
@@ -22,29 +23,28 @@ async function aller(page: import("@playwright/test").Page, f: number) {
   await page.waitForTimeout(1800);
 }
 
-test("accueil : les chapitres allumes sont dans la fenetre", async ({ page }) => {
+test("accueil : au milieu de chaque chapitre, le bloc allume est dans la fenetre", async ({ page }) => {
+  // 11/10, partition du texte : I, II et IV ont chacun leur fenetre dans
+  // l'arc (lib/partition-texte, PARTITION_CENTRE) ; on vise leur milieu.
   test.setTimeout(150_000);
   await page.goto("/fr?shaders-prod");
   await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 90_000 });
   await page.waitForTimeout(2500);
-  let allumes = 0;
-  for (const f of [0.35, 0.6, 0.95]) {
-    await aller(page, f);
+  for (const [f, attendu] of [[0.21, "chapitre-0"], [0.58, "chapitre-1"], [0.87, "chapitre-2"]] as const) {
+    await defilerDansLArc(page, f);
+    await page.waitForTimeout(1800);
     const blocs = await page.evaluate(() =>
-      [...document.querySelectorAll<HTMLElement>("[data-scene-overlay] [class*='block']")]
+      [...document.querySelectorAll<HTMLElement>("[data-scene-overlay] [data-bloc]")]
         .filter((b) => Number(getComputedStyle(b).opacity) > 0.9 && getComputedStyle(b).display !== "none")
         .map((b) => {
           const r = b.getBoundingClientRect();
-          return { texte: (b.textContent ?? "").trim().slice(0, 30), top: Math.round(r.top), bottom: Math.round(r.bottom) };
+          return { nom: b.dataset.bloc, top: Math.round(r.top), bottom: Math.round(r.bottom) };
         }),
     );
-    for (const b of blocs) {
-      allumes++;
-      expect(b.top, `${Math.round(f * 100)} % : « ${b.texte} » commence dans la fenetre`).toBeGreaterThanOrEqual(0);
-      expect(b.bottom, `${Math.round(f * 100)} % : « ${b.texte} » finit dans la fenetre`).toBeLessThanOrEqual(800);
-    }
+    expect(blocs.map((b) => b.nom), `a ${Math.round(f * 100)} % de l'arc`).toEqual([attendu]);
+    expect(blocs[0].top, `${attendu} commence dans la fenetre`).toBeGreaterThanOrEqual(0);
+    expect(blocs[0].bottom, `${attendu} finit dans la fenetre`).toBeLessThanOrEqual(800);
   }
-  expect(allumes, "au moins un chapitre allume sur les trois points").toBeGreaterThan(0);
 });
 
 for (const chemin of ["fr/services", "fr/projets", "fr/contact", "fr/memoire"]) {
