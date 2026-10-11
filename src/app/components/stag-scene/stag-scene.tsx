@@ -1,6 +1,6 @@
 "use client";
 
-import { getChapterOpacity, getIntroOpacity } from "@/lib/reveal-arc";
+import { PARTITION_CENTRE, type BlocCentre } from "@/lib/partition-texte";
 import { renderWithNahuatl } from "@/lib/nahuatl";
 import RevealText from "../reveal-text";
 import Cantar, { type CantarTexts } from "../cantar";
@@ -24,14 +24,17 @@ export type HomeContent = {
 /**
  * Consommateur home de SceneStage. Le layout scrollable et le contenu 3D
  * sont partagés (cf scene-stage.tsx, scene-content.tsx) ; cette page
- * n'apporte que son overlay HTML propre : hero visible dès le chargement
- * (getIntroOpacity, s'efface avec la pénombre) et à-propos révélé à
- * "chemins révélés" (getNavEmphasis, même moment que l'emphase de la
- * nav). Les pages écho (Services/Projets/Contact/Mémoire) suivent la
+ * n'apporte que son overlay HTML propre : chaque bloc de texte dans sa
+ * fenetre de la partition du Centre (lib/partition-texte, 11/10) : hero a
+ * l'arrivee, I, le chant, II, un silence au climax, IV, la cloture. Les
+ * pages écho (Services/Projets/Contact/Mémoire) suivent la
  * même structure, chacune avec son propre overlay HTML (cf memory
  * project-nahual-da, décision du 25/08 : plus de fenêtre 320×320, tout
  * le site partage la même scène plein écran).
  */
+/** Les trois chapitres gardes (I, II, IV), dans l'ordre du dictionnaire. */
+const CHAPITRES: readonly BlocCentre[] = ["chapitre-0", "chapitre-1", "chapitre-2"];
+
 export default function StagScene({
   home,
   locale,
@@ -87,12 +90,7 @@ export default function StagScene({
             </section>
           </div>
 
-          <FadingBlock
-            progressRef={progressRef}
-            reducedMotionRef={reducedMotionRef}
-            getOpacity={getIntroOpacity}
-            initialOpacity={1}
-          >
+          <FadingBlock progressRef={progressRef} reducedMotionRef={reducedMotionRef} fenetre={PARTITION_CENTRE.hero} nom="hero">
             {/* Textes du hero : deja lus via sr-only, aria-hidden pour
                 eviter le doublon. Le CardinalLink reste focusable et
                 cliquable pour tous (souris, clavier, SR focus mode). */}
@@ -110,23 +108,21 @@ export default function StagScene({
               </CardinalLink>
             </div>
           </FadingBlock>
-          {/* Chapitres narratifs scroll-driven (28/08 task #63).
-              aria-hidden : contenu equivalent deja dans le sr-only
-              ci-dessus, evite lecture en doublon. */}
-          {home.chapters.map((chapter, i) => (
-            <FadingBlock
-              key={i}
-              progressRef={progressRef}
-              reducedMotionRef={reducedMotionRef}
-              getOpacity={(p) => getChapterOpacity(p, i)}
-              initialOpacity={0}
-            >
-              <div aria-hidden="true" className={overlayStyles.chapter}>
-                <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
-                <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
-              </div>
-            </FadingBlock>
-          ))}
+          {/* Chapitres narratifs scroll-driven (28/08 task #63), trois depuis le
+              11/10, chacun dans sa fenetre de la partition. aria-hidden :
+              contenu equivalent deja dans le sr-only ci-dessus. */}
+          {home.chapters.map((chapter, i) => {
+            const nom = CHAPITRES[i];
+            if (!nom) return null;
+            return (
+              <FadingBlock key={nom} progressRef={progressRef} reducedMotionRef={reducedMotionRef} fenetre={PARTITION_CENTRE[nom]} nom={nom}>
+                <div aria-hidden="true" className={overlayStyles.chapter}>
+                  <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
+                  <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
+                </div>
+              </FadingBlock>
+            );
+          })}
         </main>
         </>
       )}

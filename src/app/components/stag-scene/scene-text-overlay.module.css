@@ -111,6 +111,24 @@
   }
 }
 
+/* LA GRAMMAIRE D'APPARITION (11/10, partition du texte, lib/partition-texte).
+   Le bloc entre en montant de 12 px sur les premiers 15 % de sa fenetre,
+   tient, puis sort en derivant de 8 px vers le haut sur les derniers 15 %.
+   `--avancement` (0 -> 1 dans la phase) et `data-phase` sont poses par
+   image depuis l'arc (use-pilote-fenetre) ; les pixels, eux, vivent ici,
+   et le mouvement est scrube par le defilement, pas par une horloge. */
+.block[data-phase="entree"] {
+  transform: translateY(calc(12px * (1 - var(--avancement, 1))));
+}
+.block[data-phase="sortie"] {
+  transform: translateY(calc(-8px * var(--avancement, 0)));
+}
+@media (prefers-reduced-motion: reduce) {
+  .block[data-phase] {
+    transform: none;
+  }
+}
+
 .block h1,
 .block h2 {
   font-size: var(--t-page);

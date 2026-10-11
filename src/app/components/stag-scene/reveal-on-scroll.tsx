@@ -5,7 +5,7 @@ import { useEffect } from "react";
 /**
  * LE CHAPITRAGE DES PAGES A CONTENU (11/09, lot D3).
  *
- * Le Centre etage ses chapitres au fil de l'arc (getChapterOpacity). Les
+ * Le Centre etage ses chapitres au fil de l'arc, chacun dans sa fenetre (partition-texte). Les
  * pages a contenu, elles, posent toutes leurs cartes d'un bloc : sur
  * Memoire, la plus longue (4466 px de defilement), on lit une colonne
  * uniforme pendant que l'arc, lui, est fini au tiers.

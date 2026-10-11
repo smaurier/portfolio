@@ -54,7 +54,7 @@ Expected : vitest vert (le nombre de fichiers change au fil des taches), `tsc` m
 - Create: `src/lib/partition-texte.ts`
 - Create: `src/lib/partition-texte.test.ts`
 
-- [ ] **Step 1 : ecrire les tests (rouges)**
+- [x] **Step 1 : ecrire les tests (rouges)**
 
 ```ts
 // src/lib/partition-texte.test.ts
@@ -203,12 +203,12 @@ describe("la partition du Centre : un seul bloc a la fois", () => {
 });
 ```
 
-- [ ] **Step 2 : verifier qu'ils echouent**
+- [x] **Step 2 : verifier qu'ils echouent**
 
 Run: `pnpm exec vitest run src/lib/partition-texte.test.ts`
 Expected : FAIL, `Cannot find module './partition-texte'`.
 
-- [ ] **Step 3 : ecrire la lib**
+- [x] **Step 3 : ecrire la lib**
 
 ```ts
 // src/lib/partition-texte.ts
@@ -373,12 +373,12 @@ export function partitionValide(
 }
 ```
 
-- [ ] **Step 4 : verifier que les tests passent**
+- [x] **Step 4 : verifier que les tests passent**
 
 Run: `pnpm exec vitest run src/lib/partition-texte.test.ts`
 Expected : PASS, 17 tests.
 
-- [ ] **Step 5 : tsc + eslint, puis commit**
+- [x] **Step 5 : tsc + eslint, puis commit**
 
 ```powershell
 pnpm exec tsc --noEmit
@@ -405,7 +405,7 @@ Tout ce que la scene dit deja sort du texte. Les trois dictionnaires sont reecri
 - Modify: `src/app/components/cantar.tsx:72,92-97`
 - Modify: `src/app/globals.css` (`.cantarLabel`)
 
-- [ ] **Step 1 : l'oracle i18n (rouge) : `poetic` n'existe plus, la non-copie se verifie sur `nextLabel`**
+- [x] **Step 1 : l'oracle i18n (rouge) : `poetic` n'existe plus, la non-copie se verifie sur `nextLabel`**
 
 Dans `src/lib/i18n-parity.test.ts`, remplacer le dernier `it` (lignes 76 a 94) par :
 
@@ -463,7 +463,7 @@ Dans `src/lib/i18n-parity.test.ts`, remplacer le dernier `it` (lignes 76 a 94) p
 Run: `pnpm exec vitest run src/lib/i18n-parity.test.ts`
 Expected : FAIL (poetic existe encore, cinq chapitres, heroText present).
 
-- [ ] **Step 2 : reecrire les trois dictionnaires par script**
+- [x] **Step 2 : reecrire les trois dictionnaires par script**
 
 Creer `.scratch/partition-dictionnaires.mjs` :
 
@@ -501,7 +501,7 @@ git diff --stat src/dictionaries
 
 Expected : trois lignes « I · ... / II · ... / IV · ... » ; le diff stat montre environ 20 lignes retirees par fichier et 1 modifiee (`source`), rien d'autre. Si le diff depasse 40 lignes par fichier, le format a bouge : `git checkout src/dictionaries` et chercher pourquoi avant de continuer.
 
-- [ ] **Step 3 : le hero sans paragraphe, trois chapitres, dans `stag-scene.tsx`**
+- [x] **Step 3 : le hero sans paragraphe, trois chapitres, dans `stag-scene.tsx`**
 
 Dans `src/app/components/stag-scene/stag-scene.tsx` :
 
@@ -524,7 +524,7 @@ et ajouter, a la place, ce commentaire au-dessus de `<div aria-hidden="true">` :
                 telephone depuis le 04/10 ; le bureau rejoint. */}
 ```
 
-- [ ] **Step 4 : supprimer l'accueil mobile du 04/10, qui n'a plus de sujet**
+- [x] **Step 4 : supprimer l'accueil mobile du 04/10, qui n'a plus de sujet**
 
 ```powershell
 git rm src/app/components/stag-scene/hero-texte-mobile.tsx src/lib/hero-mobile.ts src/lib/hero-mobile.test.ts
@@ -550,7 +550,7 @@ par :
    tete du cerf. (Le paragraphe du hero, lui, est parti partout le 11/10.) */
 ```
 
-- [ ] **Step 5 : la cloture sans ligne poetique**
+- [x] **Step 5 : la cloture sans ligne poetique**
 
 Dans `src/app/components/stag-scene/page-closure.tsx`, supprimer la ligne 124 :
 
@@ -565,7 +565,7 @@ Dans `src/app/components/stag-scene/page-closure.module.css` :
 - dans la liste sous `@media (prefers-reduced-motion: reduce)` (ligne 209), retirer la ligne `  .poetic,` ;
 - dans le commentaire d'en-tete, remplacer `underline → poétique → CTA (~700ms total)` par `underline → CTA (~700ms total)`.
 
-- [ ] **Step 6 : le chant sans etiquette ni citation longue**
+- [x] **Step 6 : le chant sans etiquette ni citation longue**
 
 Dans `src/app/components/cantar.tsx` :
 - supprimer la ligne 72 `<p className="cantarLabel">{texts.label}</p>` ;
@@ -589,7 +589,7 @@ Dans `src/app/components/cantar.tsx` :
 
 Dans `src/app/globals.css`, supprimer le bloc `.cantarLabel { ... }` (lignes 2008 a 2014).
 
-- [ ] **Step 7 : verifier**
+- [x] **Step 7 : verifier**
 
 ```powershell
 pnpm test
@@ -600,7 +600,7 @@ git grep -n "heroText\|ourTranslation\|\.poetic\|cantarLabel\|hero-mobile\|HeroT
 
 Expected : vitest vert (un fichier de tests en moins : hero-mobile), `tsc` muet, eslint propre, le `git grep` ne renvoie RIEN.
 
-- [ ] **Step 8 : commit**
+- [x] **Step 8 : commit**
 
 ```powershell
 git add -A src
@@ -620,7 +620,7 @@ git commit -m "feat(texte): ce qui part -- paragraphe du hero, chapitres III et 
 - Modify: `src/lib/reveal-arc.ts:197-273`, `src/lib/reveal-arc.test.ts:2,167-184,344-409`
 - Modify: `tests/e2e/calque-fixe.spec.ts:20-48`
 
-- [ ] **Step 1 : le hook partage**
+- [x] **Step 1 : le hook partage**
 
 ```ts
 // src/app/components/stag-scene/use-pilote-fenetre.ts
@@ -683,7 +683,7 @@ export function usePiloteFenetre(
 }
 ```
 
-- [ ] **Step 2 : `FadingBlock` prend `fenetre` et `nom`**
+- [x] **Step 2 : `FadingBlock` prend `fenetre` et `nom`**
 
 Remplacer tout `src/app/components/stag-scene/fading-block.tsx` par :
 
@@ -758,7 +758,7 @@ export default function FadingBlock({
 }
 ```
 
-- [ ] **Step 3 : la grammaire en CSS**
+- [x] **Step 3 : la grammaire en CSS**
 
 Dans `src/app/components/stag-scene/scene-text-overlay.module.css`, juste apres le bloc `@media (prefers-reduced-motion: reduce) { .block { transition: none; } }` (ligne 117 a 121), ajouter :
 
@@ -782,7 +782,7 @@ Dans `src/app/components/stag-scene/scene-text-overlay.module.css`, juste apres 
 }
 ```
 
-- [ ] **Step 4 : `stag-scene.tsx` lit la partition**
+- [x] **Step 4 : `stag-scene.tsx` lit la partition**
 
 - Remplacer `import { getChapterOpacity, getIntroOpacity } from "@/lib/reveal-arc";` par `import { PARTITION_CENTRE, type BlocCentre } from "@/lib/partition-texte";`.
 - Au-dessus de `export default function StagScene`, ajouter :
@@ -820,7 +820,7 @@ const CHAPITRES: readonly BlocCentre[] = ["chapitre-0", "chapitre-1", "chapitre-
 
 - Dans le commentaire d'en-tete du composant (lignes 26-35), remplacer `hero visible dès le chargement (getIntroOpacity, s'efface avec la pénombre) et à-propos révélé à "chemins révélés" (getNavEmphasis, même moment que l'emphase de la nav).` par `chaque bloc de texte dans sa fenetre de la partition du Centre (lib/partition-texte, 11/10) : hero a l'arrivee, I, le chant, II, un silence au climax, IV, la cloture.`
 
-- [ ] **Step 5 : `reveal-arc.ts` perd ce qui n'a plus de consommateur**
+- [x] **Step 5 : `reveal-arc.ts` perd ce qui n'a plus de consommateur**
 
 Dans `src/lib/reveal-arc.ts`, supprimer les lignes 197 a 273 : le commentaire et la fonction `getIntroOpacity`, le commentaire des chapitres, `type ChapterWindow`, `CHAPTER_WINDOWS`, `CHAPTER_FADE_SHARE`, `CHAPTER_COUNT`, `getChapterOpacity`. A la place, laisser ce repere :
 
@@ -836,7 +836,7 @@ Dans `src/lib/reveal-arc.test.ts` :
 - supprimer le `describe("getIntroOpacity", ...)` (lignes 167 a 184) ;
 - supprimer le `describe("les chapitres du Centre : assez longtemps pour etre lus", ...)` (lignes 344 a 409, jusqu'a la fin du fichier).
 
-- [ ] **Step 6 : verifier**
+- [x] **Step 6 : verifier**
 
 ```powershell
 pnpm test
@@ -847,7 +847,7 @@ git grep -n "getIntroOpacity\|getChapterOpacity\|CHAPTER_COUNT\|CHAPTER_WINDOWS"
 
 Expected : vert, muet, propre, `git grep` vide.
 
-- [ ] **Step 7 : l'oracle du calque fixe vise les fenetres de la partition**
+- [x] **Step 7 : l'oracle du calque fixe vise les fenetres de la partition**
 
 L'ancien `calque-fixe.spec.ts` allait a 35, 60 et 95 % du DEFILEMENT et comptait sur un chapitre allume ; avec la partition, 35 % du defilement tombe pendant le chant (en flux, pas dans le calque), 60 % dans le silence. Il vise desormais le milieu de chaque chapitre dans l'ARC.
 
@@ -891,7 +891,7 @@ test("accueil : au milieu de chaque chapitre, le bloc allume est dans la fenetre
 Run: `pnpm exec playwright test tests/e2e/calque-fixe.spec.ts --project=chromium`
 Expected : 5 passed (le serveur `pnpm run dev` est lance par la config).
 
-- [ ] **Step 8 : commit**
+- [x] **Step 8 : commit**
 
 ```powershell
 git add src/app/components/stag-scene/use-pilote-fenetre.ts src/app/components/stag-scene/fading-block.tsx src/app/components/stag-scene/scene-text-overlay.module.css src/app/components/stag-scene/stag-scene.tsx src/lib/reveal-arc.ts src/lib/reveal-arc.test.ts tests/e2e/calque-fixe.spec.ts
