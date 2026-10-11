@@ -5,6 +5,7 @@ import { renderWithNahuatl } from "@/lib/nahuatl";
 import RevealText from "../reveal-text";
 import Cantar, { type CantarTexts } from "../cantar";
 import CardinalLink from "./cardinal-link";
+import BlocEnFlux from "./bloc-en-flux";
 import FadingBlock from "./fading-block";
 import PageClosure from "./page-closure";
 import SceneStage from "./scene-stage";
@@ -145,12 +146,14 @@ export default function StagScene({
     >
       {/* LE CHANT DU CENTRE (M4, 11/09). Le texte de la home vit dans
           l'overlay fixe ; le chant, lui, est dans le flux (le seul contenu
-          des 300vh), ancre en bas : il arrive sous la scene, dans la derniere
-          hauteur d'ecran, et reste visible en mode lecture. Son nom accessible
-          (common.cantar.label) est porte par la figure elle-meme, sur les
-          cinq pages. */}
+          des 300vh) et reste visible en mode lecture. Depuis le 11/10 il a
+          sa fenetre dans la partition (0,32 -> 0,50) : un seul noeud, qui
+          defile pendant sa tenue. Le nom accessible du chant est porte par
+          la figure (cantar.tsx), sur les cinq pages. */}
       <section className="cantarFlow">
-        <Cantar direction="jade" locale={locale} texts={cantar.texts} newWindow={cantar.newWindow} />
+        <BlocEnFlux fenetre={PARTITION_CENTRE.chant} nom="chant">
+          <Cantar direction="jade" locale={locale} texts={cantar.texts} newWindow={cantar.newWindow} />
+        </BlocEnFlux>
       </section>
     </SceneStage>
   );

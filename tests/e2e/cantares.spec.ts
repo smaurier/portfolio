@@ -15,7 +15,8 @@ import { test, expect, devices } from "@playwright/test";
  * traduction du visiteur, JAMAIS l'espagnol en francais, et une fois la
  * page defilee jusqu'en bas
  * elle est dans la fenetre (pas seulement dans le DOM) ; puis, le mode
- * recit active, elle y est toujours.
+ * recit active, elle y est toujours. Sur le Centre, la figure a aussi une
+ * fenetre dans l'arc (11/10) : l'oracle dedie est en bas de ce fichier.
  */
 test.use({ ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } });
 
@@ -71,4 +72,42 @@ test("/es : l'espagnol de l'edition EST la langue du visiteur, il s'affiche", as
   await expect(figure.locator("blockquote[lang='es']")).toHaveCount(1);
   // Et pas de troisieme couche : l'espagnol ne se traduit pas en espagnol.
   await expect(figure.locator("blockquote.cantarOurs")).toHaveCount(0);
+});
+
+/**
+ * LE CHANT DU CENTRE TIENT SA FENETRE (11/10, partition du texte) : visible
+ * au milieu de sa fenetre (0,41), efface dans le silence du climax (0,72),
+ * et toujours dans le flux, lisible, en mode recit.
+ */
+async function opaciteEffective(page: import("@playwright/test").Page, selecteur: string): Promise<number> {
+  return page.evaluate((sel) => {
+    let n: Element | null = document.querySelector(sel);
+    let o = 1;
+    for (; n; n = n.parentElement) o *= Number(getComputedStyle(n).opacity || "1");
+    return o;
+  }, selecteur);
+}
+
+test("/fr : le chant parle a 0,41, se tait a 0,72, se lit en mode recit", async ({ page }) => {
+  test.setTimeout(150_000);
+  await page.goto("/fr?t=0.41&v=2&shaders-prod");
+  await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 90_000 });
+  await page.waitForTimeout(2500);
+  const figure = page.locator("figure.cantar");
+  expect(await opaciteEffective(page, "figure.cantar"), "visible au milieu de sa fenetre").toBeGreaterThan(0.9);
+  const box = await figure.boundingBox();
+  expect(box, "la figure a une boite").not.toBeNull();
+  expect(box!.y, "dans la fenetre, sous le bandeau").toBeGreaterThanOrEqual(0);
+  expect(box!.y + box!.height, "entiere dans la fenetre").toBeLessThanOrEqual(800);
+
+  await page.goto("/fr?t=0.72&v=2&shaders-prod");
+  await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 90_000 });
+  await page.waitForTimeout(2500);
+  expect(await opaciteEffective(page, "figure.cantar"), "efface dans le silence du climax").toBeLessThan(0.05);
+
+  await page.getByRole("button", { name: /mode récit accessible/i }).first().click();
+  await expect(page.locator("body")).toHaveClass(/reading-mode/);
+  await figure.scrollIntoViewIfNeeded();
+  await expect(figure).toBeVisible();
+  expect(await opaciteEffective(page, "figure.cantar"), "lisible en mode recit").toBeGreaterThan(0.9);
 });
