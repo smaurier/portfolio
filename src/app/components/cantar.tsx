@@ -18,8 +18,11 @@ import { renderWithNahuatl } from "@/lib/nahuatl";
  * puis notre traduction dans la langue de la page. En espagnol, la page ne
  * montre que deux couches : l'espagnol de l'edition EST la traduction.
  *
- * La source est dans un `<cite>` et le lien vers l'edition ouverte est
- * explicite (nouvelle fenetre annoncee par le texte commun du site).
+ * La source courte est dans un `<cite>` (chant · strophe) et le lien vers
+ * l'edition ouverte est explicite (nouvelle fenetre annoncee par le texte
+ * commun du site) ; l'etiquette visible « Un chant de cette direction » est
+ * partie le 11/10, `common.cantar.label` ne sert plus qu'a l'`aria-label`
+ * de la section du Centre.
  */
 export type CantarTexts = Dictionary["common"]["cantar"];
 
@@ -69,7 +72,6 @@ export default function Cantar({
   const montrerEspagnol = locale === "es";
   return (
     <figure className="cantar" data-cantar={direction}>
-      <p className="cantarLabel">{texts.label}</p>
       <blockquote lang="nah" className="cantarNahuatl" cite={CANTARES_EDITION_URL}>
         <p>
           <NahuatlLines lines={c.nahuatl} />
@@ -89,8 +91,13 @@ export default function Cantar({
           </p>
         </blockquote>
       ) : null}
+      {/* La source courte (11/10, partition du texte) : le chant, la strophe,
+          et le lien vers l'edition ouverte. L'attribution complete (edition
+          Leon-Portilla, UNAM 2011, nos traductions faites d'apres son
+          espagnol) vit dans lib/cantares.ts et docs/da/cantares-choix.md. */}
       <figcaption className="cantarSource">
-        <cite>{source}</cite> {texts.ourTranslation}{" "}
+        <cite>{source}</cite>
+        {" · "}
         <a href={CANTARES_EDITION_URL} target="_blank" rel="noopener noreferrer" hrefLang="es">
           {texts.editionLink} ({newWindow})
         </a>

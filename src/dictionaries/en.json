@@ -31,8 +31,7 @@
     },
     "cantar": {
       "label": "A song for this direction",
-      "source": "Cantares mexicanos, song {chant}, stanza {strophe}, folio {folio}. Palaeography and Spanish translation: Miguel León-Portilla edition, UNAM, 2011.",
-      "ourTranslation": "English translation by the site, from the Spanish of the edition.",
+      "source": "Cantares mexicanos, {chant} · {strophe}",
       "editionLink": "The UNAM open edition"
     },
     "theme": {
@@ -137,7 +136,6 @@
   },
   "home": {
     "heroTitle": "Nahual · creative studio",
-    "heroText": "Among the Nahua, a Mesoamerican people, the deer (Mazātl) is the seventh day of the sacred calendar: a messenger between worlds, associated with grace, vigilance, and the ability to hide its true nature from others. The nahual is the same idea: a human essence revealed in its true animal form, embodied here by this deer.",
     "heroCta": "See my work",
     "aboutTitle": "About",
     "aboutText": "Nahual, the studio, applies the same logic to the web: turning an idea into a real, working site. The proof it worked? It works for everyone.\n\nSylvain Maurier, senior frontend developer, 10 years of experience (React, Next.js, Vue/Nuxt, React Native). Specialized in digital accessibility (RGAA/WCAG), with one simple conviction: accessibility is built, not just audited.",
@@ -153,16 +151,8 @@
         "line": "The stag has noticed you. He doesn't flee · he waits."
       },
       {
-        "kicker": "III · Face to face",
-        "line": "A silence. Three entities: your body, his body, what passes between them."
-      },
-      {
         "kicker": "IV · The paths",
         "line": "Four directions around you, a fifth at the center. Yours to choose."
-      },
-      {
-        "kicker": "V · The Ollin",
-        "line": "You move. The world trembles. The journey begins."
       }
     ]
   },
@@ -888,27 +878,22 @@
   "closure": {
     "jade": {
       "cardinal": "Center · Tlalxicco",
-      "poetic": "The navel of the world. Where the paths begin.",
       "nextLabel": "East · Golden"
     },
     "dore": {
       "cardinal": "East · Tlahuizcalpan",
-      "poetic": "The golden dawn. Tonatiuh rises, the day opens.",
       "nextLabel": "South · Turquoise"
     },
     "turquoise": {
       "cardinal": "South · Huitztlampa",
-      "poetic": "Xochitl, the flower. Huitzilopochtli watches over what grows.",
       "nextLabel": "West · Ash"
     },
     "cendre": {
       "cardinal": "West · Cihuatlampa",
-      "poetic": "The mauve twilight. The Cihuateteo walk the sun home.",
       "nextLabel": "North · Obsidian"
     },
     "obsidienne": {
       "cardinal": "North · Mictlampa",
-      "poetic": "The place of rest. Mictlán receives what has been lived.",
       "nextLabel": "Back to the Center"
     }
   }

@@ -66,15 +66,6 @@
   .block {
     padding: 14px 16px;
   }
-
-  /* L'ACCUEIL MOBILE (04/10, lib/hero-mobile) : sur telephone, le paragraphe
-     du hero n'entre dans la carte qu'au premier defilement. Avant, la carte
-     tient en titre + seuil + appel et la scene se voit (Sylvain, sur son
-     Redmi : « texte omnipresent, on ne voit que ca » ; variante V1 choisie
-     sur captures). L'attribut est pose par hero-texte-mobile.tsx. */
-  .heroTexte:not([data-visible]) {
-    display: none;
-  }
 }
 
 /* Empile hero et à-propos verticalement — jamais superposés, y compris
