@@ -25,7 +25,7 @@ describe("partitionValide : la regle d'une partition", () => {
   const sansTenueCloture = { ignorerTenue: ["cloture"] };
 
   it("accepte la partition du Centre", () => {
-    expect(partitionValide(PARTITION_CENTRE, SILENCES_CENTRE, { ignorerTenue: ["hero", "cloture"] })).toEqual([]);
+    expect(partitionValide(PARTITION_CENTRE, SILENCES_CENTRE, { ignorerTenue: ["cloture"] })).toEqual([]);
   });
 
   it("refuse deux fenetres qui se chevauchent", () => {
@@ -59,9 +59,15 @@ describe("partitionValide : la regle d'une partition", () => {
     expect(v.some((m) => m.includes("dernier"))).toBe(true);
   });
 
-  it("sur le Centre, chaque tenue vaut au moins 8 % de l'arc, hero et cloture mis a part", () => {
+  it("refuse une fenetre hors de l'arc, inversee, ou NaN", () => {
+    for (const f of [{ debut: 0.5, fin: 1.5 }, { debut: 0.6, fin: 0.4 }, { debut: NaN, fin: 0.5 }]) {
+      expect(partitionValide({ a: f }, [], { ignorerTenue: ["a"], dernier: "a" }).some((m) => m.includes("invalide")), JSON.stringify(f)).toBe(true);
+    }
+  });
+
+  it("sur le Centre, chaque tenue vaut au moins 8 % de l'arc, cloture mise a part", () => {
     for (const [nom, f] of Object.entries(PARTITION_CENTRE)) {
-      if (nom === "hero" || nom === "cloture") continue;
+      if (nom === "cloture") continue;
       expect(tenueDe(f), nom).toBeGreaterThanOrEqual(TENUE_MIN);
     }
   });
@@ -122,10 +128,13 @@ describe("etatBloc : la grammaire d'apparition", () => {
 
 describe("la partition du Centre : un seul bloc a la fois", () => {
   it("a aucun progres deux blocs n'ont une opacite non nulle", () => {
-    for (let p = 0; p <= 1; p += 0.001) {
+    for (let i = 0; i <= 1000; i++) {
+      const p = i / 1000;
       const visibles = Object.values(PARTITION_CENTRE).filter((f) => etatBloc(p, f).opacite > 0).length;
       expect(visibles, `a p=${p.toFixed(3)}`).toBeLessThanOrEqual(1);
     }
+    // Au-dela de l'arc (l'acte de sortie, progres borne a 1) : la cloture seule.
+    expect(Object.values(PARTITION_CENTRE).filter((f) => etatBloc(2, f).opacite > 0).length).toBe(1);
   });
 
   it("rien n'est visible au climax 0,75", () => {
