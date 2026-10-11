@@ -300,13 +300,15 @@ export function etatBloc(progress: number, fenetre: Fenetre): EtatBloc {
   if (p < debut) return { opacite: 0, phase: "avant", avancement: 0 };
   if (p >= fin && !sansSortie) return { opacite: 0, phase: "apres", avancement: 1 };
   const t = fin > debut ? (p - debut) / (fin - debut) : 1;
-  if (!sansEntree && t < PART_ENTREE) {
-    const a = t / PART_ENTREE;
+  // Les frontieres de phase portent la meme tolerance que partitionValide :
+  // (0,37 - 0,2) / 0,2 vaut 0,8499999999999999 en flottant, pas 0,85.
+  if (!sansEntree && t < PART_ENTREE - EPSILON) {
+    const a = Math.min(1, Math.max(0, t / PART_ENTREE));
     return { opacite: a, phase: "entree", avancement: a };
   }
   const debutSortie = 1 - PART_SORTIE;
-  if (!sansSortie && t >= debutSortie) {
-    const a = (t - debutSortie) / PART_SORTIE;
+  if (!sansSortie && t >= debutSortie - EPSILON) {
+    const a = Math.min(1, Math.max(0, (t - debutSortie) / PART_SORTIE));
     return { opacite: 1 - a, phase: "sortie", avancement: a };
   }
   const debutTenue = sansEntree ? 0 : PART_ENTREE;
