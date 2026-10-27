@@ -1,12 +1,12 @@
 "use client";
 
-import { getChapterOpacity, getIntroOpacity } from "@/lib/reveal-arc";
+import { PARTITION_CENTRE, type BlocCentre } from "@/lib/partition-texte";
 import { renderWithNahuatl } from "@/lib/nahuatl";
 import RevealText from "../reveal-text";
 import Cantar, { type CantarTexts } from "../cantar";
 import CardinalLink from "./cardinal-link";
+import BlocEnFlux from "./bloc-en-flux";
 import FadingBlock from "./fading-block";
-import HeroTexteMobile from "./hero-texte-mobile";
 import PageClosure from "./page-closure";
 import SceneStage from "./scene-stage";
 import overlayStyles from "./scene-text-overlay.module.css";
@@ -14,7 +14,6 @@ import type { Dictionary, Locale } from "../../../dictionaries";
 
 export type HomeContent = {
   heroTitle: string;
-  heroText: string;
   heroCta: string;
   aboutTitle: string;
   aboutText: string;
@@ -26,14 +25,17 @@ export type HomeContent = {
 /**
  * Consommateur home de SceneStage. Le layout scrollable et le contenu 3D
  * sont partagés (cf scene-stage.tsx, scene-content.tsx) ; cette page
- * n'apporte que son overlay HTML propre : hero visible dès le chargement
- * (getIntroOpacity, s'efface avec la pénombre) et à-propos révélé à
- * "chemins révélés" (getNavEmphasis, même moment que l'emphase de la
- * nav). Les pages écho (Services/Projets/Contact/Mémoire) suivent la
+ * n'apporte que son overlay HTML propre : chaque bloc de texte dans sa
+ * fenetre de la partition du Centre (lib/partition-texte, 11/10) : hero a
+ * l'arrivee, I, le chant, II, un silence au climax, IV, la cloture. Les
+ * pages écho (Services/Projets/Contact/Mémoire) suivent la
  * même structure, chacune avec son propre overlay HTML (cf memory
  * project-nahual-da, décision du 25/08 : plus de fenêtre 320×320, tout
  * le site partage la même scène plein écran).
  */
+/** Les trois chapitres gardes (I, II, IV), dans l'ordre du dictionnaire. */
+const CHAPITRES: readonly BlocCentre[] = ["chapitre-0", "chapitre-1", "chapitre-2"];
+
 export default function StagScene({
   home,
   locale,
@@ -52,9 +54,10 @@ export default function StagScene({
   seuil?: string;
   servicesHref: string;
   /** Conserve pour compat call-site (page.js passe encore contactHref).
-   * A retirer au prochain nettoyage de dictionnaire home (aboutText,
-   * aboutTitle, contactCta, githubCta ne sont plus utilises non plus
-   * depuis la sortie du bloc "A propos" de la home le 29/08). */
+   * Laisse en place le 11/10 (partition du texte) : aboutText, aboutTitle,
+   * contactCta, githubCta ne sont plus utilises depuis la sortie du bloc
+   * "A propos" le 29/08, mais leur retour sur la home est une question de
+   * design, pas de nettoyage ; a trancher avec Sylvain. */
   contactHref?: string;
   /** Description poetique-immersive de la scene 3D pour les lecteurs
    * d'ecran (29/08 chantier a11y "SR enrichi"). Injectee en tete du
@@ -69,7 +72,7 @@ export default function StagScene({
         <main id="main" tabIndex={-1}>
           {/* Recit canonique pour lecteurs d'ecran (29/08 chantier
               a11y). Le tree accessibility est structure : description
-              scene + h1 hero + texte + section chapitres ordonnee.
+              scene + h1 hero + section des trois chapitres, ordonnee.
               Toujours dans le flux, jamais cache par les FadingBlock
               scroll-driven qui vivent en aria-hidden ci-dessous. Le
               CTA reste dans le bloc visuel pour ne pas doubler le
@@ -77,8 +80,7 @@ export default function StagScene({
           <div className="sr-only">
             <p>{renderWithNahuatl(sceneDescription)}</p>
             <h1>{renderWithNahuatl(home.heroTitle)}</h1>
-            <p>{renderWithNahuatl(home.heroText)}</p>
-            <section aria-label="Recit du cerf, quatre chapitres">
+            <section aria-label="Recit du cerf, trois chapitres">
               <ol>
                 {home.chapters.map((chapter, i) => (
                   <li key={i}>
@@ -89,20 +91,17 @@ export default function StagScene({
             </section>
           </div>
 
-          <FadingBlock
-            progressRef={progressRef}
-            reducedMotionRef={reducedMotionRef}
-            getOpacity={getIntroOpacity}
-            initialOpacity={1}
-          >
+          <FadingBlock progressRef={progressRef} reducedMotionRef={reducedMotionRef} fenetre={PARTITION_CENTRE.hero} nom="hero">
             {/* Textes du hero : deja lus via sr-only, aria-hidden pour
                 eviter le doublon. Le CardinalLink reste focusable et
                 cliquable pour tous (souris, clavier, SR focus mode). */}
+            {/* Le hero tient en titre + ligne de seuil + appel (11/10, partition du
+                texte) : le paragraphe sur Mazatl est parti, le Codex (totem,
+                tonalpohualli) en disait deja chaque mot. C'etait deja le cas sur
+                telephone depuis le 04/10 ; le bureau rejoint. */}
             <div aria-hidden="true">
-              <RevealText as="h1" text={home.heroTitle} delayPerWord={50} />
+              <RevealText as="h1" text={home.heroTitle} delayPerWord={50} pilote="fenetre" />
               {seuil ? <p className="seuilTete">{seuil}</p> : null}
-              {/* Sur telephone, le paragraphe n'entre qu'au premier defilement (04/10, lib/hero-mobile). */}
-              <HeroTexteMobile progressRef={progressRef}>{home.heroText}</HeroTexteMobile>
             </div>
             <div className={overlayStyles.links}>
               <CardinalLink href={servicesHref} className={overlayStyles.cta}>
@@ -110,23 +109,21 @@ export default function StagScene({
               </CardinalLink>
             </div>
           </FadingBlock>
-          {/* Chapitres narratifs scroll-driven (28/08 task #63).
-              aria-hidden : contenu equivalent deja dans le sr-only
-              ci-dessus, evite lecture en doublon. */}
-          {home.chapters.map((chapter, i) => (
-            <FadingBlock
-              key={i}
-              progressRef={progressRef}
-              reducedMotionRef={reducedMotionRef}
-              getOpacity={(p) => getChapterOpacity(p, i)}
-              initialOpacity={0}
-            >
-              <div aria-hidden="true" className={overlayStyles.chapter}>
-                <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} />
-                <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} />
-              </div>
-            </FadingBlock>
-          ))}
+          {/* Chapitres narratifs scroll-driven (28/08 task #63), trois depuis le
+              11/10, chacun dans sa fenetre de la partition. aria-hidden :
+              contenu equivalent deja dans le sr-only ci-dessus. */}
+          {home.chapters.map((chapter, i) => {
+            const nom = CHAPITRES[i];
+            if (!nom) return null;
+            return (
+              <FadingBlock key={nom} progressRef={progressRef} reducedMotionRef={reducedMotionRef} fenetre={PARTITION_CENTRE[nom]} nom={nom}>
+                <div aria-hidden="true" className={overlayStyles.chapter}>
+                  <RevealText as="p" className={overlayStyles.chapterKicker} text={chapter.kicker} delayPerWord={30} pilote="fenetre" />
+                  <RevealText as="p" className={overlayStyles.chapterLine} text={chapter.line} delayPerWord={35} pilote="fenetre" />
+                </div>
+              </FadingBlock>
+            );
+          })}
         </main>
         </>
       )}
@@ -144,15 +141,20 @@ export default function StagScene({
           closure={closure.jade}
           progressRef={progressRef}
           reducedMotionRef={reducedMotionRef}
+          fenetre={PARTITION_CENTRE.cloture}
         />
       )}
     >
       {/* LE CHANT DU CENTRE (M4, 11/09). Le texte de la home vit dans
           l'overlay fixe ; le chant, lui, est dans le flux (le seul contenu
-          des 300vh), ancre en bas : il arrive sous la scene, dans la derniere
-          hauteur d'ecran, et reste visible en mode lecture. */}
-      <section className="cantarFlow" aria-label={cantar.texts.label}>
-        <Cantar direction="jade" locale={locale} texts={cantar.texts} newWindow={cantar.newWindow} />
+          des 300vh) et reste visible en mode lecture. Depuis le 11/10 il a
+          sa fenetre dans la partition (0,32 -> 0,50) : un seul noeud, qui
+          defile pendant sa tenue. Le nom accessible du chant est porte par
+          la figure (cantar.tsx), sur les cinq pages. */}
+      <section className="cantarFlow">
+        <BlocEnFlux fenetre={PARTITION_CENTRE.chant} nom="chant">
+          <Cantar direction="jade" locale={locale} texts={cantar.texts} newWindow={cantar.newWindow} />
+        </BlocEnFlux>
       </section>
     </SceneStage>
   );

@@ -15,6 +15,5 @@
   "src/app/components/stag-scene/tezcatl-water.tsx": 565,
   "src/app/components/stag-scene/xiuhcoatl-companion.tsx": 444,
   "src/app/components/stag-scene/xolotl-companion.tsx": 1322,
-  "src/lib/amate-texture.test.ts": 470,
-  "src/lib/reveal-arc.test.ts": 409
+  "src/lib/amate-texture.test.ts": 470
 }

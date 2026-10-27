@@ -13,7 +13,9 @@
  *
  * Trois couches par chant : le nahuatl (domaine public), l'espagnol de
  * l'edition (courte citation, une strophe par page, toujours attribuee) et
- * notre traduction FR et EN faite d'apres cet espagnol, marquee comme telle.
+ * notre traduction FR et EN faite d'apres cet espagnol (marquee comme telle
+ * ici et dans docs/da/cantares-choix.md ; sur la page, depuis le 11/10,
+ * seuls le chant, la strophe et le lien vers l'edition sont affiches).
  * Les extraits, folios et raisons de chaque choix sont dans
  * docs/da/cantares-choix.md.
  *
