@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Nahual . creative studio",
-    "description": "Turning your vision into digital reality"
+    "description": "Studio of Sylvain Maurier, frontend developer and accessibility auditor. A stag, five Nahua directions, sites that work for all."
   },
   "common": {
     "nav": {
@@ -120,7 +120,7 @@
       "obsidienne": "Memory · North direction"
     },
     "sceneDescriptions": {
-      "jade": "You are entering the deer's sanctuary. At the center of a great carved stone disc, a stag stands still in the dry grass, maize around him. This is the hearth, the centre the four directions run from: the gold of dawn to the east, the turquoise of noon to the south, the red of dusk to the west, the violet of night to the north. The deer is your nahual: the essence revealed in animal form.",
+      "jade": "You are entering the deer's sanctuary. At the center of a great carved stone disc, a stag stands still in the dry grass, maize around him. This is the hearth, the centre the four directions run from: the gold of dawn to the east, the turquoise of noon to the south, the red of dusk to the west, the violet of night to the north. The deer is your nahual, the animal essence older sources call the tonal.",
       "dore": "You face the East, Tlahuizcalpan, the house of dawn. The world is caught in the frost of Itztlacoliuhqui, the stag under ice, time stopped. When the sun appears, the darts of dawn fly and all the ice shatters. The light is new, the day opens.",
       "turquoise": "You face the South, Huitztlampa, land of thorns and flowers. Huitzilopochtli watches over what grows. The scene takes on turquoise tones of Xiuhtecuhtli mosaic.",
       "cendre": "You face the West, Cihuatlampa, region of the mauve twilight. The Cihuateteo, deified dead women, carry the setting sun in a litter of feathers, then come down to the crossroads and dance in the wind. The scene glows softly red, then goes dark.",
@@ -137,7 +137,7 @@
   },
   "home": {
     "heroTitle": "Nahual · creative studio",
-    "heroText": "Among the Nahua, a Mesoamerican people, the deer (Mazātl) is the seventh day of the sacred calendar: a messenger between worlds, associated with grace, vigilance, and the ability to hide its true nature from others. The nahual is the same idea: a human essence revealed in its true animal form, embodied here by this deer.",
+    "heroText": "Among the Nahua, a Mesoamerican people, the deer (Mazātl) is the seventh day sign of the sacred calendar, and it belongs to Tláloc, the rain. Mexico today calls that animal essence a nahual; older sources call it the tonal, and keep nahualli for the one who crosses over. I read the stag as a messenger between worlds, grace, vigilance, and the art of hiding one's true nature. This site keeps the living word, embodied here by this deer.",
     "heroCta": "See my work",
     "aboutTitle": "About",
     "aboutText": "Nahual, the studio, applies the same logic to the web: turning an idea into a real, working site. The proof it worked? It works for everyone.\n\nSylvain Maurier, senior frontend developer, 10 years of experience (React, Next.js, Vue/Nuxt, React Native). Specialized in digital accessibility (RGAA/WCAG), with one simple conviction: accessibility is built, not just audited.",
@@ -521,7 +521,7 @@
     },
     "totem": {
       "title": "The stag, Mazātl",
-      "text": "The nahual is that essence which reveals itself in its true animal form. I chose the stag over the eagle or the jaguar · deliberately avoiding the \"Aztec imagery\" cliché to stay in the more discreet register of presence: messenger between worlds, associated with grace, vigilance, and the ability to hide one's true nature from others."
+      "text": "In Mexico today that animal essence is called a nahual, and it is the word spoken at home. Older sources call it the tonal, and keep nahualli for the one who crosses over: this site keeps the living word. I chose the stag over the eagle or the jaguar, deliberately avoiding the \"Aztec imagery\" cliché to stay in the more discreet register of presence. In the count of days, Mazātl belongs to Tláloc, the rain. Messenger between worlds, grace, vigilance, the art of hiding one's true nature · that register is my reading, not a received attribution."
     },
     "human": {
       "title": "Who writes",
