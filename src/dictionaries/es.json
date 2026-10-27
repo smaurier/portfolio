@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Nahual . estudio creativo",
-    "description": "Transformo tu visión en realidad digital"
+    "description": "Estudio de Sylvain Maurier, frontend y auditor de accesibilidad. Un venado, cinco direcciones nahuas, sitios de verdad accesibles."
   },
   "common": {
     "nav": {
@@ -120,7 +120,7 @@
       "obsidienne": "Memoria · dirección Norte"
     },
     "sceneDescriptions": {
-      "jade": "Entras en el santuario del venado. En el centro de un gran disco de piedra grabado, un venado permanece inmóvil en la hierba seca, con el maíz a su alrededor. Es el hogar, el centro del que parten las cuatro direcciones: el dorado del alba al este, el turquesa del mediodía al sur, el rojo del crepúsculo al oeste, el violeta de la noche al norte. El venado es tu nahual: la esencia que se revela bajo forma animal.",
+      "jade": "Entras en el santuario del venado. En el centro de un gran disco de piedra grabado, un venado permanece inmóvil en la hierba seca, con el maíz a su alrededor. Es el hogar, el centro del que parten las cuatro direcciones: el dorado del alba al este, el turquesa del mediodía al sur, el rojo del crepúsculo al oeste, el violeta de la noche al norte. El venado es tu nahual, la esencia animal que las fuentes antiguas llaman el tonal.",
       "dore": "Estás orientado hacia el Este, Tlahuizcalpan, la casa del alba. El mundo está preso en la helada de Itztlacoliuhqui, el venado bajo el hielo, el tiempo detenido. Cuando aparece el sol, vuelan los dardos del alba y todo el hielo estalla. La luz es nueva, el día se abre.",
       "turquoise": "Estás orientado hacia el Sur, Huitztlampa, tierra de espinas y flores. Huitzilopochtli vela por lo que crece. La escena toma tonos turquesa de mosaico Xiuhtecuhtli.",
       "cendre": "Estás orientado hacia el Oeste, Cihuatlampa, región del crepúsculo malva. Las Cihuateteo, mujeres muertas divinizadas, llevan el sol poniente en unas andas de plumas, luego bajan a la encrucijada y bailan en el viento. La escena arde suavemente en rojo, luego se apaga.",
@@ -137,7 +137,7 @@
   },
   "home": {
     "heroTitle": "Nahual · estudio creativo",
-    "heroText": "Entre los nahuas, pueblo mesoamericano, el venado (Mazātl) es el séptimo día del calendario sagrado: un mensajero entre mundos, asociado a la gracia, a la vigilancia, y a la capacidad de ocultar su verdadera naturaleza. El nahual es la misma idea: una esencia humana que se revela en su forma animal verdadera, encarnada aquí por este venado.",
+    "heroText": "Entre los nahuas, pueblo mesoamericano, el venado (Mazātl) es el séptimo signo de día del calendario sagrado, y pertenece a Tláloc, la lluvia. El México de hoy llama nahual a esa esencia animal; las fuentes antiguas la llaman el tonal, y reservan nahualli para quien cruza. Yo leo al venado como un mensajero entre los mundos, la gracia, la vigilancia, y el arte de ocultar su verdadera naturaleza. Este sitio conserva la palabra viva, encarnada aquí por este venado.",
     "heroCta": "Descubrir mi trabajo",
     "aboutTitle": "Sobre mí",
     "aboutText": "Nahual, el estudio, aplica la misma lógica a la web: transformar una idea en un sitio real. ¿La prueba de que funcionó? Que funciona para todos.\n\nSylvain Maurier, desarrollador frontend senior, 10 años de experiencia (React, Next.js, Vue/Nuxt, React Native). Especializado en accesibilidad digital (RGAA/WCAG), con una convicción simple: la accesibilidad se programa, no solo se audita.",
@@ -521,7 +521,7 @@
     },
     "totem": {
       "title": "El ciervo, Mazātl",
-      "text": "El nahual es esa esencia que se revela en su verdadera forma animal. Elegí el ciervo antes que el águila o el jaguar · evitando deliberadamente el cliché de «imaginería azteca» para quedarme en el registro más discreto de la presencia: mensajero entre los mundos, asociado con la gracia, la vigilancia y la facultad de ocultar su verdadera naturaleza a los demás."
+      "text": "En el México de hoy se llama nahual a esa esencia animal, y es la palabra que se dice en casa. Las fuentes antiguas la llaman el tonal, y reservan nahualli para quien cruza: este sitio conserva la palabra viva. Elegí el venado antes que el águila o el jaguar, evitando deliberadamente el cliché de «imaginería azteca» para quedarme en el registro más discreto de la presencia. En la cuenta de los días, Mazātl pertenece a Tláloc, la lluvia. Mensajero entre los mundos, gracia, vigilancia, el arte de ocultar su verdadera naturaleza · ese registro es mi lectura, no una atribución recibida."
     },
     "human": {
       "title": "Quién escribe",

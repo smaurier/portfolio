@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import fr from "../dictionaries/fr.json";
 import en from "../dictionaries/en.json";
 import es from "../dictionaries/es.json";
+import { couper } from "./og-carte";
 
 /**
  * LES TROIS DICTIONNAIRES DISENT LA MEME CHOSE (09/09).
@@ -91,5 +92,120 @@ describe("i18n : les trois dictionnaires ont les memes cles", () => {
         expect(dicos[loc].get(`closure.${dir}.poetic`), `${loc} ${dir} : phrase non traduite`).not.toBe(frPhrase);
       }
     }
+  });
+});
+
+describe("i18n : le lexique nahua ne s'inverse pas", () => {
+  /**
+   * TROUVE LE 27/10, EN AUDITANT LA PAGE ANGLAISE AVANT DECEMBRE.
+   *
+   * Mexicolore (mexicolore.co.uk, ressource de reference sur les Azteques)
+   * met nahual.fr en Link of the Month de decembre 2026. Le public attendu
+   * est petit mais fait d'inities : ils lisent les gloses.
+   *
+   * Or le site disait « le cerf est ton nahual », donc il nommait l'ANIMAL
+   * nahual, alors que son propre Codex dit correctement, deux sections plus
+   * loin, que le tonalli est lie au jour de naissance (Lopez Austin, cite en
+   * bibliographie). Le canon reserve *tonal* a l'animal et *nahualli* a la
+   * personne qui passe. L'usage mexicain d'aujourd'hui, celui qu'on parle a
+   * la maison, dit bien nahual pour l'animal -- et le site garde ce mot
+   * vivant. Mais il doit alors le DIRE : sans la phrase, un lecteur qui
+   * connait ne lit pas un choix, il lit une contradiction interne.
+   *
+   * D'ou cet oracle : la clarification ne peut plus disparaitre d'une langue
+   * sans faire rougir la suite. C'est la seule garantie qu'elle soit
+   * structurelle et pas une retouche de decembre.
+   */
+  const LANGUES = ["fr", "en", "es"] as const;
+
+  it("la section du cerf porte les trois mots, dans les trois langues", () => {
+    for (const loc of LANGUES) {
+      const texte = (dicos[loc].get("codex.totem.text") ?? "").toLowerCase();
+      expect(texte, `${loc} : le mot vivant`).toContain("nahual");
+      expect(texte, `${loc} : le mot ancien`).toMatch(/(^|[^a-z])tonal([^a-z]|$)/);
+      expect(texte, `${loc} : celui qui passe`).toContain("nahualli");
+    }
+  });
+
+  it("la section du cerf nomme Tlaloc, le patron atteste du signe", () => {
+    // F2 de l'audit : les attributs donnes au cerf (messager entre les
+    // mondes, grace, vigilance, art de cacher sa vraie nature) ne sont
+    // sourcables ni dans Sahagun ni dans Lopez Austin, les deux sources que
+    // le Codex cite lui-meme. L'association attestee, elle, manquait :
+    // dans le compte des jours, Mazatl releve de Tlaloc.
+    for (const loc of LANGUES) {
+      expect(dicos[loc].get("codex.totem.text"), `${loc} : Tlaloc`).toMatch(/Tl[aá]loc/);
+    }
+  });
+
+  it("la scene du Centre ne laisse pas nahual seul sur l'animal", () => {
+    // C'est le texte le plus lu du site (description de scene, lue aussi
+    // par les lecteurs d'ecran) : la clarification doit y tenir en un mot.
+    for (const loc of LANGUES) {
+      const texte = (dicos[loc].get("common.sceneDescriptions.jade") ?? "").toLowerCase();
+      expect(texte, `${loc} : le mot ancien dans la scene`).toMatch(/(^|[^a-z])tonal([^a-z]|$)/);
+    }
+  });
+
+  it("si le paragraphe du hero revient, il porte la meme clarification", () => {
+    // `home.heroText` est supprime par la partition du Centre (branche
+    // texte/partition-centre, PR ouverte). Il existe encore sur dev, et il
+    // portait la meme inversion : on le corrige ici, et cet oracle tient
+    // quel que soit le sort de la PR.
+    for (const loc of LANGUES) {
+      const texte = dicos[loc].get("home.heroText");
+      if (texte === undefined) continue;
+      expect(texte.toLowerCase(), `${loc} : hero`).toMatch(/(^|[^a-z])tonal([^a-z]|$)/);
+    }
+  });
+});
+
+describe("i18n : la description dit de quoi le site parle", () => {
+  /**
+   * MESURE DU 27/10 : les trois langues portaient une phrase d'agence
+   * interchangeable (« Transforme ta vision en realite digitale »), reprise
+   * telle quelle dans la meta description, og:description,
+   * twitter:description et les TROIS blocs JSON-LD. Avec un public
+   * d'inities, le multiplicateur n'est pas le volume, c'est le partage :
+   * la carte generee ne disait rien du sujet qui les avait amenes.
+   */
+  const ANCRES = {
+    fr: ["cerf", "nahua"],
+    en: ["stag", "nahua"],
+    es: ["venado", "nahua"],
+  } as const;
+
+  it("chaque description nomme le sujet, dans sa langue", () => {
+    for (const [loc, ancres] of Object.entries(ANCRES) as [keyof typeof ANCRES, readonly string[]][]) {
+      const d = (dicos[loc].get("metadata.description") ?? "").toLowerCase();
+      for (const ancre of ancres) expect(d, `${loc} : ${ancre}`).toContain(ancre);
+    }
+  });
+
+  it("aucune description ne depasse la limite d'affichage de Google", () => {
+    // 160 caracteres : au-dela, le snippet est coupe, et c'est la fin de la
+    // phrase qui saute, donc le sujet si on le met a la fin.
+    for (const loc of ["fr", "en", "es"] as const) {
+      expect((dicos[loc].get("metadata.description") ?? "").length, loc).toBeLessThanOrEqual(160);
+    }
+  });
+
+  it("aucune description n'est coupee par la carte de partage", () => {
+    // La carte a son propre seuil, mesure le 13/09 sur capture : au-dela, le
+    // texte passait sur la Piedra et sur la rosette. On interroge `couper`
+    // plutot que de recopier son nombre ici : le jour ou il bouge, l'oracle
+    // bouge avec lui. Premiere version des phrases du 27/10 : 140 a 149
+    // caracteres, donc trois cartes sur trois finissaient en « … ».
+    for (const loc of ["fr", "en", "es"] as const) {
+      const d = dicos[loc].get("metadata.description") ?? "";
+      expect(couper(d), `${loc} : la carte coupe la chute de la phrase`).toBe(d);
+    }
+  });
+
+  it("les trois descriptions sont distinctes", () => {
+    // Le defaut jumeau de celui du 09/09 : une langue recopiee sur l'autre
+    // passe tous les tests de parite et ne se voit nulle part.
+    const vues = new Set(["fr", "en", "es"].map((loc) => dicos[loc as "fr"].get("metadata.description")));
+    expect(vues.size, "trois langues, trois phrases").toBe(3);
   });
 });
