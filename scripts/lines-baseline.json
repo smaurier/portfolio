@@ -1,6 +1,6 @@
 {
   "src/app/[locale]/[slug]/page.tsx": 635,
-  "src/app/[locale]/layout.tsx": 561,
+  "src/app/[locale]/layout.tsx": 550,
   "src/app/components/scene-controls.tsx": 462,
   "src/app/components/sound-design.tsx": 1145,
   "src/app/components/stag-scene/cihuateteo.tsx": 820,
