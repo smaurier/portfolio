@@ -175,6 +175,16 @@ export default function HuitzilinBirds() {
       halo.scale.setScalar(HALO_SCALE);
       halo.raycast = () => null;
       halo.visible = false;
+      // IL NE RECOMPOSE SA MATRICE QUE QUAND IL BOUGE (28/10, oracle
+      // decor-fige). Un halo par oiseau, cinq, invisibles tant qu'aucun
+      // passage n'a lieu -- et `matrixAutoUpdate` etant vrai par defaut,
+      // ils la recomposaient a chaque image quand meme : le motif exact du
+      // rouge du 17/09, du decor invisible que personne ne regarde.
+      // Le piege de lib/freeze-decor s'applique : fige, il ne suivrait plus
+      // l'oiseau, d'ou l'`updateMatrix()` explicite dans useFrame, la ou on
+      // ecrit sa position. Il suit toujours son parent, donc la boussole.
+      halo.matrixAutoUpdate = false;
+      halo.updateMatrix();
       mesh.userData.halo = halo;
       return mesh;
     });
@@ -324,6 +334,9 @@ export default function HuitzilinBirds() {
         u.uEclat.value = eclatRef.current;
         halo.visible = eclatRef.current * blend > 0.01;
         halo.position.copy(mesh.position);
+        // Sa matrice est figee (voir sa creation) : elle ne se recompose
+        // que la, quand il suit l'oiseau du passage.
+        halo.updateMatrix();
         (halo.material as SpriteMaterial).opacity = eclatRef.current * blend;
       } else if (halo.visible) {
         halo.visible = false;
