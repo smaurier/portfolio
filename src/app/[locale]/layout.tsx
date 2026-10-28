@@ -36,6 +36,7 @@ import MiroirFumant from "../components/miroir-fumant";
 import Veille from "../components/veille";
 import GrainAmate from "../components/grain-amate";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
+import { CSS_SANS_JAVASCRIPT } from "@/lib/sans-javascript";
 import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
 import { getDictionary, isLocale, locales, type Locale } from "../../dictionaries";
@@ -264,22 +265,10 @@ export default async function LocaleLayout({
         <style dangerouslySetInnerHTML={{ __html: `
           html:not([data-loaded="true"]) body { background: #000 !important; }
         ` }} />
-        {/* SANS JAVASCRIPT (09/09). Teste le 08/09 : le site n'est pas noir,
-            98 Ko de HTML sont bien servis et tout le texte est dans le DOM,
-            mais on ne franchit JAMAIS le voile, parce que `data-loaded` est
-            pose par le client. Le visiteur restait devant un ecran de
-            chargement definitif. Pour la vitrine d'un futur auditeur RGAA,
-            c'est un point de credibilite autant que d'ergonomie.
-            Le voile se cible par `data-veil` et non par sa classe : les noms
-            de modules CSS sont haches. */}
+        {/* SANS JAVASCRIPT (09/09) : la feuille est nommee et documentee
+            dans src/lib/sans-javascript.ts, avec son oracle. */}
         <noscript>
-          <style dangerouslySetInnerHTML={{ __html: `
-            [data-veil] { display: none !important; }
-            /* Tout le texte revele part a opacite 0 et n'est montre que par
-               une classe posee en JavaScript : sans lui, les titres et les
-               lignes de chapitre etaient invisibles. */
-            [data-reveal-word] { opacity: 1 !important; transform: none !important; }
-          ` }} />
+          <style dangerouslySetInnerHTML={{ __html: CSS_SANS_JAVASCRIPT }} />
         </noscript>
         {/* Le feu du foyer ne s'eteint jamais (08/09, cf src/lib/foyer.ts).
             Un visiteur qui repasse dans la journee ne rejoue pas la
