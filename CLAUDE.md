@@ -32,7 +32,11 @@ Ce qui attend, avec du sens et de la forme : le Sud et ses colibris
 apres le Sud), le Xolotl paye (apres le 23/10). Fait le 10/10 : l'accueil
 mobile (la carte du hero en bas, titre + appel, le cerf au centre, et le
 padding de la carte qui manquait partout), valide a l'oeil sur captures,
-`main` `b7d3944`.
+`main` `b7d3944`. Fait le 11/10 : la partition du texte du Centre (un
+seul bloc a la fois, silence au climax, hero sans paragraphe, trois
+chapitres, clotures sans ligne poetique, chant sans etiquette) ; les
+pages echo attendent la meme lib (spec
+`2026-10-10-partition-texte-design.md`, section « Les pages echo »).
 
 # La branche de travail et les constructions Netlify
 

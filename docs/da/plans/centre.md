@@ -35,7 +35,8 @@ remontera. La profondeur de champ continue de s'eteindre sur `columnRise`.
 
 | # | position | plan | tenue | son | fichier |
 | --- | --- | --- | --- | --- | --- |
-| 9 | 0 a 0,82 | le chant du Centre (Cantares, chant I, strophe 1, fol. 1r : « Je parle avec mon coeur, ou prendrai-je les belles fleurs parfumees ? ») defile en colonne droite par-dessus la scene, puis sort par le haut avant l'image finale ; visible aussi en mode recit | | | `cantar.tsx`, `lib/cantares.ts` |
+| 9 | 0,32 a 0,50 | le chant du Centre (Cantares, chant I, strophe 1, fol. 1r : « Je parle avec mon coeur, ou prendrai-je les belles fleurs parfumees ? ») dans sa fenetre de la partition (11/10) : entre en colonne droite quand la lumiere monte, defile pendant sa tenue, est efface avant le face-a-face ; visible aussi en mode recit | | | `cantar.tsx`, `lib/cantares.ts` |
+| 10 | partition | le texte du Centre (11/10, `lib/partition-texte`) : hero 0 a 0,10 ; I 0,12 a 0,30 ; chant 0,32 a 0,50 ; II 0,52 a 0,64 ; SILENCE 0,66 a 0,78 (climax dedans) ; IV 0,80 a 0,94 ; cloture 0,96 a 1. Un seul bloc a la fois, l'image prevaut. | | | `fading-block.tsx`, `bloc-en-flux.tsx`, `page-closure.tsx` |
 
 **Ce qui est fait le 11/09 au soir** : la ligne de seuil du Centre (N1,
 « Vous revenez au foyer. La chaleur que vous portez est celle du premier

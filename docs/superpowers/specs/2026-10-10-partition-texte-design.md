@@ -2,7 +2,9 @@
 
 Date : 10/10/2026, soir. Point 1 de l'audit visuel du jour
 (`docs/superpowers/specs/2026-10-10-audit-visuel-design.md`, artifact
-« Audit des cinq chemins »). Decisions de Sylvain, dans l'ordre :
+« Audit des cinq chemins »). Plan d'execution du Centre :
+`docs/superpowers/plans/2026-10-11-partition-centre.md` (11/10).
+Decisions de Sylvain, dans l'ordre :
 
 - « un seul panneau a la fois, mais surtout on doit aussi enlever du texte
   [...] que la page ne devienne pas un recital. C'est l'image qui prevaut. »

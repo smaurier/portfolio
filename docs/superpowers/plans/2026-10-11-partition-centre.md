@@ -1529,7 +1529,7 @@ Ouvrir les onze images (outil Read). Verifier : un seul bloc par image, aucun a 
 
 Donner les chemins complets des onze images et la liste des dosages qui sont a lui : 12 px a l'entree, 8 px a la sortie, 15 % d'entree et de sortie, 120 px du haut pour le chant, les fenetres elles-memes. **Rien d'autre ne se fait tant qu'il n'a pas repondu** : ni les docs (Step 5), ni `main` (regle de `CLAUDE.md` : une session = une chose bornee + une capture regardee).
 
-- [ ] **Step 5 : les docs, apres le feu vert**
+- [x] **Step 5 : les docs, apres le feu vert**
 
 `docs/da/plans/centre.md`, ligne 9 du second tableau, remplacer `0 a 0,82` et « defile en colonne droite par-dessus la scene, ... » par `0,32 a 0,50` et « dans sa fenetre de la partition (11/10) : entre en colonne droite quand la lumiere monte, defile pendant sa tenue, est efface avant le face-a-face ». Ajouter une ligne 10 :
 
