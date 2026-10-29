@@ -332,11 +332,19 @@
 .translation :global(.space) {
   display: inline-block;
   position: relative;
-  /* Un calque par lettre : sans lui, Chrome joue l'opacite sur le fil
-     principal et repeint le span a chaque image (oracle du 22/09 : trente
-     peintures par lettre, copies ou pas). Des calques minuscules, un par
-     glyphe, et le compositeur tient tout seul. */
-  will-change: opacity;
+  /* PAS DE will-change ICI, ET C'EST MESURE (29/10). Cette regle portait
+     `will-change: opacity`, pose le 22/09 avec ce motif : « sans lui,
+     Chrome joue l'opacite sur le fil principal et repeint le span a chaque
+     image, trente peintures par lettre ». Remesure le 28/10, trois
+     variantes, meme page et meme bridage : en place 314 calques / 715
+     peintures / pire noeud 12 ; retire des seules copies 355 / 812 / 12 ;
+     retire partout 317 / 712 / 12. Il n'achetait donc plus rien.
+     La raison : le vrai correctif du 22/09 etait de sortir `text-shadow`
+     et `filter` de l'animation, pas d'ajouter cette ligne. Depuis,
+     l'animation ne touche que `opacity` et `transform`, et Chrome compose
+     celles-la de lui-meme -- le `will-change` etait la ceinture par-dessus.
+     Il n'est pas gratuit : il epingle de la memoire video et il COUPE
+     l'antialiasing sous-pixel du texte promu. */
 }
 
 .phrase :global(.char),
@@ -371,9 +379,11 @@
   animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
   animation-fill-mode: both;
   animation-delay: inherit;
-  /* Leur propre calque aussi : c'est ce qui rend transform et opacity
-     gratuits, et le flou statique de la copie chaude applique par le GPU. */
-  will-change: transform, opacity;
+  /* Pas de will-change non plus (29/10, meme mesure que sur le span) : une
+     animation de `transform` est composee d'office, et le flou statique de
+     la copie chaude est peint une fois de toute facon. Le retirer des
+     seules copies rendait meme la mesure PIRE (355 calques contre 314) :
+     c'est bien ensemble qu'elles se retirent. */
 }
 
 .phrase :global(.char)::before {

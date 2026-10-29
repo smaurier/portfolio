@@ -25,10 +25,33 @@
   # different de 0 = on construit. Ici on saute quand la difference entre
   # le dernier commit construit et celui-ci ne touche QUE de la
   # documentation, des tests ou des brouillons : rien de tout cela n'est
-  # servi au visiteur. Si la variable de commit cachee manque (toute
-  # premiere construction), la commande echoue, donc on construit : le
-  # defaut est du bon cote.
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ':(exclude)docs/**' ':(exclude)tests/**' ':(exclude).scratch/**' ':(exclude)*.md'"
+  # servi au visiteur.
+  #
+  # LES TROIS GARDES EN TETE, ET POURQUOI ELLES SONT LA (29/10). Cette
+  # ligne portait avant un commentaire FAUX : « si la variable de commit
+  # cachee manque, la commande echoue, donc on construit : le defaut est du
+  # bon cote ». Le defaut etait du MAUVAIS cote. Le 28/10, `main` est passe
+  # de b7d3944 a f344ec7 (51 fichiers, dont douze de src/) et Netlify a
+  # ANNULE le deploiement : « Canceled build due to no content change ».
+  # Le site a servi la version du 10/10 pendant une demi-heure, en silence.
+  # Cause : `git diff --quiet $CACHED $COMMIT` avec $CACHED VIDE n'a plus
+  # qu'une reference, compare donc l'arbre de travail a ce commit, ne
+  # trouve rien sur une copie propre, et renvoie 0 -- on saute. Deux
+  # references identiques font pareil.
+  # D'ou : on exige que les deux references existent et soient
+  # differentes AVANT de comparer. Toute garde qui tombe rend un code non
+  # nul, donc construit : deux minutes de construction valent mieux qu'un
+  # site qui reste en arriere sans bruit.
+  #
+  # Aucune guillemet double ici, et ce n'est pas un hasard : la valeur TOML
+  # en est delimitee, et les echapper rendrait la commande illisible pour
+  # qui la relit (et pour son oracle). `${#VAR}` donne une longueur, donc
+  # pas besoin de proteger la variable ; une fois les deux refs connues non
+  # vides, ce sont des sommes de controle sans espace.
+  #
+  # Son oracle : tests/harnais/netlify-ignore.test.ts, qui lit CETTE ligne
+  # dans ce fichier et la lance sur de vrais couples de commits du depot.
+  ignore = "[ ${#CACHED_COMMIT_REF} -gt 0 ] && [ ${#COMMIT_REF} -gt 0 ] && [ $CACHED_COMMIT_REF != $COMMIT_REF ] && git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ':(exclude)docs/**' ':(exclude)tests/**' ':(exclude).scratch/**' ':(exclude)*.md'"
 
 # LES BRANCHES NE CONSTRUISENT JAMAIS (14/09). Le travail vit desormais sur
 # `dev` et ne rejoint `main` que lorsqu'il y a quelque chose a montrer. Ces
