@@ -86,3 +86,32 @@ for (const bas of [false, true]) {
     expect(sansContour, "chaque element focalise au clavier a un contour visible").toEqual([]);
   });
 }
+
+/**
+ * COHERENCE DU FOCUS ENTRE BOUTONS FLOTTANTS (01/11). Son, boussole,
+ * controles de scene et fermeture d'etude partagent tous le meme
+ * traitement :focus-visible (bordure --accent + fond plus dense, cf
+ * sound-design.module.css, scene-controls.module.css). Le bouton mode
+ * recit — lui-meme une fonction d'accessibilite — etait le seul des cinq
+ * a n'avoir AUCUNE regle :focus-visible : le clavier n'y recevait que
+ * l'anneau par defaut du navigateur, visible (clavier.spec.ts le prouve
+ * deja) mais visuellement incoherent avec ses voisins. On compare
+ * directement sa bordure focalisee a celle du bouton son : meme famille
+ * de composant, meme traitement attendu.
+ */
+test("le bouton mode recit porte le meme anneau de focus que le bouton son", async ({ page }) => {
+  test.setTimeout(150_000);
+  await page.goto("/fr/services");
+  await page.waitForFunction(() => document.documentElement.dataset.loaded === "true", null, { timeout: 90_000 });
+  await page.waitForTimeout(1500);
+
+  const lecture = page.getByRole("button", { name: /mode récit accessible/i });
+  const son = page.getByRole("button", { name: /le son/i });
+
+  await lecture.focus();
+  const bordureLecture = await lecture.evaluate((el) => getComputedStyle(el).borderColor);
+  await son.focus();
+  const bordureSon = await son.evaluate((el) => getComputedStyle(el).borderColor);
+
+  expect(bordureLecture, `lecture=${bordureLecture} vs son=${bordureSon}`).toBe(bordureSon);
+});

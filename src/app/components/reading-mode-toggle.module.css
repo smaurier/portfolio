@@ -34,6 +34,15 @@
   transform: translateY(-1px);
 }
 
+/* 01/11 : seul des boutons flottants (son, boussole, controles de scene,
+   fermeture d'etude) sans :focus-visible — le clavier n'y recevait que
+   l'anneau par defaut du navigateur. Meme bordure/fond que ses voisins
+   au focus (cf sound-design.module.css .toggle:focus-visible). */
+.toggle:focus-visible {
+  background: rgba(var(--panel-deep-rgb), 0.9);
+  border-color: rgba(var(--accent-rgb), 0.6);
+}
+
 .toggle[aria-pressed="true"] {
   background: rgba(var(--accent-rgb), 0.15);
   border-color: var(--accent);
