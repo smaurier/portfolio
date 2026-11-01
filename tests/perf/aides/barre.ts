@@ -25,7 +25,8 @@ import type { Evenement } from "./evenements";
 import { acquerir, verdict, type Compte, type Ligne, type ModeAcquisition } from "./cliquet";
 import { tempsPropre, type Part } from "./fil-principal";
 import { fenetre, fenetrePaires, mediane, paires, perdues, presentees, resumer, trames, type Resume } from "./images";
-import { ecrireLigneDeBase, lireLigneDeBase } from "./ligne-de-base";
+import { ecrireEntreeMachine, entreeMachine, lireLigneDeBase, ecrireLigneDeBase } from "./ligne-de-base";
+import { identifiantMachine } from "./machine";
 import type { InfoRendu } from "./site";
 
 export type Passe = { presentees: number; resume: Resume; perdues: number; pireFonctions: Part[]; rendu?: InfoRendu };
@@ -72,10 +73,17 @@ export function juger(projet: string, moment: string, passes: Passe[], cible: Co
     pire: mediane(passes.map((p) => p.resume.pire)),
   };
   const dpr = dprDuProjet(info);
+  const machine = identifiantMachine();
   const base = lireLigneDeBase();
-  const entree = base[projet];
+  // La propre entree de CE poste (jamais le repli partage) : c'est elle
+  // qu'on prolonge a l'ecriture, pour ne jamais faire heriter un poste des
+  // moments mesures sur un autre (01/11, cf machine.ts). Pour JUGER en
+  // revanche, le repli est legitime : un poste neuf se compare a l'ancien
+  // historique partage tant qu'il n'a pas le sien.
+  const entreePropre = base[projet]?.[machine];
+  const entree = entreeMachine(base, projet, machine);
   if (entree && entree.dpr !== dpr) {
-    throw new Error(`la ligne de base de ${projet} a ete mesuree au dpr ${entree.dpr}, cette passe est au dpr ${dpr} : le projet a change d'appareil, acquiers une ligne neuve (pnpm run perf:enveloppe -- --project=${projet})`);
+    throw new Error(`la ligne de base de ${projet} (${machine}) a ete mesuree au dpr ${entree.dpr}, cette passe est au dpr ${dpr} : le projet a change d'appareil, acquiers une ligne neuve (pnpm run perf:enveloppe -- --project=${projet})`);
   }
   const ligne: Ligne | undefined = entree?.moments[moment];
   const v = verdict(mesure, ligne);
@@ -102,11 +110,10 @@ export function juger(projet: string, moment: string, passes: Passe[], cible: Co
     `${projet} / ${moment} n'a presente que ${mesure.presentees} images (plancher ${PLANCHER_PRESENTEES}) : la barre ne peut pas conclure sur ce moment\n${rapport}`,
   ).toBeGreaterThanOrEqual(PLANCHER_PRESENTEES);
   if (acquise) {
-    base[projet] = { dpr, moments: { ...(entree?.moments ?? {}), [moment]: acquise } };
-    ecrireLigneDeBase(base);
+    ecrireLigneDeBase(ecrireEntreeMachine(base, projet, { dpr, moments: { ...(entreePropre?.moments ?? {}), [moment]: acquise } }, machine));
   }
   // En mode enveloppe, le jugement MESURE le bruit : il ne peut pas etre rouge contre l'enveloppe qu'il elargit.
   if (MODE === "enveloppe") return;
   expect(v.rouge, rapport).toBe(false);
-  if (MODE === "aucun") expect(ligne !== undefined, `${projet} / ${moment} n'a pas de ligne de base : pnpm run perf:enveloppe`).toBe(true);
+  if (MODE === "aucun") expect(ligne !== undefined, `${projet} / ${moment} n'a pas de ligne de base (ni pour ${machine}, ni partagee) : pnpm run perf:enveloppe`).toBe(true);
 }
