@@ -16,7 +16,12 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(var(--ink-rgb), 0.25);
+  /* 01/11, retour Sylvain : "on doit deja bien percevoir ce qui doit
+     l'etre, et au survol ca doit etre plus". Bordure vs fond du bouton
+     mesuree a 1,57:1 (dark) / 1,71:1 (light), sous le seuil AA de 3:1
+     (WCAG 1.4.11) : 0,25 -> 0,6. Le survol reste strictement "plus" (il
+     bascule sur --accent en plus de l'opacite pleine). */
+  border: 1px solid rgba(var(--ink-rgb), 0.6);
   background: rgba(var(--panel-rgb), 0.65);
   color: var(--ink);
   cursor: pointer;
@@ -24,7 +29,7 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  opacity: 0.55;
+  opacity: 0.85;
   transition: opacity 0.25s ease, border-color 0.25s ease, background 0.25s ease;
   backdrop-filter: blur(8px);
 }
