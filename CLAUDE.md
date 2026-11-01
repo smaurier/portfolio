@@ -37,6 +37,17 @@ seul bloc a la fois, silence au climax, hero sans paragraphe, trois
 chapitres, clotures sans ligne poetique, chant sans etiquette) ; les
 pages echo attendent la meme lib (spec
 `2026-10-10-partition-texte-design.md`, section « Les pages echo »).
+Fait le 01/11 : trois fonds en dur (panneau du burger mobile, bouton
+d'appel, carte de projet) ignoraient le theme et restaient noirs en face
+claire pendant que leur texte (--ink/--ink-warm) passait sombre lui aussi
+— repere par Sylvain en se montrant son propre portfolio sur mobile
+("le premier menu ne se voit pas... sombre sur du noir"), mesure a
+1,07:1 / 2,87:1 / 1,18:1. axe rendait `incomplete` dessus (bgImage,
+scene ailleurs sur la page) : oracle a la main dans
+`src/lib/contraste-wcag.ts` (teste a l'unite) + trois tests dans
+`accessibilite-axe.spec.ts`, rouge avant, vert apres, dark inchange au
+pixel pres. PR `fix/contraste-mobile-cta-projectcase` vers `dev`, pas
+encore fusionnee.
 
 # La branche de travail et les constructions Netlify
 

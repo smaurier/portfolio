@@ -1,6 +1,7 @@
 import { defilerDansLArc } from "./arc";
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, devices, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { composer, parseCouleurCss, ratioDeContraste, type Rgb } from "../../src/lib/contraste-wcag";
 
 /**
  * L'ACCESSIBILITE AUTOMATIQUE, A CHAQUE COMMIT (11/09, go de Sylvain sur la
@@ -86,5 +87,99 @@ for (const theme of ["dark", "light"] as const) {
       }
     }
     expect(echecs, echecs.join(" | ")).toEqual([]);
+  });
+}
+
+/**
+ * TROIS AUTRES SURFACES HORS CANVAS (01/11, retour Sylvain en se montrant
+ * son propre portfolio : "le premier menu ne se voit pas parce qu'il est
+ * sombre sur du noir"). Panel mobile, bouton d'appel et carte de projet ont
+ * chacun leur PROPRE fond quasi-opaque (0.96 / 0.62 / 0.88) : la scène ne
+ * compte presque pas derrière. Mais axe ne le voit pas de cet œil : sur ces
+ * trois composants il rend `incomplete` (messageKey `bgImage`, impact
+ * serious) parce qu'un bloc de scène AILLEURS sur la page porte un
+ * background-image — vérifié à la main le 01/11, zéro `violations` malgré
+ * un vrai défaut. On lit donc les couleurs résolues par le navigateur
+ * (`getComputedStyle`) et on calcule le ratio nous-mêmes avec
+ * `src/lib/contraste-wcag.ts` (testé à l'unité à part).
+ *
+ * Aucun test existant n'ouvrait jamais le panneau mobile : le bug a pu
+ * vivre sans qu'aucun oracle ne le voie.
+ */
+const { defaultBrowserType: _burgerBrowser, ...PIXEL_7_BURGER } = devices["Pixel 7"];
+
+/** Couleur de fond réelle de la page, pour composer un fond semi-opaque. */
+async function fondDePage(page: Page): Promise<Rgb> {
+  const css = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  return parseCouleurCss(css).slice(0, 3) as unknown as Rgb;
+}
+
+/**
+ * Ratio de contraste réel entre le texte d'un sélecteur et le fond
+ * (quasi-opaque) de son conteneur. `opacity` CSS (dt/dd/notes à 0.55-0.9)
+ * compose le texte avec ce qu'il y a dessous exactement comme un alpha de
+ * couleur : on la lit et on la traite comme telle plutôt que de l'ignorer.
+ */
+async function contrasteTexteSurConteneur(page: Page, texte: string, conteneur: string): Promise<number> {
+  const [{ couleur, opacite }, fondCss, fondPage] = await Promise.all([
+    page.locator(texte).first().evaluate((el) => ({ couleur: getComputedStyle(el).color, opacite: Number(getComputedStyle(el).opacity) })),
+    page.locator(conteneur).first().evaluate((el) => getComputedStyle(el).backgroundColor),
+    fondDePage(page),
+  ]);
+  const fondConteneur = composer(parseCouleurCss(fondCss), fondPage);
+  const [r, g, b, a] = parseCouleurCss(couleur);
+  const couleurEffective = composer([r, g, b, a * opacite], fondConteneur);
+  return ratioDeContraste(couleurEffective, fondConteneur);
+}
+
+const SEUIL_AA = 4.5;
+
+test.describe("contraste du panneau mobile (burger)", () => {
+  test.use({ ...PIXEL_7_BURGER });
+  for (const theme of ["dark", "light"] as const) {
+    test(`face ${theme}`, async ({ page }) => {
+      test.setTimeout(150_000);
+      await page.addInitScript((t) => {
+        try {
+          localStorage.setItem("nahual-theme", t);
+        } catch {}
+      }, theme);
+      await ouvrir(page, "fr");
+      await page.locator(".mobileMenuButton").click();
+      await page.locator("#mobile-menu-panel").waitFor({ state: "visible" });
+      await page.waitForTimeout(400);
+      const ratioNav = await contrasteTexteSurConteneur(page, ".mobileNav a", ".mobilePanel");
+      const ratioLangue = await contrasteTexteSurConteneur(page, '.mobileLangSwitcher a[aria-current="true"]', ".mobilePanel");
+      expect(ratioNav, `nav ${ratioNav.toFixed(2)}:1`).toBeGreaterThanOrEqual(SEUIL_AA);
+      expect(ratioLangue, `langue active ${ratioLangue.toFixed(2)}:1`).toBeGreaterThanOrEqual(SEUIL_AA);
+    });
+  }
+});
+
+for (const theme of ["dark", "light"] as const) {
+  test(`contraste du bouton d'appel (ctaButton), face ${theme}`, async ({ page }) => {
+    test.setTimeout(150_000);
+    await page.addInitScript((t) => {
+      try {
+        localStorage.setItem("nahual-theme", t);
+      } catch {}
+    }, theme);
+    await ouvrir(page, "fr/services");
+    const ratio = await contrasteTexteSurConteneur(page, ".ctaButton", ".ctaButton");
+    expect(ratio, `${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(SEUIL_AA);
+  });
+
+  test(`contraste de la carte de projet (projectCase), face ${theme}`, async ({ page }) => {
+    test.setTimeout(150_000);
+    await page.addInitScript((t) => {
+      try {
+        localStorage.setItem("nahual-theme", t);
+      } catch {}
+    }, theme);
+    await ouvrir(page, "fr/projets");
+    const ratioTitre = await contrasteTexteSurConteneur(page, ".projectCase h2", ".projectCase");
+    const ratioDetail = await contrasteTexteSurConteneur(page, ".projectCaseDetails dd", ".projectCase");
+    expect(ratioTitre, `titre ${ratioTitre.toFixed(2)}:1`).toBeGreaterThanOrEqual(SEUIL_AA);
+    expect(ratioDetail, `detail ${ratioDetail.toFixed(2)}:1`).toBeGreaterThanOrEqual(SEUIL_AA);
   });
 }
