@@ -404,7 +404,14 @@ html:not([data-theme="light"]) .logoLink img {
   align-items: center;
   gap: 40px;
   padding: calc(var(--header-height) + 40px) 24px calc(var(--footer-height) + 40px);
-  background: rgba(10, 8, 14, 0.96);
+  /* 10, 8, 14 est la valeur de --panel-deep-rgb en face sombre (01/11,
+     retour Sylvain en se montrant son portfolio : "le premier menu ne se
+     voit pas parce qu'il est sombre sur du noir"). En dur, ce fond restait
+     noir en face claire alors que le texte (--ink-warm) passait a #1d1626
+     : texte sombre sur fond noir, ratio mesure 1,07:1. Le jeton suit le
+     theme comme partout ailleurs (cf .header), le panel ne bouge pas en
+     face sombre (meme valeur). */
+  background: rgba(var(--panel-deep-rgb), 0.96);
   backdrop-filter: blur(12px);
   color: var(--ink-warm);
   overflow-y: auto;
@@ -865,7 +872,11 @@ body.nahual-lab-reveal .ctaButton {
   display: inline-flex;
   align-self: flex-start;
   padding: 12px 26px;
-  border: 1px solid #f2ece1;
+  /* #f2ece1 est --ink-warm en face sombre (01/11) : en dur, ce filet
+     restait creme en face claire, quasi invisible sur le fond clair du
+     bouton une fois celui-ci lui-meme themee ci-dessous. Le jeton suit le
+     theme (sombre en face claire, meme creme qu'avant en face sombre). */
+  border: 1px solid var(--ink-warm);
   border-radius: 999px;
   font-weight: 600;
   color: var(--ink-warm);
@@ -882,11 +893,18 @@ body.nahual-lab-reveal .ctaButton {
      tenir 4,5:1, soit environ 105 sur 255 ; sur une glace a 210, il faut
      donc au moins 0,54 d'opacite. 0,62 laisse la marge des etats plus
      clairs encore. Meme matiere que les cartes (meme teinte, meme flou),
-     pour ne pas introduire un langage de plus. */
-  background: rgba(13, 12, 17, 0.62);
+     pour ne pas introduire un langage de plus.
+
+     13, 12, 17 est --panel-closure-rgb en face sombre (01/11, retour
+     Sylvain "le premier menu ne se voit pas... sombre sur du noir" : ce
+     bouton avait exactement le meme defaut, mesure a 2,87:1 en face
+     claire car le fond restait ce noir en dur pendant que le texte
+     --ink-warm passait a #1d1626). Le jeton suit le theme, meme valeur
+     qu'avant en face sombre. */
+  background: rgba(var(--panel-closure-rgb), 0.62);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1291,6 +1309,14 @@ body.reading-mode .projectCase {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+/* 01/11 : ce fond restait ce noir en dur meme en face claire (le mode
+   lecture, lui-meme une fonction d'accessibilite, cassait alors le
+   contraste qu'il est censse garantir). Le papier de la face claire,
+   presque opaque comme l'intention d'origine. */
+html[data-theme="light"] body.reading-mode .serviceCard,
+html[data-theme="light"] body.reading-mode .projectCase {
+  background: rgba(var(--panel-rgb), 0.98) !important;
+}
 
 /* Utilitaire sr-only (29/08 chantier a11y). Pattern WCAG standard :
    contenu invisible visuellement, lu par les lecteurs d'ecran (NVDA,
@@ -1344,6 +1370,17 @@ body.reading-mode .projectCase {
   background: rgba(10, 8, 15, 0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+/* 01/11, meme defaut que .mobilePanel et .ctaButton (retour Sylvain "le
+   premier menu ne se voit pas... sombre sur du noir") : contrairement a
+   .serviceCard, cette carte n'avait jamais recu de traitement face claire
+   le 13/09. Son fond restait ce noir en dur pendant que son h2
+   (var(--ink)) et son texte (var(--ink-warm), herite de main) passaient a
+   #17131f/#1d1626 : titre mesure a 1,18:1. Meme papier que .serviceCard
+   en face claire (rgba(var(--panel-rgb), 0.86), cf plus bas), pour ne pas
+   introduire un langage de plus. */
+html[data-theme="light"] .projectCase {
+  background: rgba(var(--panel-rgb), 0.86);
 }
 .projectCase h2 {
   font-size: var(--t-chapeau);
