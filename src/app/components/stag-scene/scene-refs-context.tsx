@@ -5,6 +5,7 @@ import { arcProgress, arcScrollHeight, exitProgress } from "@/lib/reveal-arc";
 import { getPerfProfile, type PerfProfile } from "@/lib/mobile-perf";
 import { getSceneControls, hydrateSceneControls, subscribeSceneControls } from "../scene-controls-store";
 import { shouldReduceMotion } from "@/lib/reduced-motion";
+import { useDetectionPerfFaible } from "./use-detection-perf-faible";
 
 /**
  * Contexte partagé des refs et de l'état runtime de la scène 3D
@@ -72,6 +73,11 @@ export function SceneRefsProvider({ children }: { children: ReactNode }) {
     setEco(hydrateSceneControls().eco);
     return subscribeSceneControls((s) => setEco(s.eco));
   }, []);
+  // Detection automatique d'un appareil faible (01/11) : bascule sur eco
+  // sans bouton si les premieres images reelles sont trop souvent en
+  // retard. Ecrit dans le meme store que le bouton manuel (ci-dessus) :
+  // aucun troisieme palier, juste un deuxieme ecrivain.
+  useDetectionPerfFaible();
   const perfProfile = useMemo(() => getPerfProfile(viewportWidth, eco), [viewportWidth, eco]);
 
   useEffect(() => {
