@@ -1,0 +1,35 @@
+{
+  "_lisez-moi": [
+    "Les avis de securite JUGES INAPPLICABLES a ce site, un par un, avec leur raison.",
+    "Tout avis qui n'est PAS dans cette liste fait echouer `pnpm run securite`.",
+    "Une entree n'est pas un classement sans suite : c'est une affirmation verifiable,",
+    "et la raison doit dire COMMENT on l'a verifiee, pas seulement qu'on y a cru.",
+    "Retirer une entree des que la version corrigee est prise."
+  ],
+  "admis": {
+    "GHSA-673q-mjm6-r5xr": {
+      "titre": "Next.js : RCE non authentifiee dans les fonctions `use cache` renvoyant des tableaux types",
+      "gravite": "critical",
+      "corrige_par": "next >= 16.4.1",
+      "raison": "Ce site n'utilise AUCUN `use cache` et n'active pas `cacheComponents` : verifie le 02/11/2026 par `grep -rln 'use cache' src` (vide) et par la lecture de next.config.js (aucun cacheComponents ni dynamicIO). Le code vulnerable n'est donc jamais atteint.",
+      "revoir_si": "un `use cache` est ecrit, ou `cacheComponents`/`dynamicIO` est active dans next.config.js",
+      "date": "2026-11-02"
+    },
+    "GHSA-p3m5-59mp-jv5r": {
+      "titre": "Next.js : deni de service dans l'App Router via les Server Actions",
+      "gravite": "high",
+      "corrige_par": "next >= 16.4.1",
+      "raison": "Ce site n'a AUCUNE Server Action : verifie le 02/11/2026 par `grep -rln '\"use server\"' src` (vide). Tout est pre-rendu (SSG) ou client.",
+      "revoir_si": "une directive `use server` apparait",
+      "date": "2026-11-02"
+    },
+    "GHSA-2464-fhr4-w9xw": {
+      "titre": "Next.js : RCE non authentifiee dans l'API d'optimisation d'images quand des SVG sont utilises",
+      "gravite": "critical",
+      "corrige_par": "next >= 16.4.1 OU sharp >= 0.35.5",
+      "raison": "LA CAUSE EST CORRIGEE, pas contournee : l'avis dit lui-meme que la faille vient d'une bibliothegue en amont (librsvg via sharp, CVE-2026-96889) et donne `sharp >= 0.35.5` comme correctif equivalent. Ce depot force `sharp` a 0.35.5 par un override pnpm (verifie : `pnpm why sharp --prod` rend 0.35.5). pnpm audit continue de signaler l'avis parce qu'il le rattache a la PLAGE DE VERSION de next, pas a la presence reelle du code vulnerable.",
+      "revoir_si": "l'override sharp est retire, ou l'avis est mis a jour avec une cause distincte de librsvg",
+      "date": "2026-11-02"
+    }
+  }
+}

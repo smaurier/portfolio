@@ -43,6 +43,16 @@ Reprise dans `CLAUDE.md`, relue a chaque session.
 | les types et le lint bloquent tout commit | `scripts/hooks/pre-commit` (`eslint --cache`, le cache sous `node_modules/.cache/eslint/` : vingt secondes a froid, un hook a vingt secondes se contourne) | `git commit --no-verify`, dit dans le message, pour une faille de securite seulement |
 | les tests unitaires bloquent toute poussee | `scripts/hooks/pre-push` | idem |
 | la barre de performance bloque `main` | `scripts/hooks/pre-push`, `pnpm run --if-present perf` : actif depuis B1 (03/10), construction de production comprise, ~4 min pour l'auto-test, le voile et les cinq defilements | idem |
+| **les avis de securite ne bloquent RIEN automatiquement** : c'est un geste, `pnpm run securite`, **a faire avant une poussee sur `main`** | `scripts/securite.mjs` compare `pnpm audit --prod` a `scripts/securite-admis.json` (les avis juges inapplicables, chacun avec sa raison verifiee et son « a rouvrir si ») ; tout avis inconnu de la liste le fait echouer | aucun : un avis se traite ou s'inscrit avec sa raison, il ne se range pas |
+
+**Pourquoi la securite n'est pas un hook** (02/11/2026, et la raison compte) :
+il lui faut le reseau, il est lent, et il deviendrait rouge a la
+publication d'un avis en amont -- donc bloquerait une poussee pour une
+raison que personne dans ce depot n'a causee. Le geste est donc explicite.
+**Ce qu'il repare** : le 02/11, une poussee de routine a fait remonter 36
+avis Dependabot, dont 13 sur les dependances de production et 3 critiques,
+installes depuis des semaines parce que rien ne regardait. La faille n'etait
+pas le defaut ; l'absence de regard l'etait.
 
 Les hooks sont installes par `pnpm install` (`prepare` pose
 `core.hooksPath`, et sort en 0 sans `.git` pour qu'une archive ou un

@@ -15,7 +15,8 @@
     "perf:enveloppe": "node scripts/perf-baseline.mjs enveloppe",
     "models": "node scripts/optimise-models.mjs",
     "harnais:baseline": "node scripts/harnais-baseline.mjs",
-    "prepare": "git config core.hooksPath scripts/hooks || exit 0"
+    "prepare": "git config core.hooksPath scripts/hooks || exit 0",
+    "securite": "node scripts/securite.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -24,7 +25,7 @@
     "aztec-year": "0.2.0",
     "gsap": "^3.12.5",
     "lenis": "^1.3.26",
-    "next": "16.3.3",
+    "next": "16.3.8",
     "postprocessing": "^6.39.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -41,7 +42,7 @@
     "@types/react-dom": "^19.2.5",
     "@types/three": "0.185.4",
     "eslint": "^9.39.5",
-    "eslint-config-next": "16.3.3",
+    "eslint-config-next": "16.3.8",
     "postcss": "^8.5.3",
     "typescript": "5.9.3",
     "vitest": "^4.1.10"
@@ -52,7 +53,9 @@
   "packageManager": "pnpm@10.17.1",
   "pnpm": {
     "overrides": {
-      "@types/react": "19.2.18"
+      "@types/react": "19.2.18",
+      "sharp": "0.35.5",
+      "source-map-js": "1.2.2"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
