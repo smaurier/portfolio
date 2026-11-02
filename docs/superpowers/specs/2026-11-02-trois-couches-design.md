@@ -203,7 +203,7 @@ gadget**.
 | `photo` | ⛔ **retiree** | « trop de trucs gadgets (genre l'appareil photo) » |
 | `link` | ⛔ **retiree** | « link non » (le lien horodate `?t=` reste dans le code, c'est le BOUTON qui part) |
 | `eco` | ♻️ **absorbee** par le cran *amatl* | l'amatl EST le mode sans WebGL ni mouvement |
-| `pause` | ⚠️ **a verifier avant de la retirer** | voir ci-dessous : WCAG 2.2.2 est couvert, le besoin utilisateur peut ne pas l'etre |
+| `pause` | 🔄 **devient CONTEXTUELLE** : un play/pause qui ne pilote que `cinematic` | « il faut un bouton play pause pour controler l'animation mais seulement sur cinematic » (Sylvain, 02/11) — voir ci-dessous |
 | bouton du mode recit (bas gauche, `reading-mode-toggle.tsx`) | ⛔ **retire AVEC la truelle** | remplace par le cran *parole* ; ⛔ pas avant la tache 2b, sinon la page Accessibilite reste la seule porte |
 | `text` | ✅ **gardee** | « text, on garde je pense » — aucun cran ne la couvre : elle masque le texte pour voir la scene |
 | `fullscreen` | ✅ **gardee** | « pourquoi pas » (accord tiede, pas un engagement ferme) |
@@ -214,15 +214,38 @@ gadget**.
 icones + la truelle.** ⭐ Et les 24x24 px de WCAG 2.5.8 (la « consequence
 urgente » du 25/10) cessent d'etre un probleme de place.
 
-⚠️ **`pause` : pourquoi ce n'est pas un simple doublon.** Le cran *amatl*
-satisfait bien WCAG 2.2.2, parce que « hide » est une des trois sorties
-admises par le critere (pause, stop OU hide) et que l'amatl retire
-entierement le mouvement. Mais les deux gestes ne repondent pas au meme
-besoin : `pause` **fige la scene en la laissant visible**, l'amatl **quitte
-la scene**. Un visiteur aux troubles vestibulaires qui veut quand meme
-REGARDER l'image 3D a besoin du premier, pas du second. ⏭️ Donc garder
-`pause` est defendable meme apres les crans, et c'est a Sylvain de trancher
-ce point precis — pas un corollaire automatique.
+### ✅ `pause` devient un play/pause de la CONTEMPLATION (Sylvain, 02/11)
+
+**Sylvain** : « il faut un bouton play pause pour controler l'animation mais
+seulement sur cinematic. » Le bouton cesse donc d'etre un interrupteur
+permanent et devient le transport de la contemplation : il n'apparait que
+quand `cinematic` est actif, et il pilote ce deroulement-la.
+
+⭐ **Pourquoi c'est meilleur** : un bouton « pause » permanent souffre de
+l'ambiguite classique — pause de QUOI, la scene, le defilement, le son ? La
+contemplation, elle, est litteralement une lecture qui se deroule (la page
+defile seule, en boucle nuit/midi) : un play/pause y a un referent evident.
+
+✅ **Et ca reste conforme a WCAG 2.2.2**, parce que le critere admet trois
+sorties — pause, stop OU **hide** — et que le cran *amatl* de la truelle
+retire entierement le mouvement, en permanence et au clavier. C'est lui qui
+porte la conformite dans l'etat par defaut ; le play/pause porte le confort
+de la contemplation.
+
+⛔ **DEUX RESERVES, a tenir :**
+1. **Sequencement** : tant que la truelle n'existe pas, `pause` est le SEUL
+   mecanisme 2.2.2 du site. Le transformer en controle contextuel de
+   `cinematic` ne se fait donc **qu'avec la tache 2b**, jamais avant — meme
+   contrainte que le retrait du bouton du mode recit.
+2. **Ce qu'on perd, et c'est a accepter sciemment** : aujourd'hui `pause`
+   **fige la scene en la laissant visible** (« le canvas ne rend plus,
+   l'image reste »). Apres le changement, ce geste n'existe plus que par la
+   preference systeme `prefers-reduced-motion` — or la raison d'etre du mode
+   recit dit justement que ce reglage global est « trop large » pour
+   beaucoup de gens. Un visiteur aux troubles vestibulaires qui veut
+   REGARDER l'image 3D figee, sans toucher aux reglages de son OS, n'aura
+   plus de bouton pour ca : l'amatl quitte la scene au lieu de la figer.
+   ⏭️ Cout identifie, non chiffre, **a assumer ou a corriger par Sylvain**.
 
 ⭐ **Consequence pour ce projet** : la couche *amatl* rend `eco` redondant et
 recouvre une bonne part de `pause` ; la couche *parole* absorbe le mode
@@ -249,9 +272,10 @@ ressemble la barre quand elle est propre ».
   du disque grave, revelee au survol) : se regarde, ne se decide pas par
   ecrit — **et se regarde dans la barre REFONDUE** (quatre icones), pas dans
   celle a huit.
-- **`pause` reste-t-elle ?** Seul point de la refonte non tranche : le cran
-  *amatl* couvre WCAG 2.2.2, mais pas le besoin « figer la scene en la
-  gardant visible » (section 7).
+- ~~**`pause` reste-t-elle ?**~~ — **tranche le 02/11** : elle devient un
+  play/pause contextuel de `cinematic` (section 7). ⏭️ Reste a assumer ou a
+  corriger : on perd le geste « figer la scene en la gardant visible » pour
+  qui n'a pas regle son OS.
 - ~~**La refonte de la barre de gauche**~~ — **tranchee le 02/11**, voir le
   tableau de la section 7 : `photo` et `link` partent, `eco` est absorbee,
   `text`/`fullscreen`/`cinematic`/`traces` restent.
