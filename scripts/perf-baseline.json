@@ -1,5 +1,170 @@
 {
   "perf-bureau": {
+    "P-E2026-34": {
+      "dpr": 1,
+      "moments": {
+        "arrivee": {
+          "meilleur": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "maximum": {
+            "auDela": 19,
+            "perdues": 4
+          },
+          "plafond": {
+            "auDela": 38,
+            "perdues": 8
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 20.1,
+          "date": "2026-11-02"
+        },
+        "defilement-fr": {
+          "meilleur": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "maximum": {
+            "auDela": 85,
+            "perdues": 42
+          },
+          "plafond": {
+            "auDela": 170,
+            "perdues": 84
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 20.8,
+          "date": "2026-11-02"
+        },
+        "defilement-fr-contact": {
+          "meilleur": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "maximum": {
+            "auDela": 67,
+            "perdues": 185
+          },
+          "plafond": {
+            "auDela": 134,
+            "perdues": 370
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 23.8,
+          "date": "2026-11-02"
+        },
+        "defilement-fr-memoire": {
+          "meilleur": {
+            "auDela": 2,
+            "perdues": 12
+          },
+          "maximum": {
+            "auDela": 57,
+            "perdues": 115
+          },
+          "plafond": {
+            "auDela": 112,
+            "perdues": 218
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 37.4,
+          "date": "2026-11-02"
+        },
+        "defilement-fr-projets": {
+          "meilleur": {
+            "auDela": 39,
+            "perdues": 30
+          },
+          "maximum": {
+            "auDela": 65,
+            "perdues": 97
+          },
+          "plafond": {
+            "auDela": 91,
+            "perdues": 164
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 51.2,
+          "date": "2026-11-02"
+        },
+        "defilement-fr-services": {
+          "meilleur": {
+            "auDela": 1,
+            "perdues": 2
+          },
+          "maximum": {
+            "auDela": 112,
+            "perdues": 49
+          },
+          "plafond": {
+            "auDela": 223,
+            "perdues": 96
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 39.5,
+          "date": "2026-11-02"
+        },
+        "voile-attente": {
+          "meilleur": {
+            "auDela": 47,
+            "perdues": 58
+          },
+          "maximum": {
+            "auDela": 57,
+            "perdues": 70
+          },
+          "plafond": {
+            "auDela": 67,
+            "perdues": 82
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 66.5,
+          "date": "2026-11-02"
+        },
+        "voile-ouverture": {
+          "meilleur": {
+            "auDela": 4,
+            "perdues": 2
+          },
+          "maximum": {
+            "auDela": 19,
+            "perdues": 8
+          },
+          "plafond": {
+            "auDela": 34,
+            "perdues": 14
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 45.3,
+          "date": "2026-11-02"
+        }
+      }
+    },
     "partagee": {
       "dpr": 1,
       "moments": {
@@ -167,6 +332,171 @@
     }
   },
   "perf-telephone": {
+    "P-E2026-34": {
+      "dpr": 2.625,
+      "moments": {
+        "arrivee": {
+          "meilleur": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "maximum": {
+            "auDela": 2,
+            "perdues": 52
+          },
+          "plafond": {
+            "auDela": 4,
+            "perdues": 104
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 19.1,
+          "date": "2026-11-02"
+        },
+        "defilement-fr": {
+          "meilleur": {
+            "auDela": 1,
+            "perdues": 6
+          },
+          "maximum": {
+            "auDela": 10,
+            "perdues": 57
+          },
+          "plafond": {
+            "auDela": 19,
+            "perdues": 108
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 41.8,
+          "date": "2026-11-02"
+        },
+        "defilement-fr-contact": {
+          "meilleur": {
+            "auDela": 1,
+            "perdues": 12
+          },
+          "maximum": {
+            "auDela": 33,
+            "perdues": 148
+          },
+          "plafond": {
+            "auDela": 65,
+            "perdues": 284
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 106.2,
+          "date": "2026-11-02"
+        },
+        "defilement-fr-memoire": {
+          "meilleur": {
+            "auDela": 0,
+            "perdues": 13
+          },
+          "maximum": {
+            "auDela": 14,
+            "perdues": 59
+          },
+          "plafond": {
+            "auDela": 28,
+            "perdues": 105
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 33.3,
+          "date": "2026-11-02"
+        },
+        "defilement-fr-projets": {
+          "meilleur": {
+            "auDela": 5,
+            "perdues": 32
+          },
+          "maximum": {
+            "auDela": 21,
+            "perdues": 115
+          },
+          "plafond": {
+            "auDela": 37,
+            "perdues": 198
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 54.3,
+          "date": "2026-11-02"
+        },
+        "defilement-fr-services": {
+          "meilleur": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "maximum": {
+            "auDela": 0,
+            "perdues": 2
+          },
+          "plafond": {
+            "auDela": 1,
+            "perdues": 4
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 31.6,
+          "date": "2026-11-02"
+        },
+        "voile-attente": {
+          "meilleur": {
+            "auDela": 1,
+            "perdues": 25
+          },
+          "maximum": {
+            "auDela": 2,
+            "perdues": 36
+          },
+          "plafond": {
+            "auDela": 3,
+            "perdues": 47
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 41.9,
+          "date": "2026-11-02"
+        },
+        "voile-ouverture": {
+          "meilleur": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "maximum": {
+            "auDela": 1,
+            "perdues": 1
+          },
+          "plafond": {
+            "auDela": 2,
+            "perdues": 2
+          },
+          "cible": {
+            "auDela": 0,
+            "perdues": 0
+          },
+          "pire": 20.9,
+          "date": "2026-11-02"
+        }
+      }
+    },
     "partagee": {
       "dpr": 2.625,
       "moments": {

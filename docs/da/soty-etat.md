@@ -5,7 +5,10 @@ une seule note par scene, une seule note de site, et ce qui separe l'une de
 l'autre du but. Il remplace la lecture croisee de `plan-jury.md` (08/09) et
 `revue-soty-10-09.md`, qui restent au dossier comme archives datees.
 
-**But** : une mention Awwwards, site du jour, un soir de decembre 2026.
+**But** : une mention Awwwards, site du jour. ⚠️ **Date corrigee le 02/11/2026** :
+la cible n'est plus decembre 2026, decision du 25/10/2026 : **novembre 2027,
+Dia de Muertos**, et c'est le projet des trois couches (parole/amatl/scene,
+voir `docs/da/...` a venir) qui en est la piece maitresse.
 **Ponderation du jury** : design 40, utilisabilite 30, creativite 20,
 contenu 10.
 
