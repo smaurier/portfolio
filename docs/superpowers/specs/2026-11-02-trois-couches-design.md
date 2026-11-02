@@ -56,17 +56,25 @@ Deux patrons existent deja dans le depot et servent de modele :
 
 ## 3. Composants proposes (02/11, direction validee par Sylvain, noms a confirmer au plan d'implementation)
 
-⚠️ **Correction du 02/11, en relisant la fiche de conception** : le 25/10
-decrit deux fois la meme chose avec deux vocabulaires differents — « un
-groupe de boutons radio » pour l'indicateur a 3 crans, puis « le patron
-slider de l'ARIA » pour la truelle — et conclut que **le controle de la
-barre EST la truelle au repos : un seul objet, deux usages**. Un element ne
-peut pas porter les deux roles ARIA a la fois. Comme il doit rester
-glissable, **un seul composant, role `slider`** (3 positions figees,
-`aria-valuemin=0`/`aria-valuemax=2`, flèches + Origine/Fin, clic direct sur
-une marque = aller a cette valeur) est la lecture la plus probable — mais
-ce n'est pas tranche, juste la contradiction la plus probable a lever
-avant l'oracle n°1 (section 10).
+⚠️ **Contradiction trouvee le 02/11 en relisant la fiche de conception, et
+TRANCHEE le meme jour par Sylvain** : le 25/10 decrit deux fois la meme
+chose avec deux vocabulaires differents — « un groupe de boutons radio »
+pour l'indicateur a 3 crans, puis « le patron slider de l'ARIA » pour la
+truelle — et conclut que **le controle de la barre EST la truelle au repos :
+un seul objet, deux usages**. Un element ne peut pas porter les deux roles
+ARIA a la fois.
+
+✅ **DECISION (Sylvain, 02/11) : UN SEUL composant, role `slider`** — 3
+positions figees, `aria-valuemin=0` / `aria-valuemax=2`, flèches +
+Origine/Fin, clic direct sur une marque = aller a cette valeur. Le mot
+« radiogroup » du 25/10 decrivait l'image visuelle (trois marques dont une
+active), pas le role : comme la truelle doit rester GLISSABLE, seul
+`slider` tient les deux usages. ⛔ Ne plus rouvrir.
+
+✅ **DECISION (Sylvain, 02/11) : le choix manuel PERSISTE** — meme motif que
+le theme (`localStorage` + attribut pose par un script inline avant le
+premier paint). La question n'avait jamais ete tranchee le 25/10 ; les deux
+controles de la meme famille se comportent donc pareil.
 
 | composant | role |
 | --- | --- |
@@ -180,8 +188,8 @@ la barre de gauche pour l'instant, seulement d'y ajouter l'indicateur.
 - **La piste 3** (la matiere battue, pression repetee au lieu d'un
   glissement) n'est pas tranchee par l'objection du 25/10 : elle reste
   ouverte, mais perd l'avantage clavier natif de la poignee.
-- **Un seul composant ou deux** (section 3) : radiogroup, slider, ou un
-  slider qui se rend comme 3 marques — a trancher avant l'oracle n°1.
+- ~~**Un seul composant ou deux**~~ — **tranche le 02/11** : un seul, role
+  `slider`, voir section 3. Et le choix manuel persiste.
 
 ## 10. Oracles a ecrire avant tout code (ordre propose)
 

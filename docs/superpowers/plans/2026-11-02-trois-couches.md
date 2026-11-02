@@ -181,33 +181,145 @@ git commit -m "feat(couches): la regle pure de la couche d'ouverture (scene/amat
 
 ---
 
-### Task 2 : le store, la detection, la truelle — a detailer en commencant la tache
+### Les deux questions de la tache 2 sont TRANCHEES (Sylvain, 02/11)
 
-**Ne pas commencer sans avoir tranche au prealable** (section « ce que la
-lecture a etabli ») :
-1. Le controle est-il un seul composant (`truelle.tsx`, role `slider`
-   unique) ou deux ? La spec recommande un seul ; a confirmer en ARIA avant
-   d'ecrire le markup.
-2. Le choix manuel du visiteur persiste-t-il (`localStorage`, comme le
-   theme) ou se recalcule-t-il a chaque visite ?
+1. ✅ **Le choix manuel PERSISTE** (« oui ça survit ! ») : `localStorage`,
+   meme motif que le theme.
+2. ✅ **UN SEUL composant, role `slider`** (« je te suis aussi ») : 3
+   positions figees, pas de `radiogroup`. Voir spec section 3.
 
-**Buts, sans code fige encore :**
-- `couche-store.ts` : detection WebGL (`canvas.getContext`, `try/catch`),
-  connexion (reprendre la lecture de `prelectureBienvenue`), mouvement
-  reduit (`matchMedia`), combinees par `coucheParDefaut` ; `useSyncExternalStore` ;
-  persistance si tranchee au point 2.
-- Script inline dans le layout : `data-couche` pose avant le premier
-  paint, meme motif que `data-theme`.
-- `truelle.tsx` : le controle unique, `slider` ARIA, 3 positions figees,
-  rendu comme 3 marques au repos (design section 3-4).
-- `tests/e2e/couche-slider.spec.ts` (oracle RGAA de la spec, section 10,
-  #1) : vu rouge avant que `truelle.tsx` existe.
+### Ce que la lecture de la barre a etabli (02/11) — et qui coupe la tache en deux
 
-**A lire avant d'ecrire le detail** : `src/app/components/scene-controls.tsx`
-(ou vit la barre de gauche, le motif des 8 boutons) et
-`src/app/components/scene-refs-context.tsx` (comment la scene lit l'etat
-partage) — pas encore lus pour ce plan, necessaires pour placer la
-truelle sans casser l'existant.
+- **La barre vit dans `src/app/components/scene-controls.tsx`** : un
+  `<div className={styles.cluster} role="region" aria-label={labels.landmark}
+  data-scene-controls="">` qui map 8 entrees sur des `<button>`. La truelle
+  n'est PAS un bouton (c'est un `slider`) : elle se pose dans ce cluster en
+  element frere de la liste, pas dans le `map`.
+- ⚠️ **DEUX motifs de store coexistent dans ce depot, et la couche a besoin
+  du MAUVAIS en apparence** :
+  - `scene-controls-store.ts` (celui de la barre) : module mutable +
+    abonnes, relu a l'hydratation (`hydrateSceneControls()`), `sessionStorage`
+    pour la session (`sceneOnly`, `paused`), `localStorage` pour les
+    preferences (`eco`). **Pas avant le premier paint.**
+  - `theme-store.ts` : `useSyncExternalStore`, `localStorage`, et surtout
+    l'attribut pose par un **script inline dans le layout avant le premier
+    paint**.
+  → **La couche suit le motif du THEME, pas celui de la barre**, meme si le
+  controle se rend dans la barre : une couche appliquee a l'hydratation
+  ferait un eclair de la mauvaise couche a chaque chargement — exactement le
+  defaut que le script inline du theme existe pour eviter. La cle de
+  stockage va dans `src/lib/couche.ts` (comme `THEME_STORAGE_KEY` est dans
+  `lib/theme.ts`).
+- **Les libelles sont des props i18n** (`SceneControlsLabels`), tires des
+  trois dictionnaires ; `src/lib/i18n-parity.test.ts` impose la parite :
+  tout libelle de la truelle doit entrer en fr, en ET es du meme coup.
+- ⚠️ **QUESTION POUR SYLVAIN, trouvee en lisant le code** :
+  `scene-controls.tsx` fait `if (readingMode.active) return null;` — **toute
+  la barre disparait en mode recit**, donc la truelle aussi. Or la spec
+  (section 7) dit que la couche *parole* est « ce que `text` promet, en
+  mieux » : les deux mecanismes se recouvrent. En mode recit, la truelle
+  serait donc injoignable. Trois sorties possibles, **aucune choisie** :
+  (a) la truelle survit au mode recit (elle sort du cluster), (b) le mode
+  recit devient la couche parole et disparait comme mecanisme a part,
+  (c) on ne fait rien pour l'instant et la question se tranche a la tache 4.
+  **A trancher avant la tache 2b, pas avant la 2a.**
+
+---
+
+### Task 2a : le store, la detection, le script inline (aucun visuel)
+
+Rien de visible ici : c'est la couche d'ouverture qui s'applique vraiment,
+sans controle pour en changer. Se fait sans attendre la decision de DA sur
+la forme de la truelle.
+
+**Files:**
+- Modify: `src/lib/couche.ts` (la cle de stockage, `parseStoredCouche`)
+- Modify: `src/lib/couche.test.ts`
+- Create: `src/app/components/couche-store.ts`
+- Modify: `src/app/[locale]/layout.tsx` (script inline, `data-couche`)
+- Create: `tests/e2e/couche-degradation.spec.ts` (oracle de la spec, #4)
+
+- [ ] **Step 1 : la lib gagne sa cle et son parseur, tests rouges d'abord**
+
+Dans `couche.test.ts`, ajouter : `parseStoredCouche` ne lit que les trois
+mots (`"scene"`, `"amatl"`, `"parole"`) et rend `null` sur tout le reste
+(`"3d"`, `""`, `null`, `undefined`) — exactement la forme de
+`parseStoredTheme`. Puis dans `couche.ts` : `export const COUCHE_STORAGE_KEY
+= "nahual-couche";`, `export const COUCHE_EVENT = "nahual:couche";`, et
+`parseStoredCouche(raw: string | null | undefined): Couche | null`.
+
+Et la regle qui combine le stocke et le defaut, pure et testee :
+`coucheInitiale(stocke, contexte)` = `parseStoredCouche(stocke) ??
+coucheParDefaut(contexte)`. ⚠️ **Un cas a decider dans le test, pas en
+passant** : si le visiteur a memorise `"scene"` mais que WebGL a disparu
+(autre machine, pilote casse), le stocke ne doit PAS gagner — sinon on
+ouvre sur une couche impossible. Regle proposee : **le stocke gagne, sauf
+si la couche stockee est `"scene"` et que WebGL est absent**. L'ecrire
+comme test avant de l'implementer.
+
+- [ ] **Step 2 : `couche-store.ts`, calque sur `theme-store.ts`**
+
+Les trois detections, impures, dans ce fichier seulement :
+
+```ts
+function webglDisponible(): boolean {
+  try {
+    const c = document.createElement("canvas");
+    return !!(c.getContext("webgl2") || c.getContext("webgl"));
+  } catch {
+    // Certains navigateurs levent plutot que de rendre null.
+    return false;
+  }
+}
+
+function connexionDegradee(): boolean {
+  // Meme lecture que prelectureBienvenue (mount-for-direction.tsx) : une
+  // seule regle de connexion dans le site, pas deux.
+  const c = (navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  if (!c) return false;
+  return !!c.saveData || c.effectiveType === "slow-2g" || c.effectiveType === "2g";
+}
+```
+
+plus `prefersReducedMotion()` (`matchMedia`), `getCouche()`, `applyCouche()`
+(attribut `data-couche`, `localStorage`, evenement, listeners) et
+`useCouche()` par `useSyncExternalStore` — copie de forme de
+`theme-store.ts`, y compris le `try/catch` muet autour du stockage et le
+repli serveur.
+
+- [ ] **Step 3 : le script inline du layout**
+
+A cote de celui du theme (`src/app/[locale]/layout.tsx`, ~ligne 245), meme
+forme : lire `localStorage`, detecter WebGL + mouvement reduit + connexion,
+poser `data-couche` sur `<html>` avant le premier paint, `try/catch` avec
+repli `"amatl"` (le repli le plus sur : il ne demande rien a la machine).
+
+- [ ] **Step 4 : l'oracle de degradation, vu rouge**
+
+`tests/e2e/couche-degradation.spec.ts` : trois contextes Playwright —
+`reducedMotion: "reduce"`, un contexte ou WebGL est coupe
+(`--disable-gpu` ne suffit pas : masquer `HTMLCanvasElement.prototype.getContext`
+pour `webgl`/`webgl2` par `addInitScript`), et un contexte normal — et on
+lit `document.documentElement.dataset.couche`. Attendu : `amatl`, `amatl`,
+`scene`. Vu rouge avant le step 3 (l'attribut n'existe pas).
+
+- [ ] **Step 5 : vert, `tsc`, `eslint`, `pnpm test`, commit**
+
+---
+
+### Task 2b : la truelle — BLOQUEE sur deux decisions de Sylvain
+
+⛔ **Ne pas commencer avant** :
+- la decision de DA : **ou vit la truelle au repos** (spec section 9) — « se
+  regarde, ne se decide pas par ecrit » ;
+- la question du **mode recit** ci-dessus (a, b ou c).
+
+**But** : `truelle.tsx`, role `slider`, 3 positions figees, posee dans le
+cluster de `scene-controls.tsx` en frere de la liste de boutons ; libelles
+ajoutes aux trois dictionnaires (parite imposee par
+`i18n-parity.test.ts`). Oracle : `tests/e2e/couche-slider.spec.ts` (spec
+section 10, #1) — clic ET clavier (flèches, Origine/Fin) font la meme
+chose.
 
 ---
 
