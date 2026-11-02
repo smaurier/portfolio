@@ -35,7 +35,8 @@ import ChantSentinel from "../components/chant-sentinel";
 import MiroirFumant from "../components/miroir-fumant";
 import Veille from "../components/veille";
 import GrainAmate from "../components/grain-amate";
-import { THEME_STORAGE_KEY } from "@/lib/theme";
+import { SCRIPT_THEME_AVANT_PAINT } from "@/lib/theme";
+import { SCRIPT_COUCHE_AVANT_PAINT } from "@/lib/couche";
 import { CSS_SANS_JAVASCRIPT } from "@/lib/sans-javascript";
 import PersistentScene from "../components/stag-scene/persistent-scene";
 import { SceneRefsProvider } from "../components/stag-scene/scene-refs-context";
@@ -232,18 +233,13 @@ export default async function LocaleLayout({
             scrollbar sombre + form controls sombres AVANT que le CSS
             parse, evite le flash de scrollbar blanche sur fond noir. */}
         <meta name="color-scheme" content="light dark" />
-        {/* LE MIROIR FUMANT (13/09) : la face du monde se pose sur <html>
-            AVANT le premier paint, sinon on verrait une face une image
-            avant l'autre.
-            16/09 : elle suit desormais le visiteur et non un defaut. Le
-            choix memorise l'emporte ; sinon la preference systeme ; et
-            l'absence de preference donne le clair, parce que
-            `prefers-color-scheme: light` matche aussi le silence. Regle
-            unique dans lib/theme.faceInitiale, recopiee ici en une ligne
-            parce que ce script doit tenir avant tout module. */}
-        <script dangerouslySetInnerHTML={{ __html: `
-          try{var th=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});var n=th==="dark"||(th!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",n?"dark":"light");}catch(e){document.documentElement.setAttribute("data-theme","light");}
-        ` }} />
+        {/* LA FACE ET LA COUCHE, posees sur <html> AVANT le premier paint :
+            sans ca on verrait un eclair de la mauvaise face (13/09) ou de la
+            mauvaise couche (02/11). Les deux regles et leurs scripts vivent
+            dans lib/theme.ts et lib/couche.ts ; reunis en un seul script le
+            02/11, parce qu'ils font la meme chose au meme instant et que ce
+            fichier est au plafond du cliquet de lignes. */}
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_THEME_AVANT_PAINT + SCRIPT_COUCHE_AVANT_PAINT }} />
         {/* JSON-LD structuré (28/08) : Person + WebSite + ProfessionalService.
             Injecté dans <head> plutôt que <body> pour être détecté par les
             crawlers dès le premier byte. Un script par entité (schema.org
