@@ -213,16 +213,20 @@ git commit -m "feat(couches): la regle pure de la couche d'ouverture (scene/amat
 - **Les libelles sont des props i18n** (`SceneControlsLabels`), tires des
   trois dictionnaires ; `src/lib/i18n-parity.test.ts` impose la parite :
   tout libelle de la truelle doit entrer en fr, en ET es du meme coup.
-- ⚠️ **QUESTION POUR SYLVAIN, trouvee en lisant le code** :
-  `scene-controls.tsx` fait `if (readingMode.active) return null;` — **toute
-  la barre disparait en mode recit**, donc la truelle aussi. Or la spec
-  (section 7) dit que la couche *parole* est « ce que `text` promet, en
-  mieux » : les deux mecanismes se recouvrent. En mode recit, la truelle
-  serait donc injoignable. Trois sorties possibles, **aucune choisie** :
-  (a) la truelle survit au mode recit (elle sort du cluster), (b) le mode
-  recit devient la couche parole et disparait comme mecanisme a part,
-  (c) on ne fait rien pour l'instant et la question se tranche a la tache 4.
-  **A trancher avant la tache 2b, pas avant la 2a.**
+- ✅ **TRANCHE le 02/11 — option (b) : le mode recit DEVIENT la couche
+  parole.** Le probleme trouve : `scene-controls.tsx` fait
+  `if (readingMode.active) return null;`, donc toute la barre (truelle
+  comprise) disparait en mode recit. La lecture de
+  `src/lib/reading-mode-context.tsx` a tranche la question : le mode recit
+  **est deja** la couche parole visible (canvas WebGL cache,
+  `PersistentScene` rend `null`, mouvement reduit force, curseurs et effets
+  retires, contenu centre, persiste dans `localStorage`
+  `nahual-reading-mode`). On ne construit pas un troisieme mecanisme a cote.
+  ⚠️ **Et ca corrige une erreur de la spec du matin** : la parole ne
+  recouvre pas le bouton `text` (qui fait l'inverse, il masque le texte via
+  `sceneOnly`), elle recouvre le mode recit. Corrige dans la spec, section 7.
+  ⏭️ **Reste a trancher** : le bouton du header du mode recit survit-il
+  comme raccourci, ou disparait-il au profit du cran ?
 
 ---
 
@@ -358,7 +362,13 @@ et `couche-degradation.spec.ts` (spec section 10, #3 et #4).
 ### Task 6 : la cible 24x24 px, et la cloture — a detailer
 
 **But** : `tests/e2e/cible-24px.spec.ts` (spec section 10, #5) sur les
-icones existantes de `scene-controls.tsx` + la truelle. Documentation et
-memoire mises a jour, criteres d'acceptation de la spec coches avec leurs
-preuves. ⛔ **Ne pas toucher au menage de la barre** (eco/pause/text) :
-stand by, decision de Sylvain (spec section 7).
+icones de la barre + la truelle. Documentation et memoire mises a jour,
+criteres d'acceptation de la spec coches avec leurs preuves.
+
+⚠️ **Change le 02/11 : le menage de la barre n'est plus en stand by.**
+Sylvain : « cette barre de gauche, je vais la refondre, y a trop de trucs
+gadgets (genre l'appareil photo) ». La refonte devient donc un prealable de
+DA (spec section 9) plutot qu'un interdit — mais **le sort des sept autres
+icones n'est pas tranche** et ne se decide pas ici. Ce qui reste acquis :
+`pause` tient la conformite WCAG 2.2.2, `text` et `eco` sont des outils
+d'accessibilite, `traces` est une mecanique de decouverte deliberee.

@@ -21,9 +21,16 @@ savoir mesoamericain parvient**, et c'est exactement la chaine de
 degradation gracieuse que l'accessibilite impose (WebGL -> 2D -> texte). Le
 repli technique EST le propos.
 
-1. **La parole** — le document nu. Existe deja : le bloc `sr-only` de
-   `stag-scene.tsx`, lu tous les jours par les lecteurs d'ecran. Le projet
-   ne la fabrique pas, il lui ouvre la porte.
+1. **La parole** — le document nu. ⭐ **Elle existe deja DEUX FOIS, et c'est
+   la decouverte du 02/11** : le bloc `sr-only` de `stag-scene.tsx` (ce que
+   les lecteurs d'ecran lisent tous les jours) **et le MODE RECIT**
+   (`src/lib/reading-mode-context.tsx`, chantier a11y du 29/08), qui est
+   deja la version VISIBLE de cette couche — il cache le canvas WebGL
+   (`PersistentScene` rend `null`), force le mouvement reduit, retire les
+   curseurs, trails, tilt et ripples, et centre le contenu en largeur
+   lisible. Il persiste meme deja dans `localStorage`
+   (`nahual-reading-mode`). **Le projet ne fabrique donc pas la parole : il
+   lui ouvre la porte depuis la truelle** (voir section 7).
 2. **L'*amatl*** — cinq compositions, une matrice, en SVG (le trait
    d'abord, les aplats ensuite).
 3. **La scene** — le WebGL actuel, couche d'accueil (« la plus
@@ -156,18 +163,52 @@ plusieurs mois), ce projet se construit sous RGAA 5 et non 4.1.2. Le site ne
 doit dire ni le nombre de criteres de la 5 ni son alignement WCAG : a ne pas
 inventer.
 
-## 7. Ce que ca absorbe dans la barre de gauche — menage STAND BY
+## 7. Ce que ca absorbe dans la barre de gauche — et la barre SERA refondue
 
-La couche *amatl* EST le mode sans mouvement et sans WebGL : elle rend
-`eco` redondant et recouvre une bonne part de `pause`. La couche *parole*
-EST ce que `text` promet, en mieux. **L'indicateur a 3 crans ne s'AJOUTE
-pas a la barre : il en REMPLACE potentiellement deux ou trois.**
+### ⛔ CORRECTION DU 02/11 : la spec nommait le mauvais mecanisme
 
-⛔ **Aucune decision de menage n'est prise.** `traces` n'est pas un vestige
-(mecanique de decouverte deliberee) ; le jour du menage, la question sera
-« vit-il dans la barre, ou ailleurs ? », pas « le garder ou non ». Stand by
-jusqu'a nouvel ordre de Sylvain — ce chantier n'implique pas de toucher a
-la barre de gauche pour l'instant, seulement d'y ajouter l'indicateur.
+La version du matin disait « la couche *parole* EST ce que **`text`** promet,
+en mieux ». **C'est faux, verifie dans le code** : le bouton `text` de la
+barre bascule `sceneOnly`, c'est-a-dire qu'il **masque le texte** pour ne
+laisser que la scene — l'inverse exact de la parole.
+
+✅ **Ce que la parole recouvre, c'est le MODE RECIT** (bouton du header,
+`reading-mode-context.tsx`), qui fait deja tout ce que la couche parole
+promet (voir section 1).
+
+### ✅ DECISION (Sylvain, 02/11) : le mode recit DEVIENT la couche parole
+
+Option (b) des trois posees ce jour-la : on ne construit pas un troisieme
+mecanisme a cote d'un mode recit qui fait deja le travail. Le mode recit
+cesse d'etre un mode a part, il devient le cran « parole » de la truelle.
+
+⏭️ **Ce que cette decision oblige a trancher** : le mode recit s'active
+aujourd'hui depuis un bouton du HEADER, la truelle vit dans la barre de
+GAUCHE. Deux portes vers le meme etat, c'est exactement le piege
+« deux boutons qui changent la peau sans qu'on sache lequel fait quoi »
+releve le 25/10 a propos du miroir. Donc : le bouton du header reste-t-il
+comme raccourci, ou disparait-il au profit du cran ? **Non tranche.**
+
+### La barre de gauche : le menage N'EST PLUS EN STAND BY (Sylvain, 02/11)
+
+**Sylvain** : « cette barre de gauche, je vais la refondre, y a trop de
+trucs gadgets (genre l'appareil photo) ». Le stand by du 25/10 est donc
+leve : la refonte est voulue, et **`photo` est nomme par Sylvain comme
+gadget**.
+
+⛔ **Ce qui n'est PAS decide pour autant** : le sort des sept autres icones,
+une par une. Ce qui reste acquis du 25/10 : `pause`, `text` et `eco` sont
+des outils d'accessibilite (le premier tient la conformite WCAG 2.2.2) ;
+`traces` n'est pas un vestige mais une mecanique de decouverte deliberee,
+et la question a son sujet est « vit-il dans la barre, ou ailleurs ? ».
+
+⭐ **Consequence pour ce projet** : la couche *amatl* rend `eco` redondant et
+recouvre une bonne part de `pause` ; la couche *parole* absorbe le mode
+recit. **La truelle ne s'AJOUTE donc pas a une barre de huit icones : elle
+arrive dans une barre refondue, plus courte.** Et la question de DA « ou vit
+la truelle au repos » (section 9) se fond en partie dans celle de la
+refonte : ce n'est plus « ou la glisser parmi huit », c'est « a quoi
+ressemble la barre quand elle est propre ».
 
 ## 8. Nommage
 
@@ -182,14 +223,22 @@ la barre de gauche pour l'instant, seulement d'y ajouter l'indicateur.
 
 ## 9. Ce qui reste ouvert, decision de Sylvain seul
 
+- **La refonte de la barre de gauche** (voulue par Sylvain le 02/11) : quelles
+  icones restent, et a quoi ressemble la barre propre. ⭐ **C'est desormais le
+  prealable**, parce que la question suivante en depend.
 - **Ou vit la truelle au repos exactement** (un bord, un coin, posee pres
   du disque grave, revelee au survol) : se regarde, ne se decide pas par
-  ecrit.
+  ecrit — **et se regarde maintenant dans la barre REFONDUE**, pas dans
+  celle a huit icones.
+- **Le bouton du header du mode recit** : raccourci conserve, ou supprime au
+  profit du cran « parole » de la truelle ? (voir section 7)
 - **La piste 3** (la matiere battue, pression repetee au lieu d'un
   glissement) n'est pas tranchee par l'objection du 25/10 : elle reste
   ouverte, mais perd l'avantage clavier natif de la poignee.
 - ~~**Un seul composant ou deux**~~ — **tranche le 02/11** : un seul, role
   `slider`, voir section 3. Et le choix manuel persiste.
+- ~~**Le mode recit face a la couche parole**~~ — **tranche le 02/11** :
+  option (b), le mode recit DEVIENT la couche parole (section 7).
 
 ## 10. Oracles a ecrire avant tout code (ordre propose)
 
