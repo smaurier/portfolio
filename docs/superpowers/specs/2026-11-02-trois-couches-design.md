@@ -196,11 +196,33 @@ trucs gadgets (genre l'appareil photo) ». Le stand by du 25/10 est donc
 leve : la refonte est voulue, et **`photo` est nomme par Sylvain comme
 gadget**.
 
-⛔ **Ce qui n'est PAS decide pour autant** : le sort des sept autres icones,
-une par une. Ce qui reste acquis du 25/10 : `pause`, `text` et `eco` sont
-des outils d'accessibilite (le premier tient la conformite WCAG 2.2.2) ;
-`traces` n'est pas un vestige mais une mecanique de decouverte deliberee,
-et la question a son sujet est « vit-il dans la barre, ou ailleurs ? ».
+### ✅ LA BARRE REFONDUE, tranchee par Sylvain le 02/11
+
+| icone | sort | raison |
+| --- | --- | --- |
+| `photo` | ⛔ **retiree** | « trop de trucs gadgets (genre l'appareil photo) » |
+| `link` | ⛔ **retiree** | « link non » (le lien horodate `?t=` reste dans le code, c'est le BOUTON qui part) |
+| `eco` | ♻️ **absorbee** par le cran *amatl* | l'amatl EST le mode sans WebGL ni mouvement |
+| `pause` | ⚠️ **a verifier avant de la retirer** | voir ci-dessous : WCAG 2.2.2 est couvert, le besoin utilisateur peut ne pas l'etre |
+| bouton du mode recit (bas gauche, `reading-mode-toggle.tsx`) | ⛔ **retire AVEC la truelle** | remplace par le cran *parole* ; ⛔ pas avant la tache 2b, sinon la page Accessibilite reste la seule porte |
+| `text` | ✅ **gardee** | « text, on garde je pense » — aucun cran ne la couvre : elle masque le texte pour voir la scene |
+| `fullscreen` | ✅ **gardee** | « pourquoi pas » (accord tiede, pas un engagement ferme) |
+| `cinematic` | ✅ **gardee** | « pourquoi pas » (idem) |
+| `traces` | ✅ **gardee** | « trace on garde ! » — mecanique de decouverte deliberee ; la question du 25/10 « dans la barre ou pres du Codex ? » se resout par defaut en « dans la barre » |
+
+**Resultat : de huit icones + le bouton du mode recit, on passe a QUATRE
+icones + la truelle.** ⭐ Et les 24x24 px de WCAG 2.5.8 (la « consequence
+urgente » du 25/10) cessent d'etre un probleme de place.
+
+⚠️ **`pause` : pourquoi ce n'est pas un simple doublon.** Le cran *amatl*
+satisfait bien WCAG 2.2.2, parce que « hide » est une des trois sorties
+admises par le critere (pause, stop OU hide) et que l'amatl retire
+entierement le mouvement. Mais les deux gestes ne repondent pas au meme
+besoin : `pause` **fige la scene en la laissant visible**, l'amatl **quitte
+la scene**. Un visiteur aux troubles vestibulaires qui veut quand meme
+REGARDER l'image 3D a besoin du premier, pas du second. ⏭️ Donc garder
+`pause` est defendable meme apres les crans, et c'est a Sylvain de trancher
+ce point precis — pas un corollaire automatique.
 
 ⭐ **Consequence pour ce projet** : la couche *amatl* rend `eco` redondant et
 recouvre une bonne part de `pause` ; la couche *parole* absorbe le mode
@@ -223,15 +245,20 @@ ressemble la barre quand elle est propre ».
 
 ## 9. Ce qui reste ouvert, decision de Sylvain seul
 
-- **La refonte de la barre de gauche** (voulue par Sylvain le 02/11) : quelles
-  icones restent, et a quoi ressemble la barre propre. ⭐ **C'est desormais le
-  prealable**, parce que la question suivante en depend.
 - **Ou vit la truelle au repos exactement** (un bord, un coin, posee pres
   du disque grave, revelee au survol) : se regarde, ne se decide pas par
-  ecrit — **et se regarde maintenant dans la barre REFONDUE**, pas dans
-  celle a huit icones.
-- **Le bouton du header du mode recit** : raccourci conserve, ou supprime au
-  profit du cran « parole » de la truelle ? (voir section 7)
+  ecrit — **et se regarde dans la barre REFONDUE** (quatre icones), pas dans
+  celle a huit.
+- **`pause` reste-t-elle ?** Seul point de la refonte non tranche : le cran
+  *amatl* couvre WCAG 2.2.2, mais pas le besoin « figer la scene en la
+  gardant visible » (section 7).
+- ~~**La refonte de la barre de gauche**~~ — **tranchee le 02/11**, voir le
+  tableau de la section 7 : `photo` et `link` partent, `eco` est absorbee,
+  `text`/`fullscreen`/`cinematic`/`traces` restent.
+- ~~**Le bouton du mode recit**~~ — **tranche le 02/11** : il est **retire**,
+  remplace par le cran *parole*. ⛔ Mais **avec** la truelle (tache 2b), pas
+  avant. (Et il n'etait pas « dans le header » comme le disait la premiere
+  version de cette spec : il est en bas a gauche, symetrique du bouton son.)
 - **La piste 3** (la matiere battue, pression repetee au lieu d'un
   glissement) n'est pas tranchee par l'objection du 25/10 : elle reste
   ouverte, mais perd l'avantage clavier natif de la poignee.
