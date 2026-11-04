@@ -1,0 +1,37 @@
+version: 2
+
+# POURQUOI CE FICHIER EXISTE : UNE PANNE DE PRODUCTION DE SEPT HEURES.
+#
+# Le 04/11/2026, la PR 19 (« chore(deps): bump next from 16.3.8 to 16.4.1 »)
+# a ete fusionnee DIRECTEMENT sur `main` et deployee dans la minute. Next
+# 16.4.x casse le montage de la scene WebGL pour tout visiteur humain
+# (React #438 dans `BailoutToCSRForNextDynamic`, voir le commentaire de
+# `persistent-scene.tsx`). Personne ne l'a vu parce que `isBot()` sert une
+# page sans scene aux user-agents headless : les robots et les audits
+# voyaient un site parfait.
+#
+# CE QUI A MANQUE n'est pas un test, il existait : la suite e2e et la barre
+# de performance tournent toutes deux sous `devices["Desktop Chrome"]`, donc
+# sur le chemin d'un visiteur, et la barre a bien rougi quand elle a enfin
+# tourne. Ce qui a manque, c'est qu'AUCUNE de ces suites ne s'execute sur une
+# PR Dependabot : ce depot n'a pas de workflow GitHub Actions, et le seul
+# garde-fou reel est le hook de pre-poussee, qui ne se declenche que sur une
+# poussee locale vers `main`.
+#
+# D'OU `target-branch: dev`. Les montees de dependances arrivent desormais
+# sur la branche de travail, ou elles passent par le hook (tests unitaires,
+# rapport de securite, barre de performance) avant de rejoindre `main`. Elles
+# cessent d'avoir un chemin direct vers le site en ligne.
+#
+# ⚠️ UNE EXCEPTION DE JUGEMENT, PAS DE CONFIGURATION : la jurisprudence du
+# 15/09 dit qu'un correctif de securite n'attend jamais un gel. Une alerte
+# critique peut donc toujours etre portee a la main sur `main` ; ce reglage
+# ne change que le defaut, qui etait du mauvais cote.
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

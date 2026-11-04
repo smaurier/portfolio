@@ -1,0 +1,101 @@
+name: CI
+
+# POURQUOI CE DEPOT A ENFIN UNE INTEGRATION CONTINUE (04/11/2026).
+#
+# Il n'en avait aucune, par choix : tout etait tenu par les hooks locaux
+# (`scripts/hooks/`), qui lancent tsc, eslint, les tests unitaires, et la
+# barre de performance avant toute poussee sur `main`. Ca marche tant que
+# TOUT passe par une poussee locale.
+#
+# Le 04/11, une PR Dependabot (Next 16.3.8 vers 16.4.1) a ete fusionnee
+# depuis l'interface GitHub, donc sans jamais toucher un hook, et deployee
+# dans la minute. Elle cassait le montage de la scene pour tout visiteur
+# humain. Sept heures en ligne, invisible, parce que `isBot()` sert une
+# page sans scene aux user-agents headless : robots et audits voyaient un
+# site sain.
+#
+# CE QUE CE WORKFLOW GARDE, ET CE QU'IL NE GARDE PAS. Il tient ce qui est
+# deterministe et sans carte graphique : les types, le style, les 1228
+# tests unitaires, et une FUMEE sous user-agent humain qui refuse toute
+# erreur non capturee au montage. Il ne tient PAS la barre de performance :
+# elle exige ANGLE sur d3d11 et un vrai GPU, donc elle reste sur la tour,
+# au hook de pre-poussee. L'integration continue ne la remplace pas, elle
+# couvre l'angle mort qu'elle laissait : les fusions faites ailleurs qu'en
+# local.
+#
+# Le cout est nul : ce depot est public, et GitHub n'y facture pas les
+# minutes d'execution.
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+
+# Une poussee de plus sur la meme branche annule la passe precedente :
+# inutile de mesurer un etat deja remplace.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualite:
+    name: types, style et tests unitaires
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # PROFONDEUR COMPLETE, ET CE N'EST PAS DU CONFORT. `actions/checkout`
+          # ne prend qu'un commit par defaut, or `tests/harnais/netlify-ignore.test.ts`
+          # rejoue la regle `ignore` de netlify.toml sur de VRAIS couples de
+          # commits du depot : sans historique, git sort 128 et le test rougit
+          # pour une raison etrangere a ce qu'il juge. Vu le 04/11, premiere
+          # passe de ce workflow.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: tsc
+        run: pnpm exec tsc --noEmit
+
+      - name: eslint
+        run: pnpm run lint
+
+      - name: tests unitaires
+        run: pnpm test
+
+  fumee-visiteur:
+    name: la scene monte pour un humain
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Chromium seul : la fumee WebKit reste locale, elle double la duree
+      # sans couvrir cette famille de pannes.
+      - name: navigateur
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: fumee
+        run: pnpm exec playwright test tests/e2e/fumee-visiteur.spec.ts --project=chromium
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trace-fumee
+          path: test-results/
+          retention-days: 7
