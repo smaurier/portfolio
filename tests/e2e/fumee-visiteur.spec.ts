@@ -59,12 +59,26 @@ for (const chemin of PAGES) {
       false,
     );
 
-    await page.waitForFunction(() => document.documentElement.getAttribute("data-foyer") === "done", null, {
-      timeout: 120_000,
-    });
+    // ⛔ ON N'ATTEND PAS `data-foyer === "done"`, ET C'EST DELIBERE (corrige
+    // le 04/11 apres un premier passage rouge en integration). Cet etat
+    // signifie la scene ENTIEREMENT chargee : modeles, nuanceurs compiles,
+    // foyer ouvert. Sur une machine sans carte graphique, en rendu logiciel,
+    // il demande des minutes. L'exiger ici, c'etait demander une PERFORMANCE
+    // a un test qui doit constater une ABSENCE DE PLANTAGE -- et la barre,
+    // elle, mesure deja la performance, sur la tour, avec un vrai GPU.
+    //
+    // Le canvas sert de BORNE, pas de preuve : il dit que react-three-fiber
+    // a commence a monter, donc que la page est au bon endroit de sa vie
+    // pour qu'on juge. ⚠️ Il ne suffit PAS a lui seul : mesure du 04/11, en
+    // construction de production l'etat casse ne rendait aucun canvas, mais
+    // en developpement il en rend un avant de lacher. C'est l'assertion
+    // suivante, sur les erreurs non capturees, qui garde vraiment -- et elle
+    // rougit en 3,8 s sur le code d'avant.
+    await page.waitForSelector("canvas", { state: "attached", timeout: 60_000 });
 
-    const canvas = await page.evaluate(() => document.querySelectorAll("canvas").length);
-    expect(canvas, "la scene doit avoir monte au moins un canvas").toBeGreaterThan(0);
+    // Laisser retomber la poussiere : une erreur de montage arrive dans la
+    // seconde qui suit, pas forcement avant que le canvas existe.
+    await page.waitForTimeout(3000);
 
     expect(erreurs, "aucune erreur non capturee ne doit survivre au montage").toEqual([]);
   });

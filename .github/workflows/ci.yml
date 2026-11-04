@@ -43,6 +43,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          # PROFONDEUR COMPLETE, ET CE N'EST PAS DU CONFORT. `actions/checkout`
+          # ne prend qu'un commit par defaut, or `tests/harnais/netlify-ignore.test.ts`
+          # rejoue la regle `ignore` de netlify.toml sur de VRAIS couples de
+          # commits du depot : sans historique, git sort 128 et le test rougit
+          # pour une raison etrangere a ce qu'il juge. Vu le 04/11, premiere
+          # passe de ce workflow.
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
 
