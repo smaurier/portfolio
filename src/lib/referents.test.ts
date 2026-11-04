@@ -1,0 +1,86 @@
+import { describe, expect, it } from "vitest";
+import { cleDuJour, hoteReferent } from "./referents";
+
+/**
+ * Le site de Sylvain, tel que la fonction le connait a l'execution. La
+ * comparaison doit tenir avec et sans `www`, parce que les deux formes
+ * circulent dans les liens d'autrui.
+ */
+const NAHUAL = "nahual.fr";
+
+describe("hoteReferent (ce qu'on garde d'un en-tete Referer)", () => {
+  it("rend le domaine d'un vrai site referent", () => {
+    expect(hoteReferent("https://www.mexicolore.co.uk/aztecs/links/mexica-teachers", NAHUAL)).toBe(
+      "mexicolore.co.uk",
+    );
+  });
+
+  // LE `www` TOMBE, ET C'EST UN CHOIX. `www.mexicolore.co.uk` et
+  // `mexicolore.co.uk` sont le meme site pour qui lit le compteur : les
+  // garder separes couperait un chiffre en deux sans rien apprendre.
+  it("ramene les deux formes d'un meme site sur une seule ligne", () => {
+    expect(hoteReferent("https://mexicolore.co.uk/", NAHUAL)).toBe("mexicolore.co.uk");
+    expect(hoteReferent("https://www.mexicolore.co.uk/", NAHUAL)).toBe("mexicolore.co.uk");
+  });
+
+  it("met le domaine en minuscules", () => {
+    expect(hoteReferent("https://WWW.Mexicolore.CO.UK/aztecs", NAHUAL)).toBe("mexicolore.co.uk");
+  });
+
+  // UNE NAVIGATION INTERNE N'EST PAS UNE VENUE. Sans ce filtre, chaque clic
+  // dans le site compterait comme un referent et noierait les vrais.
+  it("ignore le site lui-meme, avec ou sans www", () => {
+    expect(hoteReferent("https://nahual.fr/fr/projets", NAHUAL)).toBeNull();
+    expect(hoteReferent("https://www.nahual.fr/fr", NAHUAL)).toBeNull();
+  });
+
+  it("ignore un sous-domaine du site, le wiki par exemple", () => {
+    expect(hoteReferent("https://wiki.nahual.fr/page", NAHUAL)).toBeNull();
+  });
+
+  it("rend null quand l'en-tete est absent ou vide", () => {
+    expect(hoteReferent(null, NAHUAL)).toBeNull();
+    expect(hoteReferent("", NAHUAL)).toBeNull();
+    expect(hoteReferent("   ", NAHUAL)).toBeNull();
+  });
+
+  it("rend null sur une valeur qui n'est pas une URL, sans lever", () => {
+    expect(hoteReferent("pas-une-url", NAHUAL)).toBeNull();
+    expect(hoteReferent("javascript:alert(1)", NAHUAL)).toBeNull();
+  });
+
+  // ON NE GARDE QUE LE WEB. Un referent `file://` ou `data:` n'est pas une
+  // venue depuis un site, et son `hostname` est vide.
+  it("rend null pour un schema qui n'est pas http(s)", () => {
+    expect(hoteReferent("file:///C:/page.html", NAHUAL)).toBeNull();
+  });
+
+  // RIEN DU CHEMIN NE SURVIT. C'est la garantie qui tient la phrase de la
+  // page vie privee : on ne stocke pas ou la personne etait, seulement de
+  // quel site elle vient.
+  it("ne laisse passer ni chemin, ni requete, ni fragment", () => {
+    const hote = hoteReferent("https://exemple.org/a/b?q=secret#ancre", NAHUAL);
+    expect(hote).toBe("exemple.org");
+    expect(hote).not.toContain("/");
+    expect(hote).not.toContain("secret");
+  });
+});
+
+describe("cleDuJour (la cle sous laquelle on compte)", () => {
+  it("colle le jour UTC devant le domaine", () => {
+    expect(cleDuJour("mexicolore.co.uk", new Date("2026-11-04T10:20:30Z"))).toBe(
+      "2026-11-04/mexicolore.co.uk",
+    );
+  });
+
+  // DEUX VISITES DU MEME JOUR PARTAGENT UNE CLE, deux jours differents non :
+  // c'est ce decoupage qui rend le compteur lisible dans le temps et qui
+  // limite la perte quand deux ecritures se croisent.
+  it("separe deux jours et rassemble un meme jour", () => {
+    const matin = cleDuJour("exemple.org", new Date("2026-11-04T06:00:00Z"));
+    const soir = cleDuJour("exemple.org", new Date("2026-11-04T23:59:59Z"));
+    const lendemain = cleDuJour("exemple.org", new Date("2026-11-05T00:00:00Z"));
+    expect(matin).toBe(soir);
+    expect(lendemain).not.toBe(matin);
+  });
+});
