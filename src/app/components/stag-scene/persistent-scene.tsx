@@ -4,8 +4,7 @@
 import { SONDE } from "@/lib/sonde";
 
 
-import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { setConsoleFunction, VSMShadowMap } from "three";
 import { deriveFogTint, readDirectionAccentColor, readDirectionColor } from "./direction-colors";
@@ -38,8 +37,26 @@ import styles from "./scene-stage.module.css";
  * En import dynamique, le morceau ne part que si `postFx` est vrai. Sur
  * bureau il part au meme moment qu'avant, en parallele du reste ; sur
  * mobile il ne part pas du tout. Aucun effet ne change.
+ *
+ * ⛔ PAS `next/dynamic` ICI, ET C'EST UNE PANNE DE PRODUCTION QUI L'A APPRIS
+ * (04/11/2026). `next/dynamic` rend un composant interne de Next,
+ * `BailoutToCSRForNextDynamic`, qui appelle `use()` de React. Rendu DANS le
+ * Canvas, il tombe sur le reconciliateur de react-three-fiber, dont le
+ * dispatcher n'accepte pas ce type : « An unsupported type was passed to
+ * use() », React #438, non capturee. L'arbre ne monte plus du tout, donc
+ * aucun canvas, pour TOUS les visiteurs humains.
+ *
+ * Apparu avec Next 16.4.0 (16.3.8 etait saine, 16.4.1 a 16.4.5 cassees,
+ * React inchange en 19.2.8). Reste invisible sept heures parce que
+ * `isBot()` saute la scene sous un user-agent headless : les robots, les
+ * audits et toutes les sondes automatiques voyaient un site parfait.
+ *
+ * `lazy` + `Suspense` fait exactement le meme decoupage de morceau, sans
+ * passer par les entrailles de Next. `ssr: false` etait de toute facon une
+ * ceinture inutile : le Canvas est derriere `if (!refs) return null` et ne
+ * rend jamais cote serveur.
  */
-const PostFX = dynamic(() => import("./post-fx"), { ssr: false });
+const PostFX = lazy(() => import("./post-fx"));
 
 /**
  * Scène 3D persistante montée UNE seule fois dans layout.tsx
@@ -273,7 +290,11 @@ export default function PersistentScene() {
             le voile ce qui, sinon, se compilerait au milieu d'un geste. */}
         <ShaderWarmup />
         <NuitMobile />
-        {refs.perfProfile.postFx && <PostFX />}
+        {refs.perfProfile.postFx && (
+          <Suspense fallback={null}>
+            <PostFX />
+          </Suspense>
+        )}
       </Canvas>
     </div>
   );

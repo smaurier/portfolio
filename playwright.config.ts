@@ -27,8 +27,18 @@ export default defineConfig({
      * tout test qui attend un etat stable expire. Meme reglage que les
      * scripts de capture de .scratch.
      */
+    /**
+     * ⚠️ WINDOWS SEULEMENT (04/11/2026). `d3d11` est l'implementation
+     * Direct3D d'ANGLE : elle n'existe pas ailleurs. Sur une machine
+     * d'integration continue (Linux, sans carte graphique), ces drapeaux
+     * demandent un backend absent ; on laisse alors Chromium choisir, ce
+     * qui donne SwiftShader en logiciel. La scene y est lente mais elle
+     * monte, ce qui suffit a une fumee. La barre de performance, elle,
+     * garde `d3d11` en dur : elle ne mesure rien qui vaille sans GPU, et
+     * ne tourne donc que sur la tour.
+     */
     launchOptions: {
-      args: ["--use-angle=d3d11", "--use-gl=angle", "--ignore-gpu-blocklist"],
+      args: process.platform === "win32" ? ["--use-angle=d3d11", "--use-gl=angle", "--ignore-gpu-blocklist"] : [],
     },
   },
   projects: [
