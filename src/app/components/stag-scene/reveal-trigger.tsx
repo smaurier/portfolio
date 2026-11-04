@@ -5,6 +5,7 @@ import { useProgress } from "@react-three/drei";
 import { decideCeremony } from "./foyer-decision";
 import { SONDE } from "@/lib/sonde";
 import { SHADERS_WARM_EVENT, getWarmDirection } from "./shader-warmup";
+import { avancerVeille, veilleInitiale } from "@/lib/blocage-chargement";
 
 /**
  * RevealTrigger / VeilOrchestrator (31/08 refonte event-driven).
@@ -37,6 +38,12 @@ const HOLD_AFTER_SEQUENCE_MS = 300;
  *  ceci apres le chargement complet. Un pilote lent ou un evenement perdu
  *  ne doivent pas tenir le visiteur devant le voile. */
 const WARMUP_FALLBACK_MS = 4000;
+
+/** LA SEULE PORTE SANS SECOURS (04/11). Les deux autres drapeaux de
+ *  `tryPoseLoaded` ont leur minuteur ; `progress >= 100` n'en avait aucun, et
+ *  une requete qui ne se resout jamais tenait le visiteur sans fin. Le
+ *  pourquoi du seuil et de la forme : lib/blocage-chargement. */
+const PROGRESS_STALL_MS = 15_000;
 
 /** Foyer deja allume (visiteur qui revient dans la journee, cf lib/foyer) :
  *  aucune ceremonie, donc rien a attendre. Le voile reste le temps du vrai
@@ -97,6 +104,9 @@ export default function RevealTrigger() {
     const timers: ReturnType<typeof setTimeout>[] = [];
     let done = false;
 
+    let veilleProgres = veilleInitiale(progressRef.current, Date.now());
+    const ressourcesPretes = () => progressRef.current >= 100 || veilleProgres.bloque;
+
     // Le feu du foyer ne s'eteint jamais (08/09) : celui qui repasse dans
     // la journee trouve la maison deja allumee. Le voile est alors NU (la
     // Piedra tourne, le reste est masque en CSS par html[data-hearth]),
@@ -113,7 +123,7 @@ export default function RevealTrigger() {
     const tryPoseLoaded = () => {
       // Le monde est pret des que les ressources et la chauffe le sont,
       // qu'on soit entre ou non : c'est la fenetre de la porte.
-      if (!pretEmis && progressRef.current >= 100 && warmRef.current) {
+      if (!pretEmis && ressourcesPretes() && warmRef.current) {
         pretEmis = true;
         window.dispatchEvent(new CustomEvent(PRET_EVENT));
       }
@@ -121,7 +131,7 @@ export default function RevealTrigger() {
         (window as unknown as { __nahualVoile?: unknown }).__nahualVoile = { progress: progressRef.current, sequenceDone: sequenceDoneRef.current, warm: warmRef.current, done };
       }
       if (done) return;
-      if (progressRef.current >= 100 && sequenceDoneRef.current && warmRef.current) {
+      if (ressourcesPretes() && sequenceDoneRef.current && warmRef.current) {
         done = true;
         timers.push(
           setTimeout(() => {
@@ -181,7 +191,16 @@ export default function RevealTrigger() {
     if (getWarmDirection() !== null) warmRef.current = true;
     // Et une reverification periodique, idempotente : aucun drapeau ne
     // peut plus rester vrai sans que la pose ne suive.
-    const veille = window.setInterval(tryPoseLoaded, 500);
+    const veille = window.setInterval(() => {
+      const avant = veilleProgres.bloque;
+      veilleProgres = avancerVeille(veilleProgres, progressRef.current, Date.now(), PROGRESS_STALL_MS);
+      // La chauffe ne peut pas s'armer seule : son propre secours part de
+      // progress >= 100, qui n'arrivera jamais. Meme chemin que lui.
+      if (veilleProgres.bloque && !avant && !warmRef.current) {
+        window.dispatchEvent(new Event(SHADERS_WARM_EVENT));
+      }
+      tryPoseLoaded();
+    }, 500);
 
     // La porte : on marque la choregraphie comme finie, et c'est tout.
     // Le travail garde ses propres portes.
