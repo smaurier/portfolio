@@ -42,5 +42,13 @@ export const config = {
   //   (src/app/apple-icon.tsx generee au path /apple-icon). Sans cette
   //   exclusion le proxy les redirige en /fr/apple-icon → 404 car ces
   //   routes vivent au root, pas sous [locale].
-  matcher: ["/((?!_next|api|apple-icon|icon|.*\\..*).*)"],
+  // - referents : page de mesure servie par une FONCTION NETLIFY, hors de
+  //   Next (netlify/functions/referents.ts). Ce proxy tourne en fonction
+  //   edge chez Netlify, donc AVANT les fonctions : sans cette exclusion il
+  //   redirigeait /referents vers /fr/referents, qui n'existe dans aucune
+  //   app, et la fonction n'etait jamais atteinte. Diagnostique le 04/11 :
+  //   la fonction etait bien deployee (`available_functions` la listait),
+  //   simplement injoignable. Elle n'a pas de locale : c'est un outil, pas
+  //   une page du site. Oracle : src/proxy.test.ts.
+  matcher: ["/((?!_next|api|referents|apple-icon|icon|.*\\..*).*)"],
 };
