@@ -12,6 +12,17 @@ pnpm test
 printf '%s\n' "$refs" | while read -r ref_locale sha_local ref_distante sha_distant; do
   case "$ref_distante" in
     refs/heads/main)
+      # LA SECURITE, EN RAPPORT SEULEMENT (02/11/2026). Elle ne bloque
+      # JAMAIS : un avis parait en amont a un moment que personne ici n'a
+      # choisi, et refuser une poussee pour ca punirait le mauvais
+      # evenement. Mais elle s'imprime au seul moment qui compte, celui ou
+      # l'on publie -- parce que le defaut du 02/11 n'etait pas l'absence
+      # de detection (Dependabot criait « 36 vulnerabilites » a chaque
+      # poussee) mais l'absence de quelque chose qui oblige a regarder.
+      # `|| true` : le code de sortie est volontairement ignore. Le filet
+      # qui AGIT, lui, est ailleurs : les PR de securite Dependabot.
+      echo "harnais : etat de securite (rapport, ne bloque pas)"
+      pnpm run --if-present securite || true
       echo "harnais : poussee sur main, la barre de performance doit etre verte"
       # --if-present : la barre arrive avec la tranche B ; d'ici la, rien.
       pnpm run --if-present perf

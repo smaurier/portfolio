@@ -230,7 +230,7 @@ git commit -m "feat(couches): la regle pure de la couche d'ouverture (scene/amat
 
 ---
 
-### Task 2a : le store, la detection, le script inline (aucun visuel)
+### Task 2a : le store, la detection, le script inline (aucun visuel) -- FAITE le 02/11
 
 Rien de visible ici : c'est la couche d'ouverture qui s'applique vraiment,
 sans controle pour en changer. Se fait sans attendre la decision de DA sur
@@ -243,7 +243,7 @@ la forme de la truelle.
 - Modify: `src/app/[locale]/layout.tsx` (script inline, `data-couche`)
 - Create: `tests/e2e/couche-degradation.spec.ts` (oracle de la spec, #4)
 
-- [ ] **Step 1 : la lib gagne sa cle et son parseur, tests rouges d'abord**
+- [x] **Step 1 : la lib gagne sa cle et son parseur, tests rouges d'abord**
 
 Dans `couche.test.ts`, ajouter : `parseStoredCouche` ne lit que les trois
 mots (`"scene"`, `"amatl"`, `"parole"`) et rend `null` sur tout le reste
@@ -261,7 +261,7 @@ ouvre sur une couche impossible. Regle proposee : **le stocke gagne, sauf
 si la couche stockee est `"scene"` et que WebGL est absent**. L'ecrire
 comme test avant de l'implementer.
 
-- [ ] **Step 2 : `couche-store.ts`, calque sur `theme-store.ts`**
+- [x] **Step 2 : `couche-store.ts`, calque sur `theme-store.ts`**
 
 Les trois detections, impures, dans ce fichier seulement :
 
@@ -291,14 +291,14 @@ plus `prefersReducedMotion()` (`matchMedia`), `getCouche()`, `applyCouche()`
 `theme-store.ts`, y compris le `try/catch` muet autour du stockage et le
 repli serveur.
 
-- [ ] **Step 3 : le script inline du layout**
+- [x] **Step 3 : le script inline du layout**
 
 A cote de celui du theme (`src/app/[locale]/layout.tsx`, ~ligne 245), meme
 forme : lire `localStorage`, detecter WebGL + mouvement reduit + connexion,
 poser `data-couche` sur `<html>` avant le premier paint, `try/catch` avec
 repli `"amatl"` (le repli le plus sur : il ne demande rien a la machine).
 
-- [ ] **Step 4 : l'oracle de degradation, vu rouge**
+- [x] **Step 4 : l'oracle de degradation, vu rouge**
 
 `tests/e2e/couche-degradation.spec.ts` : trois contextes Playwright —
 `reducedMotion: "reduce"`, un contexte ou WebGL est coupe
@@ -307,7 +307,7 @@ pour `webgl`/`webgl2` par `addInitScript`), et un contexte normal — et on
 lit `document.documentElement.dataset.couche`. Attendu : `amatl`, `amatl`,
 `scene`. Vu rouge avant le step 3 (l'attribut n'existe pas).
 
-- [ ] **Step 5 : vert, `tsc`, `eslint`, `pnpm test`, commit**
+- [x] **Step 5 : vert, `tsc`, `eslint`, `pnpm test`, commit**
 
 ---
 

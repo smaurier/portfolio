@@ -72,6 +72,28 @@ export function parseStoredTheme(raw: string | null | undefined): Theme | null {
   return raw === "light" || raw === "dark" ? raw : null;
 }
 
+/**
+ * `faceInitiale` RECOPIEE EN UNE LIGNE DE JAVASCRIPT BRUT, pour le script
+ * inline du layout : la face se pose sur <html> AVANT le premier paint,
+ * sinon on verrait une face une image avant l'autre (13/09).
+ *
+ * Le choix memorise l'emporte ; sinon la preference systeme ; et l'absence
+ * de preference donne le clair, parce que `prefers-color-scheme: light`
+ * matche aussi le silence (16/09 : la face suit le visiteur, pas un defaut).
+ *
+ * ⚠️ Duplication assumee de la regle ci-dessus : ce script tourne avant tout
+ * module, il ne peut rien importer. Elle vit donc ici, collee a l'original,
+ * et c'est `tests/e2e/miroir.spec.ts` qui garde les deux d'accord (il
+ * verifie la persistance avant le premier paint).
+ *
+ * Sorti du layout le 02/11 : ce fichier est au plafond du cliquet de lignes,
+ * meme parade que CSS_SANS_JAVASCRIPT le 28/10 et que
+ * SCRIPT_COUCHE_AVANT_PAINT.
+ */
+export const SCRIPT_THEME_AVANT_PAINT = `
+try{var th=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});var n=th==="dark"||(th!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",n?"dark":"light");}catch(e){document.documentElement.setAttribute("data-theme","light");}
+`;
+
 
 /**
  * La face du monde au tout premier paint, avant que quoi que ce soit ne
