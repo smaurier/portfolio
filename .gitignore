@@ -45,3 +45,6 @@ next-env.d.ts
 
 # References visuelles : propres a la machine (carte graphique), jamais versionnees
 tests/e2e/regression-visuelle.spec.ts-snapshots/
+
+# Local Netlify folder
+.netlify
