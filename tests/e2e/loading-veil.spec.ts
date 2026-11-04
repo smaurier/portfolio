@@ -104,3 +104,35 @@ test.describe("PiedraSkeleton : voile de chargement SOTY", () => {
     expect(covering, "ce qui est sous le curseur au centre").not.toBe("le voile");
   });
 });
+
+/**
+ * LA SEULE PORTE SANS SECOURS (04/11, trouvee par la barre de perf).
+ *
+ * `tryPoseLoaded` (reveal-trigger.tsx) exige trois drapeaux avant de poser
+ * `data-loaded` : la sequence visible, la chauffe des shaders, et
+ * `progress >= 100`. Les deux premiers ont leur minuteur de secours, le
+ * troisieme n'en a aucun. Or `useProgress` n'est que le ratio du
+ * `DefaultLoadingManager` de three : une requete qui ne se resout JAMAIS
+ * (ni reponse, ni erreur) laisse `loaded < total` pour toujours.
+ *
+ * Observe en vrai le 03/11 : un jugement de `voile.perf.ts` a attendu
+ * `data-foyer=done` pendant 120 s apres trois jugements verts d'affilee,
+ * et l'instantane montrait le voile entier, statut « Chargement de la
+ * scene » compris. Le filet CSS (`veilSafety`, 2,8 s apres `data-loaded`)
+ * prouve que `data-loaded` n'etait jamais venu.
+ *
+ * Et la porte « Entrer » ne sauve pas le visiteur : `onEntrer` ne marque
+ * que la choregraphie, les trois portes du travail restent.
+ */
+test("le voile se leve meme si une requete d'asset ne se resout jamais", async ({ page }) => {
+  // Ni fulfill, ni abort, ni continue : la requete pend, exactement comme
+  // un reseau qui avale la connexion sans jamais repondre.
+  await page.route("**/models/stag.glb", () => {});
+
+  await page.goto("/fr");
+
+  await page.waitForFunction(
+    () => document.documentElement.getAttribute("data-loaded") === "true",
+    { timeout: 25_000 },
+  );
+});
