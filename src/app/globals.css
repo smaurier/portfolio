@@ -689,9 +689,16 @@ body.nahual-lab-reveal .contentPage h2 {
   /* Halo cardinal derrière le title — text-shadow blur teinté, suggère
      la lumière du feu/luciole qui éclaire la page de codex nocturne
      (pas card container, halo comme Cartier Beauty of Movement). */
+  /* L'OMBRE VA A L'OPPOSE DU TEXTE (04/11/2026, oeil de Sylvain sur la 404 :
+     « le text-shadow est degueulasse non ? »). Elle etait codee en dur en
+     `rgba(0, 0, 0, …)`, donc SOMBRE sous un texte d'encre en face claire :
+     elle n'y separait plus rien et empatait le contour des lettres. Le jeton
+     `--shadow-rgb` existait deja pour ca (noir en face sombre, creme en face
+     claire) ; ces deux regles le contournaient. Oracle :
+     tests/e2e/ombres-selon-theme.spec.ts. */
   text-shadow:
     0 0 20px color-mix(in srgb, var(--direction-color, rgba(242, 236, 225, 0.6)) 30%, transparent),
-    0 1px 2px rgba(0, 0, 0, 0.5);
+    0 1px 2px rgba(var(--shadow-rgb), 0.5);
 }
 
 body.nahual-lab-reveal .contentPage h2 {
@@ -702,9 +709,9 @@ body.nahual-lab-reveal .contentPage p {
   font-size: var(--t-corps);
   line-height: var(--il-corps);
   color: rgba(var(--ink-warm-rgb), 0.86);
-  /* Text-shadow subtile pour lisibilité contre la scène 3D — pas card,
-     halo sombre derrière le texte. */
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  /* Text-shadow subtile pour lisibilité contre la scène 3D, pas card.
+     Par le jeton `--shadow-rgb`, pas en dur : voir le h1 ci-dessus. */
+  text-shadow: 0 1px 3px rgba(var(--shadow-rgb), 0.7);
 }
 
 body.nahual-lab-reveal .contentPage a:not(.ctaButton) {
