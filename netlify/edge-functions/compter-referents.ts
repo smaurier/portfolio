@@ -17,11 +17,26 @@ import { cleDuJour, hoteReferent } from "../../src/lib/referents.ts";
  * recoit sa page comme si de rien n'etait. Un compteur n'est pas un service.
  */
 
-const HOTE_DU_SITE = "nahual.fr";
+/**
+ * LES NOMS DE CE SITE, ET POURQUOI IL Y EN A PLUSIEURS.
+ *
+ * `nahual-studio` sert la meme application sous `nahual.fr`, sous ses alias
+ * `sylvainmaurier.com` et `www.sylvainmaurier.com`, sous son adresse
+ * Netlify, et sous une URL unique par deploiement. Une seule de ces formes
+ * etait connue du compteur : le 05/11 il annoncait 122 venues en un jour
+ * depuis `sylvainmaurier.com`, qui n'etaient que des navigations internes.
+ *
+ * ⭐ L'HOTE DE LA REQUETE EST AJOUTE A L'EXECUTION, et c'est lui qui rend la
+ * regle solide : quel que soit le nom par lequel on arrive, connu ou non,
+ * naviguer dedans ne compte jamais. La liste en dur ne rattrape que les
+ * passages d'un de nos noms a un autre.
+ */
+const NOS_DOMAINES = ["nahual.fr", "sylvainmaurier.com", "nahual-studio.netlify.app"];
 
 export default async function compterReferents(requete: Request, contexte: Context) {
   try {
-    const hote = hoteReferent(requete.headers.get("referer"), HOTE_DU_SITE);
+    const nosHotes = [new URL(requete.url).hostname, ...NOS_DOMAINES];
+    const hote = hoteReferent(requete.headers.get("referer"), nosHotes);
     if (hote) {
       const compter = incrementer(hote);
       // `waitUntil` laisse la page partir sans attendre l'ecriture. S'il
