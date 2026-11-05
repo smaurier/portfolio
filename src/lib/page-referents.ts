@@ -29,6 +29,31 @@ export interface DonneesRegistre {
   readonly lignes: readonly Ligne[];
   readonly nosHotes: readonly string[];
   readonly jours: readonly string[];
+  /** Totaux par pays. Optionnels : la mesure a commence apres les referents. */
+  readonly pays?: readonly Ligne[];
+  /** Totaux par page d'arrivee. Leur somme est le nombre de pages vues. */
+  readonly pages?: readonly Ligne[];
+}
+
+/**
+ * Une mesure secondaire : son titre, sa legende, ses lignes.
+ *
+ * ⚠️ UNE SECTION VIDE NE S'AFFICHE PAS. Les trois mesures n'ont pas commence
+ * le meme jour : montrer un tableau vide laisserait croire a une panne, ou
+ * pire, a un zero mesure.
+ */
+function sectionHtml(titre: string, note: string, lignes: readonly Ligne[], retard: number): string {
+  if (!lignes.length) return "";
+  const tri = [...lignes].sort((a, b) => b.venues - a.venues);
+  const max = tri.reduce((m, l) => Math.max(m, l.venues), 0);
+  return `  <h2>${titre}</h2>
+  <p class="note">${note}</p>
+  <table>
+    <caption class="vu">${titre}</caption>
+    <tbody>
+${lignesHtml(tri, max, retard)}
+    </tbody>
+  </table>`;
 }
 
 /** Echappe ce qui part dans le HTML. Les hotes viennent d'un en-tete : ils ne sont pas de confiance. */
@@ -97,6 +122,24 @@ ${lignesHtml(notres, maxNous, exterieurs.length)}
     </table>
   </details>`
     : "";
+
+  const pays = donnees.pays ?? [];
+  const pages = donnees.pages ?? [];
+  const vues = pages.reduce((s, l) => s + l.venues, 0);
+
+  const corpsPays = sectionHtml(
+    "Pays",
+    "D&eacute;duit au serveur, sans rien demander ni rien poser. Le pays seul&nbsp;: ni ville, ni code postal, ni coordonn&eacute;es.",
+    pays,
+    exterieurs.length,
+  );
+
+  const corpsPages = sectionHtml(
+    "Pages d'arriv&eacute;e",
+    `La page sur laquelle on atterrit. Leur somme, <strong>${vues}</strong>, est le nombre de pages vues&nbsp;: c'est la r&eacute;ponse &agrave; &laquo;&nbsp;combien de monde&nbsp;&raquo;, que le seul compteur de r&eacute;f&eacute;rents ne donnait pas.`,
+    pages,
+    exterieurs.length + pays.length,
+  );
 
   return `<!doctype html>
 <html lang="fr">
@@ -212,17 +255,25 @@ ${lignesHtml(notres, maxNous, exterieurs.length)}
 <main>
   <p class="cartouche"><span>Registre</span><hr></p>
   <h1>Qui t'envoie <em>du monde</em></h1>
-  <p class="chapeau">Les sites depuis lesquels quelqu'un a suivi un lien jusqu'ici${depuis ? `, depuis le ${echapper(depuis)}` : ""}.
-    Rien n'est posé dans la page&nbsp;: ni script, ni cookie, ni adresse. Seulement le domaine d'origine, compté au serveur.</p>
+  <p class="chapeau">Trois totaux quotidiens${depuis ? `, depuis le ${echapper(depuis)}` : ""}&nbsp;: d'où l'on vient quand on a suivi un lien,
+    de quel pays, et sur quelle page on arrive. Comptés au serveur&nbsp;: ni script, ni cookie, ni adresse,
+    et aucune distinction entre deux personnes.</p>
 
 ${corpsExterieurs}
+
+${corpsPays}
+
+${corpsPages}
 
 ${corpsNotres}
 
   <footer>
-    <p>Ce registre compte <strong>les liens suivis</strong>, pas les visites. Une arrivée directe,
-      un favori, une adresse tapée à la main n'y figurent pas&nbsp;: leur navigateur n'annonce aucune origine.
-      Les robots d'indexation et les assistants non plus, pour la même raison.</p>
+    <p>⚠️ <strong>Les deux premières listes ne couvrent pas tout le monde.</strong> Un site référent n'apparaît
+      que si le navigateur annonce d'où il vient&nbsp;: une arrivée directe, un favori, une adresse tapée à la main
+      n'y figurent pas, et les robots d'indexation ni les assistants non plus, pour la même raison.
+      Les pages d'arrivée, elles, comptent chaque passage.</p>
+    <p>Et nulle part un visiteur n'est distingué d'un autre&nbsp;: ce sont des pages vues, jamais des personnes.
+      Les totaux sont effacés au bout d'un an.</p>
     <p>${jours.length ? `${jours.length} jour${jours.length > 1 ? "s" : ""} relevé${jours.length > 1 ? "s" : ""}, du ${echapper(jours[0])} au ${echapper(jours[jours.length - 1])}.` : "Aucun jour relevé."}</p>
   </footer>
 </main>

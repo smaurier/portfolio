@@ -121,3 +121,62 @@ export function classerReferents(
     notres: lignes.filter((l) => aNous(l.hote)).sort(parVenues),
   };
 }
+
+/** Un an : la duree annoncee par la page vie privee. */
+export const JOURS_GARDES = 365;
+
+/**
+ * Les cles a effacer, parce qu'elles ont depasse la duree annoncee.
+ *
+ * ⛔ UNE DUREE ECRITE ET JAMAIS APPLIQUEE EST PIRE QUE PAS DE DUREE : elle
+ * est verifiable, et fausse. La page vie privee dit « les totaux quotidiens
+ * sont effaces au bout d'un an » depuis le 05/11/2026 ; cette fonction est
+ * ce qui rend la phrase vraie.
+ *
+ * ⚠️ UNE CLE QU'ON NE SAIT PAS DATER N'EST PAS EFFACEE. Supprimer sur un
+ * doute, c'est perdre une donnee pour une erreur de format : on prefere
+ * garder une ligne illisible qu'en jeter une bonne.
+ */
+export function clesPerimees(
+  cles: readonly string[],
+  aujourdHui: Date,
+  joursGardes: number = JOURS_GARDES,
+): string[] {
+  const limite = Date.UTC(aujourdHui.getUTCFullYear(), aujourdHui.getUTCMonth(), aujourdHui.getUTCDate()) - joursGardes * 864e5;
+
+  return cles.filter((cle) => {
+    const jour = cle.split("/")[0];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(jour)) return false;
+    const quand = Date.parse(`${jour}T00:00:00Z`);
+    return Number.isFinite(quand) && quand < limite;
+  });
+}
+
+/** Longueur au-dela de laquelle un chemin n'apprend plus rien. */
+const CHEMIN_MAX = 120;
+
+/**
+ * La page d'arrivee, reduite a ce qui s'agrege.
+ *
+ * ⛔ NI REQUETE NI FRAGMENT. Un `?token=` ou un `#ancre` transformerait un
+ * compteur de pages en journal de parametres, donc en donnee sur quelqu'un.
+ * La page vie privee promet le contraire : on garde le chemin, rien d'autre.
+ */
+export function cheminCompte(pathname: string): string {
+  const nu = (pathname.split("?")[0].split("#")[0] || "").toLowerCase().replace(/^\/+/, "").replace(/\/+$/, "");
+  return nu === "" ? "(accueil)" : nu.slice(0, CHEMIN_MAX);
+}
+
+/**
+ * Le code pays, en majuscules, ou `(inconnu)`.
+ *
+ * ⚠️ ON NE DEVINE PAS UN PAYS ABSENT. Une ligne « inconnu » est un fait ;
+ * un pays suppose est un faux qui se lit comme une mesure.
+ *
+ * ⛔ Et c'est TOUT ce qu'on prend de la geolocalisation. Netlify offre
+ * aussi la ville, le code postal et les coordonnees : les compter ferait
+ * basculer un total anonyme dans un autre registre.
+ */
+export function paysCompte(code: string | undefined | null): string {
+  return code && /^[a-z]{2}$/i.test(code) ? code.toUpperCase() : "(inconnu)";
+}

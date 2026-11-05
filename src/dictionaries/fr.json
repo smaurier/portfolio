@@ -808,16 +808,20 @@
         "text": "Aucune donnée n'est collectée sans action explicite de ta part. L'envoi d'un message via l'email affiché sur la page Contact constitue le seul point d'entrée : les informations transmises (email, contenu du message) sont utilisées uniquement pour te répondre."
       },
       {
+        "title": "Ce que le serveur compte",
+        "text": "On compte combien de gens arrivent, pas qui ils sont. Le serveur tient un total quotidien de trois choses : le domaine d'où tu arrives si tu as suivi un lien, ton pays, et la page sur laquelle tu atterris. Rien n'est posé dans la page pour ça : aucun script, aucun cookie. Ce qui n'est jamais enregistré : ton adresse IP, un identifiant quel qu'il soit, ton parcours d'une page à l'autre, et aucune distinction entre deux personnes. Ce sont des pages vues, pas des visiteurs. On veut seulement savoir si un site qui parle de nous nous envoie des lecteurs."
+      },
+      {
         "title": "Cookies et traceurs",
-        "text": "Ce site n'utilise pas de cookies de traçage ni d'outils d'analyse tiers (pas de Google Analytics, pas de Meta Pixel). Seul un stockage local (localStorage) est utilisé pour mémoriser ta préférence de son (activé/coupé) et le fait que tu aies déjà vu certaines animations. Ces données restent dans ton navigateur, ne sont jamais transmises."
+        "text": "Ce site n'utilise aucun cookie de traçage, et aucun outil d'analyse tiers (pas de Google Analytics, pas de Meta Pixel) : les totaux décrits plus haut sont comptés ici même, et ne sont transmis à personne. Seul un stockage local (localStorage) est utilisé, pour mémoriser ta préférence de son (activé/coupé) et le fait que tu aies déjà vu certaines animations. Ce stockage-là reste dans ton navigateur et n'est jamais envoyé."
       },
       {
         "title": "Durée de conservation",
-        "text": "Les messages reçus par email sont conservés le temps nécessaire au traitement, puis archivés dans la messagerie personnelle du responsable pour référence future. Tu peux demander leur suppression à tout moment."
+        "text": "Les messages reçus par email sont conservés le temps nécessaire au traitement, puis archivés dans la messagerie personnelle du responsable pour référence future. Tu peux demander leur suppression à tout moment. Les totaux quotidiens, eux, sont effacés au bout d'un an."
       },
       {
         "title": "Tes droits",
-        "text": "Conformément au RGPD, tu disposes d'un droit d'accès, de rectification, d'effacement et de portabilité de tes données. Contact : bonjour@nahual.fr."
+        "text": "Conformément au RGPD, tu disposes d'un droit d'accès, de rectification, d'effacement et de portabilité de tes données. Ces droits portent sur les messages que tu envoies : les totaux décrits plus haut ne contiennent aucune donnée personnelle, il n'y a donc rien à y retrouver ni à y effacer. Contact : bonjour@nahual.fr."
       }
     ]
   },

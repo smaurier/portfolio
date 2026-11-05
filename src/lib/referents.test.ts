@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classerReferents, cleDuJour, hoteReferent } from "./referents";
+import { classerReferents, cheminCompte, cleDuJour, clesPerimees, hoteReferent, paysCompte } from "./referents";
 
 /**
  * Le site de Sylvain, tel que la fonction le connait a l'execution. La
@@ -170,5 +170,84 @@ describe("classerReferents : separer ce qui vient d'ailleurs de ce qui vient de 
     );
     expect(exterieurs).toEqual([]);
     expect(notres).toHaveLength(1);
+  });
+});
+
+// ── LA PROMESSE D'UN AN ───────────────────────────────────────────────────
+describe("clesPerimees : une duree annoncee doit etre appliquee", () => {
+  // ⛔ La page vie privee dit desormais << les totaux quotidiens sont
+  // effaces au bout d'un an >>. Une duree ecrite et jamais appliquee est
+  // pire que pas de duree : elle est verifiable, et fausse.
+  const LE_JOUR = new Date("2027-03-01T10:00:00Z");
+
+  it("garde ce qui a moins d'un an, efface ce qui a plus", () => {
+    const cles = [
+      "2026-03-02/mexicolore.co.uk", // 364 jours : garde
+      "2026-03-01/mexicolore.co.uk", // 365 jours pile : garde
+      "2026-02-28/mexicolore.co.uk", // 366 jours : efface
+      "2025-11-04/sylvainmaurier.com", // bien plus vieux : efface
+    ];
+    expect(clesPerimees(cles, LE_JOUR, 365)).toEqual([
+      "2026-02-28/mexicolore.co.uk",
+      "2025-11-04/sylvainmaurier.com",
+    ]);
+  });
+
+  it("ne touche a rien quand tout est recent", () => {
+    expect(clesPerimees(["2027-02-28/a.org"], LE_JOUR, 365)).toEqual([]);
+  });
+
+  // ⚠️ UNE CLE QU'ON NE SAIT PAS DATER NE S'EFFACE PAS. Effacer sur un
+  // doute, c'est perdre une donnee pour une erreur de format.
+  it("laisse en place une cle illisible plutot que de la supprimer", () => {
+    expect(clesPerimees(["pas-une-date/a.org", "/vide", ""], LE_JOUR, 365)).toEqual([]);
+  });
+
+  it("tient sur un stockage vide", () => {
+    expect(clesPerimees([], LE_JOUR, 365)).toEqual([]);
+  });
+});
+
+// ── LES DEUX AUTRES MESURES ───────────────────────────────────────────────
+describe("cheminCompte : la page d'arrivee, reduite a ce qui s'agrege", () => {
+  it("retire la barre de tete pour ne pas doubler le separateur de cle", () => {
+    expect(cheminCompte("/fr/projets")).toBe("fr/projets");
+  });
+
+  it("nomme l'accueil plutot que de rendre une chaine vide", () => {
+    expect(cheminCompte("/")).toBe("(accueil)");
+    expect(cheminCompte("")).toBe("(accueil)");
+  });
+
+  it("met en minuscules, pour que deux casses ne fassent qu'une ligne", () => {
+    expect(cheminCompte("/FR/Projets")).toBe("fr/projets");
+  });
+
+  // ⛔ NI REQUETE NI FRAGMENT : un `?token=` ou un `#ancre` transformerait un
+  // compteur de pages en journal de parametres, donc en donnee sur quelqu'un.
+  it("ne garde ni requete ni fragment", () => {
+    expect(cheminCompte("/fr/contact?token=secret#bas")).toBe("fr/contact");
+  });
+
+  it("borne la longueur, un chemin absurde ne fait pas une cle absurde", () => {
+    expect(cheminCompte("/" + "a".repeat(400)).length).toBeLessThanOrEqual(120);
+  });
+
+  it("enleve la barre de fin, /fr et /fr/ sont la meme page", () => {
+    expect(cheminCompte("/fr/")).toBe("fr");
+  });
+});
+
+describe("paysCompte : un code pays, ou rien d'invente", () => {
+  it("garde le code ISO en majuscules", () => {
+    expect(paysCompte("fr")).toBe("FR");
+  });
+
+  // ⚠️ On ne devine pas un pays absent : une ligne « inconnu » est un fait,
+  // un pays suppose est un faux.
+  it("dit « inconnu » plutot que de supposer", () => {
+    expect(paysCompte(undefined)).toBe("(inconnu)");
+    expect(paysCompte("")).toBe("(inconnu)");
+    expect(paysCompte("pas-un-code")).toBe("(inconnu)");
   });
 });
