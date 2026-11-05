@@ -1,5 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { identifiantsValides } from "../../src/lib/acces-prive.ts";
+import { pageReferents } from "../../src/lib/page-referents.ts";
 
 /**
  * La lecture des chiffres du compteur de referents. Reservee a Sylvain.
@@ -35,7 +36,7 @@ export default async function lireReferents(requete: Request) {
   const store = getStore("referents");
   const { blobs } = await store.list();
 
-  const lignes = await Promise.all(
+  const parJour = await Promise.all(
     blobs.map(async ({ key }) => {
       const [jour, ...reste] = key.split("/");
       const valeur = await store.get(key, { consistency: "strong" });
@@ -44,16 +45,29 @@ export default async function lireReferents(requete: Request) {
   );
 
   const parHote = new Map<string, number>();
-  for (const { hote, venues } of lignes) parHote.set(hote, (parHote.get(hote) ?? 0) + venues);
+  for (const { hote, venues } of parJour) parHote.set(hote, (parHote.get(hote) ?? 0) + venues);
+  const lignes = [...parHote.entries()].map(([hote, venues]) => ({ hote, venues }));
+  const jours = [...new Set(parJour.map((l) => l.jour))].sort();
 
-  const total = [...parHote.entries()]
-    .map(([hote, venues]) => ({ hote, venues }))
-    .sort((a, b) => b.venues - a.venues);
+  // LES MEMES NOMS QUE LA FONCTION EDGE, plus l'hote de la requete : la page
+  // doit ranger a part ce que le compteur, avant le 05/11, prenait encore
+  // pour des referents exterieurs.
+  const nosHotes = [new URL(requete.url).hostname, "nahual.fr", "sylvainmaurier.com", "nahual-studio.netlify.app"];
 
-  return Response.json(
-    { totalParSite: total, detailParJour: lignes.sort((a, b) => (a.jour < b.jour ? 1 : -1)) },
-    { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } },
-  );
+  const entetes = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" };
+
+  // `?json` reste disponible : la page est pour l'oeil, les donnees pour
+  // tout le reste (un script, un relevé, une reprise ailleurs).
+  if (new URL(requete.url).searchParams.has("json")) {
+    return Response.json(
+      { lignes: lignes.sort((a, b) => b.venues - a.venues), parJour, jours },
+      { headers: entetes },
+    );
+  }
+
+  return new Response(pageReferents({ lignes, nosHotes, jours }), {
+    headers: { ...entetes, "Content-Type": "text/html; charset=utf-8" },
+  });
 }
 
 export const config = { path: "/referents" };
