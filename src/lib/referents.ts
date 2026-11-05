@@ -90,3 +90,34 @@ function sansWww(hote: string): string {
 export function cleDuJour(hote: string, quand: Date): string {
   return `${quand.toISOString().slice(0, 10)}/${hote}`;
 }
+
+/** Un site referent et le nombre de venues qu'on lui doit. */
+export interface Ligne {
+  readonly hote: string;
+  readonly venues: number;
+}
+
+/**
+ * Separe ce qui vient d'ailleurs de ce qui vient de nous.
+ *
+ * ⚠️ POURQUOI LE SECOND GROUPE EXISTE AU LIEU D'ETRE JETE. Le compteur a
+ * tourne du 04 au 05/11 sans connaitre les alias du site : 136 venues
+ * comptees, 136 a nous. Les cles etant par jour, ce passe n'est pas
+ * reecrit. Le ranger a part le rend lisible sans mentir ; le cacher
+ * laisserait un total faux pour toujours en tete de page.
+ *
+ * Les deux listes sortent du plus envoyeur au moins.
+ */
+export function classerReferents(
+  lignes: readonly Ligne[],
+  nosHotes: readonly string[],
+): { exterieurs: Ligne[]; notres: Ligne[] } {
+  const aNous = (hote: string) =>
+    nosHotes.some((n) => estANous(sansWww(hote.toLowerCase()), sansWww(n.toLowerCase())));
+  const parVenues = (a: Ligne, b: Ligne) => b.venues - a.venues;
+
+  return {
+    exterieurs: lignes.filter((l) => !aNous(l.hote)).sort(parVenues),
+    notres: lignes.filter((l) => aNous(l.hote)).sort(parVenues),
+  };
+}

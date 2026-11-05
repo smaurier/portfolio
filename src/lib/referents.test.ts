@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleDuJour, hoteReferent } from "./referents";
+import { classerReferents, cleDuJour, hoteReferent } from "./referents";
 
 /**
  * Le site de Sylvain, tel que la fonction le connait a l'execution. La
@@ -124,5 +124,51 @@ describe("hoteReferent : tout ce qui sert ce site n'est jamais un referent", () 
   it("ne confond pas avec un domaine qui contient le notre", () => {
     expect(hoteReferent("https://nahual.fr.exemple.org/", NOUS)).toBe("nahual.fr.exemple.org");
     expect(hoteReferent("https://pas-nahual.fr/", NOUS)).toBe("pas-nahual.fr");
+  });
+});
+
+// ── LE TRI DU REGISTRE ────────────────────────────────────────────────────
+describe("classerReferents : separer ce qui vient d'ailleurs de ce qui vient de nous", () => {
+  const lignes = [
+    { hote: "sylvainmaurier.com", venues: 122 },
+    { hote: "mexicolore.co.uk", venues: 3 },
+    { hote: "6aeb537b--nahual-studio.netlify.app", venues: 5 },
+    { hote: "news.ycombinator.com", venues: 9 },
+    { hote: "wiki.nahual.fr", venues: 2 },
+  ];
+
+  // LE RELEVE D'AVANT LE CORRECTIF RESTE DANS LE STOCKAGE : les cles sont par
+  // jour, donc le passe n'est pas reecrit. La page doit le ranger, pas le
+  // cacher, sinon le total en tete ment pour toujours.
+  it("met de cote tout ce qui sert ce site", () => {
+    const { notres } = classerReferents(lignes, NOUS);
+    expect(notres.map((l) => l.hote)).toEqual([
+      "sylvainmaurier.com",
+      "6aeb537b--nahual-studio.netlify.app",
+      "wiki.nahual.fr",
+    ]);
+  });
+
+  it("garde les vrais sites, et les classe du plus envoyeur au moins", () => {
+    const { exterieurs } = classerReferents(lignes, NOUS);
+    expect(exterieurs).toEqual([
+      { hote: "news.ycombinator.com", venues: 9 },
+      { hote: "mexicolore.co.uk", venues: 3 },
+    ]);
+  });
+
+  it("rend deux listes vides sans rien casser quand il n'y a rien", () => {
+    expect(classerReferents([], NOUS)).toEqual({ exterieurs: [], notres: [] });
+  });
+
+  // ⚠️ L'ETAT QUI COMPTE AUJOURD'HUI, et qu'il ne faut pas confondre avec une
+  // panne : aucun vrai referent, mais du trafic a nous dans l'historique.
+  it("distingue « personne encore » de « rien du tout »", () => {
+    const { exterieurs, notres } = classerReferents(
+      [{ hote: "sylvainmaurier.com", venues: 122 }],
+      NOUS,
+    );
+    expect(exterieurs).toEqual([]);
+    expect(notres).toHaveLength(1);
   });
 });
