@@ -808,16 +808,20 @@
         "text": "No se recopila ningún dato sin una acción explícita de tu parte. El envío de un mensaje al correo mostrado en la página de Contacto es el único punto de entrada: la información transmitida (email, contenido del mensaje) se usa únicamente para responderte."
       },
       {
+        "title": "Lo que cuenta el servidor",
+        "text": "Contamos cuánta gente llega, no quién es. El servidor lleva un total diario de tres cosas: el dominio del que vienes si has seguido un enlace, tu país, y la página a la que llegas. No se coloca nada en la página para ello: ningún script, ninguna cookie. Lo que nunca se registra: tu dirección IP, ningún identificador, tu recorrido de una página a otra, y ninguna distinción entre dos personas. Son páginas vistas, no visitantes. Solo queremos saber si un sitio que habla de nosotros nos envía lectores de verdad."
+      },
+      {
         "title": "Cookies y rastreadores",
-        "text": "Este sitio no usa cookies de seguimiento ni herramientas de análisis de terceros (sin Google Analytics, sin Meta Pixel). Solo se usa almacenamiento local (localStorage) para recordar tu preferencia de sonido (activado/desactivado) y si ya has visto ciertas animaciones. Estos datos permanecen en tu navegador y nunca se transmiten."
+        "text": "Este sitio no usa cookies de seguimiento ni herramientas de análisis de terceros (sin Google Analytics, sin Meta Pixel): los totales descritos arriba se cuentan aquí mismo y no se comparten con nadie. Solo se usa almacenamiento local (localStorage), para recordar tu preferencia de sonido (activado/desactivado) y si ya has visto ciertas animaciones. Ese almacenamiento permanece en tu navegador y nunca se envía."
       },
       {
         "title": "Duración de conservación",
-        "text": "Los mensajes recibidos por email se conservan el tiempo necesario para su tratamiento, luego se archivan en el correo personal del responsable para referencia futura. Puedes solicitar su eliminación en cualquier momento."
+        "text": "Los mensajes recibidos por correo se conservan el tiempo necesario para atenderlos y luego se archivan en el buzón personal del responsable para referencia futura. Puedes pedir su eliminación en cualquier momento. Los totales diarios se borran al cabo de un año."
       },
       {
         "title": "Tus derechos",
-        "text": "Conforme al RGPD, tienes derecho de acceso, rectificación, eliminación y portabilidad de tus datos. Contacto: bonjour@nahual.fr."
+        "text": "Conforme al RGPD, tienes derecho de acceso, rectificación, supresión y portabilidad de tus datos. Estos derechos se refieren a los mensajes que envías: los totales descritos arriba no contienen ningún dato personal, así que no hay nada que recuperar ni borrar. Contacto: bonjour@nahual.fr."
       }
     ]
   },

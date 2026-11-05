@@ -808,16 +808,20 @@
         "text": "No data is collected without your explicit action. Sending a message via the email shown on the Contact page is the only entry point: the information provided (email, message content) is used solely to reply."
       },
       {
+        "title": "What the server counts",
+        "text": "We count how many people arrive, not who they are. The server keeps a daily total of three things: the domain you came from if you followed a link, your country, and the page you land on. Nothing is placed in the page to do this: no script, no cookie. What is never recorded: your IP address, any identifier whatsoever, your path from one page to the next, and any distinction between two people. These are page views, not visitors. We only want to know whether a site that mentions us actually sends us readers."
+      },
+      {
         "title": "Cookies and trackers",
-        "text": "This site does not use tracking cookies or third-party analytics tools (no Google Analytics, no Meta Pixel). Only local storage (localStorage) is used to remember your sound preference (on/off) and whether you've already seen certain animations. This data stays in your browser and is never transmitted."
+        "text": "This site uses no tracking cookies and no third-party analytics (no Google Analytics, no Meta Pixel): the totals described above are counted here, and shared with no one. Only local storage (localStorage) is used, to remember your sound preference (on/off) and whether you have already seen certain animations. That storage stays in your browser and is never sent anywhere."
       },
       {
         "title": "Retention",
-        "text": "Messages received by email are kept for the time needed to process them, then archived in the responsible party's personal mailbox for future reference. You can request their deletion at any time."
+        "text": "Messages received by email are kept for as long as needed to handle them, then archived in the owner's personal mailbox for future reference. You can ask for their deletion at any time. The daily totals are erased after one year."
       },
       {
         "title": "Your rights",
-        "text": "Under GDPR, you have the right to access, rectify, erase, and port your data. Contact: bonjour@nahual.fr."
+        "text": "Under the GDPR, you have the right to access, rectify, erase and port your data. These rights cover the messages you send: the totals described above contain no personal data, so there is nothing there to retrieve or erase. Contact: bonjour@nahual.fr."
       }
     ]
   },

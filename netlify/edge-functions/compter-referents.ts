@@ -1,16 +1,24 @@
 import { getStore } from "@netlify/blobs";
 import type { Config, Context } from "@netlify/edge-functions";
-import { cleDuJour, hoteReferent } from "../../src/lib/referents.ts";
+import { cheminCompte, cleDuJour, hoteReferent, paysCompte } from "../../src/lib/referents.ts";
 
 /**
- * Compte les sites referents, au bord, sans rien poser dans la page.
+ * Compte trois totaux quotidiens, au bord, sans rien poser dans la page.
+ *
+ * CE QU'ELLE COMPTE, et c'est exactement ce que la page vie privee annonce
+ * depuis le 05/11/2026 : le domaine d'ou vient la personne si elle a suivi
+ * un lien, son pays, et la page sur laquelle elle arrive. Trois totaux par
+ * jour, rien d'autre.
  *
  * CE QU'ELLE NE FAIT PAS, et c'est le point : aucun script envoye au
- * navigateur, aucun cookie, aucune adresse IP, aucun chemin, aucun identifiant
- * de visiteur. Elle lit l'en-tete `Referer` que le navigateur envoie de toute
- * facon, n'en garde que le domaine, et incremente un total par domaine et par
- * jour. La phrase de la page vie privee (« pas de cookies de tracage ni
- * d'outils d'analyse tiers ») reste vraie au mot pres.
+ * navigateur, aucun cookie, aucune adresse IP, aucun identifiant, aucun
+ * parcours d'une page a l'autre, aucune distinction entre deux personnes.
+ * Des pages vues, pas des visiteurs.
+ *
+ * ⛔ ET DE LA GEOLOCALISATION, LE PAYS SEUL. Netlify offre aussi la ville,
+ * le code postal et les coordonnees (`contexte.geo`) : les compter ferait
+ * basculer un total anonyme dans un autre registre, et rendrait fausse la
+ * phrase qu'on vient d'ecrire.
  *
  * ELLE NE DOIT JAMAIS EMPECHER UNE PAGE DE S'AFFICHER. Tout est dans un
  * `try` : une panne de Blobs, un quota, une cle illisible, et le visiteur
@@ -35,16 +43,25 @@ const NOS_DOMAINES = ["nahual.fr", "sylvainmaurier.com", "nahual-studio.netlify.
 
 export default async function compterReferents(requete: Request, contexte: Context) {
   try {
-    const nosHotes = [new URL(requete.url).hostname, ...NOS_DOMAINES];
-    const hote = hoteReferent(requete.headers.get("referer"), nosHotes);
-    if (hote) {
-      const compter = incrementer(hote);
-      // `waitUntil` laisse la page partir sans attendre l'ecriture. S'il
-      // n'existe pas dans ce runtime, on attend : mieux vaut quelques
-      // millisecondes que de perdre le compte en silence.
-      if (typeof contexte.waitUntil === "function") contexte.waitUntil(compter);
-      else await compter;
-    }
+    const url = new URL(requete.url);
+    const hote = hoteReferent(requete.headers.get("referer"), [url.hostname, ...NOS_DOMAINES]);
+
+    // LES TROIS MESURES ANNONCEES PAR LA PAGE VIE PRIVEE, et rien de plus.
+    // Le pays et la page sont comptes a CHAQUE arrivee ; le referent
+    // seulement quand il y en a un. La somme des pages est donc le nombre
+    // de pages vues, ce que le seul compteur de referents ne disait pas.
+    const travaux = [
+      incrementer("referents-pages", cheminCompte(url.pathname)),
+      incrementer("referents-pays", paysCompte(contexte.geo?.country?.code)),
+    ];
+    if (hote) travaux.push(incrementer("referents", hote));
+
+    const compter = Promise.all(travaux);
+    // `waitUntil` laisse la page partir sans attendre l'ecriture. S'il
+    // n'existe pas dans ce runtime, on attend : mieux vaut quelques
+    // millisecondes que de perdre le compte en silence.
+    if (typeof contexte.waitUntil === "function") contexte.waitUntil(compter);
+    else await compter;
   } catch {
     // Volontairement muet : voir l'en-tete du fichier.
   }
@@ -52,9 +69,14 @@ export default async function compterReferents(requete: Request, contexte: Conte
   return contexte.next();
 }
 
-async function incrementer(hote: string): Promise<void> {
-  const store = getStore("referents");
-  const cle = cleDuJour(hote, new Date());
+/**
+ * TROIS MAGASINS, PAS TROIS PREFIXES DANS UN SEUL. Chaque cle garde la
+ * forme `jour/valeur`, donc `clesPerimees` et la lecture marchent sur les
+ * trois sans rien changer, et le relevé deja ecrit n'a pas a migrer.
+ */
+async function incrementer(magasin: string, valeur: string): Promise<void> {
+  const store = getStore(magasin);
+  const cle = cleDuJour(valeur, new Date());
 
   // LA LECTURE DOIT ETRE EN COHERENCE FORTE. Par defaut Blobs lit en
   // coherence eventuelle, et rend `null` sur une valeur ecrite quelques
