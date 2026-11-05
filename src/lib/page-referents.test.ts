@@ -116,3 +116,32 @@ describe("ce que la page doit a qui ne la lit pas a l'oeil", () => {
     expect(html).toContain("prefers-color-scheme: dark");
   });
 });
+
+describe("les deux autres mesures, une fois la page vie privee reecrite", () => {
+  const AVEC = {
+    ...DONNEES,
+    pays: [{ hote: "FR", venues: 61 }, { hote: "MX", venues: 12 }, { hote: "(inconnu)", venues: 2 }],
+    pages: [{ hote: "fr", venues: 48 }, { hote: "fr/projets", venues: 19 }, { hote: "(accueil)", venues: 8 }],
+  };
+
+  it("montre les pays et les pages d'arrivee", () => {
+    const html = pageReferents(AVEC);
+    expect(html).toContain("fr/projets");
+    expect(html).toContain("MX");
+  });
+
+  // ⭐ CE CHIFFRE EST LA REPONSE A LA QUESTION QUE LE COMPTEUR DE REFERENTS
+  // NE SAVAIT PAS DONNER : combien de monde, et pas seulement qui envoie.
+  it("somme les pages vues, et le dit", () => {
+    expect(pageReferents(AVEC)).toContain("75");
+  });
+
+  // Les trois mesures ont commence a des jours differents : annoncer un
+  // total de pages vues sur une periode ou rien n'etait compte serait un
+  // faux. L'absence se dit.
+  it("ne montre pas de section vide quand une mesure n'a encore rien", () => {
+    const html = pageReferents({ ...DONNEES, pays: [], pages: [] });
+    expect(html).not.toContain("Pays");
+    expect(html).not.toContain("Pages d'arrivée");
+  });
+});

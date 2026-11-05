@@ -33,21 +33,33 @@ export default async function lireReferents(requete: Request) {
     });
   }
 
-  const store = getStore("referents");
-  const { blobs } = await store.list();
+  /** Lit un magasin entier et le rend agrege par valeur, plus le detail par jour. */
+  async function lire(magasin: string) {
+    const store = getStore(magasin);
+    const { blobs } = await store.list();
+    const parJour = await Promise.all(
+      blobs.map(async ({ key }) => {
+        const [jour, ...reste] = key.split("/");
+        const valeur = await store.get(key, { consistency: "strong" });
+        return { jour, hote: reste.join("/"), venues: Number(valeur ?? 0) };
+      }),
+    );
+    const total = new Map<string, number>();
+    for (const { hote, venues } of parJour) total.set(hote, (total.get(hote) ?? 0) + venues);
+    return { parJour, lignes: [...total.entries()].map(([hote, venues]) => ({ hote, venues })) };
+  }
 
-  const parJour = await Promise.all(
-    blobs.map(async ({ key }) => {
-      const [jour, ...reste] = key.split("/");
-      const valeur = await store.get(key, { consistency: "strong" });
-      return { jour, hote: reste.join("/"), venues: Number(valeur ?? 0) };
-    }),
-  );
+  const [ref, pays, pages] = await Promise.all([
+    lire("referents"),
+    lire("referents-pays"),
+    lire("referents-pages"),
+  ]);
 
-  const parHote = new Map<string, number>();
-  for (const { hote, venues } of parJour) parHote.set(hote, (parHote.get(hote) ?? 0) + venues);
-  const lignes = [...parHote.entries()].map(([hote, venues]) => ({ hote, venues }));
-  const jours = [...new Set(parJour.map((l) => l.jour))].sort();
+  const parJour = ref.parJour;
+  const lignes = ref.lignes;
+  // Les trois mesures n'ont pas commence le meme jour : la periode affichee
+  // est celle de TOUT ce qui est releve, pas celle des seuls referents.
+  const jours = [...new Set([...ref.parJour, ...pays.parJour, ...pages.parJour].map((l) => l.jour))].sort();
 
   // LES MEMES NOMS QUE LA FONCTION EDGE, plus l'hote de la requete : la page
   // doit ranger a part ce que le compteur, avant le 05/11, prenait encore
@@ -60,12 +72,12 @@ export default async function lireReferents(requete: Request) {
   // tout le reste (un script, un relevé, une reprise ailleurs).
   if (new URL(requete.url).searchParams.has("json")) {
     return Response.json(
-      { lignes: lignes.sort((a, b) => b.venues - a.venues), parJour, jours },
+      { lignes: lignes.sort((a, b) => b.venues - a.venues), pays: pays.lignes, pages: pages.lignes, parJour, jours },
       { headers: entetes },
     );
   }
 
-  return new Response(pageReferents({ lignes, nosHotes, jours }), {
+  return new Response(pageReferents({ lignes, nosHotes, jours, pays: pays.lignes, pages: pages.lignes }), {
     headers: { ...entetes, "Content-Type": "text/html; charset=utf-8" },
   });
 }
