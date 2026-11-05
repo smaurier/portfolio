@@ -20,10 +20,19 @@
  * Le domaine a retenir d'un en-tete `Referer`, ou `null` si rien ne doit
  * etre compte.
  *
- * `hoteDuSite` est le domaine du site lui-meme (sans `www`) : il sert a
- * ecarter les navigations internes, qui ne sont pas des venues.
+ * `nosHotes` liste TOUT ce qui sert ce site : l'hote de la requete en cours,
+ * plus les domaines connus. Il sert a ecarter les navigations internes, qui
+ * ne sont pas des venues.
+ *
+ * ⛔ POURQUOI UNE LISTE, ET PAS UN SEUL DOMAINE. Le 05/11/2026 le compteur
+ * annoncait 122 venues en un jour depuis `sylvainmaurier.com`. Ce n'etait
+ * pas un trafic : c'est un ALIAS du meme site Netlify (`domain_aliases` de
+ * `nahual-studio`), donc la meme application sous un autre nom, et chaque
+ * navigation interne y ressortait comme un referent exterieur. Un site a
+ * autant de noms qu'on lui en donne, et ils changent sans que le code le
+ * sache : l'appelant passe l'hote de la requete, qui est toujours juste.
  */
-export function hoteReferent(referer: string | null, hoteDuSite: string): string | null {
+export function hoteReferent(referer: string | null, nosHotes: readonly string[]): string | null {
   if (!referer || referer.trim() === "") return null;
 
   let url: URL;
@@ -42,12 +51,28 @@ export function hoteReferent(referer: string | null, hoteDuSite: string): string
   const hote = sansWww(url.hostname.toLowerCase());
   if (hote === "") return null;
 
-  // Le site lui-meme et ses sous-domaines (le wiki) sont a nous : les
-  // compter noierait les vrais referents sous notre propre trafic.
-  const nous = sansWww(hoteDuSite.toLowerCase());
-  if (hote === nous || hote.endsWith(`.${nous}`)) return null;
+  // Le site lui-meme, ses alias, ses sous-domaines (le wiki) et ses URL de
+  // deploiement sont a nous : les compter noierait les vrais referents sous
+  // notre propre trafic.
+  if (nosHotes.some((n) => estANous(hote, sansWww(n.toLowerCase())))) return null;
 
   return hote;
+}
+
+/**
+ * Vrai si `hote` est le domaine `nous`, un de ses sous-domaines, ou une URL
+ * unique de deploiement Netlify.
+ *
+ * ⚠️ LES TROIS FORMES, ET POURQUOI LA TROISIEME EXISTE. Netlify sert chaque
+ * deploiement a `<identifiant>--<site>.netlify.app` : un DOUBLE TIRET, pas
+ * un point. Ce n'est donc pas un sous-domaine, et la regle du point seule
+ * les laissait passer (mesure du 05/11 : 7 et 5 venues fantomes).
+ *
+ * ⛔ Et la comparaison se fait sur une FRONTIERE, jamais sur un `includes` :
+ * `nahual.fr.exemple.org` et `pas-nahual.fr` ne sont pas a nous.
+ */
+function estANous(hote: string, nous: string): boolean {
+  return hote === nous || hote.endsWith(`.${nous}`) || hote.endsWith(`--${nous}`);
 }
 
 function sansWww(hote: string): string {

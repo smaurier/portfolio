@@ -6,7 +6,13 @@ import { cleDuJour, hoteReferent } from "./referents";
  * comparaison doit tenir avec et sans `www`, parce que les deux formes
  * circulent dans les liens d'autrui.
  */
-const NAHUAL = "nahual.fr";
+const NAHUAL = ["nahual.fr"];
+
+/**
+ * TOUT CE QUI SERT CE SITE, tel que la fonction edge le lui passe : l'hote
+ * de la requete en cours, plus les domaines connus du site.
+ */
+const NOUS = ["nahual.fr", "sylvainmaurier.com", "nahual-studio.netlify.app"];
 
 describe("hoteReferent (ce qu'on garde d'un en-tete Referer)", () => {
   it("rend le domaine d'un vrai site referent", () => {
@@ -82,5 +88,41 @@ describe("cleDuJour (la cle sous laquelle on compte)", () => {
     const lendemain = cleDuJour("exemple.org", new Date("2026-11-05T00:00:00Z"));
     expect(matin).toBe(soir);
     expect(lendemain).not.toBe(matin);
+  });
+});
+
+// ⛔ LE DEFAUT QUI A FAIT COMPTER 122 FAUSSES VENUES EN UN JOUR (05/11/2026).
+// `sylvainmaurier.com` est un ALIAS du meme site Netlify (`domain_aliases` de
+// `nahual-studio`) : la meme application, servie sous un autre nom. Chaque
+// navigation interne sous cet alias ressortait donc comme un referent
+// exterieur, et le compteur annoncait un trafic qui n'existait pas. Un seul
+// domaine en dur ne peut pas tenir : un site a autant de noms qu'on lui en
+// donne, et ils changent sans que le code le sache.
+describe("hoteReferent : tout ce qui sert ce site n'est jamais un referent", () => {
+  it("ignore un alias du site, qui sert la meme application", () => {
+    expect(hoteReferent("https://sylvainmaurier.com/fr/projets", NOUS)).toBeNull();
+    expect(hoteReferent("https://www.sylvainmaurier.com/fr", NOUS)).toBeNull();
+  });
+
+  it("ignore l'adresse Netlify du site", () => {
+    expect(hoteReferent("https://nahual-studio.netlify.app/fr", NOUS)).toBeNull();
+  });
+
+  // Les URL uniques de deploiement portent un `--`, pas un point : elles ne
+  // sont pas des sous-domaines au sens de la regle precedente, et elles
+  // etaient comptees. Mesure du 05/11 : 7 et 5 venues fantomes.
+  it("ignore une URL unique de deploiement (prefixe en --)", () => {
+    expect(hoteReferent("https://6aeb537ba8ed72ff08c431a6--nahual-studio.netlify.app/fr", NOUS)).toBeNull();
+  });
+
+  it("garde un vrai site exterieur, meme avec plusieurs domaines a nous", () => {
+    expect(hoteReferent("https://www.mexicolore.co.uk/aztecs/links", NOUS)).toBe("mexicolore.co.uk");
+  });
+
+  // ⚠️ Le piege a eviter en corrigeant : une regle trop large qui ecarterait
+  // tout ce qui ressemble a nos noms. Ces deux sites ne sont pas a nous.
+  it("ne confond pas avec un domaine qui contient le notre", () => {
+    expect(hoteReferent("https://nahual.fr.exemple.org/", NOUS)).toBe("nahual.fr.exemple.org");
+    expect(hoteReferent("https://pas-nahual.fr/", NOUS)).toBe("pas-nahual.fr");
   });
 });
