@@ -1,6 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import type { Config, Context } from "@netlify/edge-functions";
-import { cheminCompte, cleDuJour, hoteReferent, paysCompte } from "../../src/lib/referents.ts";
+import { cheminCompte, cleDuJour, estUnePageServie, hoteReferent, paysCompte } from "../../src/lib/referents.ts";
 
 /**
  * Compte trois totaux quotidiens, au bord, sans rien poser dans la page.
@@ -9,6 +9,12 @@ import { cheminCompte, cleDuJour, hoteReferent, paysCompte } from "../../src/lib
  * depuis le 05/11/2026 : le domaine d'ou vient la personne si elle a suivi
  * un lien, son pays, et la page sur laquelle elle arrive. Trois totaux par
  * jour, rien d'autre.
+ *
+ * ⛔ ET SEULEMENT SUR UNE PAGE REELLEMENT SERVIE (07/11). Quatre jours de
+ * production ont montre que compter sur la foi du chemin demande revenait a
+ * compter les robots : 381 des 497 pages etaient des sondes cherchant des
+ * secrets (`.env`, `wp-admin/install.php`, `.git/config`). Le critere est
+ * dans `estUnePageServie`, teste a l'unite.
  *
  * CE QU'ELLE NE FAIT PAS, et c'est le point : aucun script envoye au
  * navigateur, aucun cookie, aucune adresse IP, aucun identifiant, aucun
@@ -42,31 +48,42 @@ import { cheminCompte, cleDuJour, hoteReferent, paysCompte } from "../../src/lib
 const NOS_DOMAINES = ["nahual.fr", "sylvainmaurier.com", "nahual-studio.netlify.app"];
 
 export default async function compterReferents(requete: Request, contexte: Context) {
+  // ⛔ ON COMPTE APRES LA REPONSE, PAS AVANT, et c'est tout le correctif du
+  // 07/11. Avant, on comptait sur la seule foi du chemin demande : quatre
+  // jours de production ont donne 381 pages de sondes de robots sur 497.
+  // Savoir si le site a reellement servi une page suppose d'avoir la
+  // reponse en main. Attendre `next()` ne retarde pas le visiteur : la
+  // reponse part des que ses en-tetes sont la, et le corps continue de
+  // s'ecouler pendant qu'on compte.
+  const reponse = await contexte.next();
+
   try {
-    const url = new URL(requete.url);
-    const hote = hoteReferent(requete.headers.get("referer"), [url.hostname, ...NOS_DOMAINES]);
+    if (estUnePageServie(reponse.status, reponse.headers.get("content-type"))) {
+      const url = new URL(requete.url);
+      const hote = hoteReferent(requete.headers.get("referer"), [url.hostname, ...NOS_DOMAINES]);
 
-    // LES TROIS MESURES ANNONCEES PAR LA PAGE VIE PRIVEE, et rien de plus.
-    // Le pays et la page sont comptes a CHAQUE arrivee ; le referent
-    // seulement quand il y en a un. La somme des pages est donc le nombre
-    // de pages vues, ce que le seul compteur de referents ne disait pas.
-    const travaux = [
-      incrementer("referents-pages", cheminCompte(url.pathname)),
-      incrementer("referents-pays", paysCompte(contexte.geo?.country?.code)),
-    ];
-    if (hote) travaux.push(incrementer("referents", hote));
+      // LES TROIS MESURES ANNONCEES PAR LA PAGE VIE PRIVEE, et rien de plus.
+      // Le pays et la page sont comptes a CHAQUE page servie ; le referent
+      // seulement quand il y en a un. La somme des pages est donc le nombre
+      // de pages vues, ce que le seul compteur de referents ne disait pas.
+      const travaux = [
+        incrementer("referents-pages", cheminCompte(url.pathname)),
+        incrementer("referents-pays", paysCompte(contexte.geo?.country?.code)),
+      ];
+      if (hote) travaux.push(incrementer("referents", hote));
 
-    const compter = Promise.all(travaux);
-    // `waitUntil` laisse la page partir sans attendre l'ecriture. S'il
-    // n'existe pas dans ce runtime, on attend : mieux vaut quelques
-    // millisecondes que de perdre le compte en silence.
-    if (typeof contexte.waitUntil === "function") contexte.waitUntil(compter);
-    else await compter;
+      const compter = Promise.all(travaux);
+      // `waitUntil` laisse la page partir sans attendre l'ecriture. S'il
+      // n'existe pas dans ce runtime, on attend : mieux vaut quelques
+      // millisecondes que de perdre le compte en silence.
+      if (typeof contexte.waitUntil === "function") contexte.waitUntil(compter);
+      else await compter;
+    }
   } catch {
     // Volontairement muet : voir l'en-tete du fichier.
   }
 
-  return contexte.next();
+  return reponse;
 }
 
 /**

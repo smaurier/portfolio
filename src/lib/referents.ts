@@ -180,3 +180,26 @@ export function cheminCompte(pathname: string): string {
 export function paysCompte(code: string | undefined | null): string {
   return code && /^[a-z]{2}$/i.test(code) ? code.toUpperCase() : "(inconnu)";
 }
+
+/**
+ * Vrai si la requete a reellement abouti sur une PAGE du site.
+ *
+ * ⛔ NE DE QUATRE JOURS DE MESURE EN PRODUCTION (07/11/2026). Sur 497 pages
+ * distinctes comptees, 381 etaient des SONDES DE ROBOTS cherchant des
+ * secrets exposes : `wp-admin/install.php`, `.env`, `.git/config`,
+ * `.env.production`... Elles recoivent toutes un 404, mais elles etaient
+ * comptees, et le total de 1104 « pages vues » ne mesurait donc pas des
+ * lecteurs. Pire, le magasin gagnait une cle par URL sondee et par jour,
+ * sans fin.
+ *
+ * ⭐ LE TYPE PLUTOT QU'UNE LISTE D'EXTENSIONS. Verifier le seul code 200
+ * laisserait passer `manifest.webmanifest` et `apple-icon`, servis avec
+ * succes et comptes a 17 et 5 venues. Une page, c'est du HTML : ce critere
+ * ecarte les sondes ET les ressources, et il n'y a aucune liste a tenir a
+ * jour quand une ressource nouvelle apparait.
+ *
+ * ⚠️ Et il refuse quand le type manque, plutot que de supposer.
+ */
+export function estUnePageServie(statut: number, typeContenu: string | null): boolean {
+  return statut === 200 && (typeContenu ?? "").toLowerCase().includes("text/html");
+}
