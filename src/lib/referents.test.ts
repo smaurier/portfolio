@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classerReferents, cheminCompte, cleDuJour, clesPerimees, hoteReferent, paysCompte } from "./referents";
+import { classerReferents, cheminCompte, cleDuJour, clesPerimees, estUnePageServie, hoteReferent, paysCompte } from "./referents";
 
 /**
  * Le site de Sylvain, tel que la fonction le connait a l'execution. La
@@ -249,5 +249,41 @@ describe("paysCompte : un code pays, ou rien d'invente", () => {
     expect(paysCompte(undefined)).toBe("(inconnu)");
     expect(paysCompte("")).toBe("(inconnu)");
     expect(paysCompte("pas-un-code")).toBe("(inconnu)");
+  });
+});
+
+// ── NE COMPTER QUE DES PAGES REELLEMENT SERVIES ───────────────────────────
+describe("estUnePageServie : ce que le site a vraiment rendu", () => {
+  // ⛔ MESURE DU 07/11/2026, QUATRE JOURS APRES LA MISE EN LIGNE : sur 497
+  // pages distinctes comptees, 381 etaient des SONDES DE ROBOTS cherchant
+  // des secrets exposes -- wp-admin/install.php, .env, .git/config,
+  // .env.production... Le total de 1104 << pages vues >> ne mesurait donc
+  // pas des lecteurs, et le magasin grossissait d'une cle par URL sondee.
+  it("refuse ce que le site n'a pas servi", () => {
+    expect(estUnePageServie(404, "text/html; charset=utf-8")).toBe(false);
+    expect(estUnePageServie(301, "text/html")).toBe(false);
+    expect(estUnePageServie(500, "text/html")).toBe(false);
+  });
+
+  // ⭐ LE TYPE PLUTOT QU'UNE LISTE D'EXTENSIONS. Verifier le seul code 200
+  // laisserait passer `manifest.webmanifest` et `apple-icon`, qui repondent
+  // 200 : ils etaient comptes, mesures a 17 et 5 venues. Une page, c'est du
+  // HTML, et ca ne demande aucune liste a tenir a jour.
+  it("refuse une ressource, meme servie avec succes", () => {
+    expect(estUnePageServie(200, "application/manifest+json")).toBe(false);
+    expect(estUnePageServie(200, "image/png")).toBe(false);
+    expect(estUnePageServie(200, "application/json")).toBe(false);
+    expect(estUnePageServie(200, "text/plain")).toBe(false);
+  });
+
+  it("accepte une page, quelle que soit la facon dont le type est ecrit", () => {
+    expect(estUnePageServie(200, "text/html; charset=utf-8")).toBe(true);
+    expect(estUnePageServie(200, "TEXT/HTML")).toBe(true);
+    expect(estUnePageServie(200, "text/html")).toBe(true);
+  });
+
+  it("refuse plutot que de supposer quand le type manque", () => {
+    expect(estUnePageServie(200, null)).toBe(false);
+    expect(estUnePageServie(200, "")).toBe(false);
   });
 });
