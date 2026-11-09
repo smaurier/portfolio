@@ -33,7 +33,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.13.0",
+    "@axe-core/playwright": "^4.14.0",
     "@gltf-transform/cli": "^4.5.1",
     "@netlify/blobs": "^11.1.7",
     "@netlify/edge-functions": "^4.0.3",
